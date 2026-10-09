@@ -181,9 +181,9 @@
     "package": "com.jeremykenedy.clouddriftclock",
     "dream": "com.jeremykenedy.clouddriftclock/.CloudDreamService",
     "repo": "jeremykenedy/cloud-drift-clock",
-    "tag": "v1.0.0",
-    "url": "https://github.com/jeremykenedy/cloud-drift-clock/releases/download/v1.0.0/cloud-drift-clock.apk",
+    "tag": "v1.0.1",
+    "url": "https://github.com/jeremykenedy/cloud-drift-clock/releases/download/v1.0.1/cloud-drift-clock.apk",
     "bytes": 320287,
-    "sha256": "35a18c3d82738f7623c84b2c199bb664e2c20e76062a05f748993012e5716663"
+    "sha256": "11b72b93a82012605348698b8ff53ee1be13fb8b0ffe0d128e6a1f4e23233d27"
   }
 ]
