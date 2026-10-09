@@ -15,7 +15,16 @@ public final class PackageStorage {
     }
 
     public static String size(long bytes) {
-        return String.format(Locale.US, "%.1f MB", bytes / 1048576.0);
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        if (bytes < 1048576) {
+            return String.format(Locale.US, "%.1f KB", bytes / 1024.0);
+        }
+        if (bytes < 1073741824L) {
+            return String.format(Locale.US, "%.1f MB", bytes / 1048576.0);
+        }
+        return String.format(Locale.US, "%.1f GB", bytes / 1073741824.0);
     }
 
     public static String summary(Context context, String pkg) {

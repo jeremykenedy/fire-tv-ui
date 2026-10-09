@@ -23,7 +23,9 @@ Testing a saved component alone does not establish that a particular screensaver
 
 ## Verified build on October 8, 2026
 
-The signed `fire-tv-ui-1.0.0.apk` has SHA-256 `b84946de3c94f9952a3626d1ebf2fc4518ad41149c4c9f4aa42ff74f0531b3ca`. Signature verification, 16 KB alignment, ZIP integrity, 28 JVM checks, and six Python tests passed. The final catalog pins nine published APKs by package, version, byte count, and SHA-256. The new preview images were inspected at their displayed size; source captures and hashes are recorded in `app/previews/sources.json`.
+The signed `fire-tv-ui-1.0.0.apk` has SHA-256 `72a2b21116ff2e6b3af95b1ba2eae9ef1b724d5ecc05fe081e75ea1bfce515a6`. Signature verification, 16 KB alignment, ZIP integrity, 28 JVM checks, and six Python tests passed. The final catalog pins nine published APKs by package, version, byte count, and SHA-256. The new preview images were inspected at their displayed size; source captures and hashes are recorded in `app/previews/sources.json`.
+
+The Fire TV checks below used the prior nine-entry build before the final byte-size formatting change. The final APK was installed and reboot-tested on the Android TV emulator. Small downloads now display kilobytes; RAM and storage totals can display gigabytes.
 
 | Device | Observed result |
 | --- | --- |
@@ -35,13 +37,17 @@ The signed `fire-tv-ui-1.0.0.apk` has SHA-256 `b84946de3c94f9952a3626d1ebf2fc451
 | Fire TV | The startup page's local updater blocker was enabled with TV VPN consent. Its selected UID scope excluded the launcher. Persistent backups were saved to TV Downloads and retrieved to private computer files without publishing layout data. |
 | Android TV emulator, Android 12 / API 31 | Launcher menus, About, Help, native cards, and navigation were inspected. Settings has no Premium entry. About and Help have no rating, purchase, upgrade, or project prompts. |
 | Android TV emulator | CLI uninstall/reinstall and backup restoration preserved a 35-preference profile, including native controls. Native Aerial Views installation and removal completed through the catalog and Android confirmation pages. |
+| Isolated Android TV emulator, final release checks | Native Home routing worked both Off and On with settings protection enabled. Three consecutive CLI updates preserved Home routing. A complete uninstall/reinstall restored all 36 saved settings from the TV Downloads backup. Updating to the final APK also preserved Home routing. |
+| Isolated Android TV emulator, final APK reboot | Fire TV UI became the resumed activity automatically after a real emulator reboot. The native protection service restarted, and all six checked Home, screensaver, enabled-state, and timer settings matched the saved baseline. No manual app launch was used to establish startup. |
 
-Evidence includes the [picker's first rows](../art/screenshots/tv-screensaver-first-tv-1920.png), [lower rows](../art/screenshots/tv-screensaver-lower-tv-1920.png), and [normal Colors dream](../art/screenshots/screensaver-colors-runtime-tv-1920.png). The README contains the remaining interface screenshots. Catalog screenshots predate the latest entries.
+Evidence includes the [picker's first rows](../art/screenshots/tv-screensaver-first-tv-1920.png), [lower rows](../art/screenshots/tv-screensaver-lower-tv-1920.png), and [normal Colors dream](../art/screenshots/screensaver-colors-runtime-tv-1920.png). The final catalog's [first entries](../art/screenshots/install-screensavers-tv-1920.png), [last entries](../art/screenshots/install-screensavers-lower-tv-1920.png), and updated [memory display](../art/screenshots/memory-tv-1920.png) were captured on the Android TV emulator. The README contains the remaining interface screenshots.
 
 ## Checks still requiring hardware access
 
-A physical TV reboot was initiated after installing the final APK. The TV returned on the network, but its ADB port stopped accepting connections. Automatic startup, post-reboot protection and VPN state, and the final published-CLI installation therefore remain unverified. Do not count the reboot request itself as a successful boot test.
+A physical TV reboot was initiated after installing the prior nine-entry APK. The TV returned on the network, but its ADB port stopped accepting connections. Automatic startup, post-reboot protection and VPN state, and the final published-CLI installation therefore remain unverified. The user requires permission before further physical TV testing so current viewing is uninterrupted. Do not count the reboot request itself as a successful boot test.
+
+An initial emulator update reported a Home restoration failure even though the accessibility services were enabled afterward. Three consecutive traced updates and the final APK update then passed. Repeat this check on the physical Fire TV before declaring the installer complete.
 
 Physical Android TV and Google TV devices have not been tested. The Android TV emulator is not a substitute for those vendor implementations. Android 8.1 is the manifest minimum; device checks covered API 30 and 31. Every legacy widget and wallpaper source has not been tested. Play Protect blocked some older mirrored screensaver APKs on the emulator; those restrictions were not bypassed.
 
-The toolkit's automated checks cover installer cancellation, clean setup, update preservation, backup retention and transfers, malformed files, checksums, rejected device settings, Home rollback, and guard interoperability. GitHub Actions results are separate from the native device checks. Signed release artifacts should be published after the remaining device checks are completed.
+The toolkit's 388 automated checks passed and cover installer cancellation, clean setup, update preservation, backup retention and transfers, malformed files, checksums, rejected device settings, Home rollback, and guard interoperability. Its existing GitHub Actions checks and reviewed SonarCloud quality gate passed. Fire TV UI itself has no CI workflow. Signed release artifacts remain drafts until the remaining device checks are completed; GUI APK distribution also needs to respect the private repository's intended audience.

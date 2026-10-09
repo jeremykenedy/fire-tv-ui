@@ -130,6 +130,8 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
+Captured on Fire TV hardware and an Android TV emulator.
+
 <table>
   <tr>
     <td><img src="art/screenshots/home-tv-1920.png" alt="Fire TV UI home screen on Android TV"><br>Home</td>
@@ -153,6 +155,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
   </tr>
   <tr>
     <td><img src="art/screenshots/install-screensavers-tv-1920.png" alt="Verified screensaver installation and removal catalog"><br>Install screensavers</td>
+    <td><img src="art/screenshots/install-screensavers-lower-tv-1920.png" alt="Final catalog entries with their download sizes"><br>More screensavers</td>
     <td><img src="art/screenshots/persistent-backups-tv-1920.png" alt="Persistent TV backup and CLI import restoration"><br>TV backups</td>
   </tr>
 </table>
