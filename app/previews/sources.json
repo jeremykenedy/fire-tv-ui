@@ -15,6 +15,14 @@
     "source_project": "jeremykenedy/aqua-surface-drift",
     "source_sha256": "880b8356fca0afaeed115145a7979931ebc3f85596784cdd5964935c8d1b801c"
   },
+  "com.jeremykenedy.clouddriftclock/com.jeremykenedy.clouddriftclock.CloudDreamService": {
+    "capture_note": "Cloud Drift Clock PreviewActivity running on Android TV emulator API 31; screenshot published by the project.",
+    "captured_on": "2026-10-08",
+    "preview_sha256": "f2dfb479d84f0b50bc77d886a1ebb37c5eec827029c0a5d5c51d50dfd5acbc6c",
+    "source_file": "art/screenshots/cloud-drift-clock-android-tv-1920.png",
+    "source_project": "jeremykenedy/cloud-drift-clock",
+    "source_sha256": "b7c8d00ef6b6aee5a110b04b7a5acb72a2ef3e16b3ebd96317e3baaa1651408e"
+  },
   "com.jeremykenedy.fireflygrove/com.jeremykenedy.fireflygrove.FireflyDreamService": {
     "capture_note": "Running Firefly Grove on Android TV, reused from the published screensaver project.",
     "captured_on": "2026-10-08",

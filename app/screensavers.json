@@ -174,5 +174,16 @@
     "url": "https://github.com/jeremykenedy/aqua-surface-drift/releases/download/v1.0.0/aqua-surface-drift.apk",
     "bytes": 45773,
     "sha256": "cdab28be93938018c8fefd8cf0103c94d9c0c3413ce3b4f7c0359cca7d93cf82"
+  },
+  {
+    "id": "cloud-drift-clock",
+    "name": "Cloud Drift Clock",
+    "package": "com.jeremykenedy.clouddriftclock",
+    "dream": "com.jeremykenedy.clouddriftclock/.CloudDreamService",
+    "repo": "jeremykenedy/cloud-drift-clock",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/cloud-drift-clock/releases/download/v1.0.0/cloud-drift-clock.apk",
+    "bytes": 320287,
+    "sha256": "35a18c3d82738f7623c84b2c199bb664e2c20e76062a05f748993012e5716663"
   }
 ]

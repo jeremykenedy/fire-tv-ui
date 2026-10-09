@@ -102,6 +102,10 @@ class BuildChecks(unittest.TestCase):
                 'Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
                 'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService', 'jeremykenedy/aqua-surface-drift',
                 'cdab28be93938018c8fefd8cf0103c94d9c0c3413ce3b4f7c0359cca7d93cf82', 45773),
+            'cloud-drift-clock': (
+                'Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
+                'com.jeremykenedy.clouddriftclock/.CloudDreamService', 'jeremykenedy/cloud-drift-clock',
+                '35a18c3d82738f7623c84b2c199bb664e2c20e76062a05f748993012e5716663', 320287),
         }
         entries = {item['id']: item for item in json.loads((ROOT / 'app/screensavers.json').read_text())}
         index = json.loads((ROOT / 'app/previews/index.json').read_text())

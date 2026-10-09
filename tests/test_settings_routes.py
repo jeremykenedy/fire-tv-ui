@@ -22,6 +22,8 @@ SCREENSAVERS = (
      'com.jeremykenedy.pipeworksdream/.PipeworksDreamService'),
     ('Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
      'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService'),
+    ('Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
+     'com.jeremykenedy.clouddriftclock/.CloudDreamService'),
 )
 
 
