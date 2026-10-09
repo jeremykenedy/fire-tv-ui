@@ -131,6 +131,16 @@ class BuildChecks(unittest.TestCase):
                 'com.jeremykenedy.contourflow/.ContourFlowDreamService',
                 'jeremykenedy/contour-flow',
                 'b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447', 29368),
+            'skyburst-nocturne': (
+                'Skyburst Nocturne', 'com.jeremykenedy.skyburstnocturne',
+                'com.jeremykenedy.skyburstnocturne/.FireworksDreamService',
+                'jeremykenedy/skyburst-nocturne',
+                '2ce571933d6f4a8017ada3c5598d21edc363b51598f4d4c302bafebb0863a57a', 37748),
+            'pulse-circuit': (
+                'Pulse Circuit', 'com.jeremykenedy.pulsecircuit',
+                'com.jeremykenedy.pulsecircuit/.PulseDreamService',
+                'jeremykenedy/pulse-circuit',
+                '5e71095d0b2966d1cf803ad9299ad7a233309848d1aea8e27423cfcf8ff96c95', 33485),
         }
         entries = {item['id']: item for item in json.loads((ROOT / 'app/screensavers.json').read_text())}
         index = json.loads((ROOT / 'app/previews/index.json').read_text())

@@ -9,7 +9,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.0.3-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.1.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -40,7 +40,7 @@ This repository and its APK are private. Users with repository access can instal
 The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
 
 ```bash
-firetv-ui --install --apk=/path/to/fire-tv-ui-1.0.1.apk --sha256=PUBLISHED_SHA256
+firetv-ui --install --apk=/path/to/fire-tv-ui-1.1.0.apk --sha256=PUBLISHED_SHA256
 ```
 
 For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
@@ -167,7 +167,11 @@ These are bundled previews of the animated screensavers available in the on-TV c
     <td><img src="app/previews/c5ab28b8e4ab7e528b914f82d4075dba660cad7301c7a3de7df549a408df0563.jpg" alt="Perseid Passage with meteors crossing a dark starfield"><br>Perseid Passage</td>
     <td><img src="app/previews/982f942f0f840c97179a8be9447f316c6c2e87123d456cf65468af4a98921c76.jpg" alt="Split-Flap Drift with an illuminated floating flip clock"><br>Split-Flap Drift</td>
     <td><img src="app/previews/1cb8c639b6468d88e3da29d58d85c6f052be0feaf61f8a10ced85ef75750f130.jpg" alt="Canopy Drift with a green treetop canopy and drifting leaves"><br>Canopy Drift</td>
+  </tr>
+  <tr>
     <td><img src="app/previews/38e1682f25341c01af673c7e41b6779490496d775c67b0ddd736da05478116ab.jpg" alt="Contour Flow with animated flowing contour lines"><br>Contour Flow</td>
+    <td><img src="app/previews/64fdc74c5e5d23a9397cc81faaa331404405ccde7e8f01264ee04e91c38daa80.jpg" alt="Skyburst Nocturne with bright colorful fireworks over a skyline"><br>Skyburst Nocturne</td>
+    <td><img src="app/previews/d752d5739810907e8d0434f3941070bf2d83adbc902011f827187fe4afd909b6.jpg" alt="Pulse Circuit with animated neon geometric forms"><br>Pulse Circuit</td>
   </tr>
 </table>
 
