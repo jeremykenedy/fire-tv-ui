@@ -6,6 +6,15 @@ Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build 
 
 ## Device checks
 
+### Fire TV UI 1.0.1, version code 26
+
+| Platform | Result | Notes |
+| --- | --- | --- |
+| Android TV emulator, Android 12 / API 31, 1920x1080 | Verified | Updated from version code 25. The Home Redirect picker selected Helios Lightfield, and the choice remained active after the protection interval. Restored the original Colors screensaver and verified it remained enabled. |
+| Physical Fire TV | Not tested for this build | Looking for a Fire TV owner to install the update and report selection and restart behavior. |
+| Physical Android TV | Not tested | Looking for a device owner to verify installation and screensaver selection. |
+| Physical Google TV | Not tested | Looking for a device owner to verify installation and screensaver selection. |
+
 Use `FIRE_TV_UI_TEST_SERIAL=emulator-PORT python3 -m unittest tests.test_settings_routes -v` to verify that each bundled saver opens its declared settings activity. The test refuses non-emulator devices and restores the original screensaver selection and enabled state.
 
 Use a signed APK and a specific ADB serial. Save the current values of `secure screensaver_components`, `secure screensaver_enabled`, and `secure enabled_accessibility_services` before testing. Restore any system settings changed by the test.
