@@ -9,8 +9,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="https://github.com/jeremykenedy/fire-tv-toolkit/releases/tag/v3.3.0"><img src="https://img.shields.io/github/downloads/jeremykenedy/fire-tv-toolkit/v3.3.0/fire-tv-ui-1.0.0.apk" alt="Fire TV UI downloads"></a>
-    <a href="https://github.com/jeremykenedy/fire-tv-toolkit/releases/tag/v3.3.0"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.0.0-blue" alt="Latest stable version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.0.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -36,7 +35,13 @@
 
 ## Installation
 
-Download the [signed APK](https://github.com/jeremykenedy/fire-tv-toolkit/releases/download/v3.3.0/fire-tv-ui-1.0.0.apk), or run the [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) installer with `firetv-ui`. Installer files are available from the toolkit's public release while this source repository keeps its existing visibility.
+This repository and its APK are kept private. Build the signed APK locally, or use an APK supplied through this repository's private releases. Final release publication waits for the remaining [device verification](docs/verification.md).
+
+The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
+
+```bash
+firetv-ui --install --apk=/path/to/fire-tv-ui-1.0.0.apk --sha256=PUBLISHED_SHA256
+```
 
 For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
 
