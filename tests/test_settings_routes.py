@@ -24,6 +24,8 @@ SCREENSAVERS = (
      'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService'),
     ('Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
      'com.jeremykenedy.clouddriftclock/.CloudDreamService'),
+    ('Earthbound Orbit', 'com.jeremykenedy.earthboundorbit',
+     'com.jeremykenedy.earthboundorbit/.EarthboundOrbitDreamService'),
 )
 
 

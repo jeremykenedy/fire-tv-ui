@@ -23,6 +23,14 @@
     "source_project": "jeremykenedy/cloud-drift-clock",
     "source_sha256": "b7c8d00ef6b6aee5a110b04b7a5acb72a2ef3e16b3ebd96317e3baaa1651408e"
   },
+  "com.jeremykenedy.earthboundorbit/com.jeremykenedy.earthboundorbit.EarthboundOrbitDreamService": {
+    "capture_note": "Android TV emulator capture of the running Earthbound Orbit release preview.",
+    "captured_on": "2026-10-08",
+    "preview_sha256": "154fa35e07a8fccabe2e113590a619a252ff4a1ceabfc3aaa24b0172d8bbd5bd",
+    "source_file": "art/screenshots/earthbound-orbit-android-tv-1920.png",
+    "source_project": "jeremykenedy/earthbound-orbit",
+    "source_sha256": "0540119ce868f92af07485be7ba2ccbf74f194dbfdb4abeae929d26a035ebf8f"
+  },
   "com.jeremykenedy.fireflygrove/com.jeremykenedy.fireflygrove.FireflyDreamService": {
     "capture_note": "Running Firefly Grove on Android TV, reused from the published screensaver project.",
     "captured_on": "2026-10-08",
