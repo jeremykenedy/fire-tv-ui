@@ -6,6 +6,8 @@ Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build 
 
 ## Device checks
 
+Use `FIRE_TV_UI_TEST_SERIAL=emulator-PORT python3 -m unittest tests.test_settings_routes -v` to verify that each bundled saver opens its declared settings activity. The test refuses non-emulator devices and restores the original screensaver selection and enabled state.
+
 Use a signed APK and a specific ADB serial. Save the current values of `secure screensaver_components`, `secure screensaver_enabled`, and `secure enabled_accessibility_services` before testing. Restore any system settings changed by the test.
 
 1. Install and launch Fire TV UI. Check its icon, label, onboarding, Settings, About, and Help.
@@ -23,7 +25,7 @@ Testing a saved component alone does not establish that a particular screensaver
 
 ## Verified build on October 8, 2026
 
-The signed `fire-tv-ui-1.0.0.apk` has SHA-256 `72a2b21116ff2e6b3af95b1ba2eae9ef1b724d5ecc05fe081e75ea1bfce515a6`. Signature verification, 16 KB alignment, ZIP integrity, 28 JVM checks, and six Python tests passed. The final catalog pins nine published APKs by package, version, byte count, and SHA-256. The new preview images were inspected at their displayed size; source captures and hashes are recorded in `app/previews/sources.json`.
+The local signed `fire-tv-ui-1.0.0.apk` build has SHA-256 `0d4ae1f917fda2fa9925aa312302b6773a895c73939ab3af4fa1c7881041d5de`. Signature verification, 16 KB alignment, ZIP integrity, 28 JVM checks, and eight Python tests passed. The catalog pins 13 published APKs by package, version, byte count, and SHA-256. The Twilight Hearth, Nebula Drift, Vortex Spiral, and Signal Rain APK digests and sizes match their GitHub release metadata. Their preview images were inspected at 384x216; source captures and hashes are recorded in `app/previews/sources.json`. The emulator-only settings route test also passed for all four apps.
 
 The Fire TV checks below used the prior nine-entry build before the final byte-size formatting change. The final APK was installed and reboot-tested on the Android TV emulator. Small downloads now display kilobytes; RAM and storage totals can display gigabytes.
 
@@ -36,6 +38,8 @@ The Fire TV checks below used the prior nine-entry build before the final byte-s
 | Fire TV | Local settings protection reverted an outside screensaver change. Intentional CLI changes updated the desired values. Screensaver unlock allowed a new selection until protection was enabled again. Home Redirect 1.2.2 reported no conflicting restored settings. |
 | Fire TV | The startup page's local updater blocker was enabled with TV VPN consent. Its selected UID scope excluded the launcher. Persistent backups were saved to TV Downloads and retrieved to private computer files without publishing layout data. |
 | Android TV emulator, Android 12 / API 31 | Launcher menus, About, Help, native cards, and navigation were inspected. Settings has no Premium entry. About and Help have no rating, purchase, upgrade, or project prompts. |
+| Android TV emulator, Android 12 / API 31 | Twilight Hearth, Nebula Drift, Vortex Spiral, and Signal Rain were installed from their published APKs. The picker displayed their bundled previews, and Screensaver settings opened each app's declared SettingsActivity. The original Aquarium Live selection and screensaver-enabled value were restored and read back unchanged. |
+| Android TV emulator, Android 12 / API 31 | Install screensavers displayed the four new release entries as installed. No physical TV was used for these checks. |
 | Android TV emulator | CLI uninstall/reinstall and backup restoration preserved a 35-preference profile, including native controls. Native Aerial Views installation and removal completed through the catalog and Android confirmation pages. |
 | Isolated Android TV emulator, final release checks | Native Home routing worked both Off and On with settings protection enabled. Three consecutive CLI updates preserved Home routing. A complete uninstall/reinstall restored all 36 saved settings from the TV Downloads backup. Updating to the final APK also preserved Home routing. |
 | Isolated Android TV emulator, final APK reboot | Fire TV UI became the resumed activity automatically after a real emulator reboot. The native protection service restarted, and all six checked Home, screensaver, enabled-state, and timer settings matched the saved baseline. No manual app launch was used to establish startup. |
