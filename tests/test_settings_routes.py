@@ -50,7 +50,7 @@ class SettingsRouteChecks(unittest.TestCase):
         for _, package, _ in SCREENSAVERS:
             self.shell('am', 'force-stop', package)
         self.shell('am', 'force-stop', UI_PACKAGE)
-        self.shell('am', 'start', '-n', UI_PACKAGE + '/.ScreensaverActivity')
+        self.shell('am', 'start', '-W', '-n', UI_PACKAGE + '/.ScreensaverActivity')
         time.sleep(0.5)
 
     def read_window(self, path):
@@ -90,11 +90,12 @@ class SettingsRouteChecks(unittest.TestCase):
                     expected_activity = package + '/.SettingsActivity'
                     expected_title = label + ' settings'
                     for _ in range(20):
-                        resumed = self.shell('dumpsys', 'activity', 'activities')
-                        if expected_activity in resumed and 'mResumedActivity' in resumed:
+                        resumed = [line for line in self.shell('dumpsys', 'activity', 'activities').splitlines()
+                                   if 'mResumedActivity:' in line]
+                        if any(expected_activity in line for line in resumed):
                             break
                         time.sleep(0.25)
-                    self.assertIn(expected_activity, resumed)
+                    self.assertTrue(any(expected_activity in line for line in resumed), resumed)
                     window = self.read_window(ORIGINAL_SETTINGS_ACTIVITY)
                     titles = [node.get('text', '') for node in window.iter()]
                     self.assertIn(expected_title, titles)
