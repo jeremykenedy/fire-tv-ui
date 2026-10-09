@@ -35,7 +35,7 @@
 
 ## Installation
 
-This repository and its APK are kept private. Build the signed APK locally, or use an APK supplied through this repository's private releases. Final release publication waits for the remaining [device verification](docs/verification.md).
+This repository and its APK are private. Users with repository access can install the signed APK from the private releases, or build it locally. Physical Fire TV, Android TV, and Google TV checks are still welcome; see the [device verification matrix](docs/verification.md).
 
 The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
 
