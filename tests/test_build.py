@@ -160,6 +160,14 @@ class BuildChecks(unittest.TestCase):
                             for node in root.find('queries').findall('package')))
         self.assertTrue(any('ScreensaverActivity' in node.get(android + 'name', '')
                             for node in root.find('application').findall('activity')))
+        receiver = next(node for node in root.find('application').findall('receiver')
+                        if node.get(android + 'name', '').endswith('.ScreensaverSelectionReceiver'))
+        self.assertEqual(receiver.get(android + 'exported'), 'true')
+        self.assertEqual(receiver.get(android + 'permission'),
+                         'android.permission.WRITE_SECURE_SETTINGS')
+        self.assertTrue(any(action.get(android + 'name')
+                            == 'com.jeremykenedy.firetv.ui.SELECT_SCREENSAVER'
+                            for action in receiver.findall('intent-filter/action')))
 
     def test_help_and_feature_state(self):
         decoded = ROOT / '.build/decoded'
