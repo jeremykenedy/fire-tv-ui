@@ -1,0 +1,101 @@
+[
+  {
+    "id": "aerial",
+    "name": "Aerial Views",
+    "package": "com.neilturner.aerialviews",
+    "dream": "com.neilturner.aerialviews/.ui.screensaver.DreamActivity",
+    "repo": "jeremykenedy/AerialViews",
+    "tag": "mirror-1.8.4",
+    "url": "https://github.com/jeremykenedy/AerialViews/releases/download/mirror-1.8.4/aerial-views-1.8.4.apk",
+    "bytes": 8776119,
+    "sha256": "08943066229d3ff0c7d38e88685c8c639ca3bff33488df0db601fcc12c261255"
+  },
+  {
+    "id": "androsaver",
+    "name": "AndroSaver",
+    "package": "com.androsaver",
+    "dream": "com.androsaver/.ScreensaverService",
+    "repo": "jeremykenedy/androsaver",
+    "tag": "mirror-stable",
+    "url": "https://github.com/jeremykenedy/androsaver/releases/download/mirror-stable/androsaver.apk",
+    "bytes": 6208952,
+    "sha256": "2a1230dce85938b482a31ad9fe8f6589d05aa2018e9a1f2bba4e407f8f990370"
+  },
+  {
+    "id": "snoozy",
+    "name": "Snoozy",
+    "package": "com.overdevs.snoozy",
+    "dream": "com.overdevs.snoozy/.SnoozyDreamService",
+    "repo": "jeremykenedy/Snoozy",
+    "tag": "mirror-v1.0",
+    "url": "https://github.com/jeremykenedy/Snoozy/releases/download/mirror-v1.0/app-release.apk",
+    "bytes": 39665219,
+    "sha256": "d7eea09b88899bbeaddd84da5fb89f2350baae2ca52d8772baf652c63ba37781"
+  },
+  {
+    "id": "aquarium-live",
+    "name": "Aquarium Live",
+    "package": "com.jeremykenedy.aquariumlive",
+    "dream": "com.jeremykenedy.aquariumlive/.AquariumDream",
+    "repo": "jeremykenedy/aquarium-live",
+    "tag": "v1.0.3",
+    "url": "https://github.com/jeremykenedy/aquarium-live/releases/download/v1.0.3/aquarium-live.apk",
+    "bytes": 107269,
+    "sha256": "4fd6d949f2a6090787b00b1584510307260133361248fbfb77ada01b5841db4a"
+  },
+  {
+    "id": "aquarium-4k",
+    "name": "Aquarium 4K",
+    "package": "com.jeremykenedy.firetv.aquarium",
+    "dream": "com.jeremykenedy.firetv.aquarium/.AquariumDreamService",
+    "repo": "jeremykenedy/fire-tv-aquarium",
+    "tag": "v1.3.1",
+    "url": "https://github.com/jeremykenedy/fire-tv-aquarium/releases/download/v1.3.1/aquarium-4k.apk",
+    "bytes": 104036933,
+    "sha256": "8acb8ee85df5a7abfa951f576dd20d6187697009d3bf9b45a742ec55d9b8ce71"
+  },
+  {
+    "id": "jellyfish-drift",
+    "name": "Jellyfish Drift",
+    "package": "com.jeremykenedy.jellyfishdrift",
+    "dream": "com.jeremykenedy.jellyfishdrift/.JellyfishDreamService",
+    "repo": "jeremykenedy/jellyfish-drift",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/jellyfish-drift/releases/download/v1.0.0/jellyfish-drift.apk",
+    "bytes": 1237974,
+    "sha256": "c739d62e047b69599891923996c557a7314990c244deed4afc594c2cc3ad56eb"
+  },
+  {
+    "id": "firefly-grove",
+    "name": "Firefly Grove",
+    "package": "com.jeremykenedy.fireflygrove",
+    "dream": "com.jeremykenedy.fireflygrove/.FireflyDreamService",
+    "repo": "jeremykenedy/firefly-grove",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/firefly-grove/releases/download/v1.0.0/firefly-grove.apk",
+    "bytes": 74445,
+    "sha256": "737dadedfad696ad03de96821b75c43c33e2e6ca7c2a7dfde812e987256f628a"
+  },
+  {
+    "id": "neon-corridor",
+    "name": "Neon Corridor",
+    "package": "com.jeremykenedy.neoncorridor",
+    "dream": "com.jeremykenedy.neoncorridor/.NeonDreamService",
+    "repo": "jeremykenedy/neon-corridor",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/neon-corridor/releases/download/v1.0.0/neon-corridor.apk",
+    "sha256": "883626ba2660a719672a2ef30bbeecd852c3c65ee7c2c34984b9a1c035e9a924",
+    "bytes": 172749
+  },
+  {
+    "id": "starfield-drift",
+    "name": "Starfield Drift",
+    "package": "com.jeremykenedy.starfielddrift",
+    "dream": "com.jeremykenedy.starfielddrift/.StarfieldDreamService",
+    "repo": "jeremykenedy/starfield-drift",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/starfield-drift/releases/download/v1.0.0/starfield-drift.apk",
+    "sha256": "2d6fac418b80c47e572459adc734eee876dfe10f96d02c0b879900ba9d85a197",
+    "bytes": 33485
+  }
+]

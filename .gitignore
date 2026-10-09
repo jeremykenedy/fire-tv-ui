@@ -1,0 +1,9 @@
+.build/
+.cache/
+dist/
+__pycache__/
+*.pyc
+*.jks
+*.keystore
+*.pass
+.DS_Store

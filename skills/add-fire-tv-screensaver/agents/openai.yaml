@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add a Fire TV screensaver"
+  short_description: "Add screensaver previews and CLI integration"
+  default_prompt: "Use $add-fire-tv-screensaver to add this screensaver repo to Fire TV UI with a clear preview and its CLI installer entry."

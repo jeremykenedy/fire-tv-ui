@@ -1,0 +1,54 @@
+{
+  "com.androsaver/com.androsaver.ScreensaverService": {
+    "capture_note": "Actual AndroSaver visualizer on Fire TV, after cycling to a visible animation.",
+    "captured_on": "2026-10-08",
+    "preview_sha256": "2a5c7d3f9668ba0f857f67589ae88495b57491e7000240f5ea863b054ba275ab",
+    "source_file": "art/screenshots/androsaver-tv-1920.png",
+    "source_project": "Fire TV UI device verification",
+    "source_sha256": "f7a3d77082ed6ba950623dfef09eed4091bf028aad6ded0e1a5a94c0e7fb6410"
+  },
+  "com.neilturner.aerialviews/com.neilturner.aerialviews.ui.screensaver.DreamActivity": {
+    "preview_sha256": "cb41635859da6ea7c7bbf6270542b9fcf567d3ad19ca36e9625c710cc7563cfa",
+    "source_file": "docs/screenshots/screensaver-aerial-views.jpg",
+    "source_project": "Fire TV CLI",
+    "source_sha256": "73069ebf1bbf85233db2865770df448e7135903397f21528b97dae476f271ef3"
+  },
+  "com.overdevs.snoozy/com.overdevs.snoozy.SnoozyDreamService": {
+    "preview_sha256": "b7010141161b4c2764d7546100daa876bb6a8ea33a94ed95a621e4ce995ca6e1",
+    "source_file": "docs/screenshots/screensaver-snoozy.jpg",
+    "source_project": "Fire TV CLI",
+    "source_sha256": "fd457f2133cd0ee1709a93efb27328ae2ea65bc44d44bfdb83b36460ffc92caf"
+  },
+  "com.jeremykenedy.jellyfishdrift/com.jeremykenedy.jellyfishdrift.JellyfishDreamService": {
+    "capture_note": "Actual Jellyfish Drift DreamService on the Fire TV, reused from the published screensaver project.",
+    "captured_on": "2026-10-08",
+    "source_file": "docs/screenshots/jellyfish-dream-fire-tv.jpg",
+    "source_project": "jeremykenedy/jellyfish-drift",
+    "source_sha256": "85a581e333876983dc6e80ef9f1206b58e607acf1f007c7d4663f60f1c27fbef",
+    "preview_sha256": "3589a0b1664d7a45bbb66947d9d964236bfac51ffa2f795b7f751efe4fa7a953"
+  },
+  "com.jeremykenedy.fireflygrove/com.jeremykenedy.fireflygrove.FireflyDreamService": {
+    "capture_note": "Running Firefly Grove on Android TV, reused from the published screensaver project.",
+    "captured_on": "2026-10-08",
+    "source_file": "docs/screenshots/firefly-grove-preview.png",
+    "source_project": "jeremykenedy/firefly-grove",
+    "source_sha256": "24c93d929c73aa1b9a7f629d8cfa825ec4ec77471180ee687bff61eba4654a34",
+    "preview_sha256": "ab09c317510de34d7a7ac4d3fce72bd07995cbd919f5fec8142ce5618c3ea9c6"
+  },
+  "com.jeremykenedy.neoncorridor/com.jeremykenedy.neoncorridor.NeonDreamService": {
+    "capture_note": "Running Neon Corridor on Android TV, reused from the published screensaver project.",
+    "captured_on": "2026-10-08",
+    "source_file": "docs/screenshots/neon-corridor-preview.png",
+    "source_project": "jeremykenedy/neon-corridor",
+    "source_sha256": "ab8b75d80eb0d03421b5426e4ce8bc36964978c612df8659d1547900caaadb66",
+    "preview_sha256": "3f3298eac982167cb0b393ed787e41bda0266cdba41faec1d86e40c0c4487166"
+  },
+  "com.jeremykenedy.starfielddrift/com.jeremykenedy.starfielddrift.StarfieldDreamService": {
+    "capture_note": "Running Starfield Drift on Android TV, reused from the published screensaver project.",
+    "captured_on": "2026-10-08",
+    "source_file": "docs/screenshots/starfield-preview.png",
+    "source_project": "jeremykenedy/starfield-drift",
+    "source_sha256": "c015cbb62ecb515efd2fbc4c507a8d6a19488ddc13a4a060a735146b22172c7b",
+    "preview_sha256": "06285fd7b1ee04dbd33bca3db808cd6090b7c3d195182af487fcd2c90ad4c8f6"
+  }
+}
