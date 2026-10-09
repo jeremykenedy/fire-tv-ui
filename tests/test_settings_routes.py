@@ -34,6 +34,10 @@ SCREENSAVERS = (
      'com.jeremykenedy.canopydrift/.CanopyDreamService'),
     ('Contour Flow', 'com.jeremykenedy.contourflow',
      'com.jeremykenedy.contourflow/.ContourFlowDreamService'),
+    ('Skyburst Nocturne', 'com.jeremykenedy.skyburstnocturne',
+     'com.jeremykenedy.skyburstnocturne/.FireworksDreamService'),
+    ('Pulse Circuit', 'com.jeremykenedy.pulsecircuit',
+     'com.jeremykenedy.pulsecircuit/.PulseDreamService'),
 )
 
 

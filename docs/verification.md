@@ -6,17 +6,17 @@ Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build 
 
 ## Device checks
 
-### Fire TV UI 1.0.3, version code 28
+### Fire TV UI 1.1.0, version code 29
 
 | Platform | Result | Notes |
 | --- | --- | --- |
 | Android TV emulator, Android 12 / API 31, 1920x1080 | Verified | Updated from version code 25. The Home Redirect picker selected Helios Lightfield, and the choice remained active after the protection interval. Restored the original Colors screensaver and verified it remained enabled. |
-| Google TV emulator, Android 14 / API 34, 1920x1080 | Verified | Installed the signed version-code-28 build and checked settings navigation for each catalog screensaver. |
+| Google TV emulator, Android 14 / API 34, 1920x1080 | Verified | Installed the signed version-code-29 build, checked settings navigation for every catalog screensaver, and verified download, checksum validation, installation, and installed-state display for new catalog entries. Both new saver previews were captured and visually checked at 1920x1080. |
 | Physical Fire TV | Not tested for this build | Looking for a Fire TV owner to test selection and restart behavior, then report the device model, Fire OS/API, resolution, tested behavior, and results in an issue. |
 | Physical Android TV | Not tested | Looking for an Android TV owner to test installation and screensaver selection, then report the model, OS/API, resolution, tested behavior, and results in an issue. |
 | Physical Google TV | Not tested | Looking for a Google TV owner to test installation and screensaver selection, then report the model, OS/API, resolution, tested behavior, and results in an issue. |
 
-The version-code-28 catalog adds Perseid Passage, Split-Flap Drift, Canopy Drift, and Contour Flow. Their signed release APKs and preview source hashes are pinned in the catalog and `app/previews/sources.json`.
+The version-code-29 catalog adds Skyburst Nocturne and Pulse Circuit to the version-code-28 catalog. Their signed release APKs and preview source hashes are pinned in `app/screensavers.json` and `app/previews/sources.json`.
 
 Use `FIRE_TV_UI_TEST_SERIAL=emulator-PORT python3 -m unittest tests.test_settings_routes -v` to verify that each bundled saver opens its declared settings activity. The test refuses non-emulator devices and restores the original screensaver selection and enabled state.
 

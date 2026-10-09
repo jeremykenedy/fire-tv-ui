@@ -39,6 +39,22 @@
     "source_project": "jeremykenedy/contour-flow",
     "source_sha256": "b5b923e8434260d82dcd519f404aba03efb282151ad4c987bfcbd2c5cbbf595d"
   },
+  "com.jeremykenedy.skyburstnocturne/com.jeremykenedy.skyburstnocturne.FireworksDreamService": {
+    "capture_note": "Running Skyburst Nocturne PreviewActivity on Google TV emulator API 34 at 1920x1080 using the Festival rate, Grand size, Tropical palette and Bright scene settings.",
+    "captured_on": "2026-10-09",
+    "preview_sha256": "c72a5bce3f00166a0358f3ba6d72be1ec87c7c45d9e3ee99e3ca7f0c8281553e",
+    "source_file": "art/screenshots/skyburst-nocturne-google-tv-api34-1920x1080.png",
+    "source_project": "jeremykenedy/skyburst-nocturne",
+    "source_sha256": "fd85a398b5463831a9e5419ff3c92c8507a0cbe34df5752e622ac1764c17f2e7"
+  },
+  "com.jeremykenedy.pulsecircuit/com.jeremykenedy.pulsecircuit.PulseDreamService": {
+    "capture_note": "Running Pulse Circuit PreviewActivity on Google TV emulator API 34 at 1920x1080.",
+    "captured_on": "2026-10-09",
+    "preview_sha256": "958e1c410713dcc2c3a5e157e7e5917481cd617f62f9005e25459b39c8fae336",
+    "source_file": "art/screenshots/pulse-circuit-google-tv-api34-1920x1080.png",
+    "source_project": "jeremykenedy/pulse-circuit",
+    "source_sha256": "962a1d742251d60b05ebf464c0fe33bdb406355bb4f7e5b779622d0a8534258a"
+  },
   "com.jeremykenedy.earthboundorbit/com.jeremykenedy.earthboundorbit.EarthboundOrbitDreamService": {
     "capture_note": "Android TV emulator capture of the running Earthbound Orbit release preview.",
     "captured_on": "2026-10-08",

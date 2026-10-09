@@ -240,5 +240,27 @@
     "url": "https://github.com/jeremykenedy/contour-flow/releases/download/v1.0.0/contour-flow.apk",
     "bytes": 29368,
     "sha256": "b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447"
+  },
+  {
+    "id": "skyburst-nocturne",
+    "name": "Skyburst Nocturne",
+    "package": "com.jeremykenedy.skyburstnocturne",
+    "dream": "com.jeremykenedy.skyburstnocturne/.FireworksDreamService",
+    "repo": "jeremykenedy/skyburst-nocturne",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/skyburst-nocturne/releases/download/v1.0.0/skyburst-nocturne.apk",
+    "bytes": 37748,
+    "sha256": "2ce571933d6f4a8017ada3c5598d21edc363b51598f4d4c302bafebb0863a57a"
+  },
+  {
+    "id": "pulse-circuit",
+    "name": "Pulse Circuit",
+    "package": "com.jeremykenedy.pulsecircuit",
+    "dream": "com.jeremykenedy.pulsecircuit/.PulseDreamService",
+    "repo": "jeremykenedy/pulse-circuit",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/pulse-circuit/releases/download/v1.0.0/pulse-circuit.apk",
+    "bytes": 33485,
+    "sha256": "5e71095d0b2966d1cf803ad9299ad7a233309848d1aea8e27423cfcf8ff96c95"
   }
 ]
