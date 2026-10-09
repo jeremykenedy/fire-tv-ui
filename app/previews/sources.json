@@ -7,6 +7,14 @@
     "source_project": "Fire TV UI device verification",
     "source_sha256": "f7a3d77082ed6ba950623dfef09eed4091bf028aad6ded0e1a5a94c0e7fb6410"
   },
+  "com.jeremykenedy.aquasurfacedrift/com.jeremykenedy.aquasurfacedrift.AquaSurfaceDreamService": {
+    "capture_note": "Actual Aqua Surface Drift Android TV emulator preview from the published screensaver project.",
+    "captured_on": "2026-10-08",
+    "preview_sha256": "b64b084756885ba0615091f0ebcc38d4a0f3e68885385e5282e9c9a6bb34268f",
+    "source_file": "art/screenshots/aqua-surface-drift-android-tv-1920.png",
+    "source_project": "jeremykenedy/aqua-surface-drift",
+    "source_sha256": "880b8356fca0afaeed115145a7979931ebc3f85596784cdd5964935c8d1b801c"
+  },
   "com.jeremykenedy.fireflygrove/com.jeremykenedy.fireflygrove.FireflyDreamService": {
     "capture_note": "Running Firefly Grove on Android TV, reused from the published screensaver project.",
     "captured_on": "2026-10-08",
