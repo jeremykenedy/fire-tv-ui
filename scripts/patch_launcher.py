@@ -344,6 +344,15 @@ def patch_manifest(decoded):
         ANDROID + 'exported': 'true',
         ANDROID + 'permission': 'android.permission.DUMP',
     })
+    selection_receiver = ET.SubElement(app, 'receiver', {
+        ANDROID + 'name': CONFIG['package'] + '.ScreensaverSelectionReceiver',
+        ANDROID + 'exported': 'true',
+        ANDROID + 'permission': 'android.permission.WRITE_SECURE_SETTINGS',
+    })
+    selection_filter = ET.SubElement(selection_receiver, 'intent-filter')
+    ET.SubElement(selection_filter, 'action', {
+        ANDROID + 'name': CONFIG['package'] + '.SELECT_SCREENSAVER',
+    })
     service = ET.SubElement(app, 'service', {
         ANDROID + 'name': CONFIG['package'] + '.HomeRedirectService',
         ANDROID + 'label': CONFIG['name'] + ' Home button',
