@@ -12,6 +12,7 @@ public final class DeviceSettings {
     public static final String PROTECT = "fire_tv_ui_protect_settings";
     public static final String DREAM_UNLOCKED = "fire_tv_ui_dream_unlocked";
     public static final String SLEEP = "sleep_timeout";
+    public static final String SLEEP_PREFERENCE = "fire_tv_ui_sleep";
     public static final String IDLE = "screen_off_timeout";
     public static final String AUTO_WAKE = "str.auto_wake_up_enabled";
     public static final String KEEP_ADB = "fire_tv_ui_keep_adb";
@@ -28,6 +29,9 @@ public final class DeviceSettings {
         // available in Appearance for people who prefer that option.
         if (!prefs.contains("screensaver_enabled")) {
             editor.putBoolean("screensaver_enabled", false);
+        }
+        if (!prefs.contains(SLEEP_PREFERENCE)) {
+            editor.putInt(SLEEP_PREFERENCE, 0);
         }
         editor.apply();
         if (!prefs.contains(KEEP_ADB) && hasWifiAdb(context)) {
@@ -104,7 +108,7 @@ public final class DeviceSettings {
                 .putBoolean(DREAM_UNLOCKED, false)
                 .putString("fire_tv_ui_dream", active(context.getContentResolver()))
                 .putBoolean("fire_tv_ui_dream_enabled", isEnabled(context.getContentResolver()))
-                .putInt("fire_tv_ui_sleep", sleep(context)).putInt("fire_tv_ui_idle", idle(context));
+                .putInt(SLEEP_PREFERENCE, sleep(context)).putInt("fire_tv_ui_idle", idle(context));
         if (hasAutoWake(context)) {
             editor.putInt("fire_tv_ui_auto_wake", autoWake(context) ? 1 : 0);
         }
@@ -112,7 +116,7 @@ public final class DeviceSettings {
     }
 
     public static int sleep(Context context) {
-        return Settings.Secure.getInt(context.getContentResolver(), SLEEP, 1200000);
+        return prefs(context).getInt(SLEEP_PREFERENCE, 0);
     }
 
     public static int idle(Context context) {
@@ -153,7 +157,7 @@ public final class DeviceSettings {
         if (milliseconds < 0) {
             throw new IllegalArgumentException("The timer cannot be negative.");
         }
-        String key = sleep ? "fire_tv_ui_sleep" : "fire_tv_ui_idle";
+        String key = sleep ? SLEEP_PREFERENCE : "fire_tv_ui_idle";
         int before = sleep ? sleep(context) : idle(context);
         writeNumber(context, sleep, sleep ? SLEEP : IDLE, key, before, milliseconds);
     }
@@ -222,7 +226,16 @@ public final class DeviceSettings {
 
     public static void repair(Context context) {
         SharedPreferences prefs = prefs(context);
-        if (!canWrite(context) || !prefs.getBoolean(PROTECT, false)) {
+        if (!canWrite(context)) {
+            return;
+        }
+        int wantedSleep = sleep(context);
+        if (Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep
+                && (!Settings.Secure.putInt(context.getContentResolver(), SLEEP, wantedSleep)
+                || Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep)) {
+            throw new IllegalStateException("The TV did not apply your saved sleep choice.");
+        }
+        if (!prefs.getBoolean(PROTECT, false)) {
             return;
         }
         repairAdb(context);
@@ -254,11 +267,7 @@ public final class DeviceSettings {
         if (isEnabled(context.getContentResolver()) != enabled) {
             setEnabled(context.getContentResolver(), enabled);
         }
-        int sleep = prefs.getInt("fire_tv_ui_sleep", sleep(context));
         int idle = prefs.getInt("fire_tv_ui_idle", idle(context));
-        if (sleep(context) != sleep) {
-            Settings.Secure.putInt(context.getContentResolver(), SLEEP, sleep);
-        }
         if (idle(context) != idle) {
             Settings.System.putInt(context.getContentResolver(), IDLE, idle);
         }

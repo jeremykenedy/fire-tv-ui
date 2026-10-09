@@ -81,7 +81,8 @@ public final class TimersActivity extends CardActivity {
         }
         addButton(body, protection);
         TextView hint = text("Deep sleep puts the TV into standby. Turn it off to keep the TV awake. "
-                + "Protect settings restores your chosen screensaver and timers if the system changes them. "
+                + "Fire TV UI saves your sleep choice and restores it after restart. "
+                + "Protect settings restores your chosen screensaver and its delay if the system changes them. "
                 + "Fire TV Toolkit timer and screensaver commands also update your protected settings.", 16, MUTED);
         hint.setPadding(0, dp(12), 0, dp(12));
         body.addView(hint);
@@ -101,7 +102,7 @@ public final class TimersActivity extends CardActivity {
         if (awake != null) {
             awake.setText("Keep Alexa available during sleep: " + (DeviceSettings.autoWake(this) ? "On" : "Off"));
         }
-        protection.setText("Protect screensaver and timers: "
+        protection.setText("Protect screensaver and other settings: "
                 + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.PROTECT, false) ? "On" : "Off"));
     }
 

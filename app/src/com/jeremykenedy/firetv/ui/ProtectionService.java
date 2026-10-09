@@ -104,7 +104,7 @@ public final class ProtectionService extends VpnService {
         }
         handler.removeCallbacks(guard);
         handler.post(guard);
-        if (!wanted && !DeviceSettings.prefs(this).getBoolean(DeviceSettings.PROTECT, false)) {
+        if (!wanted && !DeviceSettings.canWrite(this)) {
             stopForeground(true);
             stopSelf();
         }
