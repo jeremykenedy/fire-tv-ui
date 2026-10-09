@@ -42,13 +42,13 @@ python3 scripts/build.py
 
 The password file contains the keystore password on one line. An explicitly selected missing key fails the build.
 
-For CI or review builds:
+For unsigned review builds:
 
 ```bash
 python3 scripts/build.py --unsigned
 ```
 
-Unsigned APKs must be signed before installation. CI does not contain the release signing key.
+Unsigned APKs must be signed before installation. The release signing key stays outside the repository. Verification runs locally; this private repository has no CI workflow.
 
 ## Source attribution
 
