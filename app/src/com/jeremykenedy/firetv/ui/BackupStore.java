@@ -83,6 +83,7 @@ public final class BackupStore {
         try (java.io.InputStream stream = context.getAssets().open("simple-setup.json")) {
             apply(context, read(stream));
         }
+        DeviceSettings.sleep(context, 0);
     }
 
     private static String read(java.io.InputStream stream) throws IOException {

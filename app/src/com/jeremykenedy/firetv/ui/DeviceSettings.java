@@ -14,6 +14,8 @@ public final class DeviceSettings {
     public static final String SLEEP = "sleep_timeout";
     public static final String IDLE = "screen_off_timeout";
     public static final String AUTO_WAKE = "str.auto_wake_up_enabled";
+    public static final String KEEP_ADB = "fire_tv_ui_keep_adb";
+    public static final String WIFI_ADB = "adb_wifi_enabled";
 
     private DeviceSettings() {
     }
@@ -28,6 +30,10 @@ public final class DeviceSettings {
             editor.putBoolean("screensaver_enabled", false);
         }
         editor.apply();
+        if (!prefs.contains(KEEP_ADB) && hasWifiAdb(context)) {
+            prefs.edit().putBoolean(KEEP_ADB,
+                    Settings.Global.getInt(context.getContentResolver(), WIFI_ADB, 0) == 1).commit();
+        }
         ScreensaverPreview.restore(context);
         if (!prefs.contains(HomeControl.PREFERENCE)) {
             HomeControl.remember(context, HomeControl.isEnabled(context));
@@ -41,8 +47,8 @@ public final class DeviceSettings {
         }
         if (canWrite(context)) {
             try {
-                repair(context);
                 ProtectionService.start(context);
+                repair(context);
             } catch (RuntimeException ignored) {
                 // Controls display the read-back state and can retry setup.
             }
@@ -56,6 +62,41 @@ public final class DeviceSettings {
     public static boolean canWrite(Context context) {
         return context.checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS)
                 == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    public static boolean hasWifiAdb(Context context) {
+        return context.getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")
+                && Settings.Global.getString(context.getContentResolver(), WIFI_ADB) != null;
+    }
+
+    public static void keepAdb(Context context, boolean enabled) {
+        if (!hasWifiAdb(context)) {
+            throw new IllegalStateException("This TV does not expose Fire TV network debugging.");
+        }
+        boolean before = prefs(context).getBoolean(KEEP_ADB, false);
+        prefs(context).edit().putBoolean(KEEP_ADB, enabled).commit();
+        try {
+            if (enabled) {
+                repairAdb(context);
+            }
+        } catch (RuntimeException failed) {
+            prefs(context).edit().putBoolean(KEEP_ADB, before).commit();
+            throw failed;
+        }
+    }
+
+    private static void repairAdb(Context context) {
+        if (!prefs(context).getBoolean(KEEP_ADB, false) || !hasWifiAdb(context)) {
+            return;
+        }
+        // Fire TV's own network-debugging switch writes both global flags.
+        for (String key : new String[] {Settings.Global.ADB_ENABLED, WIFI_ADB}) {
+            if (Settings.Global.getInt(context.getContentResolver(), key, 0) != 1
+                    && (!Settings.Global.putInt(context.getContentResolver(), key, 1)
+                    || Settings.Global.getInt(context.getContentResolver(), key, 0) != 1)) {
+                throw new IllegalStateException("The TV did not keep ADB debugging enabled.");
+            }
+        }
     }
 
     public static void capture(Context context) {
@@ -184,6 +225,7 @@ public final class DeviceSettings {
         if (!canWrite(context) || !prefs.getBoolean(PROTECT, false)) {
             return;
         }
+        repairAdb(context);
         if (prefs.getBoolean(HomeControl.PREFERENCE, false) && !HomeControl.isEnabled(context)) {
             HomeControl.setEnabled(context, true, true);
         }

@@ -13,11 +13,11 @@ public final class DeviceBootReceiver extends BroadcastReceiver {
         }
         if (DeviceSettings.canWrite(context)) {
             try {
+                ProtectionService.start(context);
+                DeviceSettings.repair(context);
                 if (DeviceSettings.prefs(context).getBoolean(HomeControl.PREFERENCE, false)) {
                     HomeControl.setEnabled(context, true, true);
                 }
-                DeviceSettings.repair(context);
-                ProtectionService.start(context);
             } catch (RuntimeException ignored) {
                 // The controls page reports permission and read-back state.
             }

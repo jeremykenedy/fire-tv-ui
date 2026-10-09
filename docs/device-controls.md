@@ -6,6 +6,10 @@ Settings > Screensavers opens the picker directly. The current name appears at t
 
 Screensaver settings opens the installed dream's `settingsActivity` declared in its dream metadata, falling back to its launcher activity when no dedicated settings screen is declared. Twilight Hearth, Nebula Drift, Vortex Spiral, and Signal Rain each open their own settings screen from this control. The app controls which options and permissions it offers. System timers provides whole-minute choices and a custom value. Deep sleep Off sets `secure sleep_timeout=0`; turning it back on restores the saved sleep timeout. Screensaver delay uses `system screen_off_timeout`.
 
+The clean simple setup starts with deep sleep Off. Updates that keep the current setup and restored backups retain the user's saved sleep choice.
+
+On Fire TV devices that expose network debugging, Startup and protection includes Keep ADB debugging enabled. It adopts an already enabled Wi-Fi debugging setting on first launch. While local settings protection is On, the app checks both Fire TV debugging flags at startup and when they change. Turning this control Off releases those flags without disconnecting the current debugging session. Turn it Off before disabling ADB in Amazon Settings. The choice is included in the TV backup; unsupported Android TV devices do not expose or enable this control.
+
 On Fire OS devices that expose `str.auto_wake_up_enabled`, Keep Alexa available during sleep controls the same setting as the toolkit's Alexa fix. It appears only when the setting exists and is included in the local settings guard and backup.
 
 Memory usage shows RAM and internal storage with used/free values and percentage bars. App rows use Android StorageStats for installed files plus app data. Cache is included in data. When usage access is unavailable, the row identifies installed APK size and says data/cache size is unavailable.

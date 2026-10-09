@@ -29,6 +29,7 @@
   "fire_tv_ui_dream_unlocked": "Boolean",
   "fire_tv_ui_home_enabled": "Boolean",
   "fire_tv_ui_idle": "Int",
+  "fire_tv_ui_keep_adb": "Boolean",
   "fire_tv_ui_protect_settings": "Boolean",
   "fire_tv_ui_sleep": "Int",
   "fire_tv_ui_sleep_saved": "Int",

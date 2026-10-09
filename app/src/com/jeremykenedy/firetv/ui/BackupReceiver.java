@@ -22,6 +22,9 @@ public final class BackupReceiver extends BroadcastReceiver {
                 HomeControl.remember(context, "home-preference-on".equals(operation));
             } else if ("dream-unlock".equals(operation)) {
                 DeviceSettings.prefs(context).edit().putBoolean(DeviceSettings.DREAM_UNLOCKED, true).commit();
+            } else if ("adb-protection-on".equals(operation) || "adb-protection-off".equals(operation)) {
+                DeviceSettings.keepAdb(context, "adb-protection-on".equals(operation));
+                ProtectionService.start(context);
             } else if ("protection-on".equals(operation) || "protection-off".equals(operation)) {
                 DeviceSettings.capture(context);
                 DeviceSettings.prefs(context).edit().putBoolean(DeviceSettings.PROTECT,

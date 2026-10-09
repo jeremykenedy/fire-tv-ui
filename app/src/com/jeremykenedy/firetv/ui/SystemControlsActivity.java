@@ -17,6 +17,7 @@ public final class SystemControlsActivity extends CardActivity {
     private TextView updates;
     private TextView appstore;
     private TextView protection;
+    private TextView debugging;
     private TextView state;
 
     @Override
@@ -86,10 +87,29 @@ public final class SystemControlsActivity extends CardActivity {
         });
         addButton(body, home);
         addButton(body, protection);
+        if (DeviceSettings.hasWifiAdb(this)) {
+            debugging = button("", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    try {
+                        DeviceSettings.keepAdb(SystemControlsActivity.this,
+                                !DeviceSettings.prefs(SystemControlsActivity.this)
+                                        .getBoolean(DeviceSettings.KEEP_ADB, false));
+                        ProtectionService.start(SystemControlsActivity.this);
+                        refresh();
+                    } catch (Exception failed) {
+                        error(failed);
+                    }
+                }
+            });
+            addButton(body, debugging);
+        }
         addButton(body, updates);
         addButton(body, appstore);
         TextView hint = text("Home routing returns to Fire TV UI and starts it after boot. Protection checks "
-                + "your screensaver and timers locally. Update protection discards traffic only from "
+                + "your screensaver and timers locally. ADB protection keeps network debugging enabled "
+                + "while settings protection is on. Turning it off allows the TV's debugging switch to change. "
+                + "Update protection discards traffic only from "
                 + "Amazon update packages; it sends no data to a VPN server. Android allows one active VPN.", 16, MUTED);
         hint.setPadding(0, dp(12), 0, dp(12));
         body.addView(hint);
@@ -113,6 +133,10 @@ public final class SystemControlsActivity extends CardActivity {
         appstore.setText("Include Amazon Appstore updates: "
                 + (DeviceSettings.prefs(this).getBoolean(ProtectionService.BLOCK_APPSTORE, false) ? "On" : "Off"));
         state.setText(ProtectionService.status());
+        if (debugging != null) {
+            debugging.setText("Keep ADB debugging enabled: "
+                    + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.KEEP_ADB, false) ? "On" : "Off"));
+        }
     }
 
     private void enableBlocker() {
