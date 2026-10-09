@@ -85,7 +85,8 @@ public final class ProtectionService extends VpnService {
             getContentResolver().registerContentObserver(Settings.Secure.getUriFor(key), false, changes);
         }
         getContentResolver().registerContentObserver(Settings.System.getUriFor(DeviceSettings.IDLE), false, changes);
-        for (String key : new String[] {Settings.Global.ADB_ENABLED, DeviceSettings.WIFI_ADB}) {
+        for (String key : new String[] {Settings.Global.DEVELOPMENT_SETTINGS_ENABLED,
+                Settings.Global.ADB_ENABLED, DeviceSettings.WIFI_ADB}) {
             getContentResolver().registerContentObserver(Settings.Global.getUriFor(key), false, changes);
         }
         handler.post(guard);

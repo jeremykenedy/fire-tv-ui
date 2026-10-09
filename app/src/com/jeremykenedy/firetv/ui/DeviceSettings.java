@@ -35,8 +35,7 @@ public final class DeviceSettings {
         }
         editor.apply();
         if (!prefs.contains(KEEP_ADB) && hasWifiAdb(context)) {
-            prefs.edit().putBoolean(KEEP_ADB,
-                    Settings.Global.getInt(context.getContentResolver(), WIFI_ADB, 0) == 1).commit();
+            prefs.edit().putBoolean(KEEP_ADB, true).commit();
         }
         ScreensaverPreview.restore(context);
         if (!prefs.contains(HomeControl.PREFERENCE)) {
@@ -69,15 +68,14 @@ public final class DeviceSettings {
     }
 
     public static boolean hasWifiAdb(Context context) {
-        return context.getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")
-                && Settings.Global.getString(context.getContentResolver(), WIFI_ADB) != null;
+        return context.getPackageManager().hasSystemFeature("amazon.hardware.fire_tv");
     }
 
     public static void keepAdb(Context context, boolean enabled) {
         if (!hasWifiAdb(context)) {
             throw new IllegalStateException("This TV does not expose Fire TV network debugging.");
         }
-        boolean before = prefs(context).getBoolean(KEEP_ADB, false);
+        boolean before = prefs(context).getBoolean(KEEP_ADB, true);
         prefs(context).edit().putBoolean(KEEP_ADB, enabled).commit();
         try {
             if (enabled) {
@@ -90,11 +88,12 @@ public final class DeviceSettings {
     }
 
     private static void repairAdb(Context context) {
-        if (!prefs(context).getBoolean(KEEP_ADB, false) || !hasWifiAdb(context)) {
+        if (!prefs(context).getBoolean(KEEP_ADB, true) || !hasWifiAdb(context)) {
             return;
         }
         // Fire TV's own network-debugging switch writes both global flags.
-        for (String key : new String[] {Settings.Global.ADB_ENABLED, WIFI_ADB}) {
+        for (String key : new String[] {Settings.Global.DEVELOPMENT_SETTINGS_ENABLED,
+                Settings.Global.ADB_ENABLED, WIFI_ADB}) {
             if (Settings.Global.getInt(context.getContentResolver(), key, 0) != 1
                     && (!Settings.Global.putInt(context.getContentResolver(), key, 1)
                     || Settings.Global.getInt(context.getContentResolver(), key, 0) != 1)) {
@@ -229,16 +228,30 @@ public final class DeviceSettings {
         if (!canWrite(context)) {
             return;
         }
-        int wantedSleep = sleep(context);
-        if (Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep
-                && (!Settings.Secure.putInt(context.getContentResolver(), SLEEP, wantedSleep)
-                || Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep)) {
-            throw new IllegalStateException("The TV did not apply your saved sleep choice.");
+        RuntimeException failure = null;
+        try {
+            int wantedSleep = sleep(context);
+            if (Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep
+                    && (!Settings.Secure.putInt(context.getContentResolver(), SLEEP, wantedSleep)
+                    || Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep)) {
+                throw new IllegalStateException("The TV did not apply your saved sleep choice.");
+            }
+        } catch (RuntimeException failed) {
+            failure = failed;
+        }
+        try {
+            repairAdb(context);
+        } catch (RuntimeException failed) {
+            if (failure == null) {
+                failure = failed;
+            }
+        }
+        if (failure != null) {
+            throw failure;
         }
         if (!prefs.getBoolean(PROTECT, false)) {
             return;
         }
-        repairAdb(context);
         if (prefs.getBoolean(HomeControl.PREFERENCE, false) && !HomeControl.isEnabled(context)) {
             HomeControl.setEnabled(context, true, true);
         }

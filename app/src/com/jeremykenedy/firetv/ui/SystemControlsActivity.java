@@ -94,7 +94,7 @@ public final class SystemControlsActivity extends CardActivity {
                     try {
                         DeviceSettings.keepAdb(SystemControlsActivity.this,
                                 !DeviceSettings.prefs(SystemControlsActivity.this)
-                                        .getBoolean(DeviceSettings.KEEP_ADB, false));
+                                        .getBoolean(DeviceSettings.KEEP_ADB, true));
                         ProtectionService.start(SystemControlsActivity.this);
                         refresh();
                     } catch (Exception failed) {
@@ -108,7 +108,7 @@ public final class SystemControlsActivity extends CardActivity {
         addButton(body, appstore);
         TextView hint = text("Home routing returns to Fire TV UI and starts it after boot. Protection checks "
                 + "your screensaver and timers locally. ADB protection keeps network debugging enabled "
-                + "while settings protection is on. Turning it off allows the TV's debugging switch to change. "
+                + "after restart and if Fire OS changes it. Turning it off allows the TV's debugging switch to change. "
                 + "Update protection discards traffic only from "
                 + "Amazon update packages; it sends no data to a VPN server. Android allows one active VPN.", 16, MUTED);
         hint.setPadding(0, dp(12), 0, dp(12));
@@ -135,7 +135,7 @@ public final class SystemControlsActivity extends CardActivity {
         state.setText(ProtectionService.status());
         if (debugging != null) {
             debugging.setText("Keep ADB debugging enabled: "
-                    + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.KEEP_ADB, false) ? "On" : "Off"));
+                    + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.KEEP_ADB, true) ? "On" : "Off"));
         }
     }
 
