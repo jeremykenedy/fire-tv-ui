@@ -11,7 +11,6 @@
 <p align="center">
     <a href="https://github.com/jeremykenedy/fire-tv-toolkit/releases/tag/v3.3.0"><img src="https://img.shields.io/github/downloads/jeremykenedy/fire-tv-toolkit/v3.3.0/fire-tv-ui-1.0.0.apk" alt="Fire TV UI downloads"></a>
     <a href="https://github.com/jeremykenedy/fire-tv-toolkit/releases/tag/v3.3.0"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.0.0-blue" alt="Latest stable version"></a>
-    <a href="https://github.com/jeremykenedy/fire-tv-ui/actions/workflows/tests.yml"><img src="https://github.com/jeremykenedy/fire-tv-ui/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -106,7 +105,7 @@ python3 scripts/build.py --unsigned
 bash scripts/test.sh
 ```
 
-The checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. GitHub Actions runs the build and tests against the checked-out commit.
+The local checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. This private repository does not run CI.
 
 Device testing is described in [Verification](docs/verification.md).
 
