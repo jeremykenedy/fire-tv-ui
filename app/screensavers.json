@@ -185,5 +185,16 @@
     "url": "https://github.com/jeremykenedy/cloud-drift-clock/releases/download/v1.0.1/cloud-drift-clock.apk",
     "bytes": 320287,
     "sha256": "11b72b93a82012605348698b8ff53ee1be13fb8b0ffe0d128e6a1f4e23233d27"
+  },
+  {
+    "id": "earthbound-orbit",
+    "name": "Earthbound Orbit",
+    "package": "com.jeremykenedy.earthboundorbit",
+    "dream": "com.jeremykenedy.earthboundorbit/.EarthboundOrbitDreamService",
+    "repo": "jeremykenedy/earthbound-orbit",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/earthbound-orbit/releases/download/v1.0.0/earthbound-orbit.apk",
+    "bytes": 582419,
+    "sha256": "b8ff3f377513360bd246ae569ac0872cfd9ed06d75a90d7f13199ae0715b21b9"
   }
 ]

@@ -106,6 +106,11 @@ class BuildChecks(unittest.TestCase):
                 'Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
                 'com.jeremykenedy.clouddriftclock/.CloudDreamService', 'jeremykenedy/cloud-drift-clock',
                 '11b72b93a82012605348698b8ff53ee1be13fb8b0ffe0d128e6a1f4e23233d27', 320287),
+            'earthbound-orbit': (
+                'Earthbound Orbit', 'com.jeremykenedy.earthboundorbit',
+                'com.jeremykenedy.earthboundorbit/.EarthboundOrbitDreamService',
+                'jeremykenedy/earthbound-orbit',
+                'b8ff3f377513360bd246ae569ac0872cfd9ed06d75a90d7f13199ae0715b21b9', 582419),
         }
         entries = {item['id']: item for item in json.loads((ROOT / 'app/screensavers.json').read_text())}
         index = json.loads((ROOT / 'app/previews/index.json').read_text())
