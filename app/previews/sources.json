@@ -15,6 +15,14 @@
     "source_project": "jeremykenedy/aqua-surface-drift",
     "source_sha256": "880b8356fca0afaeed115145a7979931ebc3f85596784cdd5964935c8d1b801c"
   },
+  "com.jeremykenedy.canopydrift/com.jeremykenedy.canopydrift.CanopyDreamService": {
+    "capture_note": "Canopy Drift animation running on Google TV emulator API 34 at 1920x1080.",
+    "captured_on": "2026-10-09",
+    "preview_sha256": "d4a9c115c610da9788c1637a9d2a86e9ab958063cff10170d831ba3c672812e2",
+    "source_file": "art/screenshots/canopy-drift-android-tv-api34-1920x1080.png",
+    "source_project": "jeremykenedy/canopy-drift",
+    "source_sha256": "2712ae377eab5d496683276e4ca10ed539c1a31acb91c6417026b0f2f4e768ca"
+  },
   "com.jeremykenedy.clouddriftclock/com.jeremykenedy.clouddriftclock.CloudDreamService": {
     "capture_note": "Cloud Drift Clock PreviewActivity running on Android TV emulator API 31; screenshot published by the project.",
     "captured_on": "2026-10-08",
@@ -22,6 +30,14 @@
     "source_file": "art/screenshots/cloud-drift-clock-android-tv-1920.png",
     "source_project": "jeremykenedy/cloud-drift-clock",
     "source_sha256": "b7c8d00ef6b6aee5a110b04b7a5acb72a2ef3e16b3ebd96317e3baaa1651408e"
+  },
+  "com.jeremykenedy.contourflow/com.jeremykenedy.contourflow.ContourFlowDreamService": {
+    "capture_note": "Running Contour Flow preview on Google TV emulator API 34.",
+    "captured_on": "2026-10-09",
+    "preview_sha256": "69a16bde31a0a6142642b570fb6a12e7f92e6a7208aaaafd49b8bb04d05e52ed",
+    "source_file": "art/screenshots/contour-flow-google-tv-api34-1920x1080.png",
+    "source_project": "jeremykenedy/contour-flow",
+    "source_sha256": "b5b923e8434260d82dcd519f404aba03efb282151ad4c987bfcbd2c5cbbf595d"
   },
   "com.jeremykenedy.earthboundorbit/com.jeremykenedy.earthboundorbit.EarthboundOrbitDreamService": {
     "capture_note": "Android TV emulator capture of the running Earthbound Orbit release preview.",
@@ -63,6 +79,14 @@
     "source_project": "jeremykenedy/neon-corridor",
     "source_sha256": "ab8b75d80eb0d03421b5426e4ce8bc36964978c612df8659d1547900caaadb66"
   },
+  "com.jeremykenedy.perseidpassage/com.jeremykenedy.perseidpassage.MeteorDreamService": {
+    "capture_note": "Actual Perseid Passage animation on Android TV emulator API 31.",
+    "captured_on": "2026-10-09",
+    "preview_sha256": "fa88c3503e5282c06e6787f7ece79142283ee007c5ae5c6af4b1415059e70dad",
+    "source_file": "art/screenshots/perseid-passage-android-tv-api31-1920x1080.png",
+    "source_project": "jeremykenedy/perseid-passage",
+    "source_sha256": "27e42cad32086e45305ea9650570c349e8f5e761dc8106a2a6401848fd5b7137"
+  },
   "com.jeremykenedy.pipeworksdream/com.jeremykenedy.pipeworksdream.PipeworksDreamService": {
     "capture_note": "Running Pipeworks Dream screensaver on Android TV emulator 5570.",
     "captured_on": "2026-10-08",
@@ -86,6 +110,14 @@
     "source_file": "art/screenshots/signal-rain-android-tv-1920.png",
     "source_project": "jeremykenedy/signal-rain",
     "source_sha256": "242e19dc9ee2169f765e9151e7e23d079270e4fe1b35eb3e4cad16fe44a55fc3"
+  },
+  "com.jeremykenedy.splitflapdrift/com.jeremykenedy.splitflapdrift.SplitFlapDreamService": {
+    "capture_note": "Split-Flap Drift animation captured on Android TV emulator API 31 after the scene settled.",
+    "captured_on": "2026-10-09",
+    "preview_sha256": "669b7326788feb8b3aea726bbb4970031b747c576eb55ad4feb10f0af50e1984",
+    "source_file": "art/screenshots/split-flap-drift-android-tv-api31-1920x1080.png",
+    "source_project": "jeremykenedy/split-flap-drift",
+    "source_sha256": "43a94b68459421ae020ee92bac4533f8ca338b26a04cdf88ee6d5c792e52080f"
   },
   "com.jeremykenedy.starfielddrift/com.jeremykenedy.starfielddrift.StarfieldDreamService": {
     "capture_note": "Running Starfield Drift on Android TV, reused from the published screensaver project.",

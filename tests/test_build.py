@@ -111,6 +111,26 @@ class BuildChecks(unittest.TestCase):
                 'com.jeremykenedy.earthboundorbit/.EarthboundOrbitDreamService',
                 'jeremykenedy/earthbound-orbit',
                 'b8ff3f377513360bd246ae569ac0872cfd9ed06d75a90d7f13199ae0715b21b9', 582419),
+            'perseid-passage': (
+                'Perseid Passage', 'com.jeremykenedy.perseidpassage',
+                'com.jeremykenedy.perseidpassage/.MeteorDreamService',
+                'jeremykenedy/perseid-passage',
+                '9fa45a8f906fd9783d2831dcc594d3387e8f6cc5f95900be1b2447b450df4799', 33652),
+            'split-flap-drift': (
+                'Split-Flap Drift', 'com.jeremykenedy.splitflapdrift',
+                'com.jeremykenedy.splitflapdrift/.SplitFlapDreamService',
+                'jeremykenedy/split-flap-drift',
+                'bf728f8c0c717fc791117c05e6f072fc5872c13dbd43ef9fd4de366cc230b820', 25272),
+            'canopy-drift': (
+                'Canopy Drift', 'com.jeremykenedy.canopydrift',
+                'com.jeremykenedy.canopydrift/.CanopyDreamService',
+                'jeremykenedy/canopy-drift',
+                '268293380036ac64bbcb200921f9d8b16be8efa6f60dab304b2c29794e5781d1', 193229),
+            'contour-flow': (
+                'Contour Flow', 'com.jeremykenedy.contourflow',
+                'com.jeremykenedy.contourflow/.ContourFlowDreamService',
+                'jeremykenedy/contour-flow',
+                'b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447', 29368),
         }
         entries = {item['id']: item for item in json.loads((ROOT / 'app/screensavers.json').read_text())}
         index = json.loads((ROOT / 'app/previews/index.json').read_text())

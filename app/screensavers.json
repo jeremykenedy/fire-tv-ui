@@ -196,5 +196,49 @@
     "url": "https://github.com/jeremykenedy/earthbound-orbit/releases/download/v1.0.0/earthbound-orbit.apk",
     "bytes": 582419,
     "sha256": "b8ff3f377513360bd246ae569ac0872cfd9ed06d75a90d7f13199ae0715b21b9"
+  },
+  {
+    "id": "perseid-passage",
+    "name": "Perseid Passage",
+    "package": "com.jeremykenedy.perseidpassage",
+    "dream": "com.jeremykenedy.perseidpassage/.MeteorDreamService",
+    "repo": "jeremykenedy/perseid-passage",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/perseid-passage/releases/download/v1.0.0/perseid-passage.apk",
+    "bytes": 33652,
+    "sha256": "9fa45a8f906fd9783d2831dcc594d3387e8f6cc5f95900be1b2447b450df4799"
+  },
+  {
+    "id": "split-flap-drift",
+    "name": "Split-Flap Drift",
+    "package": "com.jeremykenedy.splitflapdrift",
+    "dream": "com.jeremykenedy.splitflapdrift/.SplitFlapDreamService",
+    "repo": "jeremykenedy/split-flap-drift",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/split-flap-drift/releases/download/v1.0.0/split-flap-drift.apk",
+    "bytes": 25272,
+    "sha256": "bf728f8c0c717fc791117c05e6f072fc5872c13dbd43ef9fd4de366cc230b820"
+  },
+  {
+    "id": "canopy-drift",
+    "name": "Canopy Drift",
+    "package": "com.jeremykenedy.canopydrift",
+    "dream": "com.jeremykenedy.canopydrift/.CanopyDreamService",
+    "repo": "jeremykenedy/canopy-drift",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/canopy-drift/releases/download/v1.0.0/canopy-drift.apk",
+    "bytes": 193229,
+    "sha256": "268293380036ac64bbcb200921f9d8b16be8efa6f60dab304b2c29794e5781d1"
+  },
+  {
+    "id": "contour-flow",
+    "name": "Contour Flow",
+    "package": "com.jeremykenedy.contourflow",
+    "dream": "com.jeremykenedy.contourflow/.ContourFlowDreamService",
+    "repo": "jeremykenedy/contour-flow",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/contour-flow/releases/download/v1.0.0/contour-flow.apk",
+    "bytes": 29368,
+    "sha256": "b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447"
   }
 ]
