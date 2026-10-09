@@ -39,7 +39,7 @@ public final class DeviceSettings {
         }
         ScreensaverPreview.restore(context);
         if (!prefs.contains(HomeControl.PREFERENCE)) {
-            HomeControl.remember(context, HomeControl.isEnabled(context));
+            HomeControl.remember(context, true);
         }
         if (!prefs.contains(PROTECT)) {
             capture(context);
@@ -246,14 +246,20 @@ public final class DeviceSettings {
                 failure = failed;
             }
         }
+        try {
+            if (HomeControl.wanted(context) && !HomeControl.isEnabled(context)) {
+                HomeControl.setEnabled(context, true, true);
+            }
+        } catch (RuntimeException failed) {
+            if (failure == null) {
+                failure = failed;
+            }
+        }
         if (failure != null) {
             throw failure;
         }
         if (!prefs.getBoolean(PROTECT, false)) {
             return;
-        }
-        if (prefs.getBoolean(HomeControl.PREFERENCE, false) && !HomeControl.isEnabled(context)) {
-            HomeControl.setEnabled(context, true, true);
         }
         if (prefs.contains("fire_tv_ui_auto_wake") && hasAutoWake(context)) {
             int wanted = prefs.getInt("fire_tv_ui_auto_wake", autoWake(context) ? 1 : 0);

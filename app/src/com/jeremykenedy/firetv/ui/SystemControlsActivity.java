@@ -33,7 +33,7 @@ public final class SystemControlsActivity extends CardActivity {
             public void onClick(View view) {
                 try {
                     HomeControl.setEnabled(SystemControlsActivity.this,
-                            !HomeControl.isEnabled(SystemControlsActivity.this), true);
+                            !HomeControl.wanted(SystemControlsActivity.this), true);
                     ProtectionService.start(SystemControlsActivity.this);
                     refresh();
                 } catch (Exception failed) {
@@ -106,7 +106,8 @@ public final class SystemControlsActivity extends CardActivity {
         }
         addButton(body, updates);
         addButton(body, appstore);
-        TextView hint = text("Home routing returns to Fire TV UI and starts it after boot. Protection checks "
+        TextView hint = text("Your saved Home choice returns to Fire TV UI and starts it after boot. "
+                + "Home stays enabled independently of general protection until you disable it here. Protection checks "
                 + "your screensaver and timers locally. ADB protection keeps network debugging enabled "
                 + "after restart and if Fire OS changes it. Turning it off allows the TV's debugging switch to change. "
                 + "Update protection discards traffic only from "
@@ -124,9 +125,9 @@ public final class SystemControlsActivity extends CardActivity {
 
     private void refresh() {
         boolean blocked = DeviceSettings.prefs(this).getBoolean(ProtectionService.BLOCK_UPDATES, false);
-        home.setText(HomeControl.isEnabled(this) ? "Disable Fire TV UI as startup and Home app"
+        home.setText(HomeControl.wanted(this) ? "Disable Fire TV UI as startup and Home app"
                 : "Enable Fire TV UI as startup and Home app");
-        protection.setText("Protect Home, screensaver and timers: "
+        protection.setText("Protect screensaver and other settings: "
                 + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.PROTECT, false) ? "On" : "Off"));
         updates.setText("Block Amazon system auto-updates: "
                 + (ProtectionService.updatesBlocked() ? "On" : blocked ? "Waiting for permission" : "Off"));

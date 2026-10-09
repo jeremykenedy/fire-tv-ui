@@ -15,14 +15,14 @@ public final class DeviceBootReceiver extends BroadcastReceiver {
             try {
                 ProtectionService.start(context);
                 DeviceSettings.repair(context);
-                if (DeviceSettings.prefs(context).getBoolean(HomeControl.PREFERENCE, false)) {
+                if (HomeControl.wanted(context)) {
                     HomeControl.setEnabled(context, true, true);
                 }
             } catch (RuntimeException ignored) {
                 // The controls page reports permission and read-back state.
             }
         }
-        if (DeviceSettings.prefs(context).getBoolean(HomeControl.PREFERENCE, false)) {
+        if (HomeControl.wanted(context)) {
             Intent launch = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
             if (launch != null) {
                 launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);

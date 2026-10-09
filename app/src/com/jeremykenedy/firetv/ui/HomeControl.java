@@ -35,6 +35,10 @@ public final class HomeControl {
                 && Settings.Secure.getInt(context.getContentResolver(), ENABLED, 0) == 1;
     }
 
+    public static boolean wanted(Context context) {
+        return DeviceSettings.prefs(context).getBoolean(PREFERENCE, true);
+    }
+
     public static void remember(Context context, boolean enabled) {
         DeviceSettings.prefs(context).edit().putBoolean(PREFERENCE, enabled)
                 .putBoolean("start_on_boot", enabled)
@@ -45,8 +49,7 @@ public final class HomeControl {
     public static void setEnabled(Context context, boolean enabled, boolean rebind) {
         String before = Settings.Secure.getString(context.getContentResolver(), SERVICES);
         int accessibility = Settings.Secure.getInt(context.getContentResolver(), ENABLED, 0);
-        SharedPreferences prefs = DeviceSettings.prefs(context);
-        boolean wantedBefore = prefs.getBoolean(PREFERENCE, isEnabled(context));
+        boolean wantedBefore = wanted(context);
         List<String> others = services(before);
         others.remove(redirect(context));
         others.remove(controls(context));

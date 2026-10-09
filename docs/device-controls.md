@@ -18,9 +18,9 @@ Install screensavers contains the curated Aerial Views, AndroSaver, Snoozy, Aqua
 
 ## Startup and protection
 
-Enabling startup and Home routing adds two accessibility services while preserving unrelated services. Disable removes them and disables startup. Fire OS retains its protected Amazon launcher; Home routing opens Fire TV UI when Amazon Home appears and leaves Amazon Settings reachable. Android TV launcher activities are also supported.
+Startup and Home routing defaults to On in the app code. Its saved choice is authoritative, included in backups, and reapplied independently of general settings protection. Enabling adds two accessibility services while preserving unrelated services. Disable saves Off, removes them, and disables startup. Fire OS retains its protected Amazon launcher; Home routing opens Fire TV UI when Amazon Home appears and leaves Amazon Settings reachable. Android TV launcher activities are also supported.
 
-The local guard checks Home routing, screensaver selection, enabled state, and timers when settings change and every 30 seconds. Boot and APK-update receivers rebind enabled Home services. Toolkit timer and screensaver commands change both the desired preference and the system value through a receiver protected by Android's DUMP permission.
+The local guard checks saved Home, deep sleep, and supported Fire TV debugging choices when settings change and every 30 seconds, even with general protection Off. General protection additionally checks screensaver selection, enabled state, and the other timers. Boot and APK-update receivers rebind enabled Home services and launch the app according to its saved Home choice. Toolkit timer and screensaver commands change both the desired preference and the system value through a receiver protected by Android's DUMP permission.
 
 Home Redirect 1.2.2 delegates these shared settings to Fire TV UI instead of restoring an older snapshot. The toolkit's screensaver unlock command leaves selection free while keeping the other settings protected; the picker labels that state. Toolkit updater package restrictions are separate from the GUI VPN and are undone with `guard --off`.
 
