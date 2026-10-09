@@ -25,7 +25,7 @@ Testing a saved component alone does not establish that a particular screensaver
 
 ## Verified build on October 8, 2026
 
-The current source includes the 17-entry catalog. The developer and ADB runtime checks below used the signed version-code-23 APK with SHA-256 `aad8dde8b78f570f3fbe4d36ee7c89f35eaa8f93fcb6275de45edde87abaf345`. Signature verification and 16 KB alignment passed. Each saver entry is checked against its GitHub release metadata. Preview images are inspected at 384x216; source captures and hashes are recorded in `app/previews/sources.json`.
+The signed version-code-24 APK includes the 17-entry catalog and has SHA-256 `7fa85b4072582adbafea8f8bb6a3fdaf850918aad2de6bf5919844613d7a6dcb`. The developer and ADB runtime checks below used the signed version-code-23 APK with SHA-256 `aad8dde8b78f570f3fbe4d36ee7c89f35eaa8f93fcb6275de45edde87abaf345`. Signature verification and 16 KB alignment passed. Each saver entry is checked against its GitHub release metadata. Preview images are inspected at 384x216; source captures and hashes are recorded in `app/previews/sources.json`.
 
 
 The Fire TV checks below used the prior nine-entry build before the final byte-size formatting change. The final APK was installed and reboot-tested on the Android TV emulator. Small downloads now display kilobytes; RAM and storage totals can display gigabytes.
