@@ -102,6 +102,10 @@ class BuildChecks(unittest.TestCase):
                 'Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
                 'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService', 'jeremykenedy/aqua-surface-drift',
                 'cdab28be93938018c8fefd8cf0103c94d9c0c3413ce3b4f7c0359cca7d93cf82', 45773),
+            'cloud-drift-clock': (
+                'Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
+                'com.jeremykenedy.clouddriftclock/.CloudDreamService', 'jeremykenedy/cloud-drift-clock',
+                '11b72b93a82012605348698b8ff53ee1be13fb8b0ffe0d128e6a1f4e23233d27', 320287),
         }
         entries = {item['id']: item for item in json.loads((ROOT / 'app/screensavers.json').read_text())}
         index = json.loads((ROOT / 'app/previews/index.json').read_text())
@@ -112,10 +116,11 @@ class BuildChecks(unittest.TestCase):
             self.assertEqual(entry['package'], package)
             self.assertEqual(entry['dream'], dream)
             self.assertEqual(entry['repo'], repo)
-            self.assertEqual(entry['tag'], 'v1.0.0')
+            release_tag = 'v1.0.1' if identifier == 'cloud-drift-clock' else 'v1.0.0'
+            self.assertEqual(entry['tag'], release_tag)
             asset = 'aqua-surface-drift.apk' if identifier == 'aqua-surface' else f'{identifier}.apk'
             self.assertEqual(entry['url'],
-                             f'https://github.com/{repo}/releases/download/v1.0.0/{asset}')
+                             f'https://github.com/{repo}/releases/download/{release_tag}/{asset}')
             self.assertEqual(entry['sha256'], digest)
             self.assertEqual(entry['bytes'], byte_count)
 

@@ -4,7 +4,7 @@
 
 Settings > Screensavers opens the picker directly. The current name appears at the top. Select an installed row to make it active, or choose Preview it to run it temporarily. Returning to the picker restores the prior selection and enabled state, including after an interrupted preview.
 
-Screensaver settings opens the installed dream's `settingsActivity` declared in its dream metadata, falling back to its launcher activity when no dedicated settings screen is declared. Twilight Hearth, Nebula Drift, Vortex Spiral, and Signal Rain each open their own settings screen from this control. The app controls which options and permissions it offers. System timers provides whole-minute choices and a custom value. Deep sleep Off sets `secure sleep_timeout=0`; turning it back on restores the saved sleep timeout. Screensaver delay uses `system screen_off_timeout`.
+Screensaver settings opens the installed dream's `settingsActivity` declared in its dream metadata, falling back to its launcher activity when no dedicated settings screen is declared. Twilight Hearth, Nebula Drift, Vortex Spiral, Signal Rain, and Cloud Drift Clock each open their own settings screen from this control. The app controls which options and permissions it offers. System timers provides whole-minute choices and a custom value. Deep sleep Off sets `secure sleep_timeout=0`; turning it back on restores the saved sleep timeout. Screensaver delay uses `system screen_off_timeout`.
 
 Deep sleep defaults to Off in the app code. Fire TV UI stores the selected sleep timeout in its own persistent preferences and includes it in the TV backup. It reapplies that choice at startup and when Fire OS changes the timeout, even if general settings protection is Off. Re-enabling general protection does not capture a changed factory sleep value. Updates and restored backups retain the saved app choice, and an explicit sleep timer selected in Fire TV UI or the toolkit remains supported.
 
@@ -14,7 +14,7 @@ On Fire OS devices that expose `str.auto_wake_up_enabled`, Keep Alexa available 
 
 Memory usage shows RAM and internal storage with used/free values and percentage bars. App rows use Android StorageStats for installed files plus app data. Cache is included in data. When usage access is unavailable, the row identifies installed APK size and says data/cache size is unavailable.
 
-Install screensavers contains the curated Aerial Views, AndroSaver, Snoozy, Aquarium Live, Aquarium 4K, Jellyfish Drift, Firefly Grove, Neon Corridor, Starfield Drift, Twilight Hearth, Nebula Drift, Vortex Spiral, and Signal Rain releases. HTTPS downloads verify the pinned SHA-256, byte count, and package identity. Android confirms installation or removal. Removing the current app requires choosing another screensaver; protection drops a removed selection and disables the dream while keeping timer protection active.
+Install screensavers contains the curated Aerial Views, AndroSaver, Snoozy, Aquarium Live, Aquarium 4K, Jellyfish Drift, Firefly Grove, Neon Corridor, Starfield Drift, Twilight Hearth, Nebula Drift, Vortex Spiral, Signal Rain, Retro Flight, Pipeworks Dream, Aqua Surface Drift, and Cloud Drift Clock releases. HTTPS downloads verify the pinned SHA-256, byte count, and package identity. Android confirms installation or removal. Removing the current app requires choosing another screensaver; protection drops a removed selection and disables the dream while keeping timer protection active.
 
 ## Startup and protection
 
