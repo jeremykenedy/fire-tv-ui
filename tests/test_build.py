@@ -90,6 +90,14 @@ class BuildChecks(unittest.TestCase):
                 'Signal Rain', 'com.jeremykenedy.signalrain',
                 'com.jeremykenedy.signalrain/.SignalRainDreamService', 'jeremykenedy/signal-rain',
                 '39a05659217658d39d44200d931ace8fb4edfe5034372ee35c945159fe392615', 33485),
+            'retro-flight': (
+                'Retro Flight', 'com.jeremykenedy.retroflight',
+                'com.jeremykenedy.retroflight/.RetroFlightDreamService', 'jeremykenedy/retro-flight',
+                '7845db142ef5f4cb4e92d96c1b6fa92ee2f7bd86fe7c47cd52627b37cc92cbf2', 53965),
+            'pipeworks-dream': (
+                'Pipeworks Dream', 'com.jeremykenedy.pipeworksdream',
+                'com.jeremykenedy.pipeworksdream/.PipeworksDreamService', 'jeremykenedy/pipeworks-dream',
+                '49dbc66e28e69cb3cd4b4c70cc320bae127b2d450fc96ae11006a0df6c9eeb23', 66253),
         }
         entries = {item['id']: item for item in json.loads((ROOT / 'app/screensavers.json').read_text())}
         index = json.loads((ROOT / 'app/previews/index.json').read_text())
