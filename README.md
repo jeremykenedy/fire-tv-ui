@@ -9,7 +9,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.0.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.0.1-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -40,7 +40,7 @@ This repository and its APK are kept private. Build the signed APK locally, or u
 The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
 
 ```bash
-firetv-ui --install --apk=/path/to/fire-tv-ui-1.0.0.apk --sha256=PUBLISHED_SHA256
+firetv-ui --install --apk=/path/to/fire-tv-ui-1.0.1.apk --sha256=PUBLISHED_SHA256
 ```
 
 For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
