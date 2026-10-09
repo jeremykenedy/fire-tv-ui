@@ -26,6 +26,14 @@ SCREENSAVERS = (
      'com.jeremykenedy.clouddriftclock/.CloudDreamService'),
     ('Earthbound Orbit', 'com.jeremykenedy.earthboundorbit',
      'com.jeremykenedy.earthboundorbit/.EarthboundOrbitDreamService'),
+    ('Perseid Passage', 'com.jeremykenedy.perseidpassage',
+     'com.jeremykenedy.perseidpassage/.MeteorDreamService'),
+    ('Split-Flap Drift', 'com.jeremykenedy.splitflapdrift',
+     'com.jeremykenedy.splitflapdrift/.SplitFlapDreamService'),
+    ('Canopy Drift', 'com.jeremykenedy.canopydrift',
+     'com.jeremykenedy.canopydrift/.CanopyDreamService'),
+    ('Contour Flow', 'com.jeremykenedy.contourflow',
+     'com.jeremykenedy.contourflow/.ContourFlowDreamService'),
 )
 
 
@@ -95,7 +103,7 @@ class SettingsRouteChecks(unittest.TestCase):
                     expected_title = label + ' settings'
                     for _ in range(20):
                         resumed = [line for line in self.shell('dumpsys', 'activity', 'activities').splitlines()
-                                   if 'mResumedActivity:' in line]
+                                   if 'mResumedActivity:' in line or 'topResumedActivity=' in line]
                         if any(expected_activity in line for line in resumed):
                             break
                         time.sleep(0.25)
