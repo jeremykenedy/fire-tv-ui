@@ -16,6 +16,10 @@ SCREENSAVERS = (
      'com.jeremykenedy.vortexspiral/.VortexDreamService'),
     ('Signal Rain', 'com.jeremykenedy.signalrain',
      'com.jeremykenedy.signalrain/.SignalRainDreamService'),
+    ('Retro Flight', 'com.jeremykenedy.retroflight',
+     'com.jeremykenedy.retroflight/.RetroFlightDreamService'),
+    ('Pipeworks Dream', 'com.jeremykenedy.pipeworksdream',
+     'com.jeremykenedy.pipeworksdream/.PipeworksDreamService'),
 )
 
 
@@ -44,7 +48,7 @@ class SettingsRouteChecks(unittest.TestCase):
         for _, package, _ in SCREENSAVERS:
             self.shell('am', 'force-stop', package)
         self.shell('am', 'force-stop', UI_PACKAGE)
-        self.shell('am', 'start', '-W', '-n', UI_PACKAGE + '/.ScreensaverActivity')
+        self.shell('am', 'start', '-n', UI_PACKAGE + '/.ScreensaverActivity')
         time.sleep(0.5)
 
     def read_window(self, path):

@@ -110,7 +110,7 @@ python3 scripts/build.py --unsigned
 bash scripts/test.sh
 ```
 
-The local checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. This private repository does not run CI.
+The local checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. They also verify release hashes, preview provenance, and each new app's settings route on an Android TV emulator. This private repository does not run CI.
 
 Device testing is described in [Verification](docs/verification.md).
 
