@@ -25,7 +25,7 @@ Testing a saved component alone does not establish that a particular screensaver
 
 ## Verified build on October 8, 2026
 
-The local signed `fire-tv-ui-1.0.0.apk`, version code 22, was checked through native emulator behavior as described below. The catalog pins 17 published APKs by package, version, byte count, and SHA-256. Each saver entry is checked against its GitHub release metadata. Preview images are inspected at 384x216; source captures and hashes are recorded in `app/previews/sources.json`.
+The local signed `fire-tv-ui-1.0.0.apk`, version code 23, includes the 17-entry catalog. Each saver entry is checked against its GitHub release metadata. Preview images are inspected at 384x216; source captures and hashes are recorded in `app/previews/sources.json`.
 
 The Fire TV checks below used the prior nine-entry build before the final byte-size formatting change. The final APK was installed and reboot-tested on the Android TV emulator. Small downloads now display kilobytes; RAM and storage totals can display gigabytes.
 
