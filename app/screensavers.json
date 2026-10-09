@@ -97,5 +97,49 @@
     "url": "https://github.com/jeremykenedy/starfield-drift/releases/download/v1.0.0/starfield-drift.apk",
     "sha256": "2d6fac418b80c47e572459adc734eee876dfe10f96d02c0b879900ba9d85a197",
     "bytes": 33485
+  },
+  {
+    "id": "twilight-hearth",
+    "name": "Twilight Hearth",
+    "package": "com.jeremykenedy.twilighthearth",
+    "dream": "com.jeremykenedy.twilighthearth/.HearthDreamService",
+    "repo": "jeremykenedy/twilight-hearth",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/twilight-hearth/releases/download/v1.0.0/twilight-hearth.apk",
+    "bytes": 33485,
+    "sha256": "a27bf8bce4dd6a8483d9f64e6b336f283cd7fb9a72c76dded4c51d471275250c"
+  },
+  {
+    "id": "nebula-drift",
+    "name": "Nebula Drift",
+    "package": "com.jeremykenedy.nebuladrift",
+    "dream": "com.jeremykenedy.nebuladrift/.NebulaDreamService",
+    "repo": "jeremykenedy/nebula-drift",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/nebula-drift/releases/download/v1.0.0/nebula-drift.apk",
+    "bytes": 29368,
+    "sha256": "85964a8c4d63e9a4c3ba0624c5902e1b20d500614c676a709b393a561a6cb108"
+  },
+  {
+    "id": "vortex-spiral",
+    "name": "Vortex Spiral",
+    "package": "com.jeremykenedy.vortexspiral",
+    "dream": "com.jeremykenedy.vortexspiral/.VortexDreamService",
+    "repo": "jeremykenedy/vortex-spiral",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/vortex-spiral/releases/download/v1.0.0/vortex-spiral.apk",
+    "bytes": 49869,
+    "sha256": "dc689afed574024d97fc40ae40912cfc2d3d5ad6db3c1008ce2273118c6e72af"
+  },
+  {
+    "id": "signal-rain",
+    "name": "Signal Rain",
+    "package": "com.jeremykenedy.signalrain",
+    "dream": "com.jeremykenedy.signalrain/.SignalRainDreamService",
+    "repo": "jeremykenedy/signal-rain",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/signal-rain/releases/download/v1.0.0/signal-rain.apk",
+    "bytes": 33485,
+    "sha256": "39a05659217658d39d44200d931ace8fb4edfe5034372ee35c945159fe392615"
   }
 ]

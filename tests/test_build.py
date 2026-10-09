@@ -50,6 +50,72 @@ class BuildChecks(unittest.TestCase):
                     self.assertEqual(archive.read('assets/screensaver-previews/' + filename),
                                      (ROOT / 'app/previews' / filename).read_bytes())
 
+    def test_twilight_hearth_catalog_release_and_preview_are_pinned(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        entry = next(item for item in entries if item['id'] == 'twilight-hearth')
+        self.assertEqual(entry['package'], 'com.jeremykenedy.twilighthearth')
+        self.assertEqual(entry['dream'], 'com.jeremykenedy.twilighthearth/.HearthDreamService')
+        self.assertEqual(entry['repo'], 'jeremykenedy/twilight-hearth')
+        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['url'],
+                         'https://github.com/jeremykenedy/twilight-hearth/releases/download/'
+                         'v1.0.0/twilight-hearth.apk')
+        self.assertEqual(entry['bytes'], 33485)
+        self.assertEqual(entry['sha256'],
+                         'a27bf8bce4dd6a8483d9f64e6b336f283cd7fb9a72c76dded4c51d471275250c')
+
+        component = full_component(entry['dream'])
+        index = json.loads((ROOT / 'app/previews/index.json').read_text())
+        filename = preview_file(entry['dream'])
+        self.assertEqual(index[component], filename)
+        sources = json.loads((ROOT / 'app/previews/sources.json').read_text())
+        source = sources[component]
+        original = ROOT / source['source_file']
+        preview = ROOT / 'app/previews' / filename
+        self.assertTrue(original.is_file())
+        self.assertEqual(hashlib.sha256(original.read_bytes()).hexdigest(), source['source_sha256'])
+        self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), source['preview_sha256'])
+
+    def test_new_screensaver_catalog_releases_and_previews_are_pinned(self):
+        expected = {
+            'nebula-drift': (
+                'Nebula Drift', 'com.jeremykenedy.nebuladrift',
+                'com.jeremykenedy.nebuladrift/.NebulaDreamService', 'jeremykenedy/nebula-drift',
+                '85964a8c4d63e9a4c3ba0624c5902e1b20d500614c676a709b393a561a6cb108', 29368),
+            'vortex-spiral': (
+                'Vortex Spiral', 'com.jeremykenedy.vortexspiral',
+                'com.jeremykenedy.vortexspiral/.VortexDreamService', 'jeremykenedy/vortex-spiral',
+                'dc689afed574024d97fc40ae40912cfc2d3d5ad6db3c1008ce2273118c6e72af', 49869),
+            'signal-rain': (
+                'Signal Rain', 'com.jeremykenedy.signalrain',
+                'com.jeremykenedy.signalrain/.SignalRainDreamService', 'jeremykenedy/signal-rain',
+                '39a05659217658d39d44200d931ace8fb4edfe5034372ee35c945159fe392615', 33485),
+        }
+        entries = {item['id']: item for item in json.loads((ROOT / 'app/screensavers.json').read_text())}
+        index = json.loads((ROOT / 'app/previews/index.json').read_text())
+        sources = json.loads((ROOT / 'app/previews/sources.json').read_text())
+        for identifier, (name, package, dream, repo, digest, byte_count) in expected.items():
+            entry = entries[identifier]
+            self.assertEqual(entry['name'], name)
+            self.assertEqual(entry['package'], package)
+            self.assertEqual(entry['dream'], dream)
+            self.assertEqual(entry['repo'], repo)
+            self.assertEqual(entry['tag'], 'v1.0.0')
+            self.assertEqual(entry['url'],
+                             f'https://github.com/{repo}/releases/download/v1.0.0/{identifier}.apk')
+            self.assertEqual(entry['sha256'], digest)
+            self.assertEqual(entry['bytes'], byte_count)
+
+            component = full_component(dream)
+            filename = preview_file(dream)
+            self.assertEqual(index[component], filename)
+            record = sources[component]
+            source = ROOT / record['source_file']
+            preview = ROOT / 'app/previews' / filename
+            self.assertTrue(source.is_file())
+            self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), record['source_sha256'])
+            self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), record['preview_sha256'])
+
     def test_manifest_and_features(self):
         path = ROOT / '.build/decoded/AndroidManifest.xml'
         if not path.exists():
