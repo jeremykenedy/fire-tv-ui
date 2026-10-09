@@ -98,6 +98,10 @@ class BuildChecks(unittest.TestCase):
                 'Pipeworks Dream', 'com.jeremykenedy.pipeworksdream',
                 'com.jeremykenedy.pipeworksdream/.PipeworksDreamService', 'jeremykenedy/pipeworks-dream',
                 '49dbc66e28e69cb3cd4b4c70cc320bae127b2d450fc96ae11006a0df6c9eeb23', 66253),
+            'aqua-surface': (
+                'Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
+                'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService', 'jeremykenedy/aqua-surface-drift',
+                'cdab28be93938018c8fefd8cf0103c94d9c0c3413ce3b4f7c0359cca7d93cf82', 45773),
         }
         entries = {item['id']: item for item in json.loads((ROOT / 'app/screensavers.json').read_text())}
         index = json.loads((ROOT / 'app/previews/index.json').read_text())
@@ -109,8 +113,9 @@ class BuildChecks(unittest.TestCase):
             self.assertEqual(entry['dream'], dream)
             self.assertEqual(entry['repo'], repo)
             self.assertEqual(entry['tag'], 'v1.0.0')
+            asset = 'aqua-surface-drift.apk' if identifier == 'aqua-surface' else f'{identifier}.apk'
             self.assertEqual(entry['url'],
-                             f'https://github.com/{repo}/releases/download/v1.0.0/{identifier}.apk')
+                             f'https://github.com/{repo}/releases/download/v1.0.0/{asset}')
             self.assertEqual(entry['sha256'], digest)
             self.assertEqual(entry['bytes'], byte_count)
 

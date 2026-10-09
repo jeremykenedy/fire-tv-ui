@@ -20,6 +20,8 @@ SCREENSAVERS = (
      'com.jeremykenedy.retroflight/.RetroFlightDreamService'),
     ('Pipeworks Dream', 'com.jeremykenedy.pipeworksdream',
      'com.jeremykenedy.pipeworksdream/.PipeworksDreamService'),
+    ('Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
+     'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService'),
 )
 
 

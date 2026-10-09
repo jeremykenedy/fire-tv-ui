@@ -163,5 +163,16 @@
     "url": "https://github.com/jeremykenedy/pipeworks-dream/releases/download/v1.0.0/pipeworks-dream.apk",
     "bytes": 66253,
     "sha256": "49dbc66e28e69cb3cd4b4c70cc320bae127b2d450fc96ae11006a0df6c9eeb23"
+  },
+  {
+    "id": "aqua-surface",
+    "name": "Aqua Surface Drift",
+    "package": "com.jeremykenedy.aquasurfacedrift",
+    "dream": "com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService",
+    "repo": "jeremykenedy/aqua-surface-drift",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/aqua-surface-drift/releases/download/v1.0.0/aqua-surface-drift.apk",
+    "bytes": 45773,
+    "sha256": "cdab28be93938018c8fefd8cf0103c94d9c0c3413ce3b4f7c0359cca7d93cf82"
   }
 ]
