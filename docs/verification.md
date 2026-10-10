@@ -6,6 +6,15 @@ Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build 
 
 ## Device checks
 
+### Fire TV UI 1.1.2, version code 31
+
+| Platform | Result | Notes |
+| --- | --- | --- |
+| Physical Fire TV AFTDEC012E, Fire OS / Android 11, 1920x1080 | Verified | Installed the signed update over version code 30. Opened Settings > Screensavers > System timers, selected the five-minute TV Sleep Timer, and confirmed the native Fire OS sleep and notification alarms were scheduled. Selected Off and confirmed both alarms were removed. The timer page returned to Off. The screensaver delay stayed at five minutes, Deep Sleep remained Off, and its timer stayed at 20 minutes. The final timer screen was captured and visually checked. |
+| Android TV and Google TV devices | Not tested for this release | Looking for device owners to install the update and report the model, OS/API, resolution, and timer behavior. |
+
+The signed version-code-31 APK SHA-256 is `0d4ca2276846961e1eb02155f2c73f6d7cd70efe06b1582ac8e3f0877e76a547`. Its checksum sidecar is included with the release. The APK was installed over the previous release, preserving its app identity and settings.
+
 ### Fire TV UI 1.1.1, version code 30
 
 | Platform | Result | Notes |

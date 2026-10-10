@@ -3,7 +3,6 @@ package com.jeremykenedy.firetv.ui;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ActivityNotFoundException;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.provider.Settings;
@@ -30,14 +29,4 @@ public final class SystemSettings {
         context.startActivity(new Intent(Settings.ACTION_SETTINGS));
     }
 
-    public static void openSleepTimer(Context context) {
-        Intent timer = new Intent("com.amazon.tv.quicksettings.action.SLEEP_VIEW")
-                .setClassName("com.amazon.tv.quicksettings",
-                        "com.amazon.tv.quicksettings.StartQSActivity");
-        try {
-            context.startActivity(timer);
-        } catch (ActivityNotFoundException | SecurityException unavailable) {
-            open(context);
-        }
-    }
 }

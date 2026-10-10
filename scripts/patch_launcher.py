@@ -279,6 +279,7 @@ def patch_manifest(decoded):
     app.set(ANDROID + 'requestLegacyExternalStorage', 'true')
     queries = root.find('queries')
     ET.SubElement(queries, 'package', {ANDROID + 'name': 'com.amazon.ftv.screensaver'})
+    ET.SubElement(queries, 'package', {ANDROID + 'name': 'com.amazon.tv.settings.v2'})
     query = ET.SubElement(queries, 'intent')
     ET.SubElement(query, 'action', {ANDROID + 'name': 'android.service.dreams.DreamService'})
     for query in list(queries):

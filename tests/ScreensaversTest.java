@@ -64,6 +64,20 @@ public final class ScreensaversTest {
         }
         check(TimeoutValues.label(0).equals("Disabled"), "A disabled timer is shown accurately");
         check(TimeoutValues.label(15000).equals("15 seconds"), "Existing sub-minute delays are not rounded");
+        check(SleepTimerOptions.count() == 11, "The TV sleep timer exposes Off and every native duration");
+        check(SleepTimerOptions.actionIdAt(0).equals("qs_sleep_timer"),
+                "Turning off the TV sleep timer cancels its native countdown");
+        check(SleepTimerOptions.minutesForAction("sleep_timer_30") == 30,
+                "The 30-minute choice maps to Fire TV's native action");
+        check(SleepTimerOptions.labelForMinutes(240).equals("4 hours"),
+                "The longest native timer is labeled in hours");
+        boolean rejectedSleepChoice = false;
+        try {
+            SleepTimerOptions.minutesForAction("sleep_timer_1");
+        } catch (IllegalArgumentException expected) {
+            rejectedSleepChoice = true;
+        }
+        check(rejectedSleepChoice, "Unsupported native timer choices are rejected");
         check(TimeoutValues.deepSleepAutoWakeValue(false) == 1,
                 "Deep sleep off keeps Alexa auto-wake available");
         check(TimeoutValues.deepSleepAutoWakeValue(true) == 0,

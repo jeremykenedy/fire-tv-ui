@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public final class TimersActivity extends CardActivity {
     private TextView tvSleep;
@@ -24,7 +25,7 @@ public final class TimersActivity extends CardActivity {
         tvSleep = button("", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SystemSettings.openSleepTimer(TimersActivity.this);
+                sleepTimer();
             }
         });
         idle = button("", new View.OnClickListener() {
@@ -63,14 +64,16 @@ public final class TimersActivity extends CardActivity {
                 refresh();
             }
         });
-        addButton(body, tvSleep);
+        if (FireTvSleepTimer.isAvailable(this)) {
+            addButton(body, tvSleep);
+        }
         addButton(body, idle);
         addButton(body, deepTimer);
         if (DeviceSettings.hasAutoWake(this)) {
             addButton(body, deep);
         }
         addButton(body, protection);
-        TextView hint = text("TV Sleep Timer is a one-time countdown provided by the TV. It is separate "
+        TextView hint = text("TV Sleep Timer is a one-time countdown. Set or cancel it here. It is separate "
                 + "from the screensaver delay and Deep Sleep. The Deep Sleep toggle controls whether Alexa "
                 + "can wake the TV after it enters Deep Sleep. Its timer independently controls how long "
                 + "the idle TV waits before entering Deep Sleep. "
@@ -89,7 +92,16 @@ public final class TimersActivity extends CardActivity {
     }
 
     private void refresh() {
-        tvSleep.setText("TV Sleep Timer: Open TV timer");
+        long end = DeviceSettings.prefs(this).getLong("fire_tv_ui_tv_sleep_end", 0);
+        long remaining = end - System.currentTimeMillis();
+        if (remaining <= 0) {
+            DeviceSettings.prefs(this).edit().remove("fire_tv_ui_tv_sleep_end")
+                    .remove("fire_tv_ui_tv_sleep_duration").apply();
+            tvSleep.setText("TV Sleep Timer: Off");
+        } else {
+            int minutes = (int) Math.max(1, (remaining + 59999) / 60000);
+            tvSleep.setText("TV Sleep Timer: " + TimeoutValues.label(minutes * 60000) + " remaining");
+        }
         idle.setText("Screensaver starts after: " + TimeoutValues.label(DeviceSettings.idle(this)));
         deepTimer.setText("Deep sleep timer: " + TimeoutValues.label(DeviceSettings.deepSleepTimeout(this)));
         if (DeviceSettings.hasAutoWake(this)) {
@@ -97,6 +109,56 @@ public final class TimersActivity extends CardActivity {
         }
         protection.setText("Protect screensaver and other settings: "
                 + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.PROTECT, false) ? "On" : "Off"));
+    }
+
+    private void sleepTimer() {
+        String[] options = new String[SleepTimerOptions.count()];
+        int selected = -1;
+        int activeMinutes = DeviceSettings.prefs(this).getInt("fire_tv_ui_tv_sleep_duration", 0);
+        for (int index = 0; index < options.length; index++) {
+            options[index] = SleepTimerOptions.labelAt(index);
+            if (SleepTimerOptions.minutesAt(index) == activeMinutes) {
+                selected = index;
+            }
+        }
+        new AlertDialog.Builder(this).setTitle("TV Sleep Timer")
+                .setSingleChoiceItems(options, selected, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int index) {
+                        dialog.dismiss();
+                        setSleepTimer(SleepTimerOptions.actionIdAt(index));
+                    }
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void setSleepTimer(final String actionId) {
+        FireTvSleepTimer.set(this, actionId, new FireTvSleepTimer.Callback() {
+            @Override
+            public void onComplete(Exception failure) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                if (failure != null) {
+                    error(failure);
+                    return;
+                }
+                int minutes = SleepTimerOptions.minutesForAction(actionId);
+                if (minutes == 0) {
+                    DeviceSettings.prefs(TimersActivity.this).edit()
+                            .remove("fire_tv_ui_tv_sleep_end")
+                            .remove("fire_tv_ui_tv_sleep_duration").apply();
+                } else {
+                    long end = System.currentTimeMillis() + minutes * 60000L;
+                    DeviceSettings.prefs(TimersActivity.this).edit()
+                            .putLong("fire_tv_ui_tv_sleep_end", end)
+                            .putInt("fire_tv_ui_tv_sleep_duration", minutes).apply();
+                }
+                refresh();
+                Toast.makeText(TimersActivity.this,
+                        minutes == 0 ? "TV Sleep Timer canceled" : "TV Sleep Timer set for "
+                                + SleepTimerOptions.labelForMinutes(minutes), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void minutes(final boolean sleeping) {

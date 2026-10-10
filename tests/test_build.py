@@ -188,6 +188,8 @@ class BuildChecks(unittest.TestCase):
             self.assertNotIn('billingclient', child.get(android + 'name', ''))
         self.assertTrue(any(node.get(android + 'name') == 'com.amazon.ftv.screensaver'
                             for node in root.find('queries').findall('package')))
+        self.assertTrue(any(node.get(android + 'name') == 'com.amazon.tv.settings.v2'
+                            for node in root.find('queries').findall('package')))
         self.assertTrue(any('ScreensaverActivity' in node.get(android + 'name', '')
                             for node in root.find('application').findall('activity')))
         receiver = next(node for node in root.find('application').findall('receiver')

@@ -183,6 +183,7 @@ public final class BackupStore {
     private static boolean isPortable(String key) {
         return !key.equals("is_premium") && !key.equals("PREF_IS_PREMIUM")
                 && !key.startsWith("fire_tv_ui_preview_")
+                && !key.startsWith("fire_tv_ui_tv_sleep_")
                 && !key.equals("app_launch_count") && !key.equals("rate_app_shown")
                 && !key.equals("aerial_json_cache") && !key.equals("subreddit_wallpaper_urls");
     }
