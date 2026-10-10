@@ -6,6 +6,16 @@ Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build 
 
 ## Device checks
 
+### Fire TV UI 1.1.3, version code 32
+
+The signed patch was installed over version code 31 on the physical Fire TV AFTDEC012E running Fire OS / Android 11. The device regression test opened Settings repeatedly and confirmed that Back, Menu, and Home dismissed it. Theme Mode returned to the launcher with Back, and Settings could be reopened and dismissed afterward. The gear icon opened Amazon Settings, and Back returned to Fire TV UI.
+
+Aquarium 4K 1.3.6 activated automatically after inactivity with a temporary 15-second delay. Dream Manager reported the Aquarium service as a normal, non-test dream, and two captured frames showed the fish moving. Back stopped the dream and returned to Fire TV UI without a Settings panel. The original five-minute delay was restored, and all 45 saved launcher preferences matched the pre-update backup. The runtime frames are [Aquarium after idle](../art/screenshots/aquarium-idle-fire-tv-1920.png) and [a later animation frame](../art/screenshots/aquarium-motion-fire-tv-1920.png).
+
+`FIRE_TV_UI_MENU_TEST_SERIAL=YOUR_TV_SERIAL bash scripts/test.sh` passed 38 Java checks and nine Python checks. The separate catalog settings-route test was skipped because its emulator serial was not configured. UI capture retries discard stale hierarchy files when Android's automation bridge cannot return a root during a transition.
+
+The signed APK SHA-256 is `7e793de0224699c44bbecd7b177aeff6143620c381454285555ce66eb771627a`. The build passed APK alignment and v2/v3 signature verification. This private repository has no CI workflow; verification ran locally and on the physical TV. No physical reboot was performed for this patch.
+
 ### Fire TV UI 1.1.2, version code 31
 
 | Platform | Result | Notes |

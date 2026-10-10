@@ -1,5 +1,9 @@
 # Device controls and backups
 
+## Remote navigation
+
+Back and Menu dismiss the launcher's Settings panel without moving the app grid behind it. Home routing returns to Fire TV UI with its menus closed. Amazon Settings remains reachable from the gear icon, and Back returns from that screen to Fire TV UI.
+
 ## Screensavers
 
 Settings > Screensavers opens the picker directly. The current name appears at the top. Select an installed row to make it active, or choose Preview it to run it temporarily. Returning to the picker restores the prior selection and enabled state, including after an interrupted preview.

@@ -110,6 +110,7 @@ public class HomeRedirectService extends AccessibilityService {
                     + " is not installed, leaving the Amazon home screen up");
             return;
         }
+        launch.addCategory(Intent.CATEGORY_HOME);
         launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
                 | Intent.FLAG_ACTIVITY_NO_ANIMATION);

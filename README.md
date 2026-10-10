@@ -9,7 +9,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.1.2-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.1.3-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -40,7 +40,7 @@ This repository and its APK are private. Users with repository access can instal
 The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
 
 ```bash
-firetv-ui --install --apk=/path/to/fire-tv-ui-1.1.2.apk --sha256=PUBLISHED_SHA256
+firetv-ui --install --apk=/path/to/fire-tv-ui-1.1.3.apk --sha256=PUBLISHED_SHA256
 ```
 
 For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
@@ -56,6 +56,8 @@ For wireless ADB, Home-button setup, and transferring settings from an existing 
 ## Quick Start
 
 Open **Fire TV UI**, accept the accessibility disclosure if you want remote shortcuts, and use the preferences icon in the top bar to open Settings.
+
+Press **Back** or **Menu** to dismiss the Settings panel. **Home** returns to the launcher with the panel closed when Home routing is enabled.
 
 Choose **Settings > Screensavers** to select an installed screensaver. Each row has a sample image, installed storage usage, a circular selector, and a **Preview it** button. The top controls open the current screensaver's options, system timers, installation catalog, and memory usage. Previewing another app restores your prior selection afterward.
 
@@ -121,6 +123,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Verification](docs/verification.md)
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
+- [Fire TV UI 1.1.3 release notes and upgrade guide](docs/releases/v1.1.3.md)
 - [Fire TV UI 1.1.2 release notes and upgrade guide](docs/releases/v1.1.2.md)
 - [Fire TV UI 1.1.1 release notes and upgrade guide](docs/releases/v1.1.1.md)
 
@@ -136,8 +139,8 @@ Captured on Fire TV hardware and an Android TV emulator.
 
 <table>
   <tr>
-    <td><img src="art/screenshots/home-tv-1920.png" alt="Fire TV UI home screen on Android TV"><br>Home</td>
-    <td><img src="art/screenshots/settings-tv-1920.png" alt="Settings menu with the TV screensaver entry"><br>Settings</td>
+    <td><img src="art/screenshots/home-tv-1920.png" alt="Fire TV UI home screen on Fire TV with Settings dismissed"><br>Home</td>
+    <td><img src="art/screenshots/settings-tv-1920.png" alt="Dismissible Settings menu with the TV screensaver entry"><br>Settings</td>
     <td><img src="art/screenshots/tv-screensaver-first-tv-1920.png" alt="Installed screensavers with screenshot previews"><br>TV screensaver</td>
   </tr>
   <tr>
@@ -159,6 +162,11 @@ Captured on Fire TV hardware and an Android TV emulator.
     <td><img src="art/screenshots/install-screensavers-tv-1920.png" alt="Verified screensaver installation and removal catalog"><br>Install screensavers</td>
     <td><img src="art/screenshots/install-screensavers-lower-tv-1920.png" alt="Final catalog entries with their download sizes"><br>More screensavers</td>
     <td><img src="art/screenshots/persistent-backups-tv-1920.png" alt="Persistent TV backup and CLI import restoration"><br>TV backups</td>
+  </tr>
+  <tr>
+    <td><img src="art/screenshots/aquarium-idle-fire-tv-1920.png" alt="Aquarium 4K running automatically after inactivity on Fire TV"><br>Aquarium 4K</td>
+    <td><img src="art/screenshots/aquarium-motion-fire-tv-1920.png" alt="A later Aquarium 4K frame showing swimming fish"><br>Aquarium animation</td>
+    <td><img src="art/screenshots/tv-screensaver-lower-tv-1920.png" alt="More installed screensavers on Fire TV"><br>More installed screensavers</td>
   </tr>
 </table>
 
