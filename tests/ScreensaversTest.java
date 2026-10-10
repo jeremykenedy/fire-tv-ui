@@ -62,8 +62,23 @@ public final class ScreensaversTest {
             }
             check(rejected, "Invalid timer is rejected: " + invalid);
         }
-        check(TimeoutValues.label(0).equals("Disabled"), "Deep sleep off is shown accurately");
+        check(TimeoutValues.label(0).equals("Disabled"), "A disabled timer is shown accurately");
         check(TimeoutValues.label(15000).equals("15 seconds"), "Existing sub-minute delays are not rounded");
+        check(TimeoutValues.deepSleepAutoWakeValue(false) == 1,
+                "Deep sleep off keeps Alexa auto-wake available");
+        check(TimeoutValues.deepSleepAutoWakeValue(true) == 0,
+                "Deep sleep on disables Alexa auto-wake");
+        check(TimeoutValues.activeDeepSleepTimeout(1800000) == 1800000,
+                "The deep sleep timer remains independent of the deep sleep toggle");
+        check(TimeoutValues.activeDeepSleepTimeout(0) == 0,
+                "A disabled deep sleep timer stays disabled");
+        boolean rejectedDeepSleepTimer = false;
+        try {
+            TimeoutValues.activeDeepSleepTimeout(-1);
+        } catch (IllegalArgumentException expected) {
+            rejectedDeepSleepTimer = true;
+        }
+        check(rejectedDeepSleepTimer, "Negative deep sleep timers are rejected");
         System.out.println(checks + " screensaver checks passed.");
     }
 }

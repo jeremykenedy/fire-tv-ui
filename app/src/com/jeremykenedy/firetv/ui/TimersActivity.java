@@ -10,24 +10,30 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public final class TimersActivity extends CardActivity {
-    private TextView sleep;
+    private TextView tvSleep;
+    private TextView deepTimer;
     private TextView idle;
     private TextView deep;
     private TextView protection;
-    private TextView awake;
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         title("System timers");
         LinearLayout body = scrollBody();
+        tvSleep = button("", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SystemSettings.openSleepTimer(TimersActivity.this);
+            }
+        });
         idle = button("", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 minutes(false);
             }
         });
-        sleep = button("", new View.OnClickListener() {
+        deepTimer = button("", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 minutes(true);
@@ -37,13 +43,8 @@ public final class TimersActivity extends CardActivity {
             @Override
             public void onClick(View view) {
                 try {
-                    int current = DeviceSettings.sleep(TimersActivity.this);
-                    if (current > 0) {
-                        DeviceSettings.sleep(TimersActivity.this, 0);
-                    } else {
-                        DeviceSettings.sleep(TimersActivity.this, DeviceSettings.prefs(TimersActivity.this)
-                                .getInt("fire_tv_ui_sleep_saved", 1200000));
-                    }
+                    DeviceSettings.deepSleep(TimersActivity.this,
+                            !DeviceSettings.deepSleepEnabled(TimersActivity.this));
                     refresh();
                 } catch (Exception failed) {
                     error(failed);
@@ -62,26 +63,18 @@ public final class TimersActivity extends CardActivity {
                 refresh();
             }
         });
+        addButton(body, tvSleep);
         addButton(body, idle);
-        addButton(body, sleep);
-        addButton(body, deep);
+        addButton(body, deepTimer);
         if (DeviceSettings.hasAutoWake(this)) {
-            awake = button("", new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    try {
-                        DeviceSettings.autoWake(TimersActivity.this, !DeviceSettings.autoWake(TimersActivity.this));
-                        refresh();
-                    } catch (Exception failed) {
-                        error(failed);
-                    }
-                }
-            });
-            addButton(body, awake);
+            addButton(body, deep);
         }
         addButton(body, protection);
-        TextView hint = text("Deep sleep puts the TV into standby. Turn it off to keep the TV awake. "
-                + "Fire TV UI saves your sleep choice and restores it after restart. "
+        TextView hint = text("TV Sleep Timer is a one-time countdown provided by the TV. It is separate "
+                + "from the screensaver delay and Deep Sleep. The Deep Sleep toggle controls whether Alexa "
+                + "can wake the TV after it enters Deep Sleep. Its timer independently controls how long "
+                + "the idle TV waits before entering Deep Sleep. "
+                + "Fire TV UI saves the deep sleep choice and timer separately and restores them after restart. "
                 + "Protect settings restores your chosen screensaver and its delay if the system changes them. "
                 + "Fire TV Toolkit timer and screensaver commands also update your protected settings.", 16, MUTED);
         hint.setPadding(0, dp(12), 0, dp(12));
@@ -96,20 +89,22 @@ public final class TimersActivity extends CardActivity {
     }
 
     private void refresh() {
+        tvSleep.setText("TV Sleep Timer: Open TV timer");
         idle.setText("Screensaver starts after: " + TimeoutValues.label(DeviceSettings.idle(this)));
-        sleep.setText("TV sleeps after: " + TimeoutValues.label(DeviceSettings.sleep(this)));
-        deep.setText("Deep sleep: " + (DeviceSettings.sleep(this) == 0 ? "Off" : "On"));
-        if (awake != null) {
-            awake.setText("Keep Alexa available during sleep: " + (DeviceSettings.autoWake(this) ? "On" : "Off"));
+        deepTimer.setText("Deep sleep timer: " + TimeoutValues.label(DeviceSettings.deepSleepTimeout(this)));
+        if (DeviceSettings.hasAutoWake(this)) {
+            deep.setText("Deep sleep: " + (DeviceSettings.deepSleepEnabled(this) ? "On" : "Off"));
         }
         protection.setText("Protect screensaver and other settings: "
                 + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.PROTECT, false) ? "On" : "Off"));
     }
 
     private void minutes(final boolean sleeping) {
-        final String[] options = {"1 minute", "5 minutes", "10 minutes", "15 minutes", "20 minutes", "30 minutes", "60 minutes", "Custom minutes"};
-        final int[] values = {1, 5, 10, 15, 20, 30, 60};
-        new AlertDialog.Builder(this).setTitle(sleeping ? "TV sleep timer" : "Screensaver delay")
+        final String[] options = sleeping
+                ? new String[] {"Never", "1 minute", "5 minutes", "10 minutes", "15 minutes", "20 minutes", "30 minutes", "60 minutes", "Custom minutes"}
+                : new String[] {"1 minute", "5 minutes", "10 minutes", "15 minutes", "20 minutes", "30 minutes", "60 minutes", "Custom minutes"};
+        final int[] values = sleeping ? new int[] {0, 1, 5, 10, 15, 20, 30, 60} : new int[] {1, 5, 10, 15, 20, 30, 60};
+        new AlertDialog.Builder(this).setTitle(sleeping ? "Deep sleep timer" : "Screensaver delay")
                 .setItems(options, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int index) {
@@ -140,7 +135,7 @@ public final class TimersActivity extends CardActivity {
         try {
             int value = TimeoutValues.milliseconds(minutes);
             if (sleeping) {
-                DeviceSettings.sleep(this, value);
+                DeviceSettings.deepSleepTimeout(this, value);
             } else {
                 DeviceSettings.idle(this, value);
             }

@@ -9,7 +9,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.1.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.1.1-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -40,7 +40,7 @@ This repository and its APK are private. Users with repository access can instal
 The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
 
 ```bash
-firetv-ui --install --apk=/path/to/fire-tv-ui-1.1.0.apk --sha256=PUBLISHED_SHA256
+firetv-ui --install --apk=/path/to/fire-tv-ui-1.1.1.apk --sha256=PUBLISHED_SHA256
 ```
 
 For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
@@ -69,7 +69,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 - Icon packs, featured cards, Watch Next, and channel management.
 - Remote shortcuts, launcher clock screensaver, and backup and restore.
 - A near-full-screen screensaver card with sample images, per-app storage usage, individual previews, and access to installed apps' settings.
-- Sleep and screensaver timers in minutes, a deep sleep toggle, and RAM and storage percentage bars.
+- Separate TV Sleep Timer, screensaver delay, Deep Sleep toggle, and Deep Sleep timer controls.
 - Verified on-TV downloads and Android-confirmed removal of the curated screensavers.
 - Local protection for Home routing, screensaver selection, enabled state, and timers, including boot and APK-update handling.
 - Package-scoped Amazon update blocking, with an optional Appstore block and no remote VPN server.
@@ -121,6 +121,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Verification](docs/verification.md)
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
+- [Fire TV UI 1.1.1 release notes and upgrade guide](docs/releases/v1.1.1.md)
 
 ## Screensaver Skill
 
@@ -149,7 +150,7 @@ Captured on Fire TV hardware and an Android TV emulator.
     <td><img src="art/screenshots/help-tv-1920.png" alt="Feature guide without purchase or upgrade messaging"><br>Help</td>
   </tr>
   <tr>
-    <td><img src="art/screenshots/timers-tv-1920.png" alt="Screensaver and sleep timers with deep sleep and protection toggles"><br>System timers</td>
+    <td><img src="art/screenshots/timers-tv-1920.png" alt="Separate TV Sleep Timer, screensaver delay, Deep Sleep timer and Deep Sleep toggle"><br>System timers</td>
     <td><img src="art/screenshots/memory-tv-1920.png" alt="Used and free RAM and TV storage with percentage bars"><br>Memory usage</td>
     <td><img src="art/screenshots/protection-tv-1920.png" alt="Startup, Home routing, and Amazon update protection controls"><br>Startup and protection</td>
   </tr>

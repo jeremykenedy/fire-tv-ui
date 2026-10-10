@@ -13,6 +13,8 @@ public final class DeviceSettings {
     public static final String DREAM_UNLOCKED = "fire_tv_ui_dream_unlocked";
     public static final String SLEEP = "sleep_timeout";
     public static final String SLEEP_PREFERENCE = "fire_tv_ui_sleep";
+    public static final String DEEP_SLEEP_ENABLED = "fire_tv_ui_deep_sleep_enabled";
+    public static final String DEEP_SLEEP_TIMEOUT = "fire_tv_ui_sleep_saved";
     public static final String IDLE = "screen_off_timeout";
     public static final String AUTO_WAKE = "str.auto_wake_up_enabled";
     public static final String KEEP_ADB = "fire_tv_ui_keep_adb";
@@ -32,6 +34,15 @@ public final class DeviceSettings {
         }
         if (!prefs.contains(SLEEP_PREFERENCE)) {
             editor.putInt(SLEEP_PREFERENCE, 0);
+        }
+        if (!prefs.contains(DEEP_SLEEP_ENABLED)) {
+            int savedAutoWake = prefs.getInt("fire_tv_ui_auto_wake", hasAutoWake(context)
+                    && autoWake(context) ? 1 : 0);
+            editor.putBoolean(DEEP_SLEEP_ENABLED, hasAutoWake(context) && savedAutoWake == 0);
+        }
+        if (!prefs.contains(DEEP_SLEEP_TIMEOUT)) {
+            int previous = prefs.getInt(SLEEP_PREFERENCE, 0);
+            editor.putInt(DEEP_SLEEP_TIMEOUT, previous > 0 ? previous : 1200000);
         }
         editor.apply();
         if (!prefs.contains(KEEP_ADB) && hasWifiAdb(context)) {
@@ -118,6 +129,14 @@ public final class DeviceSettings {
         return prefs(context).getInt(SLEEP_PREFERENCE, 0);
     }
 
+    public static boolean deepSleepEnabled(Context context) {
+        return prefs(context).getBoolean(DEEP_SLEEP_ENABLED, hasAutoWake(context) && !autoWake(context));
+    }
+
+    public static int deepSleepTimeout(Context context) {
+        return prefs(context).getInt(DEEP_SLEEP_TIMEOUT, 1200000);
+    }
+
     public static int idle(Context context) {
         return Settings.System.getInt(context.getContentResolver(), IDLE, 300000);
     }
@@ -135,13 +154,42 @@ public final class DeviceSettings {
             throw new IllegalStateException("This TV does not expose the Alexa deep-sleep fix.");
         }
         writeNumber(context, true, AUTO_WAKE, "fire_tv_ui_auto_wake", autoWake(context) ? 1 : 0, enabled ? 1 : 0);
+        prefs(context).edit().putBoolean(DEEP_SLEEP_ENABLED, !enabled).commit();
     }
 
     public static void sleep(Context context, int milliseconds) {
-        int previous = sleep(context);
         writeTimer(context, true, milliseconds);
-        if (milliseconds > 0 || previous > 0) {
-            prefs(context).edit().putInt("fire_tv_ui_sleep_saved", milliseconds > 0 ? milliseconds : previous).commit();
+        prefs(context).edit().putInt(DEEP_SLEEP_TIMEOUT, milliseconds).commit();
+    }
+
+    public static void deepSleep(Context context, boolean enabled) {
+        if (!hasAutoWake(context)) {
+            throw new IllegalStateException("This TV does not expose a deep sleep control.");
+        }
+        boolean before = deepSleepEnabled(context);
+        prefs(context).edit().putBoolean(DEEP_SLEEP_ENABLED, enabled).commit();
+        try {
+            autoWake(context, !enabled);
+        } catch (RuntimeException failed) {
+            prefs(context).edit().putBoolean(DEEP_SLEEP_ENABLED, before).commit();
+            throw failed;
+        }
+    }
+
+    public static void deepSleepTimeout(Context context, int milliseconds) {
+        if (milliseconds < 0) {
+            throw new IllegalArgumentException("The deep sleep timer cannot be negative.");
+        }
+        int previousTimeout = deepSleepTimeout(context);
+        int previousValue = sleep(context);
+        SharedPreferences prefs = prefs(context);
+        prefs.edit().putInt(DEEP_SLEEP_TIMEOUT, milliseconds).commit();
+        try {
+            writeTimer(context, true, TimeoutValues.activeDeepSleepTimeout(milliseconds));
+        } catch (RuntimeException failed) {
+            prefs.edit().putInt(DEEP_SLEEP_TIMEOUT, previousTimeout)
+                    .putInt(SLEEP_PREFERENCE, previousValue).commit();
+            throw failed;
         }
     }
 
@@ -230,14 +278,30 @@ public final class DeviceSettings {
         }
         RuntimeException failure = null;
         try {
-            int wantedSleep = sleep(context);
+            int wantedSleep = TimeoutValues.activeDeepSleepTimeout(deepSleepTimeout(context));
             if (Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep
                     && (!Settings.Secure.putInt(context.getContentResolver(), SLEEP, wantedSleep)
                     || Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep)) {
                 throw new IllegalStateException("The TV did not apply your saved sleep choice.");
             }
+            prefs.edit().putInt(SLEEP_PREFERENCE, wantedSleep).commit();
         } catch (RuntimeException failed) {
             failure = failed;
+        }
+        try {
+            if (hasAutoWake(context)) {
+                int wantedAutoWake = TimeoutValues.deepSleepAutoWakeValue(deepSleepEnabled(context));
+                if (Settings.Secure.getInt(context.getContentResolver(), AUTO_WAKE, -1) != wantedAutoWake
+                        && (!Settings.Secure.putInt(context.getContentResolver(), AUTO_WAKE, wantedAutoWake)
+                        || Settings.Secure.getInt(context.getContentResolver(), AUTO_WAKE, -1) != wantedAutoWake)) {
+                    throw new IllegalStateException("The TV did not apply your deep sleep choice.");
+                }
+                prefs.edit().putInt("fire_tv_ui_auto_wake", wantedAutoWake).commit();
+            }
+        } catch (RuntimeException failed) {
+            if (failure == null) {
+                failure = failed;
+            }
         }
         try {
             repairAdb(context);

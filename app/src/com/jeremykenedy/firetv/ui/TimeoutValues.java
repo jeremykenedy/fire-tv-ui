@@ -27,4 +27,15 @@ public final class TimeoutValues {
         }
         return (milliseconds / 1000) + " seconds";
     }
+
+    public static int deepSleepAutoWakeValue(boolean enabled) {
+        return enabled ? 0 : 1;
+    }
+
+    public static int activeDeepSleepTimeout(int configuredTimeout) {
+        if (configuredTimeout < 0) {
+            throw new IllegalArgumentException("The deep sleep timer cannot be negative.");
+        }
+        return configuredTimeout;
+    }
 }

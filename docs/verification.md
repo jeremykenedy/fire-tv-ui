@@ -6,6 +6,15 @@ Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build 
 
 ## Device checks
 
+### Fire TV UI 1.1.1, version code 30
+
+| Platform | Result | Notes |
+| --- | --- | --- |
+| Android TV emulator, Android 12 / API 31, 1920x1080 | Verified | Installed the signed build, opened the timers page, and confirmed separate native TV Sleep Timer, screensaver delay, Deep Sleep toggle, and Deep Sleep timer controls. Set `sleep_timeout` to 60,000 ms and 0, then restored its original 1,200,000 ms value. The temporary emulator-only Fire TV setting key allowed the Deep Sleep toggle UI to be checked. |
+| Physical Fire TV | Not tested for this build | Looking for a Fire TV owner to test the controls and report the model, Fire OS/API, and observed behavior. Emulator key simulation does not establish Fire OS or Alexa behavior. |
+
+The final emulator captures are [About](../art/screenshots/about-tv-1920.png) and [System timers](../art/screenshots/timers-tv-1920.png). No physical TV was used for this release verification.
+
 ### Fire TV UI 1.1.0, version code 29
 
 | Platform | Result | Notes |
