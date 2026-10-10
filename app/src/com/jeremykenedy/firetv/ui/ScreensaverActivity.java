@@ -1,8 +1,10 @@
 package com.jeremykenedy.firetv.ui;
 
 import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -12,8 +14,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -34,23 +34,25 @@ public final class ScreensaverActivity extends CardActivity {
     private final Map<String, ServiceInfo> services = new HashMap<>();
     private final Map<String, View> focusTargets = new HashMap<>();
     private String focusKey = "toggle";
-    private final Handler handler = new Handler();
-    private long previewStarted;
-    private final Runnable finishPreview = new Runnable() {
+    private final BroadcastReceiver dreamStoppedReceiver = new BroadcastReceiver() {
         @Override
-        public void run() {
-            if (hasWindowFocus() && DeviceSettings.prefs(ScreensaverActivity.this)
+        public void onReceive(Context context, Intent intent) {
+            if (!Intent.ACTION_DREAMING_STOPPED.equals(intent.getAction())) {
+                return;
+            }
+            if (!DeviceSettings.prefs(ScreensaverActivity.this)
                     .getBoolean(ScreensaverPreview.PENDING, false)) {
-                try {
-                    ScreensaverPreview.restore(ScreensaverActivity.this);
-                    DeviceSettings.repair(ScreensaverActivity.this);
-                    load();
-                } catch (Exception failed) {
-                    error(failed);
-                }
+                return;
+            }
+            try {
+                ScreensaverPreview.restore(ScreensaverActivity.this);
+                load();
+            } catch (Exception failed) {
+                error(failed);
             }
         }
     };
+    private boolean dreamStoppedReceiverRegistered;
 
     public static void open(Context context) {
         context.startActivity(new Intent(context, ScreensaverActivity.class));
@@ -117,6 +119,13 @@ public final class ScreensaverActivity extends CardActivity {
         TextView hint = text("Select to make active. Preview it tries the screensaver without changing your selection. Back returns here.", 13, MUTED);
         hint.setPadding(0, dp(8), 0, 0);
         card.addView(hint);
+        IntentFilter filter = new IntentFilter(Intent.ACTION_DREAMING_STOPPED);
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(dreamStoppedReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(dreamStoppedReceiver, filter);
+        }
+        dreamStoppedReceiverRegistered = true;
     }
 
     private LinearLayout toolbar() {
@@ -153,15 +162,6 @@ public final class ScreensaverActivity extends CardActivity {
     }
 
     @Override
-    public void onWindowFocusChanged(boolean focused) {
-        super.onWindowFocusChanged(focused);
-        if (focused && DeviceSettings.prefs(this).getBoolean(ScreensaverPreview.PENDING, false)) {
-            handler.removeCallbacks(finishPreview);
-            handler.postDelayed(finishPreview, Math.max(200, 1800 - (SystemClock.elapsedRealtime() - previewStarted)));
-        }
-    }
-
-    @Override
     public void onBackPressed() {
         ScreensaverPreview.restore(this);
         super.onBackPressed();
@@ -169,7 +169,10 @@ public final class ScreensaverActivity extends CardActivity {
 
     @Override
     protected void onDestroy() {
-        handler.removeCallbacksAndMessages(null);
+        if (dreamStoppedReceiverRegistered) {
+            unregisterReceiver(dreamStoppedReceiver);
+            dreamStoppedReceiverRegistered = false;
+        }
         if (isFinishing()) {
             ScreensaverPreview.restore(this);
         }
@@ -327,7 +330,6 @@ public final class ScreensaverActivity extends CardActivity {
 
     private void preview(String component) {
         try {
-            previewStarted = SystemClock.elapsedRealtime();
             ScreensaverPreview.start(this, component);
         } catch (Exception failed) {
             error(failed);
