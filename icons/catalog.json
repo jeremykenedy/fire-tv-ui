@@ -1,0 +1,324 @@
+[
+  {
+    "id": "nes",
+    "name": "NES",
+    "brand": "Nintendo",
+    "accent": "#d83a40",
+    "source": "icons/sources/nes.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/nes.svg",
+    "source_sha256": "20dd606bd4bd3c4e93ea1d76f35d9799bac8ecb97888d44705ec10450100696b",
+    "file": "nes.png"
+  },
+  {
+    "id": "snes",
+    "name": "SNES",
+    "brand": "Nintendo",
+    "accent": "#7766c3",
+    "source": "icons/sources/snes.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/snesna.svg",
+    "source_sha256": "12f1335930f60d8917b970af3096caced2fc077b81f9137e3a9ce6fab4fc45f8",
+    "file": "snes.png"
+  },
+  {
+    "id": "sega-genesis",
+    "name": "Sega Genesis",
+    "brand": "Sega",
+    "accent": "#2873cf",
+    "source": "icons/sources/sega-genesis.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/genesis.svg",
+    "source_sha256": "66df294c9fcdc95903660af3667c9d961dabb4e828b4a39e9ae67f62fbd8f44d",
+    "file": "sega-genesis.png"
+  },
+  {
+    "id": "sega-master-system",
+    "name": "Sega Master System",
+    "brand": "Sega",
+    "accent": "#d84040",
+    "source": "icons/sources/sega-master-system.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/mastersystem.svg",
+    "source_sha256": "fadd6fdc85121c1a0ab34dba622cc6fe78117e3095bc4801d2e9ab6a78b918ab",
+    "file": "sega-master-system.png"
+  },
+  {
+    "id": "playstation-1",
+    "name": "PlayStation 1",
+    "brand": "Sony",
+    "accent": "#2d69ce",
+    "source": "icons/sources/playstation-1.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-color/psx.svg",
+    "source_sha256": "6b1589512ad3a3858a05a2eac91cf16b66de8cd1169773269b7856f31cf1c1a5",
+    "file": "playstation-1.png"
+  },
+  {
+    "id": "playstation-2",
+    "name": "PlayStation 2",
+    "brand": "Sony",
+    "accent": "#2d69ce",
+    "source": "icons/sources/playstation-2.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/ps2.svg",
+    "source_sha256": "61c80aed2a3a35f3a85a573ebdff17da7be11db85914e04b7625ca932d89e0e1",
+    "file": "playstation-2.png"
+  },
+  {
+    "id": "playstation-3",
+    "name": "PlayStation 3",
+    "brand": "Sony",
+    "accent": "#2d69ce",
+    "source": "icons/sources/playstation-3.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/ps3.svg",
+    "source_sha256": "b25b9c9ccc63602e92a9da0b48421ef93aa2de41eaf9dc3f39b02c98b0a0b84c",
+    "file": "playstation-3.png"
+  },
+  {
+    "id": "playstation-4",
+    "name": "PlayStation 4",
+    "brand": "Sony",
+    "accent": "#2d69ce",
+    "source": "icons/sources/playstation-4.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/ps4.svg",
+    "source_sha256": "6566212a9913548bb129271c3ee97eb1d861121b6e7207d796b9029d2166e125",
+    "file": "playstation-4.png"
+  },
+  {
+    "id": "playstation-5",
+    "name": "PlayStation 5",
+    "brand": "Sony",
+    "accent": "#2d69ce",
+    "source": "icons/sources/playstation-5.svg",
+    "source_url": "https://github.com/HVR88/Monochrome-Gaming-Logos/blob/7eb7ddb7246fa5c39b71d5136e7a527bac03fb7f/svg/playstation_ps5_compact.svg",
+    "source_sha256": "07d5b872e476b7eb5ef6a826772128c953c3b6fc57cb200ffd279918d306ea04",
+    "file": "playstation-5.png"
+  },
+  {
+    "id": "xbox",
+    "name": "Xbox",
+    "brand": "Microsoft",
+    "accent": "#299448",
+    "source": "icons/sources/xbox.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/xbox.svg",
+    "source_sha256": "c28c8d8fc1a1d336e6cf5079b4e37690c7a5e452390fd0d4ba30e3d9695d587e",
+    "file": "xbox.png"
+  },
+  {
+    "id": "xbox-360",
+    "name": "Xbox 360",
+    "brand": "Microsoft",
+    "accent": "#299448",
+    "source": "icons/sources/xbox-360.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/xbox360.svg",
+    "source_sha256": "f4f86000a0db47b38b056fea27e9b60f0a9d8668a503685f2557c5a7cedab710",
+    "file": "xbox-360.png"
+  },
+  {
+    "id": "xbox-one",
+    "name": "Xbox One",
+    "brand": "Microsoft",
+    "accent": "#299448",
+    "source": "icons/sources/xbox-one.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/xboxone.svg",
+    "source_sha256": "b52f37ff7251b91757464c29b96e2304bb940d3374c20d3850d72b22ff1b3185",
+    "file": "xbox-one.png"
+  },
+  {
+    "id": "xbox-series-x",
+    "name": "Xbox Series X",
+    "brand": "Microsoft",
+    "accent": "#299448",
+    "source": "icons/sources/xbox-series-x.svg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Xbox_Series_X_logo.svg",
+    "source_sha256": "d4649e1baa5bafede43648f0f7be63894a765f24bb9a5d6bd58934417edae576",
+    "file": "xbox-series-x.png"
+  },
+  {
+    "id": "wii",
+    "name": "Wii",
+    "brand": "Nintendo",
+    "accent": "#31a6bf",
+    "source": "icons/sources/wii.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/wii.svg",
+    "source_sha256": "3f04c1d992b52d183b166d88689d498a61d95049a66644af341cf87faaf36b05",
+    "file": "wii.png"
+  },
+  {
+    "id": "wii-u",
+    "name": "Wii U",
+    "brand": "Nintendo",
+    "accent": "#31a6bf",
+    "source": "icons/sources/wii-u.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/wiiu.svg",
+    "source_sha256": "c1dde7478c16c56c82a163d727f0aeb52360c0fd9a478912e99f26d37bd3937a",
+    "file": "wii-u.png"
+  },
+  {
+    "id": "switch",
+    "name": "Nintendo Switch",
+    "brand": "Nintendo",
+    "accent": "#df3445",
+    "source": "icons/sources/switch.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/switch.svg",
+    "source_sha256": "4f3f9f934e02f6d4d294f81a9658c9b8c4679833998440977d7563fccf2774dc",
+    "file": "switch.png"
+  },
+  {
+    "id": "switch-2",
+    "name": "Nintendo Switch 2",
+    "brand": "Nintendo",
+    "accent": "#df3445",
+    "source": "icons/sources/switch-2.svg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Nintendo_Switch_2_logo.svg",
+    "source_sha256": "6d77ac4b96ffd62865989f44a504df61fe4bae0ae498d6b19178a0fa27cae5af",
+    "file": "switch-2.png",
+    "remove_background": true
+  },
+  {
+    "id": "switch-lite",
+    "name": "Nintendo Switch Lite",
+    "brand": "Nintendo",
+    "accent": "#26a9b1",
+    "source": "icons/sources/switch-lite.svg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Nintendo_Switch_Lite_logo.svg",
+    "source_sha256": "03c556bb98d47cf4a52045a53f7a5f596f655d8fd17e13fdb6c5147c056c1e17",
+    "file": "switch-lite.png"
+  },
+  {
+    "id": "nintendo-64",
+    "name": "Nintendo 64",
+    "brand": "Nintendo",
+    "accent": "#299448",
+    "source": "icons/sources/nintendo-64.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-color/n64.svg",
+    "source_sha256": "1cb85355a0dad1e10b490de4504f25748a53976d6029f320dacce7f7a580d6f8",
+    "file": "nintendo-64.png"
+  },
+  {
+    "id": "gamecube",
+    "name": "Nintendo GameCube",
+    "brand": "Nintendo",
+    "accent": "#7766c3",
+    "source": "icons/sources/gamecube.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-color/gc.svg",
+    "source_sha256": "02171ba1beee1b63b0bcadbd9219123d01ad3db08ad6ef700a88c9186a2c7b1d",
+    "file": "gamecube.png",
+    "preserve_color": true
+  },
+  {
+    "id": "dreamcast",
+    "name": "Dreamcast",
+    "brand": "Sega",
+    "accent": "#ec7234",
+    "source": "icons/sources/dreamcast.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/dreamcast.svg",
+    "source_sha256": "663d4d820c99eec39d781534a59a8d50d9766a10e6ce5c52d269465249e04166",
+    "file": "dreamcast.png"
+  },
+  {
+    "id": "sega-saturn",
+    "name": "Sega Saturn",
+    "brand": "Sega",
+    "accent": "#2873cf",
+    "source": "icons/sources/sega-saturn.svg",
+    "source_url": "https://gitlab.com/es-de/themes/system-logos/-/blob/6344e492f2e164785640320603d7cbc9c303856c/system-logo-white/saturn.svg",
+    "source_sha256": "69f32fcfeb98dc103a0c62e8ec0eb8ab1d711a85294d6e36d22500385bb3fe0e",
+    "file": "sega-saturn.png"
+  },
+  {
+    "id": "dvd",
+    "name": "DVD",
+    "brand": "DVD Forum",
+    "accent": "#b5a773",
+    "source": "icons/sources/dvd.svg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:DVD-Video_Logo.svg",
+    "file": "dvd.png",
+    "source_sha256": "a29feb3af0cb81741b4c57f1c2b2c8c06a05e02f38fc185c4c51e01aa0b7ee40"
+  },
+  {
+    "id": "vcr",
+    "name": "VCR",
+    "brand": "Video",
+    "accent": "#8e9daf",
+    "source": "icons/sources/vcr.svg",
+    "source_url": null,
+    "file": "vcr.png",
+    "source_sha256": "605a870875b16736e6132702d2f1bf1c4db6e0aeec488d9c0dce5b77100f2bba"
+  },
+  {
+    "id": "blu-ray",
+    "name": "Blu-ray",
+    "brand": "Blu-ray Disc Association",
+    "accent": "#2e87d9",
+    "source": "icons/sources/blu-ray.svg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Blu-ray_Disc.svg",
+    "file": "blu-ray.png",
+    "source_sha256": "575bfcc076b9b137c71b3aa039c1ac1aa2d0fcfb667774496250b82a0dc2d7b1"
+  },
+  {
+    "id": "laserdisc",
+    "name": "LaserDisc",
+    "brand": "Pioneer",
+    "accent": "#caa65c",
+    "source": "icons/sources/laserdisc.svg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Laser_Disc.svg",
+    "file": "laserdisc.png",
+    "source_sha256": "999cefe93e7f89e15da611367123d360cb2549cee77cf491cc7e21cebfbb3732"
+  },
+  {
+    "id": "stereo-receiver",
+    "name": "Stereo Receiver",
+    "brand": "Audio",
+    "accent": "#b9a170",
+    "source": "icons/sources/stereo-receiver.svg",
+    "source_url": null,
+    "file": "stereo-receiver.png",
+    "source_sha256": "5d38532986c2b65de8fb930951ad9a44a6ce1bb4f483fc00cc45fa29201b2d58"
+  },
+  {
+    "id": "meta-vr",
+    "name": "Meta VR",
+    "brand": "Meta",
+    "accent": "#2478e5",
+    "source": "icons/sources/meta-vr.svg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Meta_Platforms_Inc._logo.svg",
+    "file": "meta-vr.png",
+    "source_sha256": "b536f39ac80d6b93477ce158e9e0f963504a407da8c35caf5ded3ac072b49176"
+  },
+  {
+    "id": "meta-quest",
+    "name": "Meta Quest",
+    "brand": "Meta",
+    "accent": "#2478e5",
+    "source": "icons/sources/meta-quest.svg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Meta_Quest_logo.svg",
+    "file": "meta-quest.png",
+    "source_sha256": "d1c32368e301a28a902ea0f66b8a536ccd1e84d0ca9ede9c2f260bd5e7e501ec"
+  },
+  {
+    "id": "macbook",
+    "name": "MacBook",
+    "brand": "Apple",
+    "accent": "#bac5d2",
+    "source": "icons/sources/macbook.svg",
+    "source_url": null,
+    "file": "macbook.png",
+    "source_sha256": "73b4e3107d00442a644fddf40b314217ee7c15c393b4731d55ee3197c51225fe"
+  },
+  {
+    "id": "laptop",
+    "name": "Laptop",
+    "brand": "Computer",
+    "accent": "#3b93be",
+    "source": "icons/sources/laptop.svg",
+    "source_url": null,
+    "file": "laptop.png",
+    "source_sha256": "75274b3255e7d2edd0a492b3db0b9dd6dd3db5bd24ed63acca959040e7a962cc"
+  },
+  {
+    "id": "pc",
+    "name": "PC",
+    "brand": "Computer",
+    "accent": "#3b93be",
+    "source": "icons/sources/pc.svg",
+    "source_url": null,
+    "file": "pc.png",
+    "source_sha256": "1b9e2de1e7a80039e792499f7615b717d6e358f6d2af0e322a11ad587a9d9b5f"
+  }
+]

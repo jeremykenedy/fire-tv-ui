@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import re
 import subprocess
 import time
@@ -58,3 +59,33 @@ class MenuNavigationChecks(unittest.TestCase):
         self.tap('Preferences')
         self.adb('shell', 'input', 'keyevent', '4')
         self.assert_home()
+
+    def test_home_dismisses_long_press_app_menu(self):
+        root = Path(__file__).resolve().parents[1]
+        sdk = Path(os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT')
+                   or Path.home() / 'Library/Android/sdk')
+        work = root / '.build/menu-test'
+        classes = work / 'classes'
+        dex = work / 'dex'
+        classes.mkdir(parents=True, exist_ok=True)
+        dex.mkdir(parents=True, exist_ok=True)
+        subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
+                        '-bootclasspath', str(sdk / 'platforms/android-36/android.jar'),
+                        '-d', str(classes), str(root / 'tests/device/HoldKey.java')], check=True)
+        subprocess.run([str(sdk / 'build-tools/36.0.0/d8'), '--min-api', '27',
+                        '--output', str(dex), str(classes / 'HoldKey.class')], check=True)
+        self.adb('push', str(dex / 'classes.dex'), '/data/local/tmp/fire-tv-menu-test.dex')
+        self.adb('shell', 'am', 'start', '-a', 'android.intent.action.MAIN',
+                 '-c', 'android.intent.category.HOME',
+                 '-n', 'com.jeremykenedy.firetv.ui/.MainActivity')
+        time.sleep(2)
+        self.adb('shell', 'input', 'keyevent', *(['19'] * 8))
+        self.adb('shell', 'input', 'keyevent', '20')
+        self.adb('shell', 'CLASSPATH=/data/local/tmp/fire-tv-menu-test.dex '
+                 'app_process /system/bin HoldKey 23 2200')
+        self.assertTrue(any(n.get('text') == 'Change Icon' for n in self.screen().iter('node')))
+        self.adb('shell', 'input', 'keyevent', '3')
+        time.sleep(2)
+        self.assert_home()
+        self.assertFalse(any(n.get('text') == 'Change Icon' for n in self.screen().iter('node')))
+        self.adb('shell', 'rm', '-f', '/data/local/tmp/fire-tv-menu-test.dex')

@@ -14,6 +14,7 @@ import urllib.request
 from zipfile import ZipFile
 
 from patch_launcher import patch
+from install_icons import icon_files
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / 'build.json').read_text())
@@ -108,6 +109,14 @@ def build(unsigned=False):
     checksum = digest(output)
     output.with_suffix('.apk.sha256').write_text(checksum + '  ' + output.name + '\n')
     print(f'Built {output}\nSHA-256: {checksum}')
+    icons = dist / ('fire-tv-ui-icons-' + CONFIG['version'] + '.zip')
+    with ZipFile(icons, 'w') as archive:
+        for path in icon_files():
+            archive.write(path, 'Icons/' + path.name)
+        archive.write(ROOT / 'icons/catalog.json', 'Icons/catalog.json')
+        archive.write(ROOT / 'icons/NOTICE.txt', 'Icons/NOTICE.txt')
+    icons.with_suffix('.zip.sha256').write_text(digest(icons) + '  ' + icons.name + '\n')
+    print(f'Built {icons}')
     return output
 
 

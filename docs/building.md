@@ -50,6 +50,10 @@ python3 scripts/build.py --unsigned
 
 Unsigned APKs must be signed before installation. The release signing key stays outside the repository. Verification runs locally; this private repository has no CI workflow.
 
+## Icon bundle
+
+Build output also includes `fire-tv-ui-icons-VERSION.zip` and its SHA-256 sidecar. The ZIP contains the 32 pre-rendered PNGs, source catalog, and attribution notice. The APK installer copies and publishes these images to shared TV storage. See [HD app and input icons](icons.md) for standalone installation and optional vector regeneration.
+
 ## Source attribution
 
 The supplied base is the original AT4K launcher 1.2. Its file SHA-256 is `ac34c0abf1ceee5d5133dc3e99bde9173a00c5a16132852507ed23c0fbd41341`. Original component credits remain in the app's Help section. This project's MIT license covers its maintained changes; bundled third-party components retain their respective licenses.

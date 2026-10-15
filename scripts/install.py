@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import subprocess
 
+from install_icons import install_icons
+
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / 'build.json').read_text())
 
@@ -39,5 +41,6 @@ if __name__ == '__main__':
     if had_home:
         subprocess.run(adb + ['shell', 'am', 'broadcast', '--include-stopped-packages', '-n',
                              CONFIG['package'] + '/.BackupReceiver', '--es', 'operation', 'home-on'], check=True)
+    install_icons(options.serial)
     subprocess.run(adb + ['shell', 'am', 'start', '-n',
                          CONFIG['package'] + '/.MainActivity'], check=True)

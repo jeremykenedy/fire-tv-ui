@@ -1,0 +1,19 @@
+Console, media, and computer tile artwork
+
+Original logos and trademarks belong to their respective brand owners. These
+images identify the devices and formats; they do not imply endorsement.
+
+Most console vectors are from the ES-DE system-logos collection:
+https://gitlab.com/es-de/themes/system-logos
+Revision: 6344e492f2e164785640320603d7cbc9c303856c
+
+The PlayStation 5 vector is from HVR88's Monochrome Gaming Logos collection:
+https://github.com/HVR88/Monochrome-Gaming-Logos
+Revision: 7eb7ddb7246fa5c39b71d5136e7a527bac03fb7f
+
+Switch 2, Switch Lite, Xbox Series X, DVD, Blu-ray, LaserDisc, Meta, and Meta
+Quest vectors are from Wikimedia Commons. Individual source links and source
+SHA-256 values are recorded in catalog.json.
+
+The VCR, stereo receiver, MacBook, laptop, and PC pictograms and the shared tile
+layout are original project artwork covered by the repository's MIT license.

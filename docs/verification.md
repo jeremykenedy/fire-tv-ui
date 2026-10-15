@@ -6,6 +6,22 @@ Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build 
 
 ## Device checks
 
+### Fire TV UI 1.2.0, version code 33
+
+The signed release was installed on the physical Fire TV AFTDEC012E running Fire OS / Android 11. Clicking HDMI 1, HDMI 2, HDMI 3, HDMI 4, and Composite tiles opened the native passthrough player. Android's active TV input sessions matched HW2, HW3, HW4, HW5, and HW6 respectively. HDMI 4 needed several seconds for the system switch to finish. These checks verify port routing; attached-console playback was not available on every port.
+
+A long-press app menu remained visible after Home before the fix. The updated Home handler resets transient views, including composition-local menus. The physical regression now verifies a real 2.2-second Select hold, Change Icon appearing, Home dismissing the menu, and the clear launcher returning. Repeated Settings Back, Menu, Home, and Theme Mode navigation passed as well.
+
+The final suite passed 38 screensaver Java checks, 17 physical-port mapping checks, and 10 Python tests, including both physical remote tests. The separate emulator catalog settings-route check was skipped. APK alignment and v2/v3 signatures passed. This private repository has no CI workflow.
+
+All 32 shared TV PNGs matched the caption-free repository images byte-for-byte. Each source hash and 1920x1080 PNG dimension was checked, and the ZIP contains the same PNGs. MediaStore entries were published with `is_pending=0`; the Fire TV UI long-press Change Icon picker displayed the new logos. LTvLauncher's Set Custom Banner action opened the Android picker with the same shared images. HDMI 1's existing Xbox One selection was refreshed to the caption-free image, and its wide tile displayed the full centered logo.
+
+The banner's README picture selected all four correct files in a browser. Sixteen real-time frames per animated theme showed motion across the longest 14-second loop. Two frames per reduced-motion theme stayed identical. The only changed banner pixels were inside the television illustration.
+
+APK SHA-256: `289ef2dd0bea11d25a4d86eb6dbdddc06d47c8bcb3839d8629702785bfdcfdb0`.
+
+Physical Android TV, physical Google TV, other Fire TV television models, and a reboot were not tested for this release.
+
 ### Fire TV UI 1.1.3, version code 32
 
 The signed patch was installed over version code 31 on the physical Fire TV AFTDEC012E running Fire OS / Android 11. The device regression test opened Settings repeatedly and confirmed that Back, Menu, and Home dismissed it. Theme Mode returned to the launcher with Back, and Settings could be reopened and dismissed afterward. The gear icon opened Amazon Settings, and Back returned to Fire TV UI.

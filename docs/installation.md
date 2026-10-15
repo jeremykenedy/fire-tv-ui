@@ -10,7 +10,7 @@ python3 scripts/install.py --serial YOUR_TV_IP:5555
 The installer grants WRITE_SECURE_SETTINGS and app operations for persistent backups, usage statistics, and screensaver installation before opening Fire TV UI. To install manually:
 
 ```bash
-adb -s YOUR_TV_IP:5555 install -r dist/fire-tv-ui-1.1.0.apk
+adb -s YOUR_TV_IP:5555 install -r dist/fire-tv-ui-1.2.0.apk
 adb -s YOUR_TV_IP:5555 shell pm grant com.jeremykenedy.firetv.ui android.permission.WRITE_SECURE_SETTINGS
 adb -s YOUR_TV_IP:5555 shell appops set --uid com.jeremykenedy.firetv.ui MANAGE_EXTERNAL_STORAGE allow
 adb -s YOUR_TV_IP:5555 shell appops set com.jeremykenedy.firetv.ui GET_USAGE_STATS allow
@@ -43,3 +43,7 @@ Build with the same signing key, then run `adb install -r` with the new APK. Thi
 ## Removing Fire TV UI
 
 Remove its accessibility services from the enabled list before uninstalling it. Uninstalling the launcher does not uninstall or delete any screensaver apps. The TV's selected screensaver and enabled state are system settings and remain in place.
+
+## Shared icon pack
+
+The repository installer also copies the [HD icon pack](icons.md) to shared `Pictures/Icons` storage and publishes it to image pickers. APK-only installations need the separate icon ZIP or `python3 scripts/install_icons.py --serial YOUR_TV_IP:5555`. Long press an app or input tile and choose **Change Icon**.

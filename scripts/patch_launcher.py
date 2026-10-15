@@ -95,6 +95,14 @@ def patch(decoded):
         '    invoke-super {p0, p1}, Lc/k;->onCreate(Landroid/os/Bundle;)V',
         '    invoke-super {p0, p1}, Lc/k;->onCreate(Landroid/os/Bundle;)V\n\n'
         '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/DeviceSettings;->initialize(Landroid/content/Context;)V')
+    home_signature = '.method public final onNewIntent(Landroid/content/Intent;)V'
+    home_pattern = re.compile(r'^' + re.escape(home_signature) + r'\n.*?^\.end method', re.M | re.S)
+    home = home_pattern.search(text).group(0)
+    # App context menus keep composition-local state outside the launcher model.
+    home = replace_once(home, '    :cond_2\n    return-void',
+        '    invoke-virtual {p0}, Landroid/app/Activity;->recreate()V\n\n'
+        '    :cond_2\n    return-void')
+    text = replace_method(text, home_signature, home)
     counter_start = text.index('    const-string v5, "app_launch_count"')
     counter_end = text.index('    new-instance v4, Lcom/overdevs/at4k/PackageChangedReceiver;', counter_start)
     text = text[:counter_start] + text[counter_end:]
@@ -166,6 +174,17 @@ def patch(decoded):
         '    const/4 v11, 0x0\n\n'
         '    invoke-static/range {v4 .. v11}, LQ3/M7;->I')
     text = replace_method(text, menu_signature, menu)
+    text = replace_once(text,
+        '    :cond_4\n    const/high16 v0, 0x10000000\n\n'
+        '    :try_start_0\n    invoke-static {p2}, Landroid/media/tv/TvContract;->buildChannelUriForPassthroughInput',
+        '    :cond_4\n'
+        '    invoke-static {p1, p2}, Lcom/jeremykenedy/firetv/ui/TvInputs;->openFireTv(Landroid/content/Context;Ljava/lang/String;)Z\n'
+        '    move-result v0\n'
+        '    if-eqz v0, :standard_tv_input\n'
+        '    return-void\n'
+        '    :standard_tv_input\n'
+        '    const/high16 v0, 0x10000000\n\n'
+        '    :try_start_0\n    invoke-static {p2}, Landroid/media/tv/TvContract;->buildChannelUriForPassthroughInput')
     text = replace_method(text, '.method public static final i(Landroid/content/Context;Landroid/content/SharedPreferences;Ln4/a;Ljava/util/Map;LN/p;I)V',
         (ROOT / 'app/smali/backup-panel.smali').read_text())
     text = replace_once(text, '    const-string v3, "Rate on Play Store"',

@@ -1,6 +1,8 @@
 <p align="center">
     <picture>
+        <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce)" srcset="art/banner-still-dark.svg">
         <source media="(prefers-color-scheme: dark)" srcset="art/banner-dark.svg">
+        <source media="(prefers-reduced-motion: reduce)" srcset="art/banner-still-light.svg">
         <source media="(prefers-color-scheme: light)" srcset="art/banner-light.svg">
         <img src="art/banner-light.svg" alt="Fire TV UI" width="800">
     </picture>
@@ -9,7 +11,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.1.3-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.2.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -19,6 +21,7 @@
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Features](#features)
+- [Input icons](#input-icons)
 - [Configuration](#configuration)
 - [Building](#building)
 - [Testing](#testing)
@@ -40,7 +43,7 @@ This repository and its APK are private. Users with repository access can instal
 The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
 
 ```bash
-firetv-ui --install --apk=/path/to/fire-tv-ui-1.1.3.apk --sha256=PUBLISHED_SHA256
+firetv-ui --install --apk=/path/to/fire-tv-ui-1.2.0.apk --sha256=PUBLISHED_SHA256
 ```
 
 For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
@@ -77,6 +80,12 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 - Package-scoped Amazon update blocking, with an optional Appstore block and no remote VPN server.
 - Persistent TV Downloads backups, CLI import/export, and a saved simple layout.
 - All customization features enabled from the first launch.
+
+## Input icons
+
+The [32 HD icons](docs/icons.md) cover consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The installer copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
+
+Long press the app or input tile, choose **Change Icon**, then select an image. For LTvLauncher, use **Set Custom Banner** on an app. See the [icon guide](docs/icons.md) for the full catalog and standalone installation.
 
 ## Configuration
 
@@ -118,11 +127,13 @@ Device testing is described in [Verification](docs/verification.md).
 
 ## Documentation
 
+- [HD input and app icons](docs/icons.md)
 - [Installation and updates](docs/installation.md)
 - [Build and source layout](docs/building.md)
 - [Verification](docs/verification.md)
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
+- [Fire TV UI 1.2.0 release notes and upgrade guide](docs/releases/v1.2.0.md)
 - [Fire TV UI 1.1.3 release notes and upgrade guide](docs/releases/v1.1.3.md)
 - [Fire TV UI 1.1.2 release notes and upgrade guide](docs/releases/v1.1.2.md)
 - [Fire TV UI 1.1.1 release notes and upgrade guide](docs/releases/v1.1.1.md)
@@ -135,9 +146,14 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Captured on Fire TV hardware and an Android TV emulator.
+Captured on Fire TV hardware and an Android TV emulator. The icon picker and current launcher captures show version 1.2.0. Screensaver runtime previews retain their documented capture versions.
 
 <table>
+  <tr>
+    <td><img src="art/screenshots/icon-picker-tv-1920.png" alt="HD console and media logos in the Fire TV UI image picker"><br>Icon picker</td>
+    <td><img src="art/screenshots/input-icon-tv-1920.png" alt="Centered Xbox One logo assigned to HDMI 1"><br>Custom input icon</td>
+    <td><img src="art/screenshots/app-menu-tv-1920.png" alt="Long-press app menu with Change Icon"><br>App menu</td>
+  </tr>
   <tr>
     <td><img src="art/screenshots/home-tv-1920.png" alt="Fire TV UI home screen on Fire TV with Settings dismissed"><br>Home</td>
     <td><img src="art/screenshots/settings-tv-1920.png" alt="Dismissible Settings menu with the TV screensaver entry"><br>Settings</td>
@@ -160,7 +176,7 @@ Captured on Fire TV hardware and an Android TV emulator.
   </tr>
   <tr>
     <td><img src="art/screenshots/install-screensavers-tv-1920.png" alt="Verified screensaver installation and removal catalog"><br>Install screensavers</td>
-    <td><img src="art/screenshots/install-screensavers-lower-tv-1920.png" alt="Final catalog entries with their download sizes"><br>More screensavers</td>
+    <td><img src="art/screenshots/install-screensavers-lower-tv-1920.png" alt="Additional catalog entries with their download sizes"><br>More screensavers</td>
     <td><img src="art/screenshots/persistent-backups-tv-1920.png" alt="Persistent TV backup and CLI import restoration"><br>TV backups</td>
   </tr>
   <tr>
