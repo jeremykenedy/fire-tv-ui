@@ -62,7 +62,7 @@ The final emulator captures are [About](../art/screenshots/about-tv-1920.png) an
 
 The version-code-29 catalog adds Skyburst Nocturne and Pulse Circuit to the version-code-28 catalog. Their signed release APKs and preview source hashes are pinned in `app/screensavers.json` and `app/previews/sources.json`.
 
-Use `FIRE_TV_UI_TEST_SERIAL=emulator-PORT python3 -m unittest tests.test_settings_routes -v` to verify that each bundled saver opens its declared settings activity. The test refuses non-emulator devices and restores the original screensaver selection and enabled state.
+Use `FIRE_TV_UI_TEST_SERIAL=emulator-PORT python3 -m unittest tests.test_settings_routes -v` to verify that each bundled saver opens its declared settings activity. The test refuses non-emulator devices and restores the original screensaver selection and enabled state. Set `FIRE_TV_UI_TEST_PACKAGES` to a comma-separated package list for a focused run; omitting it runs every listed app. Unknown packages fail before any settings are changed.
 
 Use a signed APK and a specific ADB serial. Save the current values of `secure screensaver_components`, `secure screensaver_enabled`, and `secure enabled_accessibility_services` before testing. Restore any system settings changed by the test.
 
@@ -119,3 +119,22 @@ APK updates can briefly restart adbd when enabling Fire TV debugging, and native
 Physical Android TV and Google TV devices have not been tested. The Android TV emulator is not a substitute for those vendor implementations. Android 8.1 is the manifest minimum; device checks covered API 30 and 31. Every legacy widget and wallpaper source has not been tested. Play Protect blocked some older mirrored screensaver APKs on the emulator; those restrictions were not bypassed.
 
 The toolkit's 413 automated checks passed on Node 18 and 20 for commit `ce619ea266545749c5e838487ce5265e060c8fe3`. All six existing GitHub checks passed. The SonarCloud quality gate for that exact revision passed with 100% new-code coverage and all security hotspots reviewed. The installer downloads private GitHub assets, strips credentials from redirects, verifies helper upgrades, and preserves existing TV listings permission choices. Fire TV UI 1.0.1 is available as a signed private release. The GUI APK stays in its private repository.
+
+
+## Screensaver catalog 1.3.0 preparation
+
+The isolated Android TV API 31 build passed 38 screensaver checks, 17 input mapping checks, and eight Python artifact and static checks. Native D-pad Back, repeated Back, Menu, Home, Theme Mode dismissal, and Home dismissal of the long-press app menu passed on emulator-5584. The focused settings-route check opened Pipeworks Dream, the slot app under its earlier Reel Atrium label, and Hearth Presence settings through the native picker, then restored the original Backdrop component and enabled value of 1.
+
+The four formerly omitted originals were downloaded from their current public releases, and each APK matched its sidecar checksum, package, DreamService, signing certificate, version and size before catalog inclusion. Native picker routes opened Rain on Glass, Rainforest Cascade, Blue Meridian and Helios Lightfield settings in a focused 38.6-second run, restoring Backdrop and the enabled value of 1. These pins establish download integrity and completeness, not visual acceptance of their older renderers.
+
+The isolated host candidate with SHA-256 `05fecf76fceb978234d2f78ec6aa2290c74bef2be1aa440efe0e6c04d9fff88b` was installed only on the dedicated emulator. The current build passed both menu checks in 64.1 seconds. The long-press fixture now detects and skips a focused Watch Next card before holding Center on an app. Its earlier one-Down assumption selected content after the new row appeared; the product code was unchanged. Ordinary Back, repeated Back, Menu, Home, Theme Mode dismissal and Home dismissal of the app context menu passed.
+
+Those route checks used the installed candidate screensaver builds. Final release verification still requires the signed app release pins, refreshed final picker and catalog captures, and the final host APK. Physical Fire TV verification of this host release is pending coordination with separate active device work. These emulator results do not establish physical Fire TV Home or boot behavior.
+
+## Advanced diagnostics candidate
+
+The signed 1.3.0 candidate SHA-256 `c3efdc30d77a2deb13c8b99ae382c957ae72afc5322ead6d5fdf113795be1413` passed the focused native diagnostics test on the shared Google TV API 34 host-GPU emulator at 1920x1080 on 2026-10-16. Main > Preferences > Advanced > Diagnostics opened through the actual launcher route. The report populated, a timestamped Downloads report was saved and its text read back, and Back returned through Advanced to the launcher. Five secure screensaver/sleep settings read back unchanged. The selected Slot Vision package component and enabled value of 1 were preserved. No additional runtime, accessibility, storage or system-inspection permission was granted.
+
+Capture review found and corrected an initial layout timing problem: dimensions are now sampled on the UI thread after a valid layout. The final report showed 1792x984 UI-card content within the 1920x1080 emulator display. Missing enabled state is separately tested and never becomes disabled by default. The final native test passed in 17.399 seconds, including assertions rejecting raw enabled values and an unlaid-out 0x0 card. Three current captures are in `art/screenshots/advanced-tv-1920.png`, `diagnostics-tv-1920.png` and `diagnostics-report-tv-1920.png`.
+
+The unprivileged emulator correctly showed active Dream inspection as unavailable. Actual screensaver surface buffers and rendered FPS were not measured or inferred. Process-exit data was identified as Fire TV UI only. Physical Fire TV, physical Android TV and physical Google TV checks for Diagnostics remain pending.

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="392" height="408" viewBox="0 0 392 408">
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1">
+      <stop stop-color="#0c0a09" />
+      <stop offset="1" stop-color="#1c1917" />
+    </linearGradient>
+  </defs>
+  <rect width="392" height="408" rx="16" fill="url(#bg)" x="0" y="0" />
+  <g font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+    <text x="20" y="72" font-size="36" font-weight="700" letter-spacing="-.5" fill="#fff">Fire TV UI</text>
+    <text x="20" y="101" font-size="12" fill="#a8a29e">Your TV. Your home. Your settings.</text>
+    <rect x="20" y="127" width="65" height="22" rx="11" fill="#1a1a1a" stroke="#3b82f6" stroke-width=".8" />
+    <text x="52.5" y="141.5" text-anchor="middle" font-size="8.5" font-weight="500" fill="#3b82f6">Custom home</text>
+    <rect x="93" y="127" width="66.8" height="22" rx="11" fill="#1a1a1a" stroke="#8b5cf6" stroke-width=".8" />
+    <text x="126.4" y="141.5" text-anchor="middle" font-size="8.5" font-weight="500" fill="#8b5cf6">Screensavers</text>
+    <rect x="167.8" y="127" width="65" height="22" rx="11" fill="#1a1a1a" stroke="#22c55e" stroke-width=".8" />
+    <text x="200.3" y="141.5" text-anchor="middle" font-size="8.5" font-weight="500" fill="#22c55e">TV backups</text>
+    <rect x="240.8" y="127" width="84.4" height="22" rx="11" fill="#1a1a1a" stroke="#f59e0b" stroke-width=".8" />
+    <text x="283" y="141.5" text-anchor="middle" font-size="8.5" font-weight="500" fill="#f59e0b">Local protection</text>
+  </g>
+  <g transform="translate(84,218) scale(1.32)">
+    <rect width="168" height="108" rx="10" fill="#0f172a" stroke="#60a5fa" stroke-width="3" />
+    <defs>
+      <clipPath id="row-top">
+        <rect x="12" y="14" width="144" height="14" rx="4" />
+      </clipPath>
+      <clipPath id="row-middle">
+        <rect x="12" y="39" width="144" height="26" rx="4" />
+      </clipPath>
+      <clipPath id="row-bottom">
+        <rect x="12" y="75" width="144" height="19" rx="4" />
+      </clipPath>
+    </defs>
+    <g clip-path="url(#row-top)">
+      <g>
+        <rect x="12" y="14" width="94" height="14" rx="4" fill="#3b82f6" />
+        <rect x="114" y="14" width="42" height="14" rx="4" fill="#60a5fa" />
+        <rect x="164" y="14" width="94" height="14" rx="4" fill="#3b82f6" />
+        <rect x="266" y="14" width="42" height="14" rx="4" fill="#60a5fa" />
+      </g>
+    </g>
+    <g clip-path="url(#row-middle)">
+      <g>
+        <rect x="12" y="39" width="43" height="26" rx="4" fill="#8b5cf6" />
+        <rect x="63" y="39" width="43" height="26" rx="4" fill="#22c55e" />
+        <rect x="114" y="39" width="42" height="26" rx="4" fill="#f59e0b" />
+        <rect x="165" y="39" width="43" height="26" rx="4" fill="#8b5cf6" />
+        <rect x="216" y="39" width="43" height="26" rx="4" fill="#22c55e" />
+        <rect x="267" y="39" width="42" height="26" rx="4" fill="#f59e0b" />
+      </g>
+    </g>
+    <g clip-path="url(#row-bottom)">
+      <g>
+        <rect x="12" y="75" width="94" height="19" rx="4" fill="#334155" />
+        <rect x="114" y="75" width="42" height="19" rx="4" fill="#64748b" />
+        <rect x="164" y="75" width="94" height="19" rx="4" fill="#334155" />
+        <rect x="266" y="75" width="42" height="19" rx="4" fill="#64748b" />
+      </g>
+    </g>
+    <path d="M84 110V127M53 128H115" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" />
+  </g>
+</svg>

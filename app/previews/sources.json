@@ -104,12 +104,12 @@
     "source_sha256": "27e42cad32086e45305ea9650570c349e8f5e761dc8106a2a6401848fd5b7137"
   },
   "com.jeremykenedy.pipeworksdream/com.jeremykenedy.pipeworksdream.PipeworksDreamService": {
-    "capture_note": "Running Pipeworks Dream screensaver on Android TV emulator 5570.",
-    "captured_on": "2026-10-08",
-    "preview_sha256": "47920164fba244b8aa6cee97e07b47ff50f61d174e2e4503850271852a94cda0",
-    "source_file": "art/screenshots/pipeworks-dream-android-tv-1920.png",
+    "capture_note": "Pipeworks Dream OpenGL ES renderer running on physical Fire TV AFTDEC012E, Fire OS / Android 11, captured at 1920x1080.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "fad98dc172d49115714e4b8bacf67a90a1858b9700f94cb47ed62bb35039359a",
+    "source_file": "art/screenshots/pipeworks-fire-tv-preview.png",
     "source_project": "jeremykenedy/pipeworks-dream",
-    "source_sha256": "ba10e781898c7f63dce561b67616aa37a767e3f44f60d6013663b096efbf59e2"
+    "source_sha256": "00801574f4f0c937383407ae714f94a41b689164d8056eaf0791a76444afdb86"
   },
   "com.jeremykenedy.retroflight/com.jeremykenedy.retroflight.RetroFlightDreamService": {
     "capture_note": "Running Retro Flight screensaver on Android TV emulator 5586.",
@@ -170,5 +170,45 @@
     "source_file": "docs/screenshots/screensaver-snoozy.jpg",
     "source_project": "Fire TV CLI",
     "source_sha256": "fd457f2133cd0ee1709a93efb27328ae2ea65bc44d44bfdb83b36460ffc92caf"
+  },
+  "com.jeremykenedy.hearthpresence/com.jeremykenedy.hearthpresence.HearthDreamService": {
+    "capture_note": "Hearth Presence standard brick surround and natural wood fire running on Google TV API 34 emulator aql-googletv34, serial emulator-5582, at 1920x1080 with host GPU. Unretouched ADB capture.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "25b01f7c7474b9cadc7f6ce3c8b9030ae6b03971bd52e5715997ad6ca50b5e3b",
+    "source_file": "art/screenshots/hearth-presence-native-default-1920.png",
+    "source_project": "jeremykenedy/hearth-presence",
+    "source_sha256": "8272cae610c5629f304171c6c2b7968ae8c42c2436bc97f55796e49105847c74"
+  },
+  "com.jeremykenedy.rainonglass/com.jeremykenedy.rainonglass.RainDreamService": {
+    "capture_note": "Rain on Glass v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "4721c5423ff7e7caaa9e419de93e938296826e5156d373587cb9ce2e2a1b77fd",
+    "source_file": "art/screenshots/rain-on-glass-native-api31-1920.png",
+    "source_project": "jeremykenedy/rain-on-glass",
+    "source_sha256": "cf0a12ba0f0ecf3843d90c0d2945ebcd16b2c30aef517e4563e706f0ca19088a"
+  },
+  "com.jeremykenedy.rainforestcascade/com.jeremykenedy.rainforestcascade.WaterfallDreamService": {
+    "capture_note": "Rainforest Cascade v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "6642951127d15dedfe618c84118194ad6df31432053fbe0e071fecc612bccd9f",
+    "source_file": "art/screenshots/rainforest-cascade-native-api31-1920.png",
+    "source_project": "jeremykenedy/rainforest-cascade",
+    "source_sha256": "73228e57c0573ef9f8f76df826a7991b489a7202b835cc043b2e7175f4ba74cd"
+  },
+  "com.jeremykenedy.bluemeridian/com.jeremykenedy.bluemeridian.BlueMeridianDreamService": {
+    "capture_note": "Blue Meridian v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "9296bce1e7f117b324eacc78a53c47e768c3c60d729bd493a3d41702ad143543",
+    "source_file": "art/screenshots/blue-meridian-native-api31-1920.png",
+    "source_project": "jeremykenedy/blue-meridian",
+    "source_sha256": "30a2069395f3ccff460eb8348e492411c72ca77c5830baae4fe32ddc604abe3c"
+  },
+  "com.jeremykenedy.helioslightfield/com.jeremykenedy.helioslightfield.HeliosLightfieldDreamService": {
+    "capture_note": "Helios Lightfield v1.0.1 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "0a2e3c94e06fef6d7e017bab27f8785f8d20604f4bd7cc2392697a60d0f68125",
+    "source_file": "art/screenshots/helios-lightfield-native-api31-1920.png",
+    "source_project": "jeremykenedy/helios-lightfield",
+    "source_sha256": "fa1387f06a7ec1ac4e5d03657094218b311cdea01d5ff8f704e23788d8a91f2a"
   }
 }

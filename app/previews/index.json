@@ -24,5 +24,10 @@
   "com.jeremykenedy.twilighthearth/com.jeremykenedy.twilighthearth.HearthDreamService": "04a47365101c10630b5dca5723dc54ed4ec957a1f5d07be1ab37dbbafaf394f4.jpg",
   "com.jeremykenedy.vortexspiral/com.jeremykenedy.vortexspiral.VortexDreamService": "b5f3f097e1450796f0f893d56fc17b4f7bb2046d17125d6f661ac3eb160b66fd.jpg",
   "com.neilturner.aerialviews/com.neilturner.aerialviews.ui.screensaver.DreamActivity": "802b00ee6ab8652b906930d018b1c4d0266ecd5677f65b2e436b1d89f7604be5.jpg",
-  "com.overdevs.snoozy/com.overdevs.snoozy.SnoozyDreamService": "012f69b91edf10288491b59ad20df162cb8483a69558c1268c4affec6bc8975f.jpg"
+  "com.overdevs.snoozy/com.overdevs.snoozy.SnoozyDreamService": "012f69b91edf10288491b59ad20df162cb8483a69558c1268c4affec6bc8975f.jpg",
+  "com.jeremykenedy.hearthpresence/com.jeremykenedy.hearthpresence.HearthDreamService": "f480c9f49b2b6f05b3a0351e076eb89840fe1a3b400130b0f2e53d9c06270f71.jpg",
+  "com.jeremykenedy.rainonglass/com.jeremykenedy.rainonglass.RainDreamService": "bd5ccb65cc099d4fa15add3d00c6984b482fb669302dcd61ad43a2fa7a80dc17.jpg",
+  "com.jeremykenedy.rainforestcascade/com.jeremykenedy.rainforestcascade.WaterfallDreamService": "a8e2d0a13f12066103740fa8213f82c2734a2b7f73806ca5f60494d993069cfc.jpg",
+  "com.jeremykenedy.bluemeridian/com.jeremykenedy.bluemeridian.BlueMeridianDreamService": "4d68263c2c15df87fdaa3c2b93bfe4afac5c1ba2a1413b6c589f4b7258c9205e.jpg",
+  "com.jeremykenedy.helioslightfield/com.jeremykenedy.helioslightfield.HeliosLightfieldDreamService": "6c7a7226321c43a1e5ac644df52e7fcf80308473e26b8965d30f388dfe83a2df.jpg"
 }

@@ -1,17 +1,12 @@
 <p align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce)" srcset="art/banner-still-dark.svg">
-        <source media="(prefers-color-scheme: dark)" srcset="art/banner-dark.svg">
-        <source media="(prefers-reduced-motion: reduce)" srcset="art/banner-still-light.svg">
-        <source media="(prefers-color-scheme: light)" srcset="art/banner-light.svg">
-        <img src="art/banner-light.svg" alt="Fire TV UI" width="800">
-    </picture>
+  <a href="https://github.com/jeremykenedy/fire-tv-ui#gh-light-mode-only"><picture><source media="(max-width: 600px) and (prefers-reduced-motion: reduce)" srcset="art/banner-mobile-still-light.98d256baacad.svg"><source media="(prefers-reduced-motion: reduce)" srcset="art/banner-still-light.cc4cdf921b24.svg"><source media="(max-width: 600px)" srcset="art/banner-mobile-light.7cf87e68fb8d.svg"><img src="art/banner-light.e99322de878a.svg#gh-light-mode-only" alt="Fire TV UI" width="800"></picture></a>
+  <a href="https://github.com/jeremykenedy/fire-tv-ui#gh-dark-mode-only"><picture><source media="(max-width: 600px) and (prefers-reduced-motion: reduce)" srcset="art/banner-mobile-still-dark.a324d51d0cd9.svg"><source media="(prefers-reduced-motion: reduce)" srcset="art/banner-still-dark.c72c1431c05d.svg"><source media="(max-width: 600px)" srcset="art/banner-mobile-dark.6cfcbd32ad7d.svg"><img src="art/banner-dark.bf78d582be0e.svg#gh-dark-mode-only" alt="Fire TV UI" width="800"></picture></a>
 </p>
 
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.2.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.3.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -43,7 +38,7 @@ This repository and its APK are private. Users with repository access can instal
 The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
 
 ```bash
-firetv-ui --install --apk=/path/to/fire-tv-ui-1.2.0.apk --sha256=PUBLISHED_SHA256
+firetv-ui --install --apk=/path/to/fire-tv-ui-1.3.0.apk --sha256=PUBLISHED_SHA256
 ```
 
 For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
@@ -75,7 +70,8 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 - Remote shortcuts, launcher clock screensaver, and backup and restore.
 - A near-full-screen screensaver card with sample images, per-app storage usage, individual previews, and access to installed apps' settings.
 - Separate TV Sleep Timer, screensaver delay, Deep Sleep toggle, and Deep Sleep timer controls.
-- Verified on-TV downloads and Android-confirmed removal of the curated screensavers.
+- Verified on-TV downloads and Android-confirmed removal of the curated screensaver catalog.
+- Read-only Advanced diagnostics with device status, explicit measurement limits, and local report saving.
 - Local protection for Home routing, screensaver selection, enabled state, and timers, including boot and APK-update handling.
 - Package-scoped Amazon update blocking, with an optional Appstore block and no remote VPN server.
 - Persistent TV Downloads backups, CLI import/export, and a saved simple layout.
@@ -133,6 +129,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Verification](docs/verification.md)
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
+- [Fire TV UI 1.3.0 release notes and upgrade guide](docs/releases/v1.3.0.md)
 - [Fire TV UI 1.2.0 release notes and upgrade guide](docs/releases/v1.2.0.md)
 - [Fire TV UI 1.1.3 release notes and upgrade guide](docs/releases/v1.1.3.md)
 - [Fire TV UI 1.1.2 release notes and upgrade guide](docs/releases/v1.1.2.md)
@@ -146,7 +143,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Captured on Fire TV hardware and an Android TV emulator. The icon picker and current launcher captures show version 1.2.0. Screensaver runtime previews retain their documented capture versions.
+Captured on Fire TV hardware and documented TV emulators. Existing launcher and icon captures retain their documented versions. Advanced and Diagnostics show the current 1.3.0 candidate on Google TV API 34 at 1920x1080.
 
 <table>
   <tr>
@@ -183,6 +180,11 @@ Captured on Fire TV hardware and an Android TV emulator. The icon picker and cur
     <td><img src="art/screenshots/aquarium-idle-fire-tv-1920.png" alt="Aquarium 4K running automatically after inactivity on Fire TV"><br>Aquarium 4K</td>
     <td><img src="art/screenshots/aquarium-motion-fire-tv-1920.png" alt="A later Aquarium 4K frame showing swimming fish"><br>Aquarium animation</td>
     <td><img src="art/screenshots/tv-screensaver-lower-tv-1920.png" alt="More installed screensavers on Fire TV"><br>More installed screensavers</td>
+  </tr>
+  <tr>
+    <td><img src="art/screenshots/advanced-tv-1920.png" alt="Advanced page with a focused read-only Diagnostics action"><br>Advanced</td>
+    <td><img src="art/screenshots/diagnostics-tv-1920.png" alt="Diagnostics showing selected screensaver and unavailable privileged DreamService inspection"><br>Diagnostics</td>
+    <td><img src="art/screenshots/diagnostics-report-tv-1920.png" alt="Diagnostic report distinguishing display mode, UI content size, memory and local app exits"><br>Diagnostic report</td>
   </tr>
 </table>
 
