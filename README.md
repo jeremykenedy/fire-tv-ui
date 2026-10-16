@@ -173,7 +173,7 @@ Captured on Fire TV hardware and documented TV emulators. Existing launcher and 
   </tr>
   <tr>
     <td><img src="art/screenshots/install-screensavers-tv-1920.png" alt="Verified screensaver installation and removal catalog"><br>Install screensavers</td>
-    <td><img src="art/screenshots/install-hearth-catalog-api34-1920.png" alt="Current native catalog showing Hearth Presence installed and honest storage availability on Google TV API 34"><br>Hearth catalog</td>
+    <td><img src="art/screenshots/install-slot-hearth-catalog-api34-1920.png" alt="Final native catalog showing Slot Vision and Hearth Presence installed with honest storage availability on Google TV API 34"><br>Slot and Hearth catalog</td>
     <td><img src="art/screenshots/persistent-backups-tv-1920.png" alt="Persistent TV backup and CLI import restoration"><br>TV backups</td>
   </tr>
   <tr>
