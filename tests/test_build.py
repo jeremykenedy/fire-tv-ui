@@ -95,6 +95,25 @@ class BuildChecks(unittest.TestCase):
         image = ROOT / 'app/previews' / preview_file(entry['dream'])
         self.assertEqual(hashlib.sha256(image.read_bytes()).hexdigest(), source['preview_sha256'])
 
+    def test_slot_release_preserves_installed_identity_and_verified_download(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        entry = next(item for item in entries if item['id'] == 'slot-vision')
+        self.assertEqual(entry['name'], 'Slot Vision')
+        self.assertEqual(entry['package'], 'com.jeremykenedy.reelatrium')
+        self.assertEqual(entry['dream'], 'com.jeremykenedy.reelatrium/.ReelAtriumDreamService')
+        self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/slot-vision/releases/'
+                         'download/v1.0.0/slot-vision.apk')
+        self.assertEqual(entry['sha256'],
+                         '0ee21b586f3b306e6da57cacc149bebece35a01e6ef2c7af1512c0ddc51354e4')
+        self.assertEqual(entry['bytes'], 62076478)
+        source = json.loads((ROOT / 'app/previews/sources.json').read_text())[
+            full_component(entry['dream'])]
+        self.assertEqual(source['source_project'], 'jeremykenedy/slot-vision')
+        self.assertEqual(hashlib.sha256((ROOT / source['source_file']).read_bytes()).hexdigest(),
+                         source['source_sha256'])
+        image = ROOT / 'app/previews' / preview_file(entry['dream'])
+        self.assertEqual(hashlib.sha256(image.read_bytes()).hexdigest(), source['preview_sha256'])
+
     def test_new_screensaver_catalog_releases_and_previews_are_pinned(self):
         expected = {
             'nebula-drift': (

@@ -203,6 +203,7 @@ These are bundled previews of the animated screensavers available in the on-TV c
   </tr>
   <tr>
     <td><img src="app/previews/f480c9f49b2b6f05b3a0351e076eb89840fe1a3b400130b0f2e53d9c06270f71.jpg" alt="Hearth Presence modern linear fire captured from its final release on physical Fire TV"><br>Hearth Presence</td>
+    <td><img src="app/previews/d4c99da3be34c14e061e1968439f9e7c2b1bd6ffa1e00578a29ec423a37a1bab.jpg" alt="Slot Vision native three-dimensional casino cabinet and simulated flying coins"><br>Slot Vision</td>
   </tr>
 </table>
 

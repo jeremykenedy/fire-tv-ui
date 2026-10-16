@@ -317,5 +317,16 @@
     "url": "https://github.com/jeremykenedy/hearth-presence/releases/download/v1.0.0/hearth-presence.apk",
     "sha256": "96067a79be86a0f29f034ee4bcc647e9da7195978b690a7d982f28a17b78278f",
     "bytes": 69011424
+  },
+  {
+    "id": "slot-vision",
+    "name": "Slot Vision",
+    "package": "com.jeremykenedy.reelatrium",
+    "dream": "com.jeremykenedy.reelatrium/.ReelAtriumDreamService",
+    "repo": "jeremykenedy/slot-vision",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/slot-vision/releases/download/v1.0.0/slot-vision.apk",
+    "sha256": "0ee21b586f3b306e6da57cacc149bebece35a01e6ef2c7af1512c0ddc51354e4",
+    "bytes": 62076478
   }
 ]

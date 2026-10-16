@@ -16,6 +16,8 @@ Pipeworks Dream uses a new October 15, 2026 capture of its OpenGL ES renderer ru
 
 Hearth Presence uses an unretouched October 16, 2026 capture of the final signed 1.0.0 release running on the physical Fire TV AFTDEC012E, Android 11/API 30 at 1920x1080. The source is [the full modern fireplace capture](../art/screenshots/hearth-presence-fire-tv-modern-1920.png). The catalog pins the independently downloaded release APK 96067a79be86a0f29f034ee4bcc647e9da7195978b690a7d982f28a17b78278f, 69,011,424 bytes. Its licensed fire footage and surround materials are documented in the [Hearth Presence media provenance](https://github.com/jeremykenedy/hearth-presence/blob/main/docs/MEDIA.md).
 
+Slot Vision uses an unretouched October 16, 2026 Google TV API 34 capture of its current classic casino scene. The [full native source](../art/screenshots/slot-vision-casino-native-1920.png) shows the actual three-dimensional cabinet and simulated flying coins. The scene renders at 1280x720 and is composed into the 1920x1080 capture; this is not native 1080 or 4K rendering evidence. Its release pin preserves the existing com.jeremykenedy.reelatrium package and ReelAtriumDreamService component for compatible upgrades. The independently downloaded v1.0.0 APK has SHA-256 0ee21b586f3b306e6da57cacc149bebece35a01e6ef2c7af1512c0ddc51354e4 and is 62,076,478 bytes.
+
 `app/previews/index.json` maps each fully qualified dream service to its image. Filenames use SHA-256 of the complete component name so different dream services in the same app have separate samples.
 
 ## Capture another installed screensaver

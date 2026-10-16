@@ -210,5 +210,13 @@
     "source_file": "art/screenshots/helios-lightfield-native-api31-1920.png",
     "source_project": "jeremykenedy/helios-lightfield",
     "source_sha256": "fa1387f06a7ec1ac4e5d03657094218b311cdea01d5ff8f704e23788d8a91f2a"
+  },
+  "com.jeremykenedy.reelatrium/com.jeremykenedy.reelatrium.ReelAtriumDreamService": {
+    "capture_note": "Unretouched current Slot Vision native classic casino capture from Google TV API 34 emulator-5580, host GPU, 1920x1080 display capture composed from the bounded 1280x720 rendering surface. Source scene includes actual 3D cabinet, reels and simulated flying coins. Release v1.0.0 APK independently downloaded and verified; Android package and signer retained from Reel Atrium for compatible updates.",
+    "captured_on": "2026-10-16",
+    "preview_sha256": "a29fc14205c0208ff889ed5dda51ac971327cd944e08852db32134f49083feb9",
+    "source_file": "art/screenshots/slot-vision-casino-native-1920.png",
+    "source_project": "jeremykenedy/slot-vision",
+    "source_sha256": "7ed36dfe88e85d04e809505a62b2008cb3ae2f7a1325b614652a54550126c95d"
   }
 }
