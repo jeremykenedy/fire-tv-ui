@@ -144,7 +144,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Captured on Fire TV hardware and documented TV emulators. Existing launcher and icon captures retain their documented versions. Advanced and Diagnostics show the current 1.3.0 candidate on Google TV API 34 at 1920x1080.
+Captured on Fire TV hardware and documented TV emulators. Existing launcher and icon captures retain their documented versions. The Rainforest catalog capture shows 1.3.1; Advanced and Diagnostics show the 1.3.0 build on Google TV API 34 at 1920x1080.
 
 <table>
   <tr>
@@ -173,8 +173,8 @@ Captured on Fire TV hardware and documented TV emulators. Existing launcher and 
     <td><img src="art/screenshots/protection-tv-1920.png" alt="Startup, Home routing, and Amazon update protection controls"><br>Startup and protection</td>
   </tr>
   <tr>
-    <td><img src="art/screenshots/install-screensavers-tv-1920.png" alt="Verified screensaver installation and removal catalog"><br>Install screensavers</td>
     <td><img src="art/screenshots/install-slot-hearth-catalog-api34-1920.png" alt="Final native catalog showing Slot Vision and Hearth Presence installed with honest storage availability on Google TV API 34"><br>Slot and Hearth catalog</td>
+    <td><img src="art/screenshots/install-rainforest-catalog-api34-1920.png" alt="Fire TV UI 1.3.1 native catalog showing Rainforest Cascade installed on Google TV API 34"><br>Rainforest catalog</td>
     <td><img src="art/screenshots/persistent-backups-tv-1920.png" alt="Persistent TV backup and CLI import restoration"><br>TV backups</td>
   </tr>
   <tr>
