@@ -18,8 +18,20 @@ SCREENSAVERS = (
      'com.jeremykenedy.signalrain/.SignalRainDreamService'),
     ('Retro Flight', 'com.jeremykenedy.retroflight',
      'com.jeremykenedy.retroflight/.RetroFlightDreamService'),
+    ('Rain on Glass', 'com.jeremykenedy.rainonglass',
+     'com.jeremykenedy.rainonglass/.RainDreamService'),
+    ('Rainforest Cascade', 'com.jeremykenedy.rainforestcascade',
+     'com.jeremykenedy.rainforestcascade/.WaterfallDreamService'),
+    ('Blue Meridian', 'com.jeremykenedy.bluemeridian',
+     'com.jeremykenedy.bluemeridian/.BlueMeridianDreamService'),
+    ('Helios Lightfield', 'com.jeremykenedy.helioslightfield',
+     'com.jeremykenedy.helioslightfield/.HeliosLightfieldDreamService'),
     ('Pipeworks Dream', 'com.jeremykenedy.pipeworksdream',
      'com.jeremykenedy.pipeworksdream/.PipeworksDreamService'),
+    ('Slot Vision', 'com.jeremykenedy.reelatrium',
+     'com.jeremykenedy.reelatrium/.ReelAtriumDreamService'),
+    ('Hearth Presence', 'com.jeremykenedy.hearthpresence',
+     'com.jeremykenedy.hearthpresence/.HearthDreamService'),
     ('Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
      'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService'),
     ('Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
@@ -81,8 +93,15 @@ class SettingsRouteChecks(unittest.TestCase):
         self.assertTrue(before_component, 'The emulator needs an existing screensaver selection.')
         self.assertNotIn(',', before_component, 'The test requires one selected screensaver component.')
 
+        requested = {package.strip() for package in
+                     os.environ.get('FIRE_TV_UI_TEST_PACKAGES', '').split(',') if package.strip()}
+        available = {package for _, package, _ in SCREENSAVERS}
+        self.assertFalse(requested - available, 'Unknown settings test packages: ' +
+                         ', '.join(sorted(requested - available)))
+        selected = [entry for entry in SCREENSAVERS if not requested or entry[1] in requested]
+
         try:
-            for label, package, dream in SCREENSAVERS:
+            for label, package, dream in selected:
                 with self.subTest(screensaver=label):
                     installed = self.shell('pm', 'path', package)
                     self.assertIn('package:', installed, package + ' is not installed on the emulator.')
@@ -104,7 +123,9 @@ class SettingsRouteChecks(unittest.TestCase):
                     self.shell('input', 'keyevent', 'DPAD_CENTER')
 
                     expected_activity = package + '/.SettingsActivity'
-                    expected_title = label + ' settings'
+                    expected_title = (label if package in ('com.jeremykenedy.reelatrium',
+                                                           'com.jeremykenedy.hearthpresence')
+                                      else label + ' settings')
                     for _ in range(20):
                         resumed = [line for line in self.shell('dumpsys', 'activity', 'activities').splitlines()
                                    if 'mResumedActivity:' in line or 'topResumedActivity=' in line]

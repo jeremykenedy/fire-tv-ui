@@ -81,6 +81,11 @@ class MenuNavigationChecks(unittest.TestCase):
         time.sleep(2)
         self.adb('shell', 'input', 'keyevent', *(['19'] * 8))
         self.adb('shell', 'input', 'keyevent', '20')
+        focused = [node for node in self.screen().iter('node')
+                   if node.get('focused') == 'true']
+        if any(child.get('text') == 'Watch Next'
+               for node in focused for child in node.iter('node')):
+            self.adb('shell', 'input', 'keyevent', '20')
         self.adb('shell', 'CLASSPATH=/data/local/tmp/fire-tv-menu-test.dex '
                  'app_process /system/bin HoldKey 23 2200')
         self.assertTrue(any(n.get('text') == 'Change Icon' for n in self.screen().iter('node')))

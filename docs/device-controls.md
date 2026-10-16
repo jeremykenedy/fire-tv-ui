@@ -18,7 +18,7 @@ On Fire TV devices that expose `str.auto_wake_up_enabled`, the Deep Sleep toggle
 
 Memory usage shows RAM and internal storage with used/free values and percentage bars. App rows use Android StorageStats for installed files plus app data. Cache is included in data. When usage access is unavailable, the row identifies installed APK size and says data/cache size is unavailable.
 
-Install screensavers contains the curated Aerial Views, AndroSaver, Snoozy, Aquarium Live, Aquarium 4K, Jellyfish Drift, Firefly Grove, Neon Corridor, Starfield Drift, Twilight Hearth, Nebula Drift, Vortex Spiral, Signal Rain, Retro Flight, Pipeworks Dream, Aqua Surface Drift, Cloud Drift Clock, and Earthbound Orbit releases. HTTPS downloads verify the pinned SHA-256, byte count, and package identity. Android confirms installation or removal. Removing the current app requires choosing another screensaver; protection drops a removed selection and disables the dream while keeping timer protection active.
+Install screensavers contains the reviewed catalog in `app/screensavers.json`. Each included release has a pinned package, version, byte count and SHA-256; new source repositories do not become downloadable entries until their final release artifacts are verified. HTTPS downloads verify the pinned SHA-256, byte count, and package identity. Android confirms installation or removal. Removing the current app requires choosing another screensaver; protection drops a removed selection and disables the dream while keeping timer protection active.
 
 ## Startup and protection
 
@@ -31,6 +31,16 @@ Home Redirect's on-TV screensaver picker sends `com.jeremykenedy.firetv.ui.SELEC
 Amazon auto-update blocking needs the TV's VPN permission. The tunnel includes only installed known Amazon updater packages and discards their traffic without a server or packet recording. It is registered as always-on when the device allows that setting. An empty updater list is rejected so it cannot route all apps. Streaming, weather, CDNs, and Fire TV UI downloads use their ordinary connection.
 
 The optional Amazon Appstore toggle also blocks manual Appstore downloads. Turn it off when you want Appstore access. Android allows one active VPN; change another always-on VPN before enabling this blocker. The page reports actual active state. Firmware can restrict these controls or add updater packages; future Amazon firmware may need additional support.
+
+## Advanced diagnostics
+
+Open Settings > Advanced > Diagnostics. Refresh report reads the selected screensaver and enabled setting, visible installed DreamService package versions, Android-reported display modes, TV RAM and internal storage, and recent Fire TV UI process exits on Android API 30 or later. The report never repairs, resets or reapplies a setting. Missing values and permission/API restrictions appear as unavailable.
+
+The selected component does not establish which DreamService is currently bound or drawing. Active Dream inspection is available only if Android already grants the app system inspection access; this feature does not request or grant that permission. A current system Dream record is identified separately and does not prove rendered frames. Use Fire TV Toolkit's ADB diagnostics for broader system inspection.
+
+The UI content dimensions describe this app's laid-out card. They do not measure another screensaver's actual surface buffer. Display refresh rate is not rendering FPS, and Android UI frame statistics do not establish OpenGL, Filament or video playback FPS. Those screensaver measurements are explicitly unavailable in this report. Process-exit history is labeled Fire TV UI only and is not a screensaver crash check.
+
+Save report on TV writes a new timestamped `fire-tv-ui-diagnostics-*.txt` file in TV Downloads. It uses the platform's local storage APIs and reports an unavailable destination without changing access permissions. Nothing is uploaded or sent to another app. Reports contain package/version and device-status details; review a saved report before choosing to share it yourself.
 
 ## Persistent TV backups
 

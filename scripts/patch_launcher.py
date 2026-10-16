@@ -138,7 +138,8 @@ def patch(decoded):
     text = settings.read_text()
     text = replace_once(text, '    filled-new-array/range {v49 .. v55}, [Ljava/lang/String;',
         '    const-string v56, "Startup and protection"\n\n'
-        '    filled-new-array/range {v49 .. v56}, [Ljava/lang/String;')
+        '    const-string v57, \"Advanced\"\n\n'
+        '    filled-new-array/range {v49 .. v57}, [Ljava/lang/String;')
     text = replace_method(text, '.method public static final H(ZLn4/a;Ljava/util/Map;LN/p;I)V',
         '.method public static final H(ZLn4/a;Ljava/util/Map;LN/p;I)V\n    .locals 0\n    return-void\n.end method')
     menu_signature = '.method public static final G(Ljava/util/List;ILjava/util/List;Ljava/util/Map;Ln4/c;Ln4/a;LN/p;I)V'
@@ -148,6 +149,18 @@ def patch(decoded):
         '    const/16 v4, 0x6\n\n    int-to-float v4, v4')
     menu = replace_once(menu, '    const/4 v11, 0x0\n\n'
         '    invoke-static/range {v4 .. v11}, LQ3/M7;->I',
+        '    const-string v11, "Advanced"\n\n'
+        '    invoke-virtual {v11, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n\n'
+        '    move-result v11\n\n'
+        '    if-eqz v11, :screensaver_settings_action\n\n'
+        '    sget-object v11, Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;->b:LN/S0;\n\n'
+        '    invoke-virtual {v10, v11}, LN/p;->k(LN/m0;)Ljava/lang/Object;\n\n'
+        '    move-result-object v11\n\n'
+        '    check-cast v11, Landroid/content/Context;\n\n'
+        '    new-instance v9, Lcom/jeremykenedy/firetv/ui/AdvancedAction;\n\n'
+        '    invoke-direct {v9, v11}, Lcom/jeremykenedy/firetv/ui/AdvancedAction;-><init>(Landroid/content/Context;)V\n\n'
+        '    goto :native_settings_action_done\n\n'
+        '    :screensaver_settings_action\n'
         '    const-string v11, "TV screensaver"\n\n'
         '    invoke-virtual {v11, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n\n'
         '    move-result v11\n\n'
@@ -294,6 +307,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/ScreensaverAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/BackupAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/SystemControlsAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/AdvancedAction.smali', destination)
     patch_manifest(decoded)
 
     metadata = decoded / 'apktool.yml'
@@ -365,7 +379,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

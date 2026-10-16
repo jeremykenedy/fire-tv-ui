@@ -262,5 +262,71 @@
     "url": "https://github.com/jeremykenedy/pulse-circuit/releases/download/v1.0.0/pulse-circuit.apk",
     "bytes": 33485,
     "sha256": "5e71095d0b2966d1cf803ad9299ad7a233309848d1aea8e27423cfcf8ff96c95"
+  },
+  {
+    "id": "rain-on-glass",
+    "name": "Rain on Glass",
+    "package": "com.jeremykenedy.rainonglass",
+    "dream": "com.jeremykenedy.rainonglass/.RainDreamService",
+    "repo": "jeremykenedy/rain-on-glass",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/rain-on-glass/releases/download/v1.0.0/rain-on-glass.apk",
+    "bytes": 33485,
+    "sha256": "99c7c1c130644c8057db65a6a2398c98d69daa3f20bacc77588c4870624e340e"
+  },
+  {
+    "id": "rainforest-cascade",
+    "name": "Rainforest Cascade",
+    "package": "com.jeremykenedy.rainforestcascade",
+    "dream": "com.jeremykenedy.rainforestcascade/.WaterfallDreamService",
+    "repo": "jeremykenedy/rainforest-cascade",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/rainforest-cascade/releases/download/v1.0.0/rainforest-cascade.apk",
+    "bytes": 25284,
+    "sha256": "850869d804d7bc7fd4c8a2681aab86ef2b1d9b898e486b8b7e786c1a14be5fb1"
+  },
+  {
+    "id": "blue-meridian",
+    "name": "Blue Meridian",
+    "package": "com.jeremykenedy.bluemeridian",
+    "dream": "com.jeremykenedy.bluemeridian/.BlueMeridianDreamService",
+    "repo": "jeremykenedy/blue-meridian",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/blue-meridian/releases/download/v1.0.0/blue-meridian.apk",
+    "bytes": 451363,
+    "sha256": "01c1e0917921385f247470e8d34b1297d4c407240ed4cbfcaf2fa11e86f8e25b"
+  },
+  {
+    "id": "helios-lightfield",
+    "name": "Helios Lightfield",
+    "package": "com.jeremykenedy.helioslightfield",
+    "dream": "com.jeremykenedy.helioslightfield/.HeliosLightfieldDreamService",
+    "repo": "jeremykenedy/helios-lightfield",
+    "tag": "v1.0.1",
+    "url": "https://github.com/jeremykenedy/helios-lightfield/releases/download/v1.0.1/helios-lightfield.apk",
+    "bytes": 33485,
+    "sha256": "2716752c678916f947dec465213f23be20af4eb224272a54e9ae500c5bed6eb2"
+  },
+  {
+    "id": "hearth-presence",
+    "name": "Hearth Presence",
+    "package": "com.jeremykenedy.hearthpresence",
+    "dream": "com.jeremykenedy.hearthpresence/.HearthDreamService",
+    "repo": "jeremykenedy/hearth-presence",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/hearth-presence/releases/download/v1.0.0/hearth-presence.apk",
+    "sha256": "96067a79be86a0f29f034ee4bcc647e9da7195978b690a7d982f28a17b78278f",
+    "bytes": 69011424
+  },
+  {
+    "id": "slot-vision",
+    "name": "Slot Vision",
+    "package": "com.jeremykenedy.reelatrium",
+    "dream": "com.jeremykenedy.reelatrium/.ReelAtriumDreamService",
+    "repo": "jeremykenedy/slot-vision",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/slot-vision/releases/download/v1.0.0/slot-vision.apk",
+    "sha256": "0ee21b586f3b306e6da57cacc149bebece35a01e6ef2c7af1512c0ddc51354e4",
+    "bytes": 62076478
   }
 ]
