@@ -201,6 +201,9 @@ These are bundled previews of the animated screensavers available in the on-TV c
     <td><img src="app/previews/64fdc74c5e5d23a9397cc81faaa331404405ccde7e8f01264ee04e91c38daa80.jpg" alt="Skyburst Nocturne with bright colorful fireworks over a skyline"><br>Skyburst Nocturne</td>
     <td><img src="app/previews/d752d5739810907e8d0434f3941070bf2d83adbc902011f827187fe4afd909b6.jpg" alt="Pulse Circuit with animated neon geometric forms"><br>Pulse Circuit</td>
   </tr>
+  <tr>
+    <td><img src="app/previews/f480c9f49b2b6f05b3a0351e076eb89840fe1a3b400130b0f2e53d9c06270f71.jpg" alt="Hearth Presence modern linear fire captured from its final release on physical Fire TV"><br>Hearth Presence</td>
+  </tr>
 </table>
 
 ## License
