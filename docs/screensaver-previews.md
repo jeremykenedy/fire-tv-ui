@@ -14,7 +14,7 @@ Jellyfish Drift uses the published project's bundled preview, captured from its 
 
 Pipeworks Dream uses a new October 15, 2026 capture of its OpenGL ES renderer running on the physical Fire TV AFTDEC012E. The source is [the full television capture](../art/screenshots/pipeworks-fire-tv-preview.png).
 
-Hearth Presence uses an unretouched October 15, 2026 Google TV API 34 capture of its natural wood fire and standard brick surround. The source is [the full native capture](../art/screenshots/hearth-presence-native-default-1920.png). Its licensed fire footage and surround materials are documented in the [Hearth Presence media provenance](https://github.com/jeremykenedy/hearth-presence/blob/main/docs/MEDIA.md).
+Hearth Presence uses an unretouched October 16, 2026 capture of the final signed 1.0.0 release running on the physical Fire TV AFTDEC012E, Android 11/API 30 at 1920x1080. The source is [the full modern fireplace capture](../art/screenshots/hearth-presence-fire-tv-modern-1920.png). The catalog pins the independently downloaded release APK 96067a79be86a0f29f034ee4bcc647e9da7195978b690a7d982f28a17b78278f, 69,011,424 bytes. Its licensed fire footage and surround materials are documented in the [Hearth Presence media provenance](https://github.com/jeremykenedy/hearth-presence/blob/main/docs/MEDIA.md).
 
 `app/previews/index.json` maps each fully qualified dream service to its image. Filenames use SHA-256 of the complete component name so different dream services in the same app have separate samples.
 

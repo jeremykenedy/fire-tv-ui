@@ -172,12 +172,12 @@
     "source_sha256": "fd457f2133cd0ee1709a93efb27328ae2ea65bc44d44bfdb83b36460ffc92caf"
   },
   "com.jeremykenedy.hearthpresence/com.jeremykenedy.hearthpresence.HearthDreamService": {
-    "capture_note": "Hearth Presence standard brick surround and natural wood fire running on Google TV API 34 emulator aql-googletv34, serial emulator-5582, at 1920x1080 with host GPU. Unretouched ADB capture.",
-    "captured_on": "2026-10-15",
-    "preview_sha256": "25b01f7c7474b9cadc7f6ce3c8b9030ae6b03971bd52e5715997ad6ca50b5e3b",
-    "source_file": "art/screenshots/hearth-presence-native-default-1920.png",
+    "capture_note": "Unretouched ADB capture of final signed Hearth Presence 1.0.0 APK 96067a79be86 on physical Fire TV AFTDEC012E, Android 11/API 30, 1920x1080. Modern linear gas-style scene with medium natural flame and slate surround. Public release artifact independently downloaded and verified.",
+    "captured_on": "2026-10-16",
+    "preview_sha256": "9e13ae1aa65231a6835b3697ec42101508af740c204f809f667d867219a91d4b",
+    "source_file": "art/screenshots/hearth-presence-fire-tv-modern-1920.png",
     "source_project": "jeremykenedy/hearth-presence",
-    "source_sha256": "8272cae610c5629f304171c6c2b7968ae8c42c2436bc97f55796e49105847c74"
+    "source_sha256": "7db765d6b3f2735c36dbbb0fe7e819bbd98946d2f1e67b7def0ea7bcc009a80b"
   },
   "com.jeremykenedy.rainonglass/com.jeremykenedy.rainonglass.RainDreamService": {
     "capture_note": "Rain on Glass v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",

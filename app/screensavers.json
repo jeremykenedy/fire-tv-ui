@@ -306,5 +306,16 @@
     "url": "https://github.com/jeremykenedy/helios-lightfield/releases/download/v1.0.1/helios-lightfield.apk",
     "bytes": 33485,
     "sha256": "2716752c678916f947dec465213f23be20af4eb224272a54e9ae500c5bed6eb2"
+  },
+  {
+    "id": "hearth-presence",
+    "name": "Hearth Presence",
+    "package": "com.jeremykenedy.hearthpresence",
+    "dream": "com.jeremykenedy.hearthpresence/.HearthDreamService",
+    "repo": "jeremykenedy/hearth-presence",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/hearth-presence/releases/download/v1.0.0/hearth-presence.apk",
+    "sha256": "96067a79be86a0f29f034ee4bcc647e9da7195978b690a7d982f28a17b78278f",
+    "bytes": 69011424
   }
 ]
