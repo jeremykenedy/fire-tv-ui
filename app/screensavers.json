@@ -280,10 +280,10 @@
     "package": "com.jeremykenedy.rainforestcascade",
     "dream": "com.jeremykenedy.rainforestcascade/.WaterfallDreamService",
     "repo": "jeremykenedy/rainforest-cascade",
-    "tag": "v1.0.0",
-    "url": "https://github.com/jeremykenedy/rainforest-cascade/releases/download/v1.0.0/rainforest-cascade.apk",
-    "bytes": 25284,
-    "sha256": "850869d804d7bc7fd4c8a2681aab86ef2b1d9b898e486b8b7e786c1a14be5fb1"
+    "tag": "v1.1.0",
+    "url": "https://github.com/jeremykenedy/rainforest-cascade/releases/download/v1.1.0/rainforest-cascade.apk",
+    "bytes": 72053957,
+    "sha256": "88602f840deae1e9a7fa8de5b1dda03601c70d0d70399ab11262e1817e7de31f"
   },
   {
     "id": "blue-meridian",

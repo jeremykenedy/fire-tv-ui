@@ -18,6 +18,8 @@ Hearth Presence uses an unretouched October 16, 2026 capture of the final signed
 
 Slot Vision uses an unretouched October 16, 2026 Google TV API 34 capture of its current classic casino scene. The [full native source](../art/screenshots/slot-vision-casino-native-1920.png) shows the actual three-dimensional cabinet and simulated flying coins. The scene renders at 1280x720 and is composed into the 1920x1080 capture; this is not native 1080 or 4K rendering evidence. Its release pin preserves the existing com.jeremykenedy.reelatrium package and ReelAtriumDreamService component for compatible upgrades. The independently downloaded v1.0.0 APK has SHA-256 0ee21b586f3b306e6da57cacc149bebece35a01e6ef2c7af1512c0ddc51354e4 and is 62,076,478 bytes.
 
+Rainforest Cascade uses the unretouched October 16, 2026 [physical Fire TV garden capture](../art/screenshots/rainforest-cascade-fire-tv-garden-day-1920.png) from its final signed 1.1.0 release. The AFTDEC012E capture is 1920x1080 on Android 11/API 30. Its independently downloaded APK has SHA-256 88602f840deae1e9a7fa8de5b1dda03601c70d0d70399ab11262e1817e7de31f and is 72,053,957 bytes. The existing package, DreamService and release signer are preserved.
+
 `app/previews/index.json` maps each fully qualified dream service to its image. Filenames use SHA-256 of the complete component name so different dream services in the same app have separate samples.
 
 ## Capture another installed screensaver

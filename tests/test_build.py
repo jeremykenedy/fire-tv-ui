@@ -95,6 +95,26 @@ class BuildChecks(unittest.TestCase):
         image = ROOT / 'app/previews' / preview_file(entry['dream'])
         self.assertEqual(hashlib.sha256(image.read_bytes()).hexdigest(), source['preview_sha256'])
 
+    def test_rainforest_update_preserves_identity_and_physical_preview(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        self.assertEqual(len(entries), 30)
+        entry = next(item for item in entries if item['id'] == 'rainforest-cascade')
+        self.assertEqual(entry['package'], 'com.jeremykenedy.rainforestcascade')
+        self.assertEqual(entry['dream'], 'com.jeremykenedy.rainforestcascade/.WaterfallDreamService')
+        self.assertEqual(entry['tag'], 'v1.1.0')
+        self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/rainforest-cascade/releases/'
+                         'download/v1.1.0/rainforest-cascade.apk')
+        self.assertEqual(entry['sha256'],
+                         '88602f840deae1e9a7fa8de5b1dda03601c70d0d70399ab11262e1817e7de31f')
+        self.assertEqual(entry['bytes'], 72053957)
+        source = json.loads((ROOT / 'app/previews/sources.json').read_text())[
+            full_component(entry['dream'])]
+        self.assertIn('physical Fire TV AFTDEC012E', source['capture_note'])
+        self.assertEqual(hashlib.sha256((ROOT / source['source_file']).read_bytes()).hexdigest(),
+                         source['source_sha256'])
+        image = ROOT / 'app/previews' / preview_file(entry['dream'])
+        self.assertEqual(hashlib.sha256(image.read_bytes()).hexdigest(), source['preview_sha256'])
+
     def test_slot_release_preserves_installed_identity_and_verified_download(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         entry = next(item for item in entries if item['id'] == 'slot-vision')

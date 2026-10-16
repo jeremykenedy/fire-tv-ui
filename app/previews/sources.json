@@ -188,12 +188,12 @@
     "source_sha256": "cf0a12ba0f0ecf3843d90c0d2945ebcd16b2c30aef517e4563e706f0ca19088a"
   },
   "com.jeremykenedy.rainforestcascade/com.jeremykenedy.rainforestcascade.WaterfallDreamService": {
-    "capture_note": "Rainforest Cascade v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
-    "captured_on": "2026-10-15",
-    "preview_sha256": "6642951127d15dedfe618c84118194ad6df31432053fbe0e071fecc612bccd9f",
-    "source_file": "art/screenshots/rainforest-cascade-native-api31-1920.png",
+    "capture_note": "Unretouched Rainforest Cascade v1.1.0 garden day scene from the final signed release running on physical Fire TV AFTDEC012E, Android 11/API 30, 1920x1080 capture. Release APK independently downloaded and verified against its SHA-256 sidecar, byte count, package, version and existing signer.",
+    "captured_on": "2026-10-16",
+    "preview_sha256": "3a30c19c829539940b8a86f0816133786b030ad5101b4d2dfe842c01728e2fdf",
+    "source_file": "art/screenshots/rainforest-cascade-fire-tv-garden-day-1920.png",
     "source_project": "jeremykenedy/rainforest-cascade",
-    "source_sha256": "73228e57c0573ef9f8f76df826a7991b489a7202b835cc043b2e7175f4ba74cd"
+    "source_sha256": "214dd8d65d6c5380de0ef96b29686b13c73e309d62d38df08f0c1a9516365c29"
   },
   "com.jeremykenedy.bluemeridian/com.jeremykenedy.bluemeridian.BlueMeridianDreamService": {
     "capture_note": "Blue Meridian v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
