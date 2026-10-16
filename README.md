@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.3.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.3.1-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,7 +38,7 @@ This repository and its APK are private. Users with repository access can instal
 The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
 
 ```bash
-firetv-ui --install --apk=/path/to/fire-tv-ui-1.3.0.apk --sha256=PUBLISHED_SHA256
+firetv-ui --install --apk=/path/to/fire-tv-ui-1.3.1.apk --sha256=PUBLISHED_SHA256
 ```
 
 For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
@@ -129,6 +129,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Verification](docs/verification.md)
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
+- [Fire TV UI 1.3.1 release notes and upgrade guide](docs/releases/v1.3.1.md)
 - [Fire TV UI 1.3.0 release notes and upgrade guide](docs/releases/v1.3.0.md)
 - [Fire TV UI 1.2.0 release notes and upgrade guide](docs/releases/v1.2.0.md)
 - [Fire TV UI 1.1.3 release notes and upgrade guide](docs/releases/v1.1.3.md)
@@ -143,7 +144,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Captured on Fire TV hardware and documented TV emulators. Existing launcher and icon captures retain their documented versions. Advanced and Diagnostics show the current 1.3.0 candidate on Google TV API 34 at 1920x1080.
+Captured on Fire TV hardware and documented TV emulators. Existing launcher and icon captures retain their documented versions. The Rainforest catalog capture shows 1.3.1; Advanced and Diagnostics show the 1.3.0 build on Google TV API 34 at 1920x1080.
 
 <table>
   <tr>
@@ -172,8 +173,8 @@ Captured on Fire TV hardware and documented TV emulators. Existing launcher and 
     <td><img src="art/screenshots/protection-tv-1920.png" alt="Startup, Home routing, and Amazon update protection controls"><br>Startup and protection</td>
   </tr>
   <tr>
-    <td><img src="art/screenshots/install-screensavers-tv-1920.png" alt="Verified screensaver installation and removal catalog"><br>Install screensavers</td>
     <td><img src="art/screenshots/install-slot-hearth-catalog-api34-1920.png" alt="Final native catalog showing Slot Vision and Hearth Presence installed with honest storage availability on Google TV API 34"><br>Slot and Hearth catalog</td>
+    <td><img src="art/screenshots/install-rainforest-catalog-api34-1920.png" alt="Fire TV UI 1.3.1 native catalog showing Rainforest Cascade installed on Google TV API 34"><br>Rainforest catalog</td>
     <td><img src="art/screenshots/persistent-backups-tv-1920.png" alt="Persistent TV backup and CLI import restoration"><br>TV backups</td>
   </tr>
   <tr>
@@ -204,6 +205,7 @@ These are bundled previews of the animated screensavers available in the on-TV c
   <tr>
     <td><img src="app/previews/f480c9f49b2b6f05b3a0351e076eb89840fe1a3b400130b0f2e53d9c06270f71.jpg" alt="Hearth Presence modern linear fire captured from its final release on physical Fire TV"><br>Hearth Presence</td>
     <td><img src="app/previews/d4c99da3be34c14e061e1968439f9e7c2b1bd6ffa1e00578a29ec423a37a1bab.jpg" alt="Slot Vision native three-dimensional casino cabinet and simulated flying coins"><br>Slot Vision</td>
+    <td><img src="app/previews/a8e2d0a13f12066103740fa8213f82c2734a2b7f73806ca5f60494d993069cfc.jpg" alt="Rainforest Cascade garden waterfall captured from its final 1.1.0 release on physical Fire TV"><br>Rainforest Cascade</td>
   </tr>
 </table>
 
