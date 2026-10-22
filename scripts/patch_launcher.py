@@ -477,6 +477,9 @@ def patch(decoded):
     shutil.rmtree(decoded / 'assets/dexopt', ignore_errors=True)
     shutil.copytree(ROOT / 'app/previews', decoded / 'assets/screensaver-previews', dirs_exist_ok=True)
     shutil.copy(ROOT / 'app/simple-setup.json', decoded / 'assets/simple-setup.json')
+    (decoded / 'assets/input-icons').mkdir(exist_ok=True)
+    for icon in ('xbox-one.png', 'wii-u.png'):
+        shutil.copy(ROOT / 'icons' / icon, decoded / 'assets/input-icons' / icon)
     shutil.copy(ROOT / 'app/screensavers.json', decoded / 'assets/screensavers.json')
     shutil.copy(ROOT / 'app/preference-types.json', decoded / 'assets/preference-types.json')
 

@@ -24,6 +24,11 @@ public final class DeviceSettings {
     }
 
     public static void initialize(Context context) {
+        try {
+            BackupStore.freshSetup(context);
+        } catch (java.io.IOException | org.json.JSONException unavailable) {
+            android.util.Log.w("FireTvDefaults", "The initial layout could not be loaded.");
+        }
         SharedPreferences prefs = prefs(context);
         SharedPreferences.Editor editor = prefs.edit().putBoolean("is_premium", true);
         editor.remove("app_launch_count").remove("rate_app_shown");

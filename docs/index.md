@@ -23,3 +23,5 @@
 - [v1.1.1](releases/v1.1.1.md)
 
 - [Equipment Control recognition and physical verification](equipment-control.md)
+
+- [Fresh installation defaults](fresh-defaults.md)
