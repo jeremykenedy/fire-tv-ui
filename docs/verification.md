@@ -1,5 +1,11 @@
 # Verification
 
+## Fire TV UI 1.4.1, version code 39
+
+The exact signed `153da5a2fe5feae98fb7a9ba71ed0c4107b53912c4648726c72d1d647168d36e` candidate passed physical Fire OS helper checking: app 1.2.6/code 10 is separate from repository v3.9.1, the APK checksum matches the published helper, and Matches checked release is disabled. OwnTV 5.2.1 matched its exact current TV APK. All 46 portable preferences, nine OS values, external backup/import files, the healthy live guard and VPN were retained. The actual Factory UI tile opened Amazon Home before handback. This does not establish a hardware remote Home press.
+
+The signed build and 29 local tests completed: 23 passed and six native opt-in checks were skipped. API 34 accepted the UI upgrade but Play Protect blocked first installation of the existing helper, so that platform did not verify the helper row. No security bypass was used. Its 14 preexisting UI preferences, nine OS values, three saver exports, stopped guard and storage appop were restored. The published private upgrade handoff remains a separate delivery gate. Third-party checker work is deferred at the user's request.
+
 ## Version 1.3.3 selected idle verification
 
 Candidate SHA-256 `027c88d2223fa60a48a86e38f67c9d6d7ef3d77b3bc8a93de57fa2b240d56717` passed the fresh API 34 mapped Slot Vision preview and unsupported Aquarium idle observations. Both ran for 95.3 seconds and restored the prior launcher idle switch, guarded selection and five system values.

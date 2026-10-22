@@ -1,6 +1,13 @@
 # Screenshots
 
-## Fire TV UI 1.4.0
+## Fire TV UI 1.4.1
+
+Current physical Fire OS output from the exact signed `153da5a2` candidate. The helper row verifies the Android app version separately from its repository tag and disables replacement for the already installed version.
+
+<table><tr><td><img src="../art/screenshots/updates-helper-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 verifying Home Redirect app 1.2.6 code 10 separately from Toolkit repository tag v3.9.1"><br>Verified helper version</td></tr></table>
+
+
+## Previous Fire TV UI 1.4.0
 
 These unretouched 1920x1080 captures show signed candidate `44057a7d` on physical Fire TV AFTDEC012E, Android 11/API 30. The repeated source build has all 631 app payload entries identical. The update check found the exact published OwnTV 5.2.1 TV APK and checksum. The native catalog installed accepted Prism Clock 1.0.0 through Android confirmation; installed APK bytes and signer were independently verified. Its picker row shows the bundled physical screenshot. The row capture shows the UI, while the separate settled Dream capture and binder record establish actual Prism rendering.
 
