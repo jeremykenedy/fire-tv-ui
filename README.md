@@ -136,13 +136,13 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.4.0 native update checks, the physical five-column launcher with native TV tiles, and the accepted Prism Clock catalog sample. The [full gallery](docs/screenshots.md) records exact capture builds and separates historical evidence. Physical hardware Home verification remains a release gate.
+Fire TV UI 1.4.0 running on physical Fire TV: the preserved five-column launcher, an exact published OwnTV update check, and the installed Prism Clock preview row. The [full gallery](docs/screenshots.md) records exact capture builds and separates historical evidence. The separate physical remote Home check remains unverified.
 
 <table>
   <tr>
-    <td><img src="art/screenshots/updates-ui-1.4.0-api34-1920.png" alt="Fire TV UI 1.4.0 Updates reporting private sign-in requirements and checked stable versions"><br>Verified app updates</td>
-    <td><img src="art/screenshots/native-tiles-ui-1.4.0-fire-tv-1920.png" alt="Fire TV UI 1.4.0 five-column physical launcher with Factory UI and native Live TV tiles"><br>Native TV tiles</td>
-    <td><img src="art/screenshots/prism-clock-fire-tv-silver-1920.png" alt="Accepted Prism Clock 1.0.0 physical preview bundled with Fire TV UI 1.4.0"><br>Prism Clock catalog sample</td>
+    <td><img src="art/screenshots/home-ui-1.4.0-fire-tv-1920.png" alt="Fire TV UI 1.4.0 physical five-column launcher retaining its app order"><br>Five-column Home</td>
+    <td><img src="art/screenshots/updates-ui-1.4.0-fire-tv-1920.png" alt="Fire TV UI 1.4.0 checking the exact OwnTV 5.2.1 stable TV APK and checksum"><br>Verified updates</td>
+    <td><img src="art/screenshots/prism-picker-ui-1.4.0-fire-tv-1920.png" alt="Fire TV UI 1.4.0 installed Prism Clock row with its native screenshot preview"><br>Prism Clock preview</td>
   </tr>
 </table>
 

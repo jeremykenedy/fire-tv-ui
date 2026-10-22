@@ -2,17 +2,22 @@
 
 ## Fire TV UI 1.4.0
 
-These unretouched captures are 1920x1080. Updates shows candidate `44057a7d` on Google TV API 34; the repeat build has all 631 app payload entries identical. Native tiles shows the earlier physical Fire TV API 30 candidate `2c1e7b74`, version 1.4.0/code 38, after the reviewed five-column layout was restored. It does not prove the later OwnTV asset fix or guard dump. Prism Clock is the accepted public v1.0.0 app running on physical Fire TV, reused as the bundled catalog sample; this image is not a screenshot of the UI's catalog row.
+These unretouched 1920x1080 captures show signed candidate `44057a7d` on physical Fire TV AFTDEC012E, Android 11/API 30. The repeated source build has all 631 app payload entries identical. The update check found the exact published OwnTV 5.2.1 TV APK and checksum. The native catalog installed accepted Prism Clock 1.0.0 through Android confirmation; installed APK bytes and signer were independently verified. Its picker row shows the bundled physical screenshot. The row capture shows the UI, while the separate settled Dream capture and binder record establish actual Prism rendering.
 
 <table>
 <tr>
-<td><img src="../art/screenshots/updates-ui-1.4.0-api34-1920.png" alt="Fire TV UI 1.4.0 checked release status and private computer-sign-in requirement"><br>Updates, API 34</td>
-<td><img src="../art/screenshots/native-tiles-ui-1.4.0-fire-tv-1920.png" alt="Physical Fire TV UI 1.4.0 Factory UI and native Live TV tiles"><br>Native TV tiles, Fire OS 30</td>
-<td><img src="../art/screenshots/prism-clock-fire-tv-silver-1920.png" alt="Prism Clock 1.0.0 silver physical preview bundled in UI 1.4.0"><br>Accepted Prism catalog sample</td>
+<td><img src="../art/screenshots/home-ui-1.4.0-fire-tv-1920.png" alt="Physical Fire TV UI 1.4.0 five-column launcher with preserved original app order"><br>Home</td>
+<td><img src="../art/screenshots/updates-ui-1.4.0-fire-tv-1920.png" alt="OwnTV 5.2.1 checked exact TV APK and matching published checksum"><br>Updates</td>
+<td><img src="../art/screenshots/prism-picker-ui-1.4.0-fire-tv-1920.png" alt="Installed Prism Clock row and bundled native screenshot in UI 1.4.0"><br>Prism picker</td>
+</tr>
+<tr>
+<td><img src="../art/screenshots/native-tiles-ui-1.4.0-fire-tv-1920.png" alt="Current UI 1.4.0 native Factory UI and Live TV tiles on physical Fire TV"><br>TV tiles</td>
+<td><img src="../art/screenshots/prism-dream-ui-1.4.0-fire-tv-1920.png" alt="Actual Prism Clock Dream launched through the UI Preview it action"><br>Prism Dream</td>
+<td><img src="../art/screenshots/updates-ui-1.4.0-api34-1920.png" alt="UI 1.4.0 emulator update check distinguishes private sign-in and newer unpublished test builds"><br>API 34 check</td>
 </tr>
 </table>
 
-The update check correctly labels installed emulator test builds newer than their published stable releases. This does not register those unpublished builds as downloadable releases. Physical hardware Home, current OwnTV and guard inspection, and the new Prism catalog row remain separately tracked gates. No change in those results is inferred from these screenshots.
+Back restored the selected Aquarium Dream. All 46 UI preferences and eight recorded OS settings read back unchanged; the external backup, live guard and VPN were preserved. Home from the settings route returned to the UI. A single Factory tile tap then opened actual Amazon Home for the physical-remote follow-up. That hardware Home check remains unverified; no shell-injected key is treated as equivalent proof. Unpublished emulator builds remain separate from downloadable stable catalog releases.
 
 ## Historical selected-idle candidate checks
 
