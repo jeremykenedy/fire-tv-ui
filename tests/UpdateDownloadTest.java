@@ -48,6 +48,16 @@ public final class UpdateDownloadTest {
         }
     }
 
+    static void rejectInspection(ScreensaverCatalog.Entry entry) throws Exception {
+        try {
+            ScreensaverDownload.inspectRelease(context, entry);
+            throw new AssertionError("An incompatible APK passed inspection");
+        } catch (IllegalStateException expected) {
+            if (context.getCacheDir().list().length != 0) throw new AssertionError("Inspected APK was retained");
+            checks++;
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         URL.setURLStreamHandlerFactory(protocol -> new URLStreamHandler() {
             @Override protected URLConnection openConnection(URL url) {
@@ -80,6 +90,24 @@ public final class UpdateDownloadTest {
         PackageManager.archive.signatures=new Signature[0]; reject(entry);
         PackageManager.archive=pkg(2,(byte)1); PackageManager.installed=null;
         accepted=ScreensaverDownload.download(context,entry,percent -> { }); accepted.delete(); checks++;
+        Build.VERSION.SDK_INT=34;
+        PackageManager.installed=pkg(125,(byte)1); PackageManager.archive=pkg(125,(byte)1);
+        PackageManager.archive.versionName="1.2.5";
+        PackageInfo inspected=ScreensaverDownload.inspectRelease(context,entry);
+        if (inspected.versionCode!=125 || !"1.2.5".equals(inspected.versionName)
+                || context.getCacheDir().list().length!=0) throw new AssertionError("Current helper inspection failed");
+        checks++;
+        reject(entry);
+        PackageManager.archive=pkg(124,(byte)1);
+        if (ScreensaverDownload.inspectRelease(context,entry).versionCode!=124) throw new AssertionError();
+        checks++;
+        reject(entry);
+        PackageManager.archive=pkg(126,(byte)2); rejectInspection(entry);
+        PackageManager.archive=pkg(126,(byte)1); PackageManager.archive.packageName="other.app";
+        rejectInspection(entry);
+        PackageManager.archive=pkg(126,(byte)1); rejectInspection(entry("0".repeat(64),3));
+        PackageManager.installed=null; rejectInspection(entry);
+        PackageManager.installed=pkg(125,(byte)1);
         Thread.currentThread().interrupt();
         try { ScreensaverDownload.download(context,entry,percent -> { }); throw new AssertionError(); }
         catch (InterruptedException expected) { Thread.interrupted(); checks++; }

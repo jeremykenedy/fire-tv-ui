@@ -43,6 +43,9 @@ public final class UpdatesActivity extends CardActivity {
         boolean staged;
         String sourceRepo;
         String sourceAsset;
+        boolean apkVersioned;
+        Long publishedCode;
+        String publishedAppVersion;
 
         Row(String name, String pkg, ScreensaverCatalog.Entry bundled) {
             this.name = name;
@@ -96,6 +99,7 @@ public final class UpdatesActivity extends CardActivity {
                 Row app = new Row(source[0], source[1], null);
                 app.sourceRepo = source[2];
                 app.sourceAsset = source[3];
+                app.apkVersioned = "com.jeremykenedy.firetv.homeredirect".equals(app.pkg);
                 apps.add(app);
             } catch (PackageManager.NameNotFoundException absent) {
                 // Only installed catalog apps appear in the update list.
@@ -127,12 +131,19 @@ public final class UpdatesActivity extends CardActivity {
                 TextView heading = text(app.name + "  |  Installed " + installed.versionName, 21, INK);
                 heading.setPadding(0, dp(12), 0, dp(4));
                 rows.addView(heading);
+                if (app.publishedCode != null) {
+                    rows.addView(text("Verified Android app " + app.publishedAppVersion
+                            + " (code " + app.publishedCode + ")", 15, MUTED));
+                }
                 rows.addView(text(app.message, 15, MUTED));
                 if (app.published != null) {
                     rows.addView(text("SHA-256: " + app.published.sha256, 12, MUTED));
-                    Integer order = UpdateVersions.compare(app.published.tag, installed.versionName);
+                    Integer order = UpdateVersions.compare(app.published.tag, installed.versionName,
+                            app.publishedCode, versionCode(installed));
+                    String publishedName = app.publishedAppVersion == null
+                            ? app.published.tag : app.publishedAppVersion;
                     String label = order == null ? "Verify and install published release"
-                            : order > 0 ? "Install update " + app.published.tag
+                            : order > 0 ? "Install update " + publishedName
                             : order == 0 ? "Matches checked release" : "Installed version is newer";
                     TextView install = button(label, new View.OnClickListener() {
                         @Override
@@ -166,6 +177,8 @@ public final class UpdatesActivity extends CardActivity {
                     }
                     ScreensaverCatalog.Entry found = null;
                     boolean local = false;
+                    Long apkCode = null;
+                    String apkName = null;
                     String message;
                     try {
                         if (app.sourceRepo == null) {
@@ -175,7 +188,7 @@ public final class UpdatesActivity extends CardActivity {
                         if (staged != null) {
                             found = staged.entry;
                             local = true;
-                            message = checkedMessage(found, staged.checkedAt) + " (sent by computer)";
+                            message = checkedMessage(found, staged.checkedAt, app.apkVersioned) + " (sent by computer)";
                         } else {
                             if (getPackageName().equals(app.pkg)) {
                                 throw new IllegalStateException("Private repositories require an authenticated computer check.");
@@ -183,20 +196,32 @@ public final class UpdatesActivity extends CardActivity {
                             JSONObject cached = cached(app);
                             if (cached != null) {
                                 found = new ScreensaverCatalog.Entry(cached.getJSONObject("release"));
-                                message = checkedMessage(found, cached.getLong("checked_at")) + " (cached)";
+                                message = checkedMessage(found, cached.getLong("checked_at"), app.apkVersioned) + " (cached)";
                             } else {
                                 if (rateLimited) {
                                     throw new IllegalStateException("Not checked: GitHub rate limit paused remaining requests.");
                                 }
-                                found = app.bundled == null
-                                    ? ReleaseUpdates.latest(app.name, app.pkg, app.sourceRepo, app.sourceAsset, "", "")
-                                    : ReleaseUpdates.latest(app.bundled);
+                                found = app.apkVersioned
+                                    ? ReleaseUpdates.latestContainingAsset(app.name, app.pkg,
+                                            app.sourceRepo, app.sourceAsset, "", "")
+                                    : app.bundled == null
+                                            ? ReleaseUpdates.latest(app.name, app.pkg, app.sourceRepo, app.sourceAsset, "", "")
+                                            : ReleaseUpdates.latest(app.bundled);
                                 long checkedAt = System.currentTimeMillis();
                                 saveCached(found, checkedAt);
-                                message = checkedMessage(found, checkedAt);
+                                message = checkedMessage(found, checkedAt, app.apkVersioned);
                             }
                         }
+                        if (app.apkVersioned) {
+                            PackageInfo inspected = ScreensaverDownload.inspectRelease(UpdatesActivity.this, found);
+                            apkCode = versionCode(inspected);
+                            if (apkCode <= 0) throw new IllegalStateException("The Android APK has no usable version code.");
+                            apkName = inspected.versionName == null || inspected.versionName.isEmpty()
+                                    ? "Unknown" : inspected.versionName;
+                        }
                     } catch (Exception failed) {
+                        found = null;
+                        local = false;
                         rateLimited |= failed instanceof ReleaseUpdates.RateLimitException;
                         message = "Check unavailable: " + failed.getMessage();
                         if (app.bundled == null && getPackageName().equals(app.pkg)
@@ -204,6 +229,8 @@ public final class UpdatesActivity extends CardActivity {
                             message = "Computer sign-in required. Use Toolkit on an authenticated computer to check and send a private UI update, then check here again.";
                         }
                     }
+                    final Long checkedCode = apkCode;
+                    final String checkedName = apkName;
                     final boolean staged = local;
                     final ScreensaverCatalog.Entry release = found;
                     final String result = message;
@@ -212,6 +239,8 @@ public final class UpdatesActivity extends CardActivity {
                         public void run() {
                             if (!isFinishing() && !isDestroyed()) {
                                 app.published = release;
+                                app.publishedCode = release == null ? null : checkedCode;
+                                app.publishedAppVersion = release == null ? null : checkedName;
                                 app.staged = staged;
                                 app.message = result;
                                 render();
@@ -235,8 +264,8 @@ public final class UpdatesActivity extends CardActivity {
         });
     }
 
-    private String checkedMessage(ScreensaverCatalog.Entry release, long checkedAt) {
-        return "Published " + release.tag + "  |  Checked "
+    private String checkedMessage(ScreensaverCatalog.Entry release, long checkedAt, boolean repositoryTag) {
+        return (repositoryTag ? "Repository release " : "Published ") + release.tag + "  |  Checked "
                 + DateFormat.getDateTimeInstance().format(new Date(checkedAt))
                 + "  |  Download " + PackageStorage.size(release.bytes);
     }
@@ -250,6 +279,8 @@ public final class UpdatesActivity extends CardActivity {
             }
             ScreensaverCatalog.Entry entry = new ScreensaverCatalog.Entry(record.getJSONObject("release"));
             String repo = app.sourceRepo;
+            if (app.sourceAsset != null && (app.apkVersioned || app.sourceAsset.contains("{tag}"))
+                    && !ReleaseUpdates.matchesRequestedAsset(entry, app.sourceAsset)) return null;
             return app.pkg.equals(entry.pkg) && repo.equals(entry.repo) ? record : null;
         } catch (Exception unavailable) {
             return null;

@@ -4,9 +4,15 @@ Open **Settings > Advanced > Updates**, or **Screensavers > Install screensavers
 
 Each successful check shows the installed version, published tag, check time, download size and SHA-256. Verified metadata is reused for six hours to limit GitHub requests. A cached check is labelled with its original time. Network errors, missing published checksums, inaccessible repositories and rate limits remain unavailable. Matching a checked release is a version comparison, not a guarantee that a newer release has not appeared since that check.
 
-OwnTV releases use the exact TV artifact name `OwnTV-{tag}.apk`, with the checked numeric release tag substituted. Mobile APKs and ambiguous alternatives are rejected.
+OwnTV releases use the exact TV artifact name `OwnTV-{tag}.apk`, with the checked numeric release tag substituted. Mobile APKs, a lone APK for an older tag and ambiguous alternatives are rejected. Cached metadata must match that exact filename too.
 
 Choose **Install update** to download and verify the APK. Fire TV UI checks its byte count, SHA-256, expected package, installed signing certificate and higher Android version code before opening the normal Android installation confirmation. Replacement installs retain the existing app's data. A cancelled or rejected install does not remove the current app. The TV may require you to allow installation from Fire TV UI through its normal settings screen.
+
+## Home Redirect releases
+
+Home Redirect shares the Toolkit repository, whose newest desktop release may not contain an Android helper. Its check searches up to 100 release-history entries for the exact `firetv-home-redirect.apk` in a published stable release, choosing the newest publication time. Other APKs are never substituted.
+
+The small helper APK is downloaded and verified against its published size and SHA-256, expected package and currently installed signing certificate. Its compiled Android version name and code appear separately from the repository tag. For example, Toolkit tag `v3.9.1` contains Home Redirect app `1.2.6` (code 10). Installing that version already means it matches the checked release; the Toolkit tag is not a newer Home Redirect version. Read-only inspection removes its temporary APK and does not install anything.
 
 ## Private Fire TV UI releases
 
