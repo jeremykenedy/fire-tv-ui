@@ -13,6 +13,20 @@ from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
+    def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        mapped = {item['id']: item for item in entries if 'preview' in item}
+        self.assertEqual(set(mapped), {'slot-vision', 'hearth-presence', 'rainforest-cascade'})
+        for entry in mapped.values():
+            self.assertEqual(entry['preview'], entry['package'] + '/.PreviewActivity')
+        decoded = ROOT / '.build/decoded'
+        if decoded.exists():
+            idle = classes(decoded)['LQ3/T6;'].read_text()
+            self.assertIn('IdleScreensaver;->start', idle)
+            self.assertNotIn('com.neilturner.aerialviews', idle)
+            self.assertIn('LQ3/T3;->V(Z)V', idle)
+            self.assertIn('LQ3/T3;->S(J)V', idle)
+
     def test_pinned_base(self):
         config = json.loads((ROOT / 'build.json').read_text())
         self.assertEqual(hashlib.sha256((ROOT / 'vendor/launcher-base.apk').read_bytes()).hexdigest(),
@@ -56,13 +70,13 @@ class BuildChecks(unittest.TestCase):
         self.assertEqual(entry['package'], 'com.jeremykenedy.twilighthearth')
         self.assertEqual(entry['dream'], 'com.jeremykenedy.twilighthearth/.HearthDreamService')
         self.assertEqual(entry['repo'], 'jeremykenedy/twilight-hearth')
-        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['tag'], 'v1.1.0')
         self.assertEqual(entry['url'],
                          'https://github.com/jeremykenedy/twilight-hearth/releases/download/'
-                         'v1.0.0/twilight-hearth.apk')
-        self.assertEqual(entry['bytes'], 33485)
+                         'v1.1.0/twilight-hearth.apk')
+        self.assertEqual(entry['bytes'], 27207363)
         self.assertEqual(entry['sha256'],
-                         'a27bf8bce4dd6a8483d9f64e6b336f283cd7fb9a72c76dded4c51d471275250c')
+                         'dd39810f8bf2a67af7f133554897741323d9a14d606b3fc1a441285646b440f5')
 
         component = full_component(entry['dream'])
         index = json.loads((ROOT / 'app/previews/index.json').read_text())

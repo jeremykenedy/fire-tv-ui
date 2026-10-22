@@ -17,6 +17,8 @@ public final class ScreensaverCatalog {
         public final String url;
         public final String sha256;
         public final String tag;
+        public final String dream;
+        public final String preview;
         public final long bytes;
 
         Entry(JSONObject value) throws Exception {
@@ -25,6 +27,8 @@ public final class ScreensaverCatalog {
             url = value.getString("url");
             sha256 = value.getString("sha256");
             tag = value.getString("tag");
+            dream = value.getString("dream");
+            preview = value.optString("preview", "");
             bytes = value.getLong("bytes");
             String repo = value.getString("repo");
             URL source = new URL(url);

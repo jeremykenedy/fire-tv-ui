@@ -134,6 +134,48 @@ def patch(decoded):
         '    const-string v0, "is_premium"\n\n    iget-boolean v1, p0, LQ3/W6;->l:Z',
         '    const-string v0, "is_premium"\n\n    const/4 v1, 0x1'))
 
+    idle = class_paths["LQ3/T6;"]
+    idle.write_text(replace_method(idle.read_text(),
+        ".method public final k(Ljava/lang/Object;)Ljava/lang/Object;",
+        """.method public final k(Ljava/lang/Object;)Ljava/lang/Object;
+    .locals 5
+    sget-object v0, Lg4/a;->g:Lg4/a;
+    iget v1, p0, LQ3/T6;->k:I
+    invoke-static {p1}, Lq4/a;->l0(Ljava/lang/Object;)V
+    if-nez v1, :idle_restore_focus
+    iget-object v1, p0, LQ3/T6;->l:LQ3/T3;
+    invoke-virtual {v1}, LQ3/T3;->M()Z
+    move-result v2
+    if-eqz v2, :idle_focus_delay
+    iget-object v2, p0, LQ3/T6;->m:Landroid/content/Context;
+    invoke-static {v2}, Lcom/jeremykenedy/firetv/ui/IdleScreensaver;->start(Landroid/content/Context;)V
+    const/4 v2, 0x0
+    invoke-virtual {v1, v2}, LQ3/T3;->V(Z)V
+    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
+    move-result-wide v2
+    invoke-virtual {v1, v2, v3}, LQ3/T3;->S(J)V
+    goto :idle_done
+    :idle_focus_delay
+    const/4 v1, 0x1
+    iput v1, p0, LQ3/T6;->k:I
+    const-wide/16 v1, 0x64
+    invoke-static {v1, v2, p0}, Lx4/v;->e(JLf4/c;)Ljava/lang/Object;
+    move-result-object p1
+    if-ne p1, v0, :idle_restore_focus
+    return-object v0
+    :idle_restore_focus
+    iget-object p1, p0, LQ3/T6;->o:Ljava/util/List;
+    const/4 v0, 0x0
+    invoke-static {v0, p1}, Lc4/r;->D0(ILjava/util/List;)Ljava/lang/Object;
+    move-result-object p1
+    check-cast p1, Le0/p;
+    if-eqz p1, :idle_done
+    invoke-static {p1}, LQ3/M7;->T(Le0/p;)V
+    :idle_done
+    sget-object p1, Lb4/n;->a:Lb4/n;
+    return-object p1
+.end method"""))
+
     settings = class_paths["LQ3/M7;"]
     text = settings.read_text()
     text = replace_once(text, '    filled-new-array/range {v49 .. v55}, [Ljava/lang/String;',
@@ -216,11 +258,13 @@ def patch(decoded):
     help_text = help_text.replace(r'\u2022 Premium\n', r'\u2022 TV screensaver\n')
     help_text = help_text.replace(' (Premium)', '').replace(' - Premium', '').replace(' (Free)', '')
     help_text = help_text.replace('Screensaver: Activates a minimal clock screensaver',
-        'Launcher clock screensaver: Activates a minimal clock screensaver')
+        'Launcher idle screensaver: Starts the selected screensaver')
+    help_text = help_text.replace('after ~2 minutes of inactivity.',
+        'after 90 seconds of launcher inactivity when enabled.')
     help_text = help_text.replace(r'\nLICENSES & CREDITS',
         r'\nTV SCREENSAVER\n\nOpen Settings > TV screensaver. '
         r'Select an installed screensaver to make it active, or turn the TV screensaver on or off. '
-        r'This controls the TV screensaver separately from the launcher clock in Appearance. '
+        r'The Appearance launcher idle option uses this same selection. Unsupported preview paths leave system idle handling active. '
         r'If setup is needed, follow the on-screen instructions from your computer. '
         r'The selected screensaver and enabled state are read back from the TV.\n\nLICENSES & CREDITS')
     help_text = help_text.replace('Select an installed screensaver to make it active,',
@@ -280,6 +324,7 @@ def patch(decoded):
         'Premium_Close': 'Screensavers_Close', 'Premium0': 'Screensavers0',
         '"Premium"': '"Screensavers"',
         'TV screensaver': 'Screensavers',
+        'Enable screensaver': 'Launcher idle screensaver',
         'Premium feature!': 'Feature available', 'Premium feature': 'Feature available',
         'Get premium to unlock this': 'Feature available',
         'Premium Unlocked Successfully!': 'Settings updated',

@@ -27,8 +27,7 @@ public final class DeviceSettings {
         SharedPreferences prefs = prefs(context);
         SharedPreferences.Editor editor = prefs.edit().putBoolean("is_premium", true);
         editor.remove("app_launch_count").remove("rate_app_shown");
-        // The TV's screensaver is the default. The launcher clock remains
-        // available in Appearance for people who prefer that option.
+        // System idle remains the default. Preserve an existing launcher idle choice.
         if (!prefs.contains("screensaver_enabled")) {
             editor.putBoolean("screensaver_enabled", false);
         }

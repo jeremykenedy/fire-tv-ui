@@ -144,12 +144,12 @@
     "source_sha256": "c015cbb62ecb515efd2fbc4c507a8d6a19488ddc13a4a060a735146b22172c7b"
   },
   "com.jeremykenedy.twilighthearth/com.jeremykenedy.twilighthearth.HearthDreamService": {
-    "capture_note": "Running Twilight Hearth preview on Android TV emulator 5570, reused from the released screensaver project.",
-    "captured_on": "2026-10-08",
-    "preview_sha256": "30a674e489db308c87da51941754013a4ada3b626c1faecfa6b68a70f2ede166",
-    "source_file": "art/screenshots/twilight-hearth-android-tv-1920.png",
+    "capture_note": "Unretouched physical Fire TV capture of Twilight Hearth v1.1.0; source release physically verified on API 30.",
+    "captured_on": "2026-10-16",
+    "preview_sha256": "404ce322594bb7e63dfe54779a5c1a84d2d273ec04ded1aa6435d0851d89f7cd",
+    "source_file": "art/screenshots/twilight-hearth-fire-tv-modern-1.1.0-1920.png",
     "source_project": "jeremykenedy/twilight-hearth",
-    "source_sha256": "667ac9e53742a08f98376bfe113626c3f3f2457ea43c736736a53e5ee3287ab9"
+    "source_sha256": "30c076080ae64f3152def1c6531408a3cea2662e28a22c5b9c6014f312981768"
   },
   "com.jeremykenedy.vortexspiral/com.jeremykenedy.vortexspiral.VortexDreamService": {
     "capture_note": "Running Vortex Spiral screensaver on Android TV emulator emulator-5570.",
