@@ -1,6 +1,20 @@
 # Screenshots
 
-## Current launcher idle checks
+## Fire TV UI 1.4.0
+
+These unretouched captures are 1920x1080. Updates shows candidate `44057a7d` on Google TV API 34; the repeat build has all 631 app payload entries identical. Native tiles shows the earlier physical Fire TV API 30 candidate `2c1e7b74`, version 1.4.0/code 38, after the reviewed five-column layout was restored. It does not prove the later OwnTV asset fix or guard dump. Prism Clock is the accepted public v1.0.0 app running on physical Fire TV, reused as the bundled catalog sample; this image is not a screenshot of the UI's catalog row.
+
+<table>
+<tr>
+<td><img src="../art/screenshots/updates-ui-1.4.0-api34-1920.png" alt="Fire TV UI 1.4.0 checked release status and private computer-sign-in requirement"><br>Updates, API 34</td>
+<td><img src="../art/screenshots/native-tiles-ui-1.4.0-fire-tv-1920.png" alt="Physical Fire TV UI 1.4.0 Factory UI and native Live TV tiles"><br>Native TV tiles, Fire OS 30</td>
+<td><img src="../art/screenshots/prism-clock-fire-tv-silver-1920.png" alt="Prism Clock 1.0.0 silver physical preview bundled in UI 1.4.0"><br>Accepted Prism catalog sample</td>
+</tr>
+</table>
+
+The update check correctly labels installed emulator test builds newer than their published stable releases. This does not register those unpublished builds as downloadable releases. Physical hardware Home, current OwnTV and guard inspection, and the new Prism catalog row remain separately tracked gates. No change in those results is inferred from these screenshots.
+
+## Historical selected-idle candidate checks
 
 These unretouched captures show the recovered Fire TV UI 1.3.3 candidate on Google TV API 34 at 1920x1080. Slot Vision is its separately released 1.0.0 APK. An activity preview does not establish a system DreamService binding.
 
@@ -59,22 +73,6 @@ Captured on Fire TV hardware and documented TV emulators. Existing launcher and 
   </tr>
 </table>
 
-These are bundled previews of the animated screensavers available in the on-TV catalog.
+## Existing catalog previews
 
-<table>
-  <tr>
-    <td><img src="../app/previews/c5ab28b8e4ab7e528b914f82d4075dba660cad7301c7a3de7df549a408df0563.jpg" alt="Perseid Passage with meteors crossing a dark starfield"><br>Perseid Passage</td>
-    <td><img src="../app/previews/982f942f0f840c97179a8be9447f316c6c2e87123d456cf65468af4a98921c76.jpg" alt="Split-Flap Drift with an illuminated floating flip clock"><br>Split-Flap Drift</td>
-    <td><img src="../app/previews/1cb8c639b6468d88e3da29d58d85c6f052be0feaf61f8a10ced85ef75750f130.jpg" alt="Canopy Drift with a green treetop canopy and drifting leaves"><br>Canopy Drift</td>
-  </tr>
-  <tr>
-    <td><img src="../app/previews/38e1682f25341c01af673c7e41b6779490496d775c67b0ddd736da05478116ab.jpg" alt="Contour Flow with animated flowing contour lines"><br>Contour Flow</td>
-    <td><img src="../app/previews/64fdc74c5e5d23a9397cc81faaa331404405ccde7e8f01264ee04e91c38daa80.jpg" alt="Skyburst Nocturne with bright colorful fireworks over a skyline"><br>Skyburst Nocturne</td>
-    <td><img src="../app/previews/d752d5739810907e8d0434f3941070bf2d83adbc902011f827187fe4afd909b6.jpg" alt="Pulse Circuit with animated neon geometric forms"><br>Pulse Circuit</td>
-  </tr>
-  <tr>
-    <td><img src="../app/previews/f480c9f49b2b6f05b3a0351e076eb89840fe1a3b400130b0f2e53d9c06270f71.jpg" alt="Hearth Presence modern linear fire captured from its final release on physical Fire TV"><br>Hearth Presence</td>
-    <td><img src="../app/previews/d4c99da3be34c14e061e1968439f9e7c2b1bd6ffa1e00578a29ec423a37a1bab.jpg" alt="Slot Vision native three-dimensional casino cabinet and simulated flying coins"><br>Slot Vision</td>
-    <td><img src="../app/previews/a8e2d0a13f12066103740fa8213f82c2734a2b7f73806ca5f60494d993069cfc.jpg" alt="Rainforest Cascade garden waterfall captured from its final 1.1.0 release on physical Fire TV"><br>Rainforest Cascade</td>
-  </tr>
-</table>
+Earlier catalog images and their release provenance remain recorded in [screensaver previews](screensaver-previews.md). Listing an existing stable release is not a claim that its visual design has received new acceptance.

@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.3.2-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.4.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,9 +38,9 @@ This repository and its APK are private. Users with repository access can instal
 Download the signed APK and its checksum from the private release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.3.3.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.4.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.3.3.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.4.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -69,6 +69,8 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | Launcher idle | Follow the selected TV screensaver when the launcher is idle. | [Platform limits](docs/device-controls.md#launcher-idle-activation) |
 | Timers and Home routing | Manage TV timers and the startup and Home app. | [Device controls](docs/device-controls.md) |
 | Local protection | Preserve saved choices and optionally block known Amazon updater traffic. | [Protection](docs/device-controls.md#startup-and-protection) |
+| App updates | Check stable releases and confirm verified replacement installs. | [Updates](docs/updates.md) |
+| Native TV tiles | Open Amazon Home or the built-in Live TV guide on supported Fire TVs. | [Native tiles](docs/factory-home.md) |
 | Advanced diagnostics | Inspect device status and save a local report with explicit measurement limits. | [Diagnostics](docs/device-controls.md#advanced-diagnostics) |
 | Persistent backups | Save launcher preferences on the TV or transfer a backup from the CLI. | [Backups](docs/device-controls.md#persistent-tv-backups) |
 
@@ -117,7 +119,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Verification](docs/verification.md)
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
-- [Fire TV UI 1.3.3 release notes and upgrade guide](docs/releases/v1.3.3.md)
+- [Fire TV UI 1.4.0 release notes and upgrade guide](docs/releases/v1.4.0.md)
 - [Fire TV UI 1.3.2 release notes and upgrade guide](docs/releases/v1.3.2.md)
 - [Fire TV UI 1.3.1 release notes and upgrade guide](docs/releases/v1.3.1.md)
 - [Fire TV UI 1.3.0 release notes and upgrade guide](docs/releases/v1.3.0.md)
@@ -134,13 +136,13 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Current Fire TV UI 1.3.3 checks on Google TV API 34. The [full gallery](docs/screenshots.md) identifies earlier capture versions separately.
+Fire TV UI 1.4.0 native update checks, the physical five-column launcher with native TV tiles, and the accepted Prism Clock catalog sample. The [full gallery](docs/screenshots.md) records exact capture builds and separates historical evidence. Physical hardware Home verification remains a release gate.
 
 <table>
   <tr>
-    <td><img src="art/screenshots/appearance-selected-idle-api34-1920.png" alt="Fire TV UI 1.3.3 Appearance with the launcher idle option"><br>Appearance</td>
-    <td><img src="art/screenshots/launcher-unsupported-idle-api34-1920.png" alt="Fire TV UI 1.3.3 leaving an unsupported preview to Android idle handling"><br>Launcher idle fallback</td>
-    <td><img src="art/screenshots/slot-selected-idle-api34-1920.png" alt="The selected Slot Vision preview opened after Fire TV UI 1.3.3 launcher inactivity"><br>Selected screensaver</td>
+    <td><img src="art/screenshots/updates-ui-1.4.0-api34-1920.png" alt="Fire TV UI 1.4.0 Updates reporting private sign-in requirements and checked stable versions"><br>Verified app updates</td>
+    <td><img src="art/screenshots/native-tiles-ui-1.4.0-fire-tv-1920.png" alt="Fire TV UI 1.4.0 five-column physical launcher with Factory UI and native Live TV tiles"><br>Native TV tiles</td>
+    <td><img src="art/screenshots/prism-clock-fire-tv-silver-1920.png" alt="Accepted Prism Clock 1.0.0 physical preview bundled with Fire TV UI 1.4.0"><br>Prism Clock catalog sample</td>
   </tr>
 </table>
 
