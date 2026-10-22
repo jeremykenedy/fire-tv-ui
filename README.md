@@ -67,7 +67,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 - Light and dark themes, gradients, images, image URLs, slideshows, and video wallpapers.
 - Weather, clocks, calendar, year progress, RSS, podcasts, search, app shortcuts, and other widgets.
 - Icon packs, featured cards, Watch Next, and channel management.
-- Remote shortcuts, launcher clock screensaver, and backup and restore.
+- Remote shortcuts, selected-screensaver idle activation, and backup and restore.
 - A near-full-screen screensaver card with sample images, per-app storage usage, individual previews, and access to installed apps' settings.
 - Separate TV Sleep Timer, screensaver delay, Deep Sleep toggle, and Deep Sleep timer controls.
 - Verified on-TV downloads and Android-confirmed removal of the curated screensaver catalog.
@@ -89,14 +89,14 @@ Long press the app or input tile, choose **Change Icon**, then select an image. 
 | --- | --- |
 | Screensavers | Select, preview, configure, install, or remove screensavers; manage timers and memory. |
 | Theme Mode | Choose wallpapers, gradients, icon packs, and text contrast. |
-| Appearance | Configure widgets, status bar, favorites, cards, and the launcher clock screensaver. |
+| Appearance | Configure widgets, status bar, favorites, cards, and selected-screensaver idle activation. |
 | Controls | Configure remote actions and app rows. |
 | Backup/Restore | Save or restore the persistent TV backup, or restore a backup sent by the CLI. |
 | Startup and protection | Enable or disable startup and Home routing; protect settings and block Amazon updates. |
 | About | View the app name, version, credits, and privacy information. |
 | Help | Read the feature guide and screensaver setup instructions. |
 
-The launcher clock screensaver starts disabled on a fresh installation so the TV's selected screensaver can run. It remains available in Appearance. Existing clock-screen preferences are preserved on update.
+The launcher idle option starts disabled on a fresh installation and preserves an existing saved choice on update. When enabled in Appearance, it attempts the TV's selected screensaver after 90 seconds of launcher inactivity. Unsupported preview paths leave Android's own idle handling active. See [launcher idle activation](docs/device-controls.md#launcher-idle-activation) for platform limits.
 
 ## Building
 
@@ -129,6 +129,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Verification](docs/verification.md)
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
+- [Fire TV UI 1.3.3 release notes and upgrade guide](docs/releases/v1.3.3.md)
 - [Fire TV UI 1.3.2 release notes and upgrade guide](docs/releases/v1.3.2.md)
 - [Fire TV UI 1.3.1 release notes and upgrade guide](docs/releases/v1.3.1.md)
 - [Fire TV UI 1.3.0 release notes and upgrade guide](docs/releases/v1.3.0.md)
@@ -160,7 +161,7 @@ Captured on Fire TV hardware and documented TV emulators. Existing launcher and 
   </tr>
   <tr>
     <td><img src="art/screenshots/theme-tv-1920.png" alt="Wallpaper and theme choices"><br>Theme Mode</td>
-    <td><img src="art/screenshots/appearance-tv-1920.png" alt="Appearance options with all customization features available"><br>Appearance</td>
+    <td><img src="art/screenshots/appearance-selected-idle-api34-1920.png" alt="Fire TV UI 1.3.3 Appearance with the selected-screensaver idle option on Android TV API 34"><br>Appearance</td>
     <td><img src="art/screenshots/controls-tv-1920.png" alt="Remote controls and app rows"><br>Controls</td>
   </tr>
   <tr>
