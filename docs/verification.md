@@ -1,5 +1,13 @@
 # Verification
 
+## Version 1.3.3 selected idle verification
+
+Candidate SHA-256 `027c88d2223fa60a48a86e38f67c9d6d7ef3d77b3bc8a93de57fa2b240d56717` passed the fresh API 34 mapped Slot Vision preview and unsupported Aquarium idle observations. Both ran for 95.3 seconds and restored the prior launcher idle switch, guarded selection and five system values.
+
+Physical API 30 verification used two separate gates. Twenty observations established actual binding of the selected Aquarium DreamService, with native screenshots and Back detaching the Dream. The first harness Home check failed after a force-stop left the accessibility service unbound. After explicitly rebinding Home routing, the separate Screensavers-to-Home check returned to the native launcher. All 47 launcher preferences, eight system values, accessibility membership and the original asleep state matched; the guard service was restarted and verified. Future harnesses must rebind an originally enabled Home service after a force-stop, even when its enabled setting remains present.
+
+The Aquarium surface sample was 23.18 FPS and failed its independent renderer performance gate. Dream binding is not evidence that a screensaver meets its rendering budget. Final release APK and catalog changes require their own artifact verification.
+
 ## Automated checks
 
 Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build verifies the pinned base and Apktool hashes and requires exact patch anchors. The tests cover component matching, duplicate services, stable ordering, missing active apps, package identity, feature availability, settings wiring, and the feature guide.

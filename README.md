@@ -35,17 +35,15 @@
 
 This repository and its APK are private. Users with repository access can install the signed APK from the private releases, or build it locally. Physical Fire TV, Android TV, and Google TV checks are still welcome; see the [device verification matrix](docs/verification.md).
 
-The [Fire TV Toolkit](https://github.com/jeremykenedy/fire-tv-toolkit) can install a local signed APK and its published checksum:
+Download the signed APK and its checksum from the private release, verify the checksum, then use the repository installer:
 
 ```bash
-firetv-ui --install --apk=/path/to/fire-tv-ui-1.3.3.apk --sha256=PUBLISHED_SHA256
+shasum -a 256 -c fire-tv-ui-1.3.3.apk.sha256
+adb connect YOUR_TV_IP:5555
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.3.3.apk
 ```
 
-For a local build, run `python3 scripts/build.py`, then install it and grant screensaver, backup, storage, and package-install access:
-
-```bash
-python3 scripts/install.py --serial YOUR_TV_IP:5555
-```
+The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
 
 Fire TV UI has its own package identity. It can be installed alongside an existing launcher. Subsequent updates must use the same signing key; `adb install -r` keeps Fire TV UI's settings.
 
