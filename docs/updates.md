@@ -4,6 +4,8 @@ Open **Settings > Advanced > Updates**, or **Screensavers > Install screensavers
 
 Each successful check shows the installed version, published tag, check time, download size and SHA-256. Verified metadata is reused for six hours to limit GitHub requests. A cached check is labelled with its original time. Network errors, missing published checksums, inaccessible repositories and rate limits remain unavailable. Matching a checked release is a version comparison, not a guarantee that a newer release has not appeared since that check.
 
+OwnTV releases use the exact TV artifact name `OwnTV-{tag}.apk`, with the checked numeric release tag substituted. Mobile APKs and ambiguous alternatives are rejected.
+
 Choose **Install update** to download and verify the APK. Fire TV UI checks its byte count, SHA-256, expected package, installed signing certificate and higher Android version code before opening the normal Android installation confirmation. Replacement installs retain the existing app's data. A cancelled or rejected install does not remove the current app. The TV may require you to allow installation from Fire TV UI through its normal settings screen.
 
 ## Private Fire TV UI releases

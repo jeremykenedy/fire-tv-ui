@@ -36,6 +36,13 @@ final class ReleaseUpdates {
         if (release.getBoolean("draft") || release.getBoolean("prerelease")) {
             throw new IllegalStateException("The repository did not return a published stable release.");
         }
+        if (filename.contains("{tag}")) {
+            String tag = release.getString("tag_name");
+            if (UpdateVersions.compare(tag, tag) == null) {
+                throw new IllegalArgumentException("The release artifact requires a numeric version tag.");
+            }
+            filename = filename.replace("{tag}", tag);
+        }
         JSONArray assets = release.getJSONArray("assets");
         JSONObject apk = null;
         JSONObject onlyApk = null;

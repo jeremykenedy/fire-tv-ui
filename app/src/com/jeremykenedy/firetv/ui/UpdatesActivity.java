@@ -88,7 +88,7 @@ public final class UpdatesActivity extends CardActivity {
             {"LTvLauncher", "com.leanbitlab.ltvL", "leanbitlab-org/LtvLauncher", "LTvLauncher-universal-release.apk"},
             {"Home Redirect", "com.jeremykenedy.firetv.homeredirect", "jeremykenedy/fire-tv-toolkit", "firetv-home-redirect.apk"},
             {"fire-iptv", "com.jeremykenedy.fireiptv", "jeremykenedy/fire-iptv", "fire-iptv.apk"},
-            {"OwnTV", "tv.own.owntv", "ahXN00/OwnTV", "OwnTV-v5.1.0.apk"},
+            {"OwnTV", "tv.own.owntv", "ahXN00/OwnTV", "OwnTV-{tag}.apk"},
         };
         for (String[] source : additional) {
             try {
