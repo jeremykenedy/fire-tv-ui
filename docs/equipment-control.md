@@ -6,7 +6,7 @@ An eligible remote must be external, nonvirtual, named Amazon Fire TV Remote and
 
 If Equipment Control leaves its exact unsupported-remote error visible after recognition returns, the Home accessibility service can dismiss that error and reopen the native Equipment Control page. It matches the native package, resource IDs and complete title/message/button text and limits retries to once per 30 seconds. The service requires window-content access and view IDs for this specific route. It does not act on System UI, wireless-debugging, computer authorization or network permission dialogs.
 
-This repair does not pair a remote, create equipment support, select a soundbar/receiver profile, change an optical audio route or send power commands. Those device functions require separate physical verification. The local remembered descriptor is included in launcher backups; do not publish it.
+This repair does not pair a remote, create equipment support, select a soundbar/receiver profile, change an optical audio route or send power commands. Those device functions require separate physical verification. The remembered descriptor is device-local. New backups exclude it, and restore ignores imported descriptors while preserving the destination's existing cache. An old backup cannot establish recognition for a different remote.
 
 ## Verification
 

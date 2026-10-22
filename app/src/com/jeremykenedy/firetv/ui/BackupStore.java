@@ -104,7 +104,9 @@ public final class BackupStore {
         if (data.length() == 0) {
             throw new JSONException("This backup contains no settings.");
         }
-        SharedPreferences.Editor editor = preferences(context).edit().clear();
+        SharedPreferences prefs = preferences(context);
+        String localRemote = prefs.getString(EquipmentControl.REMOTE, null);
+        SharedPreferences.Editor editor = prefs.edit().clear();
         JSONObject schema;
         try (java.io.InputStream stream = context.getAssets().open("preference-types.json")) {
             schema = new JSONObject(read(stream));
@@ -170,6 +172,9 @@ public final class BackupStore {
         if (restored == 0) {
             throw new JSONException("This backup contains no restorable settings.");
         }
+        if (localRemote != null) {
+            editor.putString(EquipmentControl.REMOTE, localRemote);
+        }
         editor.putBoolean("is_premium", true);
         if (!editor.commit()) {
             throw new IOException("The TV could not save the restored settings.");
@@ -182,6 +187,7 @@ public final class BackupStore {
 
     private static boolean isPortable(String key) {
         return !key.equals("is_premium") && !key.equals("PREF_IS_PREMIUM")
+                && !key.equals(EquipmentControl.REMOTE)
                 && !key.startsWith("fire_tv_ui_preview_")
                 && !key.startsWith("fire_tv_ui_tv_sleep_")
                 && !key.equals("app_launch_count") && !key.equals("rate_app_shown")

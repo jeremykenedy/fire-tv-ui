@@ -8,7 +8,7 @@ import android.view.InputDevice;
 /** Preserves native recognition for the same previously supported remote. */
 final class EquipmentControl {
     static final String RECOGNIZED = "show_dc_settings";
-    private static final String REMOTE = "fire_tv_ui_equipment_remote";
+    static final String REMOTE = "fire_tv_ui_equipment_remote";
 
     private EquipmentControl() {
     }
