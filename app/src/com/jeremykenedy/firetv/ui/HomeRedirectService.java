@@ -50,6 +50,14 @@ public class HomeRedirectService extends AccessibilityService {
 
     private boolean settingsMayFollow;
 
+    private EquipmentDialogRecovery equipmentDialogs;
+
+    @Override
+    protected void onServiceConnected() {
+        equipmentDialogs = new EquipmentDialogRecovery(this);
+        equipmentDialogs.check();
+    }
+
     /**
      * Fire TV UI's gear icon hands off to Amazon's settings app, which is what
      * brings the home screen up.
@@ -76,6 +84,10 @@ public class HomeRedirectService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         CharSequence pkg = event.getPackageName();
+        if (equipmentDialogs != null && "com.amazon.tv.devicecontrolsettings".contentEquals(
+                pkg == null ? "" : pkg)) {
+            equipmentDialogs.check();
+        }
         int type = event.getEventType();
         if (type != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                 || pkg == null) {
@@ -125,6 +137,9 @@ public class HomeRedirectService extends AccessibilityService {
     @Override
     public void onDestroy() {
         cancelWait();
+        if (equipmentDialogs != null) {
+            equipmentDialogs.stop();
+        }
         super.onDestroy();
     }
 }

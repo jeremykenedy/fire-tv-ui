@@ -277,6 +277,11 @@ public final class DeviceSettings {
         }
         RuntimeException failure = null;
         try {
+            EquipmentControl.repair(context);
+        } catch (RuntimeException failed) {
+            failure = failed;
+        }
+        try {
             int wantedSleep = TimeoutValues.activeDeepSleepTimeout(deepSleepTimeout(context));
             if (Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep
                     && (!Settings.Secure.putInt(context.getContentResolver(), SLEEP, wantedSleep)

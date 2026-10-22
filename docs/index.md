@@ -19,3 +19,5 @@
 - [v1.1.3](releases/v1.1.3.md)
 - [v1.1.2](releases/v1.1.2.md)
 - [v1.1.1](releases/v1.1.1.md)
+
+- [Equipment Control recognition and physical verification](equipment-control.md)

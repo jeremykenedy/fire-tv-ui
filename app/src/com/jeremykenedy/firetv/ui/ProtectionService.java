@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
+import android.hardware.input.InputManager;
 import android.net.VpnService;
 import android.os.Handler;
 import android.os.Looper;
@@ -30,6 +31,29 @@ public final class ProtectionService extends VpnService {
     private static volatile boolean active;
     private static volatile String failure;
     private static volatile int blockedPackages;
+
+    private final InputManager.InputDeviceListener remotes = new InputManager.InputDeviceListener() {
+        @Override
+        public void onInputDeviceAdded(int deviceId) {
+            refresh();
+        }
+
+        @Override
+        public void onInputDeviceChanged(int deviceId) {
+            refresh();
+        }
+
+        @Override
+        public void onInputDeviceRemoved(int deviceId) {
+            refresh();
+        }
+
+        private void refresh() {
+            handler.removeCallbacks(guard);
+            handler.post(guard);
+        }
+    };
+
 
     private final Runnable guard = new Runnable() {
         @Override
@@ -86,8 +110,12 @@ public final class ProtectionService extends VpnService {
         }
         getContentResolver().registerContentObserver(Settings.System.getUriFor(DeviceSettings.IDLE), false, changes);
         for (String key : new String[] {Settings.Global.DEVELOPMENT_SETTINGS_ENABLED,
-                Settings.Global.ADB_ENABLED, DeviceSettings.WIFI_ADB}) {
+                Settings.Global.ADB_ENABLED, DeviceSettings.WIFI_ADB, EquipmentControl.RECOGNIZED}) {
             getContentResolver().registerContentObserver(Settings.Global.getUriFor(key), false, changes);
+        }
+        InputManager inputs = getSystemService(InputManager.class);
+        if (inputs != null) {
+            inputs.registerInputDeviceListener(remotes, handler);
         }
         handler.post(guard);
     }
@@ -202,6 +230,10 @@ public final class ProtectionService extends VpnService {
     public void onDestroy() {
         closeTunnel();
         handler.removeCallbacksAndMessages(null);
+        InputManager inputs = getSystemService(InputManager.class);
+        if (inputs != null) {
+            inputs.unregisterInputDeviceListener(remotes);
+        }
         getContentResolver().unregisterContentObserver(changes);
         super.onDestroy();
     }
