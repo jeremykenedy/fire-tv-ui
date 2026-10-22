@@ -71,3 +71,13 @@ Restore replaces validated launcher preferences. The import file remains separat
 ## Privacy
 
 Selected online features and user-initiated downloads retain network access. The app has no analytics, tracking, rating, or project prompts. Home routing and protection operate locally. Backup transfer occurs only when requested.
+
+## Settings guard inspection
+
+With existing Android shell diagnostic access, inspect the running service using:
+
+```bash
+adb -s TV_IP:5555 shell dumpsys activity service com.jeremykenedy.firetv.ui/.ProtectionService
+```
+
+The service contributes only the protection flag, preview-pending flag, previous/desired/current Dream components and the last local settings-repair result. A successful repair clears a prior failure. Permission failures and other repair failures use fixed descriptions; exception messages and full preferences are never included. VPN update-blocker status is separate. This read-only framework dump does not start a stopped guard, repair settings or grant permissions. Android may add its own service/process metadata around the app's report.

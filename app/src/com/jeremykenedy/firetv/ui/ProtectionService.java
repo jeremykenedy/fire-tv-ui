@@ -15,6 +15,8 @@ import android.os.ParcelFileDescriptor;
 import android.provider.Settings;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
 
 /** Local settings guard and a discard-only VPN restricted to Amazon updaters. */
 public final class ProtectionService extends VpnService {
@@ -31,6 +33,7 @@ public final class ProtectionService extends VpnService {
     private static volatile boolean active;
     private static volatile String failure;
     private static volatile int blockedPackages;
+    private final GuardReport guardReport = new GuardReport();
 
     private final InputManager.InputDeviceListener remotes = new InputManager.InputDeviceListener() {
         @Override
@@ -60,8 +63,9 @@ public final class ProtectionService extends VpnService {
         public void run() {
             try {
                 DeviceSettings.repair(ProtectionService.this);
+                guardReport.healthy();
             } catch (RuntimeException failed) {
-                failure = failed.getMessage();
+                guardReport.failed(failed);
             }
             handler.removeCallbacks(this);
             handler.postDelayed(this, 30000);
@@ -86,6 +90,21 @@ public final class ProtectionService extends VpnService {
     public static String status() {
         return active ? "Blocking " + blockedPackages + " Amazon update packages on this TV."
                 : failure == null ? "Amazon update traffic is allowed." : failure;
+    }
+
+    @Override
+    protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
+        android.content.SharedPreferences prefs = DeviceSettings.prefs(this);
+        String current;
+        try {
+            current = DeviceSettings.active(getContentResolver());
+        } catch (RuntimeException unavailable) {
+            current = "Unavailable";
+        }
+        writer.print(guardReport.snapshot(prefs.getBoolean(DeviceSettings.PROTECT, false),
+                prefs.getBoolean(ScreensaverPreview.PENDING, false),
+                prefs.getString("fire_tv_ui_preview_previous", null),
+                prefs.getString("fire_tv_ui_dream", null), current));
     }
 
     @Override
