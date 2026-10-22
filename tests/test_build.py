@@ -16,7 +16,7 @@ class BuildChecks(unittest.TestCase):
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}
-        self.assertEqual(set(mapped), {'slot-vision', 'hearth-presence', 'rainforest-cascade'})
+        self.assertEqual(set(mapped), {'slot-vision', 'hearth-presence', 'rainforest-cascade', 'prism-clock'})
         for entry in mapped.values():
             self.assertEqual(entry['preview'], entry['package'] + '/.PreviewActivity')
         decoded = ROOT / '.build/decoded'
@@ -26,6 +26,25 @@ class BuildChecks(unittest.TestCase):
             self.assertNotIn('com.neilturner.aerialviews', idle)
             self.assertIn('LQ3/T3;->V(Z)V', idle)
             self.assertIn('LQ3/T3;->S(J)V', idle)
+
+    def test_prism_published_contract_and_physical_preview(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        entry = next(item for item in entries if item['id'] == 'prism-clock')
+        self.assertEqual(entry['package'], 'com.jeremykenedy.prismclock')
+        self.assertEqual(entry['dream'], entry['package'] + '/.PrismDreamService')
+        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['bytes'], 127947)
+        self.assertEqual(entry['sha256'],
+                         'edbf475c4a2b253ccc069adaee8cac2cbba4d16b5579d5299e2e2d1bdaa21fd5')
+        self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/prism-clock/releases/'
+                         'download/v1.0.0/prism-clock.apk')
+        source = json.loads((ROOT / 'app/previews/sources.json').read_text())[
+            full_component(entry['dream'])]
+        self.assertIn('physical Fire TV', source['capture_note'])
+        self.assertEqual(hashlib.sha256((ROOT / source['source_file']).read_bytes()).hexdigest(),
+                         source['source_sha256'])
+        preview = ROOT / 'app/previews' / preview_file(entry['dream'])
+        self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), source['preview_sha256'])
 
     def test_pinned_base(self):
         config = json.loads((ROOT / 'build.json').read_text())
@@ -111,7 +130,7 @@ class BuildChecks(unittest.TestCase):
 
     def test_rainforest_update_preserves_identity_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
-        self.assertEqual(len(entries), 30)
+        self.assertEqual(len(entries), 31)
         entry = next(item for item in entries if item['id'] == 'rainforest-cascade')
         self.assertEqual(entry['package'], 'com.jeremykenedy.rainforestcascade')
         self.assertEqual(entry['dream'], 'com.jeremykenedy.rainforestcascade/.WaterfallDreamService')

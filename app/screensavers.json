@@ -331,5 +331,17 @@
     "sha256": "0ee21b586f3b306e6da57cacc149bebece35a01e6ef2c7af1512c0ddc51354e4",
     "bytes": 62076478,
     "preview": "com.jeremykenedy.reelatrium/.PreviewActivity"
+  },
+  {
+    "id": "prism-clock",
+    "name": "Prism Clock",
+    "package": "com.jeremykenedy.prismclock",
+    "dream": "com.jeremykenedy.prismclock/.PrismDreamService",
+    "repo": "jeremykenedy/prism-clock",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/prism-clock/releases/download/v1.0.0/prism-clock.apk",
+    "sha256": "edbf475c4a2b253ccc069adaee8cac2cbba4d16b5579d5299e2e2d1bdaa21fd5",
+    "bytes": 127947,
+    "preview": "com.jeremykenedy.prismclock/.PreviewActivity"
   }
 ]

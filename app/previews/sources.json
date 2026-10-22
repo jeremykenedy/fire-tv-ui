@@ -119,6 +119,14 @@
     "source_project": "jeremykenedy/pipeworks-dream",
     "source_sha256": "c90d3c96bcee56aeebcb97e65101fdb862499204ba457d00af4995599b799d43"
   },
+  "com.jeremykenedy.prismclock/com.jeremykenedy.prismclock.PrismDreamService": {
+    "capture_note": "Unretouched physical Fire TV AFTDEC012E capture of the signed Prism Clock v1.0.0 release, Android 11/API 30, 1920x1080.",
+    "captured_on": "2026-10-22",
+    "preview_sha256": "41ff08daab7ac74c6f06e46c8b78e279ded0a399f1aa197ec1097af3e0ea1f9a",
+    "source_file": "art/screenshots/prism-clock-fire-tv-silver-1920.png",
+    "source_project": "jeremykenedy/prism-clock",
+    "source_sha256": "7217ea6e4efd79d177cbbaef77ec95c1faaebf7be80811ad8554b7172b5c41cb"
+  },
   "com.jeremykenedy.pulsecircuit/com.jeremykenedy.pulsecircuit.PulseDreamService": {
     "capture_note": "Running Pulse Circuit PreviewActivity on Google TV emulator API 34 at 1920x1080.",
     "captured_on": "2026-10-09",
