@@ -4,11 +4,11 @@
     "name": "Aerial Views",
     "package": "com.neilturner.aerialviews",
     "dream": "com.neilturner.aerialviews/.ui.screensaver.DreamActivity",
-    "repo": "jeremykenedy/AerialViews",
-    "tag": "mirror-1.8.4",
-    "url": "https://github.com/jeremykenedy/AerialViews/releases/download/mirror-1.8.4/aerial-views-1.8.4.apk",
-    "bytes": 8776119,
-    "sha256": "08943066229d3ff0c7d38e88685c8c639ca3bff33488df0db601fcc12c261255"
+    "repo": "theothernt/AerialViews",
+    "tag": "1.8.5",
+    "url": "https://github.com/theothernt/AerialViews/releases/download/1.8.5/aerial-views-1.8.5.apk",
+    "bytes": 9147039,
+    "sha256": "a20b4bc748da5ce890d96536494952aa4f50a6b589c50dee176415c021407070"
   },
   {
     "id": "androsaver",
@@ -49,10 +49,10 @@
     "package": "com.jeremykenedy.firetv.aquarium",
     "dream": "com.jeremykenedy.firetv.aquarium/.AquariumDreamService",
     "repo": "jeremykenedy/fire-tv-aquarium",
-    "tag": "v1.3.1",
-    "url": "https://github.com/jeremykenedy/fire-tv-aquarium/releases/download/v1.3.1/aquarium-4k.apk",
+    "tag": "v1.3.6",
+    "url": "https://github.com/jeremykenedy/fire-tv-aquarium/releases/download/v1.3.6/aquarium-4k.apk",
     "bytes": 104036933,
-    "sha256": "8acb8ee85df5a7abfa951f576dd20d6187697009d3bf9b45a742ec55d9b8ce71"
+    "sha256": "5c515e907e5747420da97ba598cdb6a770280d6101a345eab114a2e9032b4628"
   },
   {
     "id": "jellyfish-drift",
@@ -159,10 +159,10 @@
     "package": "com.jeremykenedy.pipeworksdream",
     "dream": "com.jeremykenedy.pipeworksdream/.PipeworksDreamService",
     "repo": "jeremykenedy/pipeworks-dream",
-    "tag": "v1.0.0",
-    "url": "https://github.com/jeremykenedy/pipeworks-dream/releases/download/v1.0.0/pipeworks-dream.apk",
-    "bytes": 66253,
-    "sha256": "49dbc66e28e69cb3cd4b4c70cc320bae127b2d450fc96ae11006a0df6c9eeb23"
+    "tag": "v1.1.0",
+    "url": "https://github.com/jeremykenedy/pipeworks-dream/releases/download/v1.1.0/pipeworks-dream.apk",
+    "bytes": 62276,
+    "sha256": "a9642a20efe37fd3b39974d04f59b17eb4940935dbaca60c4b6cbf655eef03d0"
   },
   {
     "id": "aqua-surface",

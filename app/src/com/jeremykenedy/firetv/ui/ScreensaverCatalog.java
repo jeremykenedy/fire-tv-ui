@@ -19,6 +19,7 @@ public final class ScreensaverCatalog {
         public final String tag;
         public final String dream;
         public final String preview;
+        public final String repo;
         public final long bytes;
 
         Entry(JSONObject value) throws Exception {
@@ -30,17 +31,31 @@ public final class ScreensaverCatalog {
             dream = value.getString("dream");
             preview = value.optString("preview", "");
             bytes = value.getLong("bytes");
-            String repo = value.getString("repo");
+            repo = value.getString("repo");
             URL source = new URL(url);
             if (!pkg.matches("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+")
                     || !sha256.matches("[a-f0-9]{64}") || bytes <= 0 || bytes > 250L * 1048576
-                    || !repo.matches("jeremykenedy/[A-Za-z0-9_.-]+")
+                    || !knownRepository(repo)
                     || !"https".equals(source.getProtocol()) || !"github.com".equals(source.getHost())
                     || source.getUserInfo() != null || source.getPort() != -1
                     || !source.getPath().startsWith("/" + repo + "/releases/download/")) {
                 throw new IllegalArgumentException("The screensaver catalog contains invalid release metadata.");
             }
         }
+
+        JSONObject json() throws Exception {
+            return new JSONObject().put("name", name).put("package", pkg).put("repo", repo)
+                    .put("dream", dream).put("preview", preview).put("url", url)
+                    .put("sha256", sha256).put("bytes", bytes).put("tag", tag);
+        }
+    }
+
+    static boolean knownRepository(String repo) {
+        return repo.matches("jeremykenedy/[A-Za-z0-9_.-]+")
+                || "theothernt/AerialViews".equals(repo)
+                || "avadhesh18/at4k".equals(repo)
+                || "leanbitlab-org/LtvLauncher".equals(repo)
+                || "ahXN00/OwnTV".equals(repo);
     }
 
     private ScreensaverCatalog() {

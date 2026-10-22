@@ -8,6 +8,26 @@ import android.content.Intent;
 public final class BackupReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
+        if ("stage-update".equals(intent.getStringExtra("operation"))) {
+            final PendingResult result = goAsync();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        StagedUiUpdate.stage(context.getApplicationContext());
+                        result.setResultCode(0);
+                        result.setResultData("ok");
+                    } catch (Exception error) {
+                        result.setResultCode(1);
+                        result.setResultData(error.getClass().getName() + ": "
+                                + (error.getMessage() == null ? "The update was not staged." : error.getMessage()));
+                    } finally {
+                        result.finish();
+                    }
+                }
+            }, "stage-ui-update").start();
+            return;
+        }
         try {
             String operation = intent.getStringExtra("operation");
             if ("save".equals(operation)) {
@@ -16,6 +36,7 @@ public final class BackupReceiver extends BroadcastReceiver {
                 BackupStore.restore(context, "import".equals(intent.getStringExtra("source")));
             } else if ("simple".equals(operation)) {
                 BackupStore.simpleSetup(context);
+
             } else if ("home-on".equals(operation) || "home-off".equals(operation)) {
                 HomeControl.setEnabled(context, "home-on".equals(operation), true);
             } else if ("home-preference-on".equals(operation) || "home-preference-off".equals(operation)) {

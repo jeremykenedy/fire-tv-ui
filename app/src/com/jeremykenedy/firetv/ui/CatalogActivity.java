@@ -34,6 +34,12 @@ public final class CatalogActivity extends CardActivity {
         progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         progress.setVisibility(View.GONE);
         card.addView(progress, new LinearLayout.LayoutParams(-1, dp(8)));
+        addButton(card, button("Check for updates to installed apps", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(CatalogActivity.this, UpdatesActivity.class));
+            }
+        }));
         rows = scrollBody();
     }
 

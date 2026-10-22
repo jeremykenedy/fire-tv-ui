@@ -15,6 +15,14 @@
     "source_project": "jeremykenedy/aqua-surface-drift",
     "source_sha256": "880b8356fca0afaeed115145a7979931ebc3f85596784cdd5964935c8d1b801c"
   },
+  "com.jeremykenedy.bluemeridian/com.jeremykenedy.bluemeridian.BlueMeridianDreamService": {
+    "capture_note": "Blue Meridian v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "9296bce1e7f117b324eacc78a53c47e768c3c60d729bd493a3d41702ad143543",
+    "source_file": "art/screenshots/blue-meridian-native-api31-1920.png",
+    "source_project": "jeremykenedy/blue-meridian",
+    "source_sha256": "30a2069395f3ccff460eb8348e492411c72ca77c5830baae4fe32ddc604abe3c"
+  },
   "com.jeremykenedy.canopydrift/com.jeremykenedy.canopydrift.CanopyDreamService": {
     "capture_note": "Canopy Drift animation running on Google TV emulator API 34 at 1920x1080.",
     "captured_on": "2026-10-09",
@@ -39,22 +47,6 @@
     "source_project": "jeremykenedy/contour-flow",
     "source_sha256": "b5b923e8434260d82dcd519f404aba03efb282151ad4c987bfcbd2c5cbbf595d"
   },
-  "com.jeremykenedy.skyburstnocturne/com.jeremykenedy.skyburstnocturne.FireworksDreamService": {
-    "capture_note": "Running Skyburst Nocturne PreviewActivity on Google TV emulator API 34 at 1920x1080 using the Festival rate, Grand size, Tropical palette and Bright scene settings.",
-    "captured_on": "2026-10-09",
-    "preview_sha256": "c72a5bce3f00166a0358f3ba6d72be1ec87c7c45d9e3ee99e3ca7f0c8281553e",
-    "source_file": "art/screenshots/skyburst-nocturne-google-tv-api34-1920x1080.png",
-    "source_project": "jeremykenedy/skyburst-nocturne",
-    "source_sha256": "fd85a398b5463831a9e5419ff3c92c8507a0cbe34df5752e622ac1764c17f2e7"
-  },
-  "com.jeremykenedy.pulsecircuit/com.jeremykenedy.pulsecircuit.PulseDreamService": {
-    "capture_note": "Running Pulse Circuit PreviewActivity on Google TV emulator API 34 at 1920x1080.",
-    "captured_on": "2026-10-09",
-    "preview_sha256": "958e1c410713dcc2c3a5e157e7e5917481cd617f62f9005e25459b39c8fae336",
-    "source_file": "art/screenshots/pulse-circuit-google-tv-api34-1920x1080.png",
-    "source_project": "jeremykenedy/pulse-circuit",
-    "source_sha256": "962a1d742251d60b05ebf464c0fe33bdb406355bb4f7e5b779622d0a8534258a"
-  },
   "com.jeremykenedy.earthboundorbit/com.jeremykenedy.earthboundorbit.EarthboundOrbitDreamService": {
     "capture_note": "Android TV emulator capture of the running Earthbound Orbit release preview.",
     "captured_on": "2026-10-08",
@@ -70,6 +62,22 @@
     "source_file": "docs/screenshots/firefly-grove-preview.png",
     "source_project": "jeremykenedy/firefly-grove",
     "source_sha256": "24c93d929c73aa1b9a7f629d8cfa825ec4ec77471180ee687bff61eba4654a34"
+  },
+  "com.jeremykenedy.hearthpresence/com.jeremykenedy.hearthpresence.HearthDreamService": {
+    "capture_note": "Unretouched ADB capture of final signed Hearth Presence 1.0.0 APK 96067a79be86 on physical Fire TV AFTDEC012E, Android 11/API 30, 1920x1080. Modern linear gas-style scene with medium natural flame and slate surround. Public release artifact independently downloaded and verified.",
+    "captured_on": "2026-10-16",
+    "preview_sha256": "9e13ae1aa65231a6835b3697ec42101508af740c204f809f667d867219a91d4b",
+    "source_file": "art/screenshots/hearth-presence-fire-tv-modern-1920.png",
+    "source_project": "jeremykenedy/hearth-presence",
+    "source_sha256": "7db765d6b3f2735c36dbbb0fe7e819bbd98946d2f1e67b7def0ea7bcc009a80b"
+  },
+  "com.jeremykenedy.helioslightfield/com.jeremykenedy.helioslightfield.HeliosLightfieldDreamService": {
+    "capture_note": "Helios Lightfield v1.0.1 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "0a2e3c94e06fef6d7e017bab27f8785f8d20604f4bd7cc2392697a60d0f68125",
+    "source_file": "art/screenshots/helios-lightfield-native-api31-1920.png",
+    "source_project": "jeremykenedy/helios-lightfield",
+    "source_sha256": "fa1387f06a7ec1ac4e5d03657094218b311cdea01d5ff8f704e23788d8a91f2a"
   },
   "com.jeremykenedy.jellyfishdrift/com.jeremykenedy.jellyfishdrift.JellyfishDreamService": {
     "capture_note": "Actual Jellyfish Drift DreamService on the Fire TV, reused from the published screensaver project.",
@@ -104,12 +112,44 @@
     "source_sha256": "27e42cad32086e45305ea9650570c349e8f5e761dc8106a2a6401848fd5b7137"
   },
   "com.jeremykenedy.pipeworksdream/com.jeremykenedy.pipeworksdream.PipeworksDreamService": {
-    "capture_note": "Pipeworks Dream OpenGL ES renderer running on physical Fire TV AFTDEC012E, Fire OS / Android 11, captured at 1920x1080.",
-    "captured_on": "2026-10-15",
-    "preview_sha256": "fad98dc172d49115714e4b8bacf67a90a1858b9700f94cb47ed62bb35039359a",
+    "capture_note": "Final signed Pipeworks Dream v1.1.0 (a9642a20) actual Preview on physical Fire TV AFTDEC012E, Android 11/API 30, captured at 1920x1080.",
+    "captured_on": "2026-10-22",
+    "preview_sha256": "9827305770d9372b1d2078af68da75ab4046cf40344efaaea8ef1b55e53ae249",
     "source_file": "art/screenshots/pipeworks-fire-tv-preview.png",
     "source_project": "jeremykenedy/pipeworks-dream",
-    "source_sha256": "00801574f4f0c937383407ae714f94a41b689164d8056eaf0791a76444afdb86"
+    "source_sha256": "c90d3c96bcee56aeebcb97e65101fdb862499204ba457d00af4995599b799d43"
+  },
+  "com.jeremykenedy.pulsecircuit/com.jeremykenedy.pulsecircuit.PulseDreamService": {
+    "capture_note": "Running Pulse Circuit PreviewActivity on Google TV emulator API 34 at 1920x1080.",
+    "captured_on": "2026-10-09",
+    "preview_sha256": "958e1c410713dcc2c3a5e157e7e5917481cd617f62f9005e25459b39c8fae336",
+    "source_file": "art/screenshots/pulse-circuit-google-tv-api34-1920x1080.png",
+    "source_project": "jeremykenedy/pulse-circuit",
+    "source_sha256": "962a1d742251d60b05ebf464c0fe33bdb406355bb4f7e5b779622d0a8534258a"
+  },
+  "com.jeremykenedy.rainforestcascade/com.jeremykenedy.rainforestcascade.WaterfallDreamService": {
+    "capture_note": "Unretouched Rainforest Cascade v1.1.0 garden day scene from the final signed release running on physical Fire TV AFTDEC012E, Android 11/API 30, 1920x1080 capture. Release APK independently downloaded and verified against its SHA-256 sidecar, byte count, package, version and existing signer.",
+    "captured_on": "2026-10-16",
+    "preview_sha256": "3a30c19c829539940b8a86f0816133786b030ad5101b4d2dfe842c01728e2fdf",
+    "source_file": "art/screenshots/rainforest-cascade-fire-tv-garden-day-1920.png",
+    "source_project": "jeremykenedy/rainforest-cascade",
+    "source_sha256": "214dd8d65d6c5380de0ef96b29686b13c73e309d62d38df08f0c1a9516365c29"
+  },
+  "com.jeremykenedy.rainonglass/com.jeremykenedy.rainonglass.RainDreamService": {
+    "capture_note": "Rain on Glass v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
+    "captured_on": "2026-10-15",
+    "preview_sha256": "4721c5423ff7e7caaa9e419de93e938296826e5156d373587cb9ce2e2a1b77fd",
+    "source_file": "art/screenshots/rain-on-glass-native-api31-1920.png",
+    "source_project": "jeremykenedy/rain-on-glass",
+    "source_sha256": "cf0a12ba0f0ecf3843d90c0d2945ebcd16b2c30aef517e4563e706f0ca19088a"
+  },
+  "com.jeremykenedy.reelatrium/com.jeremykenedy.reelatrium.ReelAtriumDreamService": {
+    "capture_note": "Unretouched current Slot Vision native classic casino capture from Google TV API 34 emulator-5580, host GPU, 1920x1080 display capture composed from the bounded 1280x720 rendering surface. Source scene includes actual 3D cabinet, reels and simulated flying coins. Release v1.0.0 APK independently downloaded and verified; Android package and signer retained from Reel Atrium for compatible updates.",
+    "captured_on": "2026-10-16",
+    "preview_sha256": "a29fc14205c0208ff889ed5dda51ac971327cd944e08852db32134f49083feb9",
+    "source_file": "art/screenshots/slot-vision-casino-native-1920.png",
+    "source_project": "jeremykenedy/slot-vision",
+    "source_sha256": "7ed36dfe88e85d04e809505a62b2008cb3ae2f7a1325b614652a54550126c95d"
   },
   "com.jeremykenedy.retroflight/com.jeremykenedy.retroflight.RetroFlightDreamService": {
     "capture_note": "Running Retro Flight screensaver on Android TV emulator 5586.",
@@ -126,6 +166,14 @@
     "source_file": "art/screenshots/signal-rain-android-tv-1920.png",
     "source_project": "jeremykenedy/signal-rain",
     "source_sha256": "242e19dc9ee2169f765e9151e7e23d079270e4fe1b35eb3e4cad16fe44a55fc3"
+  },
+  "com.jeremykenedy.skyburstnocturne/com.jeremykenedy.skyburstnocturne.FireworksDreamService": {
+    "capture_note": "Running Skyburst Nocturne PreviewActivity on Google TV emulator API 34 at 1920x1080 using the Festival rate, Grand size, Tropical palette and Bright scene settings.",
+    "captured_on": "2026-10-09",
+    "preview_sha256": "c72a5bce3f00166a0358f3ba6d72be1ec87c7c45d9e3ee99e3ca7f0c8281553e",
+    "source_file": "art/screenshots/skyburst-nocturne-google-tv-api34-1920x1080.png",
+    "source_project": "jeremykenedy/skyburst-nocturne",
+    "source_sha256": "fd85a398b5463831a9e5419ff3c92c8507a0cbe34df5752e622ac1764c17f2e7"
   },
   "com.jeremykenedy.splitflapdrift/com.jeremykenedy.splitflapdrift.SplitFlapDreamService": {
     "capture_note": "Split-Flap Drift animation captured on Android TV emulator API 31 after the scene settled.",
@@ -170,53 +218,5 @@
     "source_file": "docs/screenshots/screensaver-snoozy.jpg",
     "source_project": "Fire TV CLI",
     "source_sha256": "fd457f2133cd0ee1709a93efb27328ae2ea65bc44d44bfdb83b36460ffc92caf"
-  },
-  "com.jeremykenedy.hearthpresence/com.jeremykenedy.hearthpresence.HearthDreamService": {
-    "capture_note": "Unretouched ADB capture of final signed Hearth Presence 1.0.0 APK 96067a79be86 on physical Fire TV AFTDEC012E, Android 11/API 30, 1920x1080. Modern linear gas-style scene with medium natural flame and slate surround. Public release artifact independently downloaded and verified.",
-    "captured_on": "2026-10-16",
-    "preview_sha256": "9e13ae1aa65231a6835b3697ec42101508af740c204f809f667d867219a91d4b",
-    "source_file": "art/screenshots/hearth-presence-fire-tv-modern-1920.png",
-    "source_project": "jeremykenedy/hearth-presence",
-    "source_sha256": "7db765d6b3f2735c36dbbb0fe7e819bbd98946d2f1e67b7def0ea7bcc009a80b"
-  },
-  "com.jeremykenedy.rainonglass/com.jeremykenedy.rainonglass.RainDreamService": {
-    "capture_note": "Rain on Glass v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
-    "captured_on": "2026-10-15",
-    "preview_sha256": "4721c5423ff7e7caaa9e419de93e938296826e5156d373587cb9ce2e2a1b77fd",
-    "source_file": "art/screenshots/rain-on-glass-native-api31-1920.png",
-    "source_project": "jeremykenedy/rain-on-glass",
-    "source_sha256": "cf0a12ba0f0ecf3843d90c0d2945ebcd16b2c30aef517e4563e706f0ca19088a"
-  },
-  "com.jeremykenedy.rainforestcascade/com.jeremykenedy.rainforestcascade.WaterfallDreamService": {
-    "capture_note": "Unretouched Rainforest Cascade v1.1.0 garden day scene from the final signed release running on physical Fire TV AFTDEC012E, Android 11/API 30, 1920x1080 capture. Release APK independently downloaded and verified against its SHA-256 sidecar, byte count, package, version and existing signer.",
-    "captured_on": "2026-10-16",
-    "preview_sha256": "3a30c19c829539940b8a86f0816133786b030ad5101b4d2dfe842c01728e2fdf",
-    "source_file": "art/screenshots/rainforest-cascade-fire-tv-garden-day-1920.png",
-    "source_project": "jeremykenedy/rainforest-cascade",
-    "source_sha256": "214dd8d65d6c5380de0ef96b29686b13c73e309d62d38df08f0c1a9516365c29"
-  },
-  "com.jeremykenedy.bluemeridian/com.jeremykenedy.bluemeridian.BlueMeridianDreamService": {
-    "capture_note": "Blue Meridian v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
-    "captured_on": "2026-10-15",
-    "preview_sha256": "9296bce1e7f117b324eacc78a53c47e768c3c60d729bd493a3d41702ad143543",
-    "source_file": "art/screenshots/blue-meridian-native-api31-1920.png",
-    "source_project": "jeremykenedy/blue-meridian",
-    "source_sha256": "30a2069395f3ccff460eb8348e492411c72ca77c5830baae4fe32ddc604abe3c"
-  },
-  "com.jeremykenedy.helioslightfield/com.jeremykenedy.helioslightfield.HeliosLightfieldDreamService": {
-    "capture_note": "Helios Lightfield v1.0.1 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
-    "captured_on": "2026-10-15",
-    "preview_sha256": "0a2e3c94e06fef6d7e017bab27f8785f8d20604f4bd7cc2392697a60d0f68125",
-    "source_file": "art/screenshots/helios-lightfield-native-api31-1920.png",
-    "source_project": "jeremykenedy/helios-lightfield",
-    "source_sha256": "fa1387f06a7ec1ac4e5d03657094218b311cdea01d5ff8f704e23788d8a91f2a"
-  },
-  "com.jeremykenedy.reelatrium/com.jeremykenedy.reelatrium.ReelAtriumDreamService": {
-    "capture_note": "Unretouched current Slot Vision native classic casino capture from Google TV API 34 emulator-5580, host GPU, 1920x1080 display capture composed from the bounded 1280x720 rendering surface. Source scene includes actual 3D cabinet, reels and simulated flying coins. Release v1.0.0 APK independently downloaded and verified; Android package and signer retained from Reel Atrium for compatible updates.",
-    "captured_on": "2026-10-16",
-    "preview_sha256": "a29fc14205c0208ff889ed5dda51ac971327cd944e08852db32134f49083feb9",
-    "source_file": "art/screenshots/slot-vision-casino-native-1920.png",
-    "source_project": "jeremykenedy/slot-vision",
-    "source_sha256": "7ed36dfe88e85d04e809505a62b2008cb3ae2f7a1325b614652a54550126c95d"
   }
 }

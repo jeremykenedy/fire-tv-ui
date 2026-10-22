@@ -11,7 +11,7 @@ public final class AdvancedActivity extends CardActivity {
         super.onCreate(state);
         title("Advanced");
         LinearLayout body = scrollBody();
-        body.addView(text("Inspect this TV without changing its settings.", 18, MUTED));
+        body.addView(text("Inspect diagnostics or check published app updates.", 18, MUTED));
         android.widget.TextView diagnostics =
                 button(
                         "Diagnostics",
@@ -24,6 +24,12 @@ public final class AdvancedActivity extends CardActivity {
                             }
                         });
         addButton(body, diagnostics);
+        addButton(body, button("Updates: installed TV apps", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(AdvancedActivity.this, UpdatesActivity.class));
+            }
+        }));
         diagnostics.requestFocus();
     }
 }

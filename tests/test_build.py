@@ -169,7 +169,7 @@ class BuildChecks(unittest.TestCase):
             'pipeworks-dream': (
                 'Pipeworks Dream', 'com.jeremykenedy.pipeworksdream',
                 'com.jeremykenedy.pipeworksdream/.PipeworksDreamService', 'jeremykenedy/pipeworks-dream',
-                '49dbc66e28e69cb3cd4b4c70cc320bae127b2d450fc96ae11006a0df6c9eeb23', 66253),
+                'a9642a20efe37fd3b39974d04f59b17eb4940935dbaca60c4b6cbf655eef03d0', 62276),
             'aqua-surface': (
                 'Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
                 'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService', 'jeremykenedy/aqua-surface-drift',
@@ -223,7 +223,7 @@ class BuildChecks(unittest.TestCase):
             self.assertEqual(entry['package'], package)
             self.assertEqual(entry['dream'], dream)
             self.assertEqual(entry['repo'], repo)
-            release_tag = 'v1.0.1' if identifier == 'cloud-drift-clock' else 'v1.0.0'
+            release_tag = {'cloud-drift-clock': 'v1.0.1', 'pipeworks-dream': 'v1.1.0'}.get(identifier, 'v1.0.0')
             self.assertEqual(entry['tag'], release_tag)
             asset = 'aqua-surface-drift.apk' if identifier == 'aqua-surface' else f'{identifier}.apk'
             self.assertEqual(entry['url'],

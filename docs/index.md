@@ -2,6 +2,8 @@
 
 - [Configuration](configuration.md)
 - [Installation and updates](installation.md)
+- [Published app update checks](updates.md)
+- [Factory UI tile](factory-home.md)
 - [Device controls and backups](device-controls.md)
 - [HD icons](icons.md)
 - [Build and source layout](building.md)

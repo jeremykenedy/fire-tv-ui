@@ -82,6 +82,10 @@ public class HomeRedirectService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        if (FactoryHome.bypass(event)) {
+            cancelWait();
+            return;
+        }
         CharSequence pkg = event.getPackageName();
         if (equipmentDialogs != null && "com.amazon.tv.devicecontrolsettings".contentEquals(
                 pkg == null ? "" : pkg)) {
