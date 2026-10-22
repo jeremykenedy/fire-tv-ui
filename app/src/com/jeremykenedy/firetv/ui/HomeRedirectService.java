@@ -8,9 +8,9 @@ import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 
 /**
- * Sends the Home button to the Fire TV UI launcher. Fire OS has no setting for
- * choosing a Home app and does not hand the Home key to accessibility
- * services, so this watches for the Amazon home screen coming to the front
+ * Sends the Home button to the Fire TV UI launcher. Fire OS has no normal
+ * Home chooser. The existing control service requests hardware key filtering;
+ * this fallback watches for the Amazon home screen coming to the front
  * and opens Fire TV UI over it.
  *
  * Fire OS opens Settings by showing the home screen first and putting
@@ -50,13 +50,20 @@ public class HomeRedirectService extends AccessibilityService {
 
     private boolean settingsMayFollow;
 
+    private EquipmentDialogRecovery equipmentDialogs;
+
+    @Override
+    protected void onServiceConnected() {
+        equipmentDialogs = new EquipmentDialogRecovery(this);
+        equipmentDialogs.check();
+    }
+
     /**
      * Fire TV UI's gear icon hands off to Amazon's settings app, which is what
      * brings the home screen up.
      */
     static boolean canOpenSettings(CharSequence pkg) {
-        return TARGET_LAUNCHER.contentEquals(pkg)
-                || pkg.toString().startsWith(AMAZON_SETTINGS_PREFIX);
+        return pkg != null && pkg.toString().startsWith(AMAZON_SETTINGS_PREFIX);
     }
 
     static boolean isHome(CharSequence pkg, CharSequence cls) {
@@ -75,7 +82,15 @@ public class HomeRedirectService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        if (FactoryHome.bypass(event)) {
+            cancelWait();
+            return;
+        }
         CharSequence pkg = event.getPackageName();
+        if (equipmentDialogs != null && "com.amazon.tv.devicecontrolsettings".contentEquals(
+                pkg == null ? "" : pkg)) {
+            equipmentDialogs.check();
+        }
         int type = event.getEventType();
         if (type != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                 || pkg == null) {
@@ -125,6 +140,9 @@ public class HomeRedirectService extends AccessibilityService {
     @Override
     public void onDestroy() {
         cancelWait();
+        if (equipmentDialogs != null) {
+            equipmentDialogs.stop();
+        }
         super.onDestroy();
     }
 }

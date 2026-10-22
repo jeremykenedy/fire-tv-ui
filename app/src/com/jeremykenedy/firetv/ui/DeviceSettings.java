@@ -24,11 +24,15 @@ public final class DeviceSettings {
     }
 
     public static void initialize(Context context) {
+        try {
+            BackupStore.freshSetup(context);
+        } catch (java.io.IOException | org.json.JSONException unavailable) {
+            android.util.Log.w("FireTvDefaults", "The initial layout could not be loaded.");
+        }
         SharedPreferences prefs = prefs(context);
         SharedPreferences.Editor editor = prefs.edit().putBoolean("is_premium", true);
         editor.remove("app_launch_count").remove("rate_app_shown");
-        // The TV's screensaver is the default. The launcher clock remains
-        // available in Appearance for people who prefer that option.
+        // System idle remains the default. Preserve an existing launcher idle choice.
         if (!prefs.contains("screensaver_enabled")) {
             editor.putBoolean("screensaver_enabled", false);
         }
@@ -277,6 +281,11 @@ public final class DeviceSettings {
             return;
         }
         RuntimeException failure = null;
+        try {
+            EquipmentControl.repair(context);
+        } catch (RuntimeException failed) {
+            failure = failed;
+        }
         try {
             int wantedSleep = TimeoutValues.activeDeepSleepTimeout(deepSleepTimeout(context));
             if (Settings.Secure.getInt(context.getContentResolver(), SLEEP, -1) != wantedSleep

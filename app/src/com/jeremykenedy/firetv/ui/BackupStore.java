@@ -81,9 +81,55 @@ public final class BackupStore {
 
     public static void simpleSetup(Context context) throws IOException, JSONException {
         try (java.io.InputStream stream = context.getAssets().open("simple-setup.json")) {
-            apply(context, read(stream));
+            apply(context, inputIcons(context, read(stream)));
         }
-        DeviceSettings.sleep(context, 0);
+        if (DeviceSettings.canWrite(context)) DeviceSettings.repair(context);
+    }
+
+    public static void freshSetup(Context context) throws IOException, JSONException {
+        try {
+            android.content.pm.PackageInfo info = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0);
+            if (info.firstInstallTime != info.lastUpdateTime) return;
+        } catch (android.content.pm.PackageManager.NameNotFoundException unavailable) {
+            throw new IOException("The initial installation could not be identified.", unavailable);
+        }
+        Map<String, ?> existing = preferences(context).getAll();
+        for (String key : new String[] {"app_visibility", "display_order", "apps_per_row",
+                "mode", "custom_gradient", "widgets_config"}) {
+            if (existing.containsKey(key)) return;
+        }
+        try (java.io.InputStream stream = context.getAssets().open("simple-setup.json")) {
+            apply(context, inputIcons(context, read(stream)), false);
+        }
+    }
+
+    private static String inputIcons(Context context, String contents) throws IOException, JSONException {
+        JSONObject data = new JSONObject(contents);
+        if (!data.has("app_visibility")) return contents;
+        JSONObject apps = new JSONObject(data.getString("app_visibility"));
+        for (String name : new String[] {"xbox-one.png", "wii-u.png"}) {
+            File directory = new File(context.getFilesDir(), "input-icons");
+            if (!directory.isDirectory() && !directory.mkdirs()) {
+                throw new IOException("The input icon folder could not be created.");
+            }
+            File icon = new File(directory, name);
+            try (java.io.InputStream stream = context.getAssets().open("input-icons/" + name);
+                    FileOutputStream output = new FileOutputStream(icon)) {
+                byte[] buffer = new byte[8192];
+                int count;
+                while ((count = stream.read(buffer)) != -1) output.write(buffer, 0, count);
+            }
+            Iterator<String> keys = apps.keys();
+            while (keys.hasNext()) {
+                JSONObject entry = apps.optJSONObject(keys.next());
+                if (entry != null && ("asset:input-icons/" + name)
+                        .equals(entry.optString("customIconUri"))) {
+                    entry.put("customIconUri", android.net.Uri.fromFile(icon).toString());
+                }
+            }
+        }
+        return data.put("app_visibility", apps.toString()).toString();
     }
 
     private static String read(java.io.InputStream stream) throws IOException {
@@ -100,11 +146,18 @@ public final class BackupStore {
     }
 
     private static void apply(Context context, String contents) throws JSONException, IOException {
+        apply(context, contents, true);
+    }
+
+    private static void apply(Context context, String contents, boolean replace) throws JSONException, IOException {
         JSONObject data = new JSONObject(contents);
         if (data.length() == 0) {
             throw new JSONException("This backup contains no settings.");
         }
-        SharedPreferences.Editor editor = preferences(context).edit().clear();
+        SharedPreferences prefs = preferences(context);
+        String localRemote = prefs.getString(EquipmentControl.REMOTE, null);
+        SharedPreferences.Editor editor = prefs.edit();
+        if (replace) editor.clear();
         JSONObject schema;
         try (java.io.InputStream stream = context.getAssets().open("preference-types.json")) {
             schema = new JSONObject(read(stream));
@@ -114,7 +167,7 @@ public final class BackupStore {
         // Validate every value before committing any of the settings.
         while (keys.hasNext()) {
             String key = keys.next();
-            if (!isPortable(key)) {
+            if (!isPortable(key) || !replace && prefs.getAll().containsKey(key)) {
                 continue;
             }
             Object value = data.get(key);
@@ -170,6 +223,9 @@ public final class BackupStore {
         if (restored == 0) {
             throw new JSONException("This backup contains no restorable settings.");
         }
+        if (localRemote != null) {
+            editor.putString(EquipmentControl.REMOTE, localRemote);
+        }
         editor.putBoolean("is_premium", true);
         if (!editor.commit()) {
             throw new IOException("The TV could not save the restored settings.");
@@ -182,6 +238,7 @@ public final class BackupStore {
 
     private static boolean isPortable(String key) {
         return !key.equals("is_premium") && !key.equals("PREF_IS_PREMIUM")
+                && !key.equals(EquipmentControl.REMOTE)
                 && !key.startsWith("fire_tv_ui_preview_")
                 && !key.startsWith("fire_tv_ui_tv_sleep_")
                 && !key.equals("app_launch_count") && !key.equals("rate_app_shown")

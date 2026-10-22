@@ -10,6 +10,10 @@ javac -encoding UTF-8 -d .build/tests \
   app/src/com/jeremykenedy/firetv/ui/InputValues.java \
   app/src/com/jeremykenedy/firetv/ui/DiagnosticValues.java \
   app/src/com/jeremykenedy/firetv/ui/StorageValues.java \
+  app/src/com/jeremykenedy/firetv/ui/IdleDispatch.java \
+  app/src/com/jeremykenedy/firetv/ui/GuardReport.java \
+  tests/GuardReportTest.java \
+  tests/IdleDispatchTest.java \
   tests/StorageValuesTest.java \
   tests/DiagnosticValuesTest.java \
   tests/InputValuesTest.java \
@@ -18,4 +22,6 @@ java -cp .build/tests com.jeremykenedy.firetv.ui.ScreensaversTest
 java -cp .build/tests com.jeremykenedy.firetv.ui.StorageValuesTest
 java -cp .build/tests com.jeremykenedy.firetv.ui.DiagnosticValuesTest
 java -cp .build/tests com.jeremykenedy.firetv.ui.InputValuesTest
+java -cp .build/tests com.jeremykenedy.firetv.ui.IdleDispatchTest
+java -cp .build/tests com.jeremykenedy.firetv.ui.GuardReportTest
 python3 -m unittest discover -s tests -p 'test_*.py' -v

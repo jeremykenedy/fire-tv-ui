@@ -7,16 +7,7 @@ adb connect YOUR_TV_IP:5555
 python3 scripts/install.py --serial YOUR_TV_IP:5555
 ```
 
-The installer grants WRITE_SECURE_SETTINGS and app operations for persistent backups, usage statistics, and screensaver installation before opening Fire TV UI. To install manually:
-
-```bash
-adb -s YOUR_TV_IP:5555 install -r dist/fire-tv-ui-1.2.0.apk
-adb -s YOUR_TV_IP:5555 shell pm grant com.jeremykenedy.firetv.ui android.permission.WRITE_SECURE_SETTINGS
-adb -s YOUR_TV_IP:5555 shell appops set --uid com.jeremykenedy.firetv.ui MANAGE_EXTERNAL_STORAGE allow
-adb -s YOUR_TV_IP:5555 shell appops set com.jeremykenedy.firetv.ui GET_USAGE_STATS allow
-adb -s YOUR_TV_IP:5555 shell appops set com.jeremykenedy.firetv.ui REQUEST_INSTALL_PACKAGES allow
-adb -s YOUR_TV_IP:5555 shell am start -n com.jeremykenedy.firetv.ui/.MainActivity
-```
+The installer grants WRITE_SECURE_SETTINGS and the storage, usage and package-install access supported by the TV's Android version. It copies the shared icons, rebinds an already enabled Home service and opens Fire TV UI. Pass `--apk /path/to/fire-tv-ui-1.4.0.apk` to install a downloaded signed release instead of the locally built APK. Verify the release checksum first.
 
 Select **Settings > Screensavers**. Each row includes a sample image to help identify the screensaver. Selecting an app makes it the active TV screensaver and enables it. The On/Off control preserves the selected app while changing the enabled state.
 
@@ -32,13 +23,13 @@ Use **Settings > Startup and protection** to enable or disable startup and Home 
 
 ## Transfer existing launcher settings
 
-Export settings from the existing launcher before changing anything. Fire TV UI has a separate app-data directory. Share the exported text or JSON backup to Fire TV UI to import it, or send the file with `firetv-ui --file=/path/to/backup.txt` and use Manage TV backups > Restore backup sent from computer if the file is accessible in Downloads.
+Export settings from the existing launcher before changing anything. Fire TV UI has a separate app-data directory. Share the exported text or JSON backup to Fire TV UI to import it, or transfer a reviewed Fire TV UI backup with the ADB steps in [Persistent TV backups](device-controls.md#persistent-tv-backups). These backups are separate from other launchers' export formats.
 
 Manage TV backups saves `/sdcard/Download/fire-tv-ui-backup.txt`, which survives uninstall/reinstall. Images, videos, and selected wallpaper files must remain accessible on the TV after importing settings.
 
 ## Updating
 
-Build with the same signing key, then run `adb install -r` with the new APK. This preserves app data. Installing an APK signed with a different key requires uninstalling the existing Fire TV UI installation, which deletes its app data.
+Save a backup first, then run the repository installer with the new signed APK. It uses `adb install -r` to preserve app data and explicitly rebinds previously enabled Home routing. A raw APK installation or force-stop can leave an accessibility service unbound even while its enabled setting remains present; use the installer and verify Home afterward. Installing an APK signed with a different key requires uninstalling the existing Fire TV UI installation, which deletes its app data.
 
 ## Removing Fire TV UI
 

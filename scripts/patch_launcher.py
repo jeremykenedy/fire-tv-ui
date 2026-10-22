@@ -106,7 +106,112 @@ def patch(decoded):
     counter_start = text.index('    const-string v5, "app_launch_count"')
     counter_end = text.index('    new-instance v4, Lcom/overdevs/at4k/PackageChangedReceiver;', counter_start)
     text = text[:counter_start] + text[counter_end:]
+    text += '\n.method public startActivity(Landroid/content/Intent;)V\n    .locals 0\n'
+    text += '    invoke-static {p0, p1}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->beforeLaunch(Landroid/content/Context;Landroid/content/Intent;)V\n'
+    text += '    invoke-super {p0, p1}, Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V\n    return-void\n.end method\n'
     main.write_text(text)
+
+    hra = class_paths["Lcom/overdevs/at4k/Hra;"]
+    text = hra.read_text()
+    text = replace_once(text,
+        '.method public final onAccessibilityEvent(Landroid/view/accessibility/AccessibilityEvent;)V\n    .locals 6',
+        '.method public final onAccessibilityEvent(Landroid/view/accessibility/AccessibilityEvent;)V\n    .locals 6\n\n'
+        '    invoke-static {p1}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->bypass(Landroid/view/accessibility/AccessibilityEvent;)Z\n'
+        '    move-result v0\n'
+        '    if-eqz v0, :factory_home_redirect_normal\n'
+        '    return-void\n'
+        '    :factory_home_redirect_normal')
+    text = replace_once(text,
+        '.method public final onKeyEvent(Landroid/view/KeyEvent;)Z\n    .locals 2',
+        '.method public final onKeyEvent(Landroid/view/KeyEvent;)Z\n    .locals 2\n\n'
+        '    invoke-static {p1}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->homeKey(Landroid/view/KeyEvent;)V')
+    hra.write_text(text)
+    apps = class_paths["LQ3/B7;"]
+    text = apps.read_text()
+    text = replace_once(text,
+        '    move-result-object v4\n\n    new-instance v7, Ljava/util/HashSet;',
+        '    move-result-object v4\n\n'
+        '    invoke-static {v4, v5}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->addTile(Ljava/util/List;Landroid/content/pm/PackageManager;)V\n'
+        '    invoke-static {v4, v5}, Lcom/jeremykenedy/firetv/ui/NativeLiveTv;->addTile(Ljava/util/List;Landroid/content/pm/PackageManager;)V\n\n'
+        '    new-instance v7, Ljava/util/HashSet;')
+    apps.write_text(text)
+    launch = class_paths["LQ3/O4;"]
+    text = launch.read_text()
+    text = replace_once(text,
+        '    :cond_0\n    invoke-virtual {v1}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;',
+        '    :cond_0\n'
+        '    invoke-static {v1, p1}, Lcom/jeremykenedy/firetv/ui/NativeLiveTv;->open(Landroid/content/Context;Ljava/lang/String;)Z\n'
+        '    move-result v0\n'
+        '    if-nez v0, :goto_0\n'
+        '    invoke-static {v1, p1}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->open(Landroid/content/Context;Ljava/lang/String;)Z\n'
+        '    move-result v0\n'
+        '    if-nez v0, :goto_0\n'
+        '    invoke-virtual {v1}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;')
+    launch.write_text(text)
+    context_menu = class_paths["LQ3/U0;"]
+    text = context_menu.read_text()
+    text = replace_once(text,
+        '    iget-object v3, v2, LQ3/q;->b:Ljava/lang/String;\n\n'
+        '    invoke-virtual {v1, v3}, Landroid/content/pm/PackageManager;->getLeanbackLaunchIntentForPackage(Ljava/lang/String;)Landroid/content/Intent;',
+        '    iget-object v3, v2, LQ3/q;->b:Ljava/lang/String;\n\n'
+        '    invoke-static {v0, v3}, Lcom/jeremykenedy/firetv/ui/NativeLiveTv;->open(Landroid/content/Context;Ljava/lang/String;)Z\n'
+        '    move-result v4\n'
+        '    if-nez v4, :goto_f\n'
+        '    invoke-static {v0, v3}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->open(Landroid/content/Context;Ljava/lang/String;)Z\n'
+        '    move-result v4\n'
+        '    if-nez v4, :goto_f\n'
+        '    invoke-virtual {v1, v3}, Landroid/content/pm/PackageManager;->getLeanbackLaunchIntentForPackage(Ljava/lang/String;)Landroid/content/Intent;')
+    context_menu.write_text(text)
+    intents = class_paths["LQ3/ya;"]
+    text = intents.read_text()
+    text = replace_once(text,
+        '.method public static final G(Landroid/content/pm/PackageManager;Ljava/lang/String;)Landroid/content/Intent;\n    .locals 1',
+        '.method public static final G(Landroid/content/pm/PackageManager;Ljava/lang/String;)Landroid/content/Intent;\n    .locals 1\n\n'
+        '    invoke-static {p0, p1}, Lcom/jeremykenedy/firetv/ui/NativeLiveTv;->launchIntent(Landroid/content/pm/PackageManager;Ljava/lang/String;)Landroid/content/Intent;\n'
+        '    move-result-object v0\n'
+        '    if-eqz v0, :native_factory_intent\n'
+        '    return-object v0\n'
+        '    :native_factory_intent\n'
+        '    invoke-static {p0, p1}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->launchIntent(Landroid/content/pm/PackageManager;Ljava/lang/String;)Landroid/content/Intent;\n'
+        '    move-result-object v0\n'
+        '    if-eqz v0, :ordinary_launch_intent\n'
+        '    return-object v0\n'
+        '    :ordinary_launch_intent')
+    intents.write_text(text)
+    poster = class_paths["LQ3/a0;"]
+    text = poster.read_text()
+    text = replace_once(text,
+        '    iget-object v0, v0, LQ3/q;->b:Ljava/lang/String;\n\n'
+        '    invoke-virtual {v2}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;',
+        '    iget-object v0, v0, LQ3/q;->b:Ljava/lang/String;\n\n'
+        '    invoke-static {v2, v0}, Lcom/jeremykenedy/firetv/ui/NativeLiveTv;->open(Landroid/content/Context;Ljava/lang/String;)Z\n'
+        '    move-result v6\n'
+        '    if-nez v6, :goto_4\n'
+        '    invoke-static {v2, v0}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->open(Landroid/content/Context;Ljava/lang/String;)Z\n'
+        '    move-result v6\n'
+        '    if-nez v6, :goto_4\n'
+        '    invoke-virtual {v2}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;')
+    poster.write_text(text)
+    animated = class_paths["LA3/a;"]
+    text = animated.read_text()
+    signature = '.method public static final j(Ln4/a;LQ3/q;Ln4/c;Landroid/content/Context;[Lf0/d;LQ3/t;Landroid/view/View;)V'
+    pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
+    method = pattern.search(text).group(0)
+    method = replace_once(method,
+        '    invoke-virtual {p1, p0}, Landroid/content/pm/PackageManager;->getLeanbackLaunchIntentForPackage(Ljava/lang/String;)Landroid/content/Intent;',
+        '    invoke-static {p1, p0}, Lcom/jeremykenedy/firetv/ui/NativeLiveTv;->launchIntent(Landroid/content/pm/PackageManager;Ljava/lang/String;)Landroid/content/Intent;\n'
+        '    move-result-object p2\n'
+        '    if-nez p2, :cond_3\n'
+        '    invoke-static {p1, p0}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->launchIntent(Landroid/content/pm/PackageManager;Ljava/lang/String;)Landroid/content/Intent;\n'
+        '    move-result-object p2\n'
+        '    if-nez p2, :cond_3\n'
+        '    invoke-virtual {p1, p0}, Landroid/content/pm/PackageManager;->getLeanbackLaunchIntentForPackage(Ljava/lang/String;)Landroid/content/Intent;')
+    for invocation in (
+            '    invoke-virtual {p3, p2, p4}, Landroid/content/Context;->startActivity(Landroid/content/Intent;Landroid/os/Bundle;)V',
+            '    invoke-virtual {p3, p2}, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V'):
+        method = replace_once(method, invocation,
+            '    invoke-static {p3, p2}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->beforeLaunch(Landroid/content/Context;Landroid/content/Intent;)V\n' + invocation)
+    animated.write_text(replace_method(text, signature, method))
 
     preferences = class_paths['LQ3/T3;']
     text = preferences.read_text()
@@ -133,6 +238,48 @@ def patch(decoded):
     persist.write_text(replace_once(persist.read_text(),
         '    const-string v0, "is_premium"\n\n    iget-boolean v1, p0, LQ3/W6;->l:Z',
         '    const-string v0, "is_premium"\n\n    const/4 v1, 0x1'))
+
+    idle = class_paths["LQ3/T6;"]
+    idle.write_text(replace_method(idle.read_text(),
+        ".method public final k(Ljava/lang/Object;)Ljava/lang/Object;",
+        """.method public final k(Ljava/lang/Object;)Ljava/lang/Object;
+    .locals 5
+    sget-object v0, Lg4/a;->g:Lg4/a;
+    iget v1, p0, LQ3/T6;->k:I
+    invoke-static {p1}, Lq4/a;->l0(Ljava/lang/Object;)V
+    if-nez v1, :idle_restore_focus
+    iget-object v1, p0, LQ3/T6;->l:LQ3/T3;
+    invoke-virtual {v1}, LQ3/T3;->M()Z
+    move-result v2
+    if-eqz v2, :idle_focus_delay
+    iget-object v2, p0, LQ3/T6;->m:Landroid/content/Context;
+    invoke-static {v2}, Lcom/jeremykenedy/firetv/ui/IdleScreensaver;->start(Landroid/content/Context;)V
+    const/4 v2, 0x0
+    invoke-virtual {v1, v2}, LQ3/T3;->V(Z)V
+    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
+    move-result-wide v2
+    invoke-virtual {v1, v2, v3}, LQ3/T3;->S(J)V
+    goto :idle_done
+    :idle_focus_delay
+    const/4 v1, 0x1
+    iput v1, p0, LQ3/T6;->k:I
+    const-wide/16 v1, 0x64
+    invoke-static {v1, v2, p0}, Lx4/v;->e(JLf4/c;)Ljava/lang/Object;
+    move-result-object p1
+    if-ne p1, v0, :idle_restore_focus
+    return-object v0
+    :idle_restore_focus
+    iget-object p1, p0, LQ3/T6;->o:Ljava/util/List;
+    const/4 v0, 0x0
+    invoke-static {v0, p1}, Lc4/r;->D0(ILjava/util/List;)Ljava/lang/Object;
+    move-result-object p1
+    check-cast p1, Le0/p;
+    if-eqz p1, :idle_done
+    invoke-static {p1}, LQ3/M7;->T(Le0/p;)V
+    :idle_done
+    sget-object p1, Lb4/n;->a:Lb4/n;
+    return-object p1
+.end method"""))
 
     settings = class_paths["LQ3/M7;"]
     text = settings.read_text()
@@ -216,11 +363,13 @@ def patch(decoded):
     help_text = help_text.replace(r'\u2022 Premium\n', r'\u2022 TV screensaver\n')
     help_text = help_text.replace(' (Premium)', '').replace(' - Premium', '').replace(' (Free)', '')
     help_text = help_text.replace('Screensaver: Activates a minimal clock screensaver',
-        'Launcher clock screensaver: Activates a minimal clock screensaver')
+        'Launcher idle screensaver: Starts the selected screensaver')
+    help_text = help_text.replace('after ~2 minutes of inactivity.',
+        'after 90 seconds of launcher inactivity when enabled.')
     help_text = help_text.replace(r'\nLICENSES & CREDITS',
         r'\nTV SCREENSAVER\n\nOpen Settings > TV screensaver. '
         r'Select an installed screensaver to make it active, or turn the TV screensaver on or off. '
-        r'This controls the TV screensaver separately from the launcher clock in Appearance. '
+        r'The Appearance launcher idle option uses this same selection. Unsupported preview paths leave system idle handling active. '
         r'If setup is needed, follow the on-screen instructions from your computer. '
         r'The selected screensaver and enabled state are read back from the TV.\n\nLICENSES & CREDITS')
     help_text = help_text.replace('Select an installed screensaver to make it active,',
@@ -280,6 +429,7 @@ def patch(decoded):
         'Premium_Close': 'Screensavers_Close', 'Premium0': 'Screensavers0',
         '"Premium"': '"Screensavers"',
         'TV screensaver': 'Screensavers',
+        'Enable screensaver': 'Launcher idle screensaver',
         'Premium feature!': 'Feature available', 'Premium feature': 'Feature available',
         'Get premium to unlock this': 'Feature available',
         'Premium Unlocked Successfully!': 'Settings updated',
@@ -327,6 +477,9 @@ def patch(decoded):
     shutil.rmtree(decoded / 'assets/dexopt', ignore_errors=True)
     shutil.copytree(ROOT / 'app/previews', decoded / 'assets/screensaver-previews', dirs_exist_ok=True)
     shutil.copy(ROOT / 'app/simple-setup.json', decoded / 'assets/simple-setup.json')
+    (decoded / 'assets/input-icons').mkdir(exist_ok=True)
+    for icon in ('xbox-one.png', 'wii-u.png'):
+        shutil.copy(ROOT / 'icons' / icon, decoded / 'assets/input-icons' / icon)
     shutil.copy(ROOT / 'app/screensavers.json', decoded / 'assets/screensavers.json')
     shutil.copy(ROOT / 'app/preference-types.json', decoded / 'assets/preference-types.json')
 
@@ -350,6 +503,8 @@ def patch_manifest(decoded):
     app.set(ANDROID + 'requestLegacyExternalStorage', 'true')
     queries = root.find('queries')
     ET.SubElement(queries, 'package', {ANDROID + 'name': 'com.amazon.ftv.screensaver'})
+    ET.SubElement(queries, 'package', {ANDROID + 'name': 'com.amazon.tv.launcher'})
+    ET.SubElement(queries, 'package', {ANDROID + 'name': 'com.amazon.tv.livetv'})
     ET.SubElement(queries, 'package', {ANDROID + 'name': 'com.amazon.tv.settings.v2'})
     query = ET.SubElement(queries, 'intent')
     ET.SubElement(query, 'action', {ANDROID + 'name': 'android.service.dreams.DreamService'})
@@ -379,7 +534,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

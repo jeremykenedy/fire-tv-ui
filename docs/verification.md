@@ -1,5 +1,13 @@
 # Verification
 
+## Version 1.3.3 selected idle verification
+
+Candidate SHA-256 `027c88d2223fa60a48a86e38f67c9d6d7ef3d77b3bc8a93de57fa2b240d56717` passed the fresh API 34 mapped Slot Vision preview and unsupported Aquarium idle observations. Both ran for 95.3 seconds and restored the prior launcher idle switch, guarded selection and five system values.
+
+Physical API 30 verification used two separate gates. Twenty observations established actual binding of the selected Aquarium DreamService, with native screenshots and Back detaching the Dream. The first harness Home check failed after a force-stop left the accessibility service unbound. After explicitly rebinding Home routing, the separate Screensavers-to-Home check returned to the native launcher. All 47 launcher preferences, eight system values, accessibility membership and the original asleep state matched; the guard service was restarted and verified. Future harnesses must rebind an originally enabled Home service after a force-stop, even when its enabled setting remains present.
+
+The Aquarium surface sample was 23.18 FPS and failed its independent renderer performance gate. Dream binding is not evidence that a screensaver meets its rendering budget. Final release APK and catalog changes require their own artifact verification.
+
 ## Automated checks
 
 Run `python3 scripts/build.py --unsigned` and `bash scripts/test.sh`. The build verifies the pinned base and Apktool hashes and requires exact patch anchors. The tests cover component matching, duplicate services, stable ordering, missing active apps, package identity, feature availability, settings wiring, and the feature guide.
@@ -154,3 +162,27 @@ The public-facing README gallery was viewed through authenticated GitHub at desk
 Physical Fire TV AFTDEC012E, Android 11/API 30, returned an impossible 4.5 KB app size for the independently verified 69,011,424-byte installed Hearth Presence APK. Candidate SHA-256 `6282803c546f71c2127a6e5ff12a5b1b8af1047ff5439b78bfc24b7f5f9f0593` rejects that figure using measured installed base/split APK files. The [actual corrected catalog capture](../art/screenshots/catalog-storage-fire-tv-1.3.2-1920.png), opened and viewed at 1920x1080, shows App files 65.8 MB with unavailable data/cache. Slot Vision retains its valid platform figures. The actual remote route Main > Preferences > Screensavers > Install screensavers and Back/Home passed. All five saved system values and the original asleep state were restored.
 
 The pure helper rejects unknown APK floors, undersized app counters, negative data/cache, cache greater than data, and overflowing totals. Valid totals count app plus data once. Focused JaCoCo coverage is 2/2 executable lines and 14/14 branches; framework storage/file inspection is outside this host boundary and was verified on the affected physical TV.
+
+## Native published Fire IPTV update on Fire OS 30
+
+On October 22, 2026, the 1.4.0/code 38 UI candidate `2c1e7b74f7ba9b9069c9dbc7002c941e03b74815e8844c8e9a5f76ea4fb2bc36` opened Settings > Advanced > Updates on the physical Fire TV. Check for updates found the published Fire IPTV v1.1.1 release. Its download reached Android's normal replacement-install confirmation; confirming there returned to the UI with “Update installed and version verified.” This used the native UI downloader and installer, not an ADB replacement install.
+
+The independently pulled installed Fire IPTV APK matched published SHA-256 `66605a6dd20a1e5039a1115542626a6027701dd800a0e2d991bcbcf86f7e0294`, 87,759,849 bytes, version 1.1.1/code 2 and the existing production signer. The relaunched app retained 1,323 live channels and 226 sports channels. Its existing Picture-in-Picture setting remained off across a force-stop and relaunch. Home returned to Fire TV UI Main with no pinned task. Fire IPTV's retained media session was inactive with playback state NONE(0); the session itself was still present. No playback was started during this check.
+
+All 46 UI preference values and eight saved system settings compared equal afterward. The prior external backup was restored, the settings guard remained running and the UI update-blocking VPN remained present. This does not establish byte-for-byte retention of every Fire IPTV profile or source setting: the observable catalog and PiP state were checked. The private UI row correctly required computer sign-in instead of reporting current without authenticated metadata.
+
+This check also found OwnTV's version-specific multi-APK asset ambiguity. The subsequent fix uses the exact reviewed `OwnTV-{tag}.apk` TV filename, validates the numeric tag, and rejects a mobile decoy in a future-version regression. Its local regression passes; its new native check remains pending. Later source changes add sanitized guard inspection and Prism Clock's published catalog entry and require their own native check before final release.
+
+## 1.4.0 source and gallery preparation
+
+The signed repeat build `d6af9fa086afe3b37469ea61755ea2cabf135da01e09c2c9fd8272d8ce43f7b1` has all 631 non-META-INF APK entries byte-identical to candidate `44057a7d0f67e0aa945e2eebfbef64f1ec52295f454d8e52deb7cf03711bc498`. This includes both DEX payloads, manifest, resources and assets. Archive metadata and signing-container bytes differ, so whole-APK byte reproducibility is not claimed. The production signer remains unchanged. The repeated local suite passed 23 Python tests with six explicit native-environment skips, along with the Java behavior checks.
+
+The private GitHub README and full gallery were reviewed in authenticated Chrome at 1280 and 320 pixels. All three README images and all 30 gallery images loaded at their native 1920-pixel width. The current row was viewed at both widths, and the earlier native gallery was inspected at desktop width. Historical captions that caused narrow-table clipping were shortened; every image then remained within the 320-pixel page. The viewport was reset and the owned tab closed. No account or media preferences changed. Current captures identify the 44057 update check, earlier 2c1 physical native tiles, and accepted Prism physical catalog sample separately. These documentation results do not establish the still-pending hardware Home, OwnTV, guard-dump or Prism catalog-row gates.
+
+## Final 1.4.0 physical functional check
+
+The independently pulled installed UI APK on the new physical Fire TV matches frozen candidate `44057a7d0f67e0aa945e2eebfbef64f1ec52295f454d8e52deb7cf03711bc498`, 8,773,076 bytes and the existing production signer. Its native Updates route freshly checked OwnTV v5.2.1, selected the exact TV artifact and displayed the reviewed `dbc991358d09b6e0e7a40683d63346528f9702efe4358c7f9ae66af266e4ee3c` hash with Matches checked release. No OwnTV data or provider was changed.
+
+The running ProtectionService framework dump reported protection on, no pending preview, matching desired/current Aquarium components and no guard failure. The 31-entry native catalog showed Prism Clock v1.0.0 and installed its public APK through normal Android confirmation. The independently pulled Prism bytes matched `edbf475c4a2b253ccc069adaee8cac2cbba4d16b5579d5299e2e2d1bdaa21fd5`, 127,947 bytes and production signer `193b1650f1e3924088d6084932a4ec5fffe36ae95f6a8cb943bfa10c4bde4788`. Its installed picker thumbnail was viewed. Preview it bound the actual PrismDreamService; the settled physical frame was viewed separately from the initial transition capture.
+
+Back restored Aquarium with preview_pending=false. All 46 exported UI preferences and eight OS settings compared exactly equal afterward. The previous external backup was restored; the live guard and VPN remained present. Normal Home reached Main. A final single Factory UI tile tap opened actual AmazonHome_vNext for the physical-remote follow-up, and the device lease was returned. That hardware-key check remains unverified. The frozen APK is the release artifact; a verified primary rebuild must match all 631 runtime payload entries before its tag is published. This result does not approve rejected screensaver visuals or establish every remaining screensaver requirement as complete.
