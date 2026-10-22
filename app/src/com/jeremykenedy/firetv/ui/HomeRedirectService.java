@@ -63,8 +63,7 @@ public class HomeRedirectService extends AccessibilityService {
      * brings the home screen up.
      */
     static boolean canOpenSettings(CharSequence pkg) {
-        return TARGET_LAUNCHER.contentEquals(pkg)
-                || pkg.toString().startsWith(AMAZON_SETTINGS_PREFIX);
+        return pkg != null && pkg.toString().startsWith(AMAZON_SETTINGS_PREFIX);
     }
 
     static boolean isHome(CharSequence pkg, CharSequence cls) {
