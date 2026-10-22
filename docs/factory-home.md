@@ -6,6 +6,10 @@ Opening the tile does not disable Fire TV UI's Home setting. A temporary launch 
 
 Host regressions cover explicit native resolution, duplicate tile suppression, missing/non-system activities, the initial transition burst and subsequent Home routing. On the new physical Fire TV, the animated tile opened the fully rendered Amazon Home screen. Home from another app returned to Fire TV UI. A shell-injected Home press while already on Amazon Home did not produce another Home window transition and did not return to Fire TV UI. The equivalent physical remote check remains a release gate.
 
+Android 11's [input dispatcher](https://android.googlesource.com/platform/frameworks/native/+/refs/heads/android11-release/services/inputflinger/dispatcher/InputDispatcher.cpp) sends hardware keys through its enabled input filter. Its injected-key path does not call that filter. Consequently, `adb shell input keyevent 3` cannot verify the launcher's existing accessibility hardware Home handler. With better Home detection enabled, that handler requests key filtering and opens Fire TV UI on Home release. Actual remote delivery remains platform dependent and needs a hardware-path check.
+
+On the tested Fire TV, the separate system `homekey` broadcast requires an Amazon privileged permission. Fire TV UI does not request that permission. The diagnostic comparison also found generic focus/content events during both Home presses and normal navigation, so those events are not used to infer a Home press. Diagnostic logging and the broader event subscription are excluded from release builds.
+
 ## Native Live TV tile
 
 On supported Fire TVs, **Live TV** opens the built-in channel guide through its public `livetv://showGuideButtonContent` entry. It retains the native antenna and streaming channel experience. The launcher resolves an exported system activity with no activity permission requirement, then launches that explicit resolved component. It does not request the privileged guide permission or open TV input setup.

@@ -8,9 +8,9 @@ import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 
 /**
- * Sends the Home button to the Fire TV UI launcher. Fire OS has no setting for
- * choosing a Home app and does not hand the Home key to accessibility
- * services, so this watches for the Amazon home screen coming to the front
+ * Sends the Home button to the Fire TV UI launcher. Fire OS has no normal
+ * Home chooser. The existing control service requests hardware key filtering;
+ * this fallback watches for the Amazon home screen coming to the front
  * and opens Fire TV UI over it.
  *
  * Fire OS opens Settings by showing the home screen first and putting
