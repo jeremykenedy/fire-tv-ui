@@ -664,7 +664,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

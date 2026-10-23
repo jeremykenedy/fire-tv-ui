@@ -23,15 +23,25 @@ final class PlexConnection {
     final String server;
     final String token;
     final String machine;
+    final PlexFeedSettings feeds;
 
     PlexConnection(String server, String token) {
         this(server, token, "");
     }
 
     PlexConnection(String server, String token, String machine) {
+        this(server, token, machine, PlexFeedSettings.defaults());
+    }
+
+    PlexConnection(String server, String token, String machine, PlexFeedSettings feeds) {
         this.server = server;
         this.token = token;
         this.machine = machine;
+        this.feeds = feeds;
+    }
+
+    PlexConnection withFeeds(PlexFeedSettings options) {
+        return new PlexConnection(server, token, machine, options);
     }
 
     String sourceKey() throws Exception {
@@ -79,6 +89,7 @@ final class PlexConnection {
                             .put("server", server)
                             .put("token", token)
                             .put("machine", machine)
+                            .put("feeds", feeds.json())
                             .toString()
                             .getBytes(java.nio.charset.StandardCharsets.UTF_8);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -144,7 +155,8 @@ final class PlexConnection {
                     return new PlexConnection(
                             value.getString("server"),
                             value.getString("token"),
-                            value.optString("machine", ""));
+                            value.optString("machine", ""),
+                            PlexFeedSettings.parse(value.optJSONObject("feeds")));
                 } finally {
                     java.util.Arrays.fill(plain, (byte) 0);
                 }

@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class PlexCards {
-    private static final String CONTINUE = "fire-tv-ui-plex-continue";
     private static final String RECENT = "fire-tv-ui-plex-recent";
 
     private PlexCards() {}
@@ -22,14 +21,18 @@ final class PlexCards {
             Context context,
             PlexApi api,
             PlexConnection connection,
-            List<PlexLibrary.Item> continuing,
-            List<PlexLibrary.Item> recent,
+            List<PlexFeedData.Feed> feeds,
             long request)
             throws Exception {
-        List<ContentValues> first = values(context, api, connection, continuing, request);
-        List<ContentValues> second = values(context, api, connection, recent, request);
+        java.util.Map<String, List<ContentValues>> rows = new java.util.LinkedHashMap<>();
+        int total = 0;
+        for (PlexFeedData.Feed feed : feeds) {
+            List<ContentValues> items = values(context, api, connection, feed.items, request);
+            rows.put(feed.source, items);
+            total += items.size();
+        }
         if (!PlexSession.current(request)) return -1;
-        final int count = first.size() + second.size();
+        final int count = total;
         boolean committed =
                 PlexSession.commit(
                         request,
@@ -37,22 +40,35 @@ final class PlexCards {
                             @Override
                             public void apply() throws Exception {
                                 ArrayList<ContentProviderOperation> changes = new ArrayList<>();
+                                for (String key : PlexFeedSettings.KEYS) {
+                                    String source = PlexFeedData.source(key);
+                                    List<ContentValues> selected = rows.get(source);
+                                    replace(
+                                            context,
+                                            source,
+                                            PlexFeedData.label(source),
+                                            selected == null
+                                                    ? java.util.Collections
+                                                            .<ContentValues>emptyList()
+                                                    : selected,
+                                            changes,
+                                            selected != null);
+                                }
                                 replace(
                                         context,
-                                        CONTINUE,
-                                        "Plex Continue Watching",
-                                        first,
-                                        changes);
-                                replace(context, RECENT, "Plex Recently Added", second, changes);
+                                        RECENT,
+                                        "Plex Recently Added",
+                                        java.util.Collections.<ContentValues>emptyList(),
+                                        changes,
+                                        false);
                                 if (!changes.isEmpty())
                                     context.getContentResolver()
                                             .applyBatch(TvContract.AUTHORITY, changes);
                                 connection.save(context);
                                 java.util.Set<String> referenced = new java.util.HashSet<>();
-                                for (ContentValues row : first)
-                                    referenced.add(row.getAsString("poster_art_uri"));
-                                for (ContentValues row : second)
-                                    referenced.add(row.getAsString("poster_art_uri"));
+                                for (List<ContentValues> feed : rows.values())
+                                    for (ContentValues row : feed)
+                                        referenced.add(row.getAsString("poster_art_uri"));
                                 PlexArtwork.prune(context, referenced);
                             }
                         });
@@ -106,7 +122,8 @@ final class PlexCards {
         return values;
     }
 
-    private static long channel(Context context, String source, String label) throws Exception {
+    private static long channel(Context context, String source, String label, boolean create)
+            throws Exception {
         try (Cursor cursor =
                 context.getContentResolver()
                         .query(
@@ -122,6 +139,7 @@ final class PlexCards {
                         && source.equals(cursor.getString(2))) return cursor.getLong(0);
             }
         }
+        if (!create) return -1;
         ContentValues values = new ContentValues();
         values.put("type", TvContract.Channels.TYPE_PREVIEW);
         values.put("display_name", label);
@@ -141,9 +159,11 @@ final class PlexCards {
             String source,
             String label,
             List<ContentValues> values,
-            ArrayList<ContentProviderOperation> changes)
+            ArrayList<ContentProviderOperation> changes,
+            boolean create)
             throws Exception {
-        long channel = channel(context, source, label);
+        long channel = channel(context, source, label, create);
+        if (channel < 0) return;
         Uri programs =
                 TvContract.PreviewPrograms.CONTENT_URI
                         .buildUpon()
@@ -187,8 +207,7 @@ final class PlexCards {
             if (cursor == null) throw new java.io.IOException("Plex channels could not be read.");
             while (cursor.moveToNext()) {
                 if (context.getPackageName().equals(cursor.getString(1))
-                        && (CONTINUE.equals(cursor.getString(2))
-                                || RECENT.equals(cursor.getString(2))))
+                        && PlexFeedData.label(cursor.getString(2)) != null)
                     channels.add(cursor.getLong(0));
             }
         }

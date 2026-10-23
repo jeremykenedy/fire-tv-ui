@@ -12,28 +12,36 @@ final class PlexLibrary {
     private PlexLibrary() {}
 
     static List<Item> items(JSONObject response) {
+        return items(response, null, 12);
+    }
+
+    static List<Item> items(JSONObject response, String acceptedType, int limit) {
+        if (limit < 1 || limit > 12) throw new IllegalArgumentException("Invalid Plex card limit.");
         Map<String, Item> result = new LinkedHashMap<>();
         JSONObject container = response.optJSONObject("MediaContainer");
         if (container != null) {
-            collect(container.optJSONArray("Metadata"), result);
+            collect(container.optJSONArray("Metadata"), result, acceptedType, limit);
             JSONArray hubs = container.optJSONArray("Hub");
             if (hubs != null) {
-                for (int i = 0; i < hubs.length() && result.size() < 12; i++) {
+                for (int i = 0; i < hubs.length() && result.size() < limit; i++) {
                     JSONObject hub = hubs.optJSONObject(i);
-                    if (hub != null) collect(hub.optJSONArray("Metadata"), result);
+                    if (hub != null)
+                        collect(hub.optJSONArray("Metadata"), result, acceptedType, limit);
                 }
             }
         }
         return new ArrayList<>(result.values());
     }
 
-    private static void collect(JSONArray values, Map<String, Item> result) {
+    private static void collect(
+            JSONArray values, Map<String, Item> result, String acceptedType, int limit) {
         if (values == null) return;
-        for (int i = 0; i < values.length() && result.size() < 12; i++) {
+        for (int i = 0; i < values.length() && result.size() < limit; i++) {
             JSONObject value = values.optJSONObject(i);
             if (value == null) continue;
             String id = value.optString("ratingKey", "");
             String type = value.optString("type", "");
+            if (acceptedType != null && !acceptedType.equals(type)) continue;
             String title = value.optString("title", "").trim();
             if (!id.matches("[0-9]{1,18}")
                     || title.isEmpty()

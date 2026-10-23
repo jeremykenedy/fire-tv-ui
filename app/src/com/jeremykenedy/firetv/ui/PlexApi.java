@@ -109,16 +109,25 @@ final class PlexApi {
     }
 
     JSONObject server(PlexConnection connection, String path) throws Exception {
-        if (!path.startsWith("/") || path.startsWith("//"))
+        return server(connection, path, 12);
+    }
+
+    JSONObject server(PlexConnection connection, String path, int count) throws Exception {
+        if (!path.startsWith("/") || path.startsWith("//") || count < 1 || count > 100)
             throw new IOException("The Plex request is invalid.");
-        return json(
-                PlexValues.serverBase(connection.server) + path,
-                "GET",
-                connection.token,
-                null,
-                "/identity".equals(path)
-                        ? "Server identity"
-                        : "/".equals(path) ? "Server access" : "Library read");
+        return new JSONObject(
+                new String(
+                        request(
+                                PlexValues.serverBase(connection.server) + path,
+                                "GET",
+                                connection.token,
+                                null,
+                                8 * 1024 * 1024,
+                                "/identity".equals(path)
+                                        ? "Server identity"
+                                        : "/".equals(path) ? "Server access" : "Library read",
+                                count),
+                        StandardCharsets.UTF_8));
     }
 
     byte[] artwork(PlexConnection connection, String path) throws Exception {
@@ -144,6 +153,18 @@ final class PlexApi {
     private byte[] request(
             String url, String method, String token, JSONObject body, int limit, String phase)
             throws Exception {
+        return request(url, method, token, body, limit, phase, 12);
+    }
+
+    private byte[] request(
+            String url,
+            String method,
+            String token,
+            JSONObject body,
+            int limit,
+            String phase,
+            int pageSize)
+            throws Exception {
         HttpURLConnection request = null;
         try {
             request = (HttpURLConnection) new URL(url).openConnection();
@@ -158,7 +179,7 @@ final class PlexApi {
             request.setRequestProperty("X-Plex-Platform", "Android");
             request.setRequestProperty("X-Plex-Device", "Fire TV");
             request.setRequestProperty("X-Plex-Container-Start", "0");
-            request.setRequestProperty("X-Plex-Container-Size", "12");
+            request.setRequestProperty("X-Plex-Container-Size", Integer.toString(pageSize));
             if (token != null) request.setRequestProperty("X-Plex-Token", token);
             if (body != null) {
                 request.setDoOutput(true);

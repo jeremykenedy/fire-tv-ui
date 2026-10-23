@@ -144,12 +144,7 @@ public final class CardSourcesActivity extends CardActivity {
                 while (cursor.moveToNext()) {
                     if (!getPackageName().equals(cursor.getString(1))) continue;
                     String logical = cursor.getString(2);
-                    String name =
-                            "fire-tv-ui-plex-continue".equals(logical)
-                                    ? "Plex Continue Watching"
-                                    : "fire-tv-ui-plex-recent".equals(logical)
-                                            ? "Plex Recently Added"
-                                            : null;
+                    String name = PlexFeedData.label(logical);
                     if (name != null) {
                         feeds.put(cursor.getLong(0), name);
                         counts.put(cursor.getLong(0), 0);

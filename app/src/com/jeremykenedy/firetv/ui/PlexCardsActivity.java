@@ -28,10 +28,10 @@ public final class PlexCardsActivity extends CardActivity {
         LinearLayout body = scrollBody();
         body.addView(
                 text(
-                        "Connect your own Plex server for Continue Watching and Recently Added."
-                                + " This is separate from cards shared by the installed Plex app."
-                                + " Credentials stay encrypted on this TV and are excluded from"
-                                + " backups.",
+                        "Connect your own Plex server for Continue Watching, new movies and new TV"
+                            + " episodes. This is separate from cards shared by the installed Plex"
+                            + " app. Credentials stay encrypted on this TV and are excluded from"
+                            + " backups.",
                         18,
                         MUTED));
         address = new EditText(this);
@@ -90,6 +90,19 @@ public final class PlexCardsActivity extends CardActivity {
                             }
                         });
         addButton(body, refresh);
+        addButton(
+                body,
+                button(
+                        "Library feeds and activity users",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                startActivity(
+                                        new android.content.Intent(
+                                                PlexCardsActivity.this,
+                                                PlexFeedSettingsActivity.class));
+                            }
+                        }));
         addButton(
                 body,
                 button(
@@ -324,19 +337,31 @@ public final class PlexCardsActivity extends CardActivity {
     private void synchronize(PlexApi api, PlexConnection connection, long request)
             throws Exception {
         if (!PlexSession.current(request)) return;
-        List<PlexLibrary.Item> continuing =
-                PlexLibrary.items(api.server(connection, "/hubs/continueWatching"));
+        PlexConnection saved = PlexConnection.load(this);
+        if (saved != null
+                && saved.machine.equals(connection.machine)
+                && saved.server.equals(connection.server))
+            connection = connection.withFeeds(saved.feeds);
+        final PlexConnection selected = connection;
+        List<PlexFeedData.Feed> feeds =
+                PlexFeedData.read(
+                        new PlexFeedData.Reader() {
+                            @Override
+                            public org.json.JSONObject read(String path, int count)
+                                    throws Exception {
+                                if (!PlexSession.current(request))
+                                    throw new java.io.IOException("Refresh was cancelled.");
+                                return api.server(selected, path, count);
+                            }
+                        },
+                        connection.feeds);
         if (!PlexSession.current(request)) return;
-        List<PlexLibrary.Item> recent =
-                PlexLibrary.items(api.server(connection, "/library/recentlyAdded"));
-        if (!PlexSession.current(request)) return;
-        int count = PlexCards.publish(this, api, connection, continuing, recent, request);
+        int count = PlexCards.publish(this, api, connection, feeds, request);
         if (count < 0) return;
         show(
                 request,
                 count == 0
-                        ? "Connected. Your server currently has no Continue Watching or Recently"
-                                + " Added items."
+                        ? "Connected. Your selected feeds currently have no matching cards."
                         : "Updated "
                                 + count
                                 + " real Plex library cards. Return to Card sources and reload home"
