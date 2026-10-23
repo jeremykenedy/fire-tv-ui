@@ -72,6 +72,11 @@ public final class CardSourcesActivity extends CardActivity {
                                                 CardSourcesActivity.this, PlexCardsActivity.class));
                             }
                         }));
+        addButton(body, button("App recommendation cards", new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                startActivity(new Intent(CardSourcesActivity.this, RecommendationCardsActivity.class));
+            }
+        }));
         refresh.requestFocus();
         readSources();
     }
