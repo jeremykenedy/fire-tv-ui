@@ -343,6 +343,36 @@ def patch(decoded):
         '    const/4 v11, 0x0\n\n'
         '    invoke-static/range {v4 .. v11}, LQ3/M7;->I')
     text = replace_method(text, menu_signature, menu)
+    cards_anchor = ('    const-string v0, "Cards text color"\n\n'
+                    '    const/4 v1, 0x0\n\n'
+                    '    const/4 v2, 0x0\n\n'
+                    '    const/4 v3, 0x0\n\n'
+                    '    const/4 v8, 0x0\n\n'
+                    '    const/16 v12, 0x41c\n\n'
+                    '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V')
+    text = replace_once(text, cards_anchor, cards_anchor + '\n\n'
+        '    const-string v0, "Cards_Sources"\n'
+        '    invoke-interface {v13, v0}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;\n'
+        '    move-result-object v4\n'
+        '    if-nez v4, :card_sources_focus_ready\n'
+        '    invoke-static {v0, v13}, LA/p;->c(Ljava/lang/String;Ljava/util/Map;)Le0/p;\n'
+        '    move-result-object v4\n'
+        '    :card_sources_focus_ready\n'
+        '    check-cast v4, Le0/p;\n'
+        '    sget-object v5, Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;->b:LN/S0;\n'
+        '    invoke-virtual {v10, v5}, LN/p;->k(LN/m0;)Ljava/lang/Object;\n'
+        '    move-result-object v5\n'
+        '    check-cast v5, Landroid/content/Context;\n'
+        '    new-instance v0, Lcom/jeremykenedy/firetv/ui/CardSourcesAction;\n'
+        '    invoke-direct {v0, v5}, Lcom/jeremykenedy/firetv/ui/CardSourcesAction;-><init>(Landroid/content/Context;)V\n'
+        '    move-object v5, v0\n'
+        '    const-string v0, "Card sources and refresh"\n'
+        '    const/4 v7, 0x0\n'
+        '    const/4 v8, 0x0\n'
+        '    const/4 v9, 0x0\n'
+        '    const/4 v11, 0x0\n'
+        '    const/16 v12, 0x51c\n'
+        '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V')
     text = replace_once(text,
         '    :cond_4\n    const/high16 v0, 0x10000000\n\n'
         '    :try_start_0\n    invoke-static {p2}, Landroid/media/tv/TvContract;->buildChannelUriForPassthroughInput',
@@ -467,6 +497,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/BackupAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/SystemControlsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/AdvancedAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/CardSourcesAction.smali', destination)
     patch_manifest(decoded)
 
     metadata = decoded / 'apktool.yml'
@@ -546,7 +577,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',
