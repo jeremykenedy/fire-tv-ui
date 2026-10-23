@@ -35,7 +35,9 @@ public final class HiddenCards {
                         watchNext,
                         providerId(context, source, value(cursor, "internal_provider_id"), intent),
                         value(cursor, "content_id"));
-        return key == null ? null : new Card(key, source, value(cursor, "title"));
+        int channelIndex = cursor.getColumnIndex("channel_id");
+        long channel = channelIndex < 0 ? -1 : cursor.getLong(channelIndex);
+        return key == null ? null : new Card(key, source, value(cursor, "title"), channel);
     }
 
     private static String providerId(Context context, String source, String id, String intent) {
@@ -153,8 +155,14 @@ public final class HiddenCards {
         final String key;
         final String source;
         final String title;
+        final long channel;
 
         Card(String key, String source, String title) {
+            this(key, source, title, -1);
+        }
+
+        Card(String key, String source, String title, long channel) {
+            this.channel = channel;
             this.key = key;
             this.source = source;
             this.title = title;

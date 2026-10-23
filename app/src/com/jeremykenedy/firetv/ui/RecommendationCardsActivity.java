@@ -29,9 +29,12 @@ public final class RecommendationCardsActivity extends CardActivity {
         toggle = button("", new View.OnClickListener() {
             @Override public void onClick(View view) {
             boolean next = !RecommendationService.enabled(RecommendationCardsActivity.this);
-            getSharedPreferences("recommendation-cards", MODE_PRIVATE).edit().putBoolean("enabled", next).apply();
-            RecommendationService.refresh(RecommendationCardsActivity.this);
-            refresh();
+            try {
+                RecommendationService.setEnabled(RecommendationCardsActivity.this, next);
+                refresh();
+            } catch (IllegalStateException unavailable) {
+                report.setText("The recommendation setting could not be saved.");
+            }
             }
         });
         addButton(body, toggle);
