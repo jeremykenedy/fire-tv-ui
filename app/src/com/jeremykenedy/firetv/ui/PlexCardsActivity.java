@@ -341,7 +341,7 @@ public final class PlexCardsActivity extends CardActivity {
         if (saved != null
                 && saved.machine.equals(connection.machine)
                 && saved.server.equals(connection.server))
-            connection = connection.withFeeds(saved.feeds);
+            connection = connection.withFeeds(saved.feeds).withProfiles(saved.profiles);
         final PlexConnection selected = connection;
         List<PlexFeedData.Feed> feeds =
                 PlexFeedData.read(
@@ -354,7 +354,51 @@ public final class PlexCardsActivity extends CardActivity {
                                 return api.server(selected, path, count);
                             }
                         },
-                        connection.feeds);
+                        connection.feeds,
+                        Math.min(
+                                connection.feeds.cards,
+                                Math.max(
+                                        1,
+                                        24
+                                                / Math.max(
+                                                        1,
+                                                        connection.feeds.enabled.size()
+                                                                + connection.profiles.size()))));
+        for (PlexConnection.Profile profile : connection.profiles) {
+            if (!PlexSession.current(request)) return;
+            PlexConnection personal = connection.forProfile(profile);
+            int limit =
+                    Math.min(
+                            connection.feeds.cards,
+                            Math.max(
+                                    1,
+                                    24
+                                            / Math.max(
+                                                    1,
+                                                    connection.feeds.enabled.size()
+                                                            + connection.profiles.size())));
+            final List<PlexLibrary.Item> items;
+            try {
+                items =
+                        PlexLibrary.items(
+                                api.server(
+                                        personal, "/hubs/continueWatching?count=" + limit, limit),
+                                null,
+                                limit);
+            } catch (PlexApi.AuthorizationRequired expired) {
+                throw new java.io.IOException(
+                        "A selected Plex Home profile needs authorization. Open Other users'"
+                            + " Continue Watching to authorize it again. Existing cards were"
+                            + " kept.");
+            }
+            PlexFeedData.Feed feed =
+                    new PlexFeedData.Feed(
+                            "fire-tv-ui-plex-profile-" + personal.sourceKey(),
+                            "Plex " + profile.name + " Continue Watching",
+                            items);
+            feed.credentialSource = personal.sourceKey();
+            feeds.add(feed);
+        }
         if (!PlexSession.current(request)) return;
         int count = PlexCards.publish(this, api, connection, feeds, request);
         if (count < 0) return;

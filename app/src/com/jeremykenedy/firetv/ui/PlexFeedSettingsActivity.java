@@ -86,6 +86,19 @@ public final class PlexFeedSettingsActivity extends CardActivity {
         addButton(
                 body,
                 button(
+                        "Other users' Continue Watching",
+                        new android.view.View.OnClickListener() {
+                            @Override
+                            public void onClick(android.view.View view) {
+                                startActivity(
+                                        new android.content.Intent(
+                                                PlexFeedSettingsActivity.this,
+                                                PlexHomeActivity.class));
+                            }
+                        }));
+        addButton(
+                body,
+                button(
                         "Activity users: "
                                 + (settings.users.isEmpty()
                                         ? "All available"

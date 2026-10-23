@@ -17,10 +17,15 @@ final class PlexFeedData {
         final String source;
         final String title;
         final List<PlexLibrary.Item> items;
+        String credentialSource;
 
         Feed(String key, List<PlexLibrary.Item> items) {
-            this.source = source(key);
-            this.title = label(this.source);
+            this(source(key), label(source(key)), items);
+        }
+
+        Feed(String source, String title, List<PlexLibrary.Item> items) {
+            this.source = source;
+            this.title = title;
             this.items = items;
         }
     }
@@ -36,12 +41,18 @@ final class PlexFeedData {
             if (source(PlexFeedSettings.KEYS[i]).equals(source))
                 return "Plex " + PlexFeedSettings.LABELS[i];
         }
+        if (source != null && source.matches("fire-tv-ui-plex-profile-[0-9a-f]{64}"))
+            return "Plex Home Continue Watching";
         return "fire-tv-ui-plex-recent".equals(source) ? "Plex Recently Added" : null;
     }
 
     static List<Feed> read(Reader reader, PlexFeedSettings options) throws Exception {
+        return read(reader, options, options.limit());
+    }
+
+    static List<Feed> read(Reader reader, PlexFeedSettings options, int limit) throws Exception {
+        if (limit < 1 || limit > 12) throw new IllegalArgumentException("Invalid Plex card limit.");
         List<Feed> feeds = new ArrayList<>();
-        int limit = options.limit();
         for (String key : PlexFeedSettings.KEYS) {
             if (!options.enabled.contains(key)) continue;
             String path;
