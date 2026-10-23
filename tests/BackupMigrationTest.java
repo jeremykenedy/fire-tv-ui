@@ -92,6 +92,12 @@ public final class BackupMigrationTest {
             try { BackupStore.restore(context, true); throw new AssertionError("Invalid hidden identity accepted"); }
             catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
         }
+        for (Object invalid : new Object[] {-1, 6, 3600000, "5"}) {
+            Files.writeString(BackupStore.file(true).toPath(), new JSONObject()
+                    .put("featured_rotation_seconds", invalid).toString());
+            try { BackupStore.restore(context, true); throw new AssertionError("Invalid rotation accepted"); }
+            catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
+        }
         System.out.println("Device-local backup migration checks passed.");
     }
 }

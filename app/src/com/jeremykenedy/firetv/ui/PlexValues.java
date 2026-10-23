@@ -35,8 +35,17 @@ final class PlexValues {
         } catch (Exception error) {
             throw new IllegalArgumentException(
                     "Enter your Plex server address, such as http://your-server:32400, without"
-                        + " account credentials or a token.");
+                            + " account credentials or a token.");
         }
+    }
+
+    static String providerItemId(String sourceKey, String itemId) {
+        if (sourceKey == null
+                || !sourceKey.matches("[a-f0-9]{64}")
+                || itemId == null
+                || !itemId.matches("[0-9]{1,18}"))
+            throw new IllegalArgumentException("Invalid Plex item identity.");
+        return sourceKey + ":" + itemId;
     }
 
     static boolean itemPath(String path) {

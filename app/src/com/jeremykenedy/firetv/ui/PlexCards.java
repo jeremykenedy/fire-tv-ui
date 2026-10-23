@@ -72,7 +72,9 @@ final class PlexCards {
             Uri art = PlexArtwork.cache(context, api, connection, item, request);
             if (!PlexSession.current(request)) break;
             ContentValues row = new ContentValues();
-            row.put("internal_provider_id", item.id);
+            row.put(
+                    "internal_provider_id",
+                    PlexValues.providerItemId(connection.sourceKey(), item.id));
             row.put("title", item.title);
             row.put("short_description", item.summary);
             row.put(

@@ -348,6 +348,13 @@ def patch(decoded):
         '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
     featured_image.write_text(replace_method(renderer, renderer_signature, card_render))
 
+    rotation = class_paths["LQ3/h8;"]
+    rotation.write_text(replace_once(rotation.read_text(),
+        '    const-wide/16 v5, 0x1f40',
+        '    iget-object v5, v3, LQ3/T3;->a:Landroid/content/SharedPreferences;\n'
+        '    invoke-static {v5}, Lcom/jeremykenedy/firetv/ui/FeaturedCardTiming;->delay(Landroid/content/SharedPreferences;)J\n'
+        '    move-result-wide v5'))
+
     settings = class_paths["LQ3/M7;"]
     text = settings.read_text()
     text = replace_once(text, '    filled-new-array/range {v49 .. v55}, [Ljava/lang/String;',
@@ -401,42 +408,19 @@ def patch(decoded):
         '    const/4 v11, 0x0\n\n'
         '    invoke-static/range {v4 .. v11}, LQ3/M7;->I')
     text = replace_method(text, menu_signature, menu)
-    cards_anchor = ('    const-string v0, "Cards text color"\n\n'
-                    '    const/4 v1, 0x0\n\n'
-                    '    const/4 v2, 0x0\n\n'
-                    '    const/4 v3, 0x0\n\n'
-                    '    const/4 v8, 0x0\n\n'
-                    '    const/16 v12, 0x41c\n\n'
-                    '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V')
-    cards_navigation = cards_anchor.replace('    const/4 v8, 0x0',
-        '    new-instance v8, Lcom/jeremykenedy/firetv/ui/CardFocusAction;\n'
-        '    const-string v12, "Cards_Sources"\n'
-        '    invoke-direct {v8, v13, v12}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V')
-    text = replace_once(text, cards_anchor, cards_navigation + '\n\n'
-        '    const-string v0, "Cards_Sources"\n'
-        '    invoke-interface {v13, v0}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;\n'
-        '    move-result-object v4\n'
-        '    if-nez v4, :card_sources_focus_ready\n'
-        '    invoke-static {v0, v13}, LA/p;->c(Ljava/lang/String;Ljava/util/Map;)Le0/p;\n'
-        '    move-result-object v4\n'
-        '    :card_sources_focus_ready\n'
-        '    check-cast v4, Le0/p;\n'
-        '    sget-object v5, Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;->b:LN/S0;\n'
-        '    invoke-virtual {v10, v5}, LN/p;->k(LN/m0;)Ljava/lang/Object;\n'
-        '    move-result-object v5\n'
-        '    check-cast v5, Landroid/content/Context;\n'
-        '    new-instance v0, Lcom/jeremykenedy/firetv/ui/CardSourcesAction;\n'
-        '    invoke-direct {v0, v5}, Lcom/jeremykenedy/firetv/ui/CardSourcesAction;-><init>(Landroid/content/Context;)V\n'
-        '    move-object v5, v0\n'
+    text = replace_once(text,
+        '    const-string v0, "Cards_PosterMode"\n\n    move-object/from16 v13, p29',
+        '    move-object/from16 v13, p29\n'
+        '    invoke-static {v13, v10}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw(Ljava/util/Map;LN/p;)V\n\n'
+        '    const-string v0, "Cards_PosterMode"')
+    poster_start = text.index('    const-string v0, "Cards_PosterMode"')
+    poster_end = text.index('    const-string v0, "Cards_HideWatchNext"', poster_start)
+    poster_row = text[poster_start:poster_end]
+    poster_row = replace_once(poster_row, '    const/4 v7, 0x0',
         '    new-instance v7, Lcom/jeremykenedy/firetv/ui/CardFocusAction;\n'
-        '    const-string v0, "Cards_TextColor"\n'
-        '    invoke-direct {v7, v13, v0}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V\n'
-        '    const-string v0, "Featured card setup"\n'
-        '    const/4 v8, 0x0\n'
-        '    const/4 v9, 0x0\n'
-        '    const/4 v11, 0x0\n'
-        '    const/16 v12, 0x41c\n'
-        '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V')
+        '    const-string v12, "Cards_Sources"\n'
+        '    invoke-direct {v7, v13, v12}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V')
+    text = text[:poster_start] + poster_row + text[poster_end:]
     text = replace_once(text,
         '    :cond_4\n    const/high16 v0, 0x10000000\n\n'
         '    :try_start_0\n    invoke-static {p2}, Landroid/media/tv/TvContract;->buildChannelUriForPassthroughInput',
@@ -564,6 +548,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/CardSourcesAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardFocusAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardKeyAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
     patch_manifest(decoded)
 
     manifest = ET.parse(decoded / 'AndroidManifest.xml')

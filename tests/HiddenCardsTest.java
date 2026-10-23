@@ -60,8 +60,30 @@ public final class HiddenCardsTest {
             check(
                     FeaturedCardRules.validKey(persisted) && !persisted.contains("route"),
                     "Settings must persist only opaque provider identities, never intents or"
-                        + " credentials.");
+                            + " credentials.");
         }
+        HiddenCards.restoreAll(context);
+        String serverA = new String(new char[64]).replace('\0', 'a');
+        String serverB = new String(new char[64]).replace('\0', 'b');
+        String routeA = plexRoute(serverA, "42");
+        Cursor oldPlex = new Cursor("ui.test", "Continue", "42", routeA);
+        HiddenCards.visible(context, oldPlex, false);
+        String plexKey = HiddenCards.card("ui.test", Uri.parse(routeA), false).key;
+        HiddenCards.hide(context, plexKey);
+        check(
+                !HiddenCards.visible(
+                        context, new Cursor("ui.test", "Recent", serverA + ":42", routeA), false),
+                "The same Plex item remains hidden across both feeds and a provider ID upgrade.");
+        check(
+                HiddenCards.visible(
+                        context,
+                        new Cursor("ui.test", "Different server", "42", plexRoute(serverB, "42")),
+                        false),
+                "A repeated rating key on a different server must remain visible.");
+        check(
+                HiddenCards.visible(
+                        context, new Cursor("source.two", "Other publisher", "42", routeA), false),
+                "Other publishers must not inherit Plex identity normalization.");
         context.prefs.fail = true;
         try {
             HiddenCards.hide(context, b);
@@ -71,6 +93,14 @@ public final class HiddenCardsTest {
                     !HiddenCards.keys(context).contains(b),
                     "A failed save must not mutate the active hidden set.");
         }
+    }
+
+    private static String plexRoute(String server, String item) {
+        return "firetvui://plex/item/"
+                + server
+                + "/"
+                + item
+                + "#Intent;component=ui.test/.PlexItemActivity;end";
     }
 
     private static void check(boolean value, String message) {

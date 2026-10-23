@@ -17,14 +17,14 @@ public final class HiddenCards {
 
     public static boolean visible(Context context, Cursor cursor, boolean watchNext) {
         String source = value(cursor, "package_name");
+        String intent = value(cursor, "intent_uri");
         String key =
                 FeaturedCardRules.key(
                         source,
                         watchNext,
-                        value(cursor, "internal_provider_id"),
+                        providerId(context, source, value(cursor, "internal_provider_id"), intent),
                         value(cursor, "content_id"));
         if (key == null) return true;
-        String intent = value(cursor, "intent_uri");
         synchronized (cards) {
             cards.put(
                     FeaturedCardRules.lookup(source, watchNext, intent),
@@ -32,6 +32,29 @@ public final class HiddenCards {
             while (cards.size() > 2048) cards.remove(cards.keySet().iterator().next());
         }
         return !keys(context).contains(key);
+    }
+
+    private static String providerId(Context context, String source, String id, String intent) {
+        if (!context.getPackageName().equals(source)) return id;
+        try {
+            android.content.Intent launch =
+                    android.content.Intent.parseUri(
+                            intent, android.content.Intent.URI_INTENT_SCHEME);
+            Uri data = launch.getData();
+            if (launch.getComponent() == null
+                    || !(source + ".PlexItemActivity").equals(launch.getComponent().getClassName())
+                    || data == null
+                    || !"firetvui".equals(data.getScheme())
+                    || !"plex".equals(data.getAuthority())
+                    || data.getQuery() != null
+                    || data.getFragment() != null
+                    || !PlexValues.itemPath(data.getEncodedPath())) return id;
+            String item = data.getPathSegments().get(2);
+            String canonical = PlexValues.providerItemId(data.getPathSegments().get(1), item);
+            return id.equals(item) || id.equals(canonical) ? canonical : id;
+        } catch (Exception unavailable) {
+            return id;
+        }
     }
 
     static Card card(String source, Uri intent, boolean watchNext) {

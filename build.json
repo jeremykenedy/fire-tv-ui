@@ -2,7 +2,7 @@
   "name": "Fire TV UI",
   "package": "com.jeremykenedy.firetv.ui",
   "version": "1.6.0",
-  "version_code": 45,
+  "version_code": 46,
   "base_sha256": "ac34c0abf1ceee5d5133dc3e99bde9173a00c5a16132852507ed23c0fbd41341",
   "apktool_version": "3.0.3",
   "apktool_sha256": "dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423"

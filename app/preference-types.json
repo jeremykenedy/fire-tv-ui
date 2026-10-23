@@ -75,5 +75,6 @@
   "widgets_config": "String",
   "won": "Boolean",
   "hidden_featured_cards": "StringSet",
-  "featured_artwork_fit": "Boolean"
+  "featured_artwork_fit": "Boolean",
+  "featured_rotation_seconds": "Int"
 }

@@ -16,6 +16,7 @@ public final class FeaturedCardsActivity extends CardActivity {
     private LinearLayout sources;
     private TextView enabled;
     private TextView artwork;
+    private TextView rotation;
     private TextView status;
     private int generation;
 
@@ -27,8 +28,8 @@ public final class FeaturedCardsActivity extends CardActivity {
         body.addView(
                 text(
                         "Show recommendations and Continue Watching published by compatible apps."
-                            + " Amazon Home recommendations use a separate service. Installed"
-                            + " Netflix or Prime apps do not guarantee a card feed here.",
+                                + " Amazon Home recommendations use a separate service. Installed"
+                                + " Netflix or Prime apps do not guarantee a card feed here.",
                         18,
                         MUTED));
         enabled =
@@ -63,6 +64,18 @@ public final class FeaturedCardsActivity extends CardActivity {
                             }
                         });
         addButton(body, artwork);
+        rotation =
+                button(
+                        "",
+                        new android.view.View.OnClickListener() {
+                            @Override
+                            public void onClick(android.view.View view) {
+                                rotationOptions();
+                            }
+                        });
+        addButton(body, rotation);
+        body.addView(text("Rotation controls artwork in Big picture wallpaper mode.", 17, MUTED));
+
         addButton(
                 body,
                 button(
@@ -149,6 +162,43 @@ public final class FeaturedCardsActivity extends CardActivity {
                                 ? "Off"
                                 : "On"));
         artwork.setText("Artwork: " + (fit(this) ? "Fit entire image" : "Fill card (crop edges)"));
+        rotation.setText(
+                "Big-picture artwork rotation: "
+                        + FeaturedCardTiming.label(
+                                DeviceSettings.prefs(this).getInt(FeaturedCardTiming.SETTING, 8)));
+    }
+
+    private void rotationOptions() {
+        String[] labels = new String[FeaturedCardTiming.OPTIONS.length];
+        int selected = 0;
+        int current =
+                FeaturedCardTiming.seconds(
+                        DeviceSettings.prefs(this).getInt(FeaturedCardTiming.SETTING, 8));
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = FeaturedCardTiming.label(FeaturedCardTiming.OPTIONS[i]);
+            if (FeaturedCardTiming.OPTIONS[i] == current) selected = i;
+        }
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Big-picture artwork rotation")
+                .setSingleChoiceItems(
+                        labels,
+                        selected,
+                        new android.content.DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(android.content.DialogInterface dialog, int which) {
+                                if (DeviceSettings.prefs(FeaturedCardsActivity.this)
+                                        .edit()
+                                        .putInt(
+                                                FeaturedCardTiming.SETTING,
+                                                FeaturedCardTiming.OPTIONS[which])
+                                        .commit()) {
+                                    labels();
+                                    dialog.dismiss();
+                                } else status.setText("The rotation setting could not be saved.");
+                            }
+                        })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void readSources() {
@@ -209,9 +259,9 @@ public final class FeaturedCardsActivity extends CardActivity {
                                                 status.setText(
                                                         unavailable > 0
                                                                 ? "Some sources could not be read."
-                                                                      + " Open Source details for"
-                                                                      + " permission or provider"
-                                                                      + " errors."
+                                                                        + " Open Source details for"
+                                                                        + " permission or provider"
+                                                                        + " errors."
                                                                 : counts.isEmpty()
                                                                         ? "No compatible cards have"
                                                                               + " been published."
@@ -275,7 +325,7 @@ public final class FeaturedCardsActivity extends CardActivity {
                                 } catch (Exception unavailable) {
                                     status.setText(
                                             "The source change could not be saved. Existing app"
-                                                + " settings were kept.");
+                                                    + " settings were kept.");
                                 }
                             }
                         });

@@ -43,6 +43,13 @@ public final class PlexLibraryTest {
                     PlexValues.artworkName(path) == null,
                     "Private artwork must reject paths outside its exact file namespace.");
         }
+        String serverA = new String(new char[64]).replace('\0', 'a');
+        String serverB = new String(new char[64]).replace('\0', 'b');
+        String identity = PlexValues.providerItemId(serverA, "42");
+        check(identity.equals(PlexValues.providerItemId(serverA, "42")),
+                "An item must keep one provider identity across both personal feeds and reconnects.");
+        check(!identity.equals(PlexValues.providerItemId(serverB, "42")),
+                "The same rating key on a different server must not inherit a hidden-item choice.");
         String metadata =
                 "{\"MediaContainer\":{\"Metadata\":[{\"ratingKey\":\"42\",\"type\":\"episode\",\"title\":\"Episode\",\"grandparentTitle\":\"Series\",\"art\":\"/library/metadata/42/art/1\",\"viewOffset\":123,\"duration\":500},{\"ratingKey\":\"42\",\"type\":\"episode\",\"title\":\"Episode\"},{\"ratingKey\":\"bad/id\",\"type\":\"movie\",\"title\":\"Invalid\"}]}}";
         List<PlexLibrary.Item> items = PlexLibrary.items(new JSONObject(metadata));
