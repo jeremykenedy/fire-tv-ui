@@ -171,6 +171,9 @@ public final class BackupStore {
                 continue;
             }
             Object value = data.get(key);
+            if ("hidden_featured_cards".equals(key) && !(value instanceof JSONArray)) {
+                throw new JSONException("Wrong value type in setting: " + key);
+            }
             String expected = schema.optString(key, "");
             if ("Float".equals(expected) && value instanceof Number) {
                 value = ((Number) value).floatValue();
@@ -207,10 +210,17 @@ public final class BackupStore {
                 editor.putString(key, (String) value);
             } else if (value instanceof JSONArray) {
                 JSONArray array = (JSONArray) value;
+                if ("hidden_featured_cards".equals(key) && array.length() > 2048) {
+                    throw new JSONException("Too many hidden featured cards.");
+                }
                 Set<String> strings = new HashSet<>();
                 for (int i = 0; i < array.length(); i++) {
                     if (!(array.get(i) instanceof String)) {
                         throw new JSONException("Invalid list in setting: " + key);
+                    }
+                    if ("hidden_featured_cards".equals(key)
+                            && !array.getString(i).matches("[a-f0-9]{64}")) {
+                        throw new JSONException("Invalid hidden featured card identity.");
                     }
                     strings.add(array.getString(i));
                 }

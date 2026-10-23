@@ -300,14 +300,53 @@ def patch(decoded):
     copy = replace_once(copy, '    const-string v2, "Watch Next"\n\n', '')
     featured.write_text(replace_method(text, signature, copy))
 
+    for descriptor, cursor, finish, temporary in (
+            ("LQ3/F8;", "v7", ":cond_c", "v8"),
+            ("LQ3/H8;", "v8", ":cond_10", "v14")):
+        loader = class_paths[descriptor]
+        contents = loader.read_text()
+        context = "v0" if descriptor == "LQ3/F8;" else "v13"
+        watched = "0x0" if descriptor == "LQ3/F8;" else "0x1"
+        hook = ("    if-eqz v0, " + finish + "\n\n")
+        contents = replace_once(contents, hook, hook
+            + "    iget-object " + context + ", v1, " + descriptor + "->l:Landroid/content/Context;\n"
+            + "    const/4 " + temporary + ", " + watched + "\n"
+            + "    invoke-static {" + context + ", " + cursor + ", " + temporary + "}, Lcom/jeremykenedy/firetv/ui/HiddenCards;->visible(Landroid/content/Context;Landroid/database/Cursor;Z)Z\n"
+            + "    move-result " + context + "\n"
+            + "    if-eqz " + context + ", :goto_0\n\n")
+        loader.write_text(contents)
+
     featured_image = class_paths["La/a;"]
     image_signature = '.method public static final n(LQ3/S8;IILC/d;LN2/k;LN/Z;Landroid/content/Context;LN/Z;LN/p;)V'
     image = featured_image.read_text()
     image_pattern = re.compile(r'^' + re.escape(image_signature) + r'\n.*?^\.end method', re.M | re.S)
     poster = image_pattern.search(image).group(0)
     poster = replace_once(poster, 'sget-object p0, Lw0/h;->a:Lw0/J;',
-        'sget-object p0, Lw0/h;->b:Lw0/J;')
+        '''invoke-static/range {p6 .. p6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardsActivity;->fit(Landroid/content/Context;)Z
+    move-result p0
+    if-eqz p0, :featured_fill_artwork
+    sget-object p0, Lw0/h;->b:Lw0/J;
+    goto :featured_scale_ready
+    :featured_fill_artwork
+    sget-object p0, Lw0/h;->a:Lw0/J;
+    :featured_scale_ready''')
     featured_image.write_text(replace_method(image, image_signature, poster))
+
+    renderer_signature = '.method public static final m(LQ3/S8;Ln4/a;Le0/p;ZZZZJIJJLn4/a;Ln4/a;Ln4/c;IILn4/a;JLN2/k;LN/p;II)V'
+    renderer = featured_image.read_text()
+    renderer_pattern = re.compile(r'^' + re.escape(renderer_signature) + r'\n.*?^\.end method', re.M | re.S)
+    card_render = renderer_pattern.search(renderer).group(0)
+    card_render = replace_once(card_render, '    .locals 54', '    .locals 58')
+    card_render = replace_once(card_render,
+        '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;',
+        '    new-instance v54, Lcom/jeremykenedy/firetv/ui/CardKeyAction;\n'
+        '    move-object/from16 v55, v4\n'
+        '    move-object/from16 v56, v19\n'
+        '    move-object/from16 v57, p0\n'
+        '    invoke-direct/range {v54 .. v57}, Lcom/jeremykenedy/firetv/ui/CardKeyAction;-><init>(Ln4/c;Landroid/content/Context;LQ3/S8;)V\n'
+        '    move-object/from16 v4, v54\n'
+        '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
+    featured_image.write_text(replace_method(renderer, renderer_signature, card_render))
 
     settings = class_paths["LQ3/M7;"]
     text = settings.read_text()
@@ -392,7 +431,7 @@ def patch(decoded):
         '    new-instance v7, Lcom/jeremykenedy/firetv/ui/CardFocusAction;\n'
         '    const-string v0, "Cards_TextColor"\n'
         '    invoke-direct {v7, v13, v0}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V\n'
-        '    const-string v0, "Card sources and refresh"\n'
+        '    const-string v0, "Featured card setup"\n'
         '    const/4 v8, 0x0\n'
         '    const/4 v9, 0x0\n'
         '    const/4 v11, 0x0\n'
@@ -524,6 +563,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/AdvancedAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardSourcesAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardFocusAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/CardKeyAction.smali', destination)
     patch_manifest(decoded)
 
     manifest = ET.parse(decoded / 'AndroidManifest.xml')
@@ -612,7 +652,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

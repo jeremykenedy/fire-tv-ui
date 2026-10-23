@@ -26,8 +26,8 @@ public final class CardSourcesActivity extends CardActivity {
         body.addView(
                 text(
                         "Fire TV recommendations inside Amazon Home use a separate service. Only"
-                            + " Android TV cards published by apps appear here. Widgets are a"
-                            + " separate Appearance option.",
+                                + " Android TV cards published by apps appear here. Widgets are a"
+                                + " separate Appearance option.",
                         17,
                         MUTED));
         refresh =
@@ -102,12 +102,14 @@ public final class CardSourcesActivity extends CardActivity {
                                                         "Featured cards", CardSourcesActivity.this)
                                                 + "\n\n"
                                                 + watchNext.describe(
-                                                        "Continue Watching",
+                                                        "System Watch Next",
                                                         CardSourcesActivity.this)
                                                 + "\n\n"
                                                 + channels.describe(
                                                         "Live TV and app channels",
-                                                        CardSourcesActivity.this);
+                                                        CardSourcesActivity.this)
+                                                + "\n\n"
+                                                + personalFeeds();
                                 runOnUiThread(
                                         new Runnable() {
                                             @Override
@@ -124,6 +126,66 @@ public final class CardSourcesActivity extends CardActivity {
                         },
                         "read-card-sources")
                 .start();
+    }
+
+    private String personalFeeds() {
+        Map<Long, String> feeds = new LinkedHashMap<>();
+        Map<Long, Integer> counts = new LinkedHashMap<>();
+        try {
+            try (Cursor cursor =
+                    getContentResolver()
+                            .query(
+                                    Uri.parse("content://android.media.tv/channel"),
+                                    new String[] {"_id", "package_name", "internal_provider_id"},
+                                    null,
+                                    null,
+                                    null)) {
+                if (cursor == null) return "Your Plex library feeds: unavailable.";
+                while (cursor.moveToNext()) {
+                    if (!getPackageName().equals(cursor.getString(1))) continue;
+                    String logical = cursor.getString(2);
+                    String name =
+                            "fire-tv-ui-plex-continue".equals(logical)
+                                    ? "Plex Continue Watching"
+                                    : "fire-tv-ui-plex-recent".equals(logical)
+                                            ? "Plex Recently Added"
+                                            : null;
+                    if (name != null) {
+                        feeds.put(cursor.getLong(0), name);
+                        counts.put(cursor.getLong(0), 0);
+                    }
+                }
+            }
+            if (feeds.isEmpty())
+                return "Your Plex library: no personal feeds have been published."
+                        + " Connect your own server to add Continue Watching and Recently Added.";
+            try (Cursor cursor =
+                    getContentResolver()
+                            .query(
+                                    Uri.parse("content://android.media.tv/preview_program"),
+                                    new String[] {"channel_id"},
+                                    null,
+                                    null,
+                                    null)) {
+                if (cursor == null) return "Your Plex library feeds: card counts unavailable.";
+                while (cursor.moveToNext()) {
+                    long id = cursor.getLong(0);
+                    if (counts.containsKey(id)) counts.put(id, counts.get(id) + 1);
+                }
+            }
+            StringBuilder report = new StringBuilder("Your Plex library feeds:");
+            for (Map.Entry<Long, String> feed : feeds.entrySet()) {
+                report.append("\n")
+                        .append(feed.getValue())
+                        .append(": ")
+                        .append(counts.get(feed.getKey()))
+                        .append(" published cards");
+            }
+            return report.toString();
+        } catch (Exception unavailable) {
+            return "Your Plex library feeds: unavailable. The TV provider could not read these"
+                       + " feeds.";
+        }
     }
 
     private Source read(String table) {

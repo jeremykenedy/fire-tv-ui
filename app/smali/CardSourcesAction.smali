@@ -14,7 +14,7 @@
 .method public a()Ljava/lang/Object;
     .locals 3
     iget-object v0, p0, Lcom/jeremykenedy/firetv/ui/CardSourcesAction;->context:Landroid/content/Context;
-    const-class v1, Lcom/jeremykenedy/firetv/ui/CardSourcesActivity;
+    const-class v1, Lcom/jeremykenedy/firetv/ui/FeaturedCardsActivity;
     new-instance v2, Landroid/content/Intent;
     invoke-direct {v2, v0, v1}, Landroid/content/Intent;-><init>(Landroid/content/Context;Ljava/lang/Class;)V
     invoke-virtual {v0, v2}, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V

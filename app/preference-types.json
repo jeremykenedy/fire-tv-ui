@@ -73,5 +73,7 @@
   "use_24h_clock": "Boolean",
   "white_border": "Boolean",
   "widgets_config": "String",
-  "won": "Boolean"
+  "won": "Boolean",
+  "hidden_featured_cards": "StringSet",
+  "featured_artwork_fit": "Boolean"
 }
