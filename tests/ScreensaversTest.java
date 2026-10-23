@@ -62,6 +62,16 @@ public final class ScreensaversTest {
             }
             check(rejected, "Invalid timer is rejected: " + invalid);
         }
+        check(!TimeoutValues.isIdleDue(90000, 300000), "Launcher does not start at its former 90-second delay");
+        check(!TimeoutValues.isIdleDue(299999, 300000), "Five minutes does not fire early");
+        check(TimeoutValues.isIdleDue(300000, 300000), "The selected deadline starts the saver");
+        check(TimeoutValues.isIdleDue(600001, 600000), "A longer chosen delay is honored");
+        check(!TimeoutValues.isIdleDue(-1, 300000), "A clock rollback cannot start the saver");
+        check(!TimeoutValues.isIdleDue(600000, 0), "A disabled delay does not start the saver");
+        check(!TimeoutValues.isIdleDue(600000, -1), "A negative disabled delay does not start the saver");
+        check(TimeoutValues.launcherIdleDelay(300000) == 300000L, "Launcher threshold uses the chosen delay");
+        check(TimeoutValues.launcherIdleDelay(0) == Long.MAX_VALUE, "Disabled idle has no launcher deadline");
+        check(TimeoutValues.launcherIdleDelay(-1) == Long.MAX_VALUE, "Negative idle has no launcher deadline");
         check(TimeoutValues.label(0).equals("Disabled"), "A disabled timer is shown accurately");
         check(TimeoutValues.label(15000).equals("15 seconds"), "Existing sub-minute delays are not rounded");
         check(SleepTimerOptions.count() == 11, "The TV sleep timer exposes Off and every native duration");
