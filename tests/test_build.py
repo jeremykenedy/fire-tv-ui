@@ -13,6 +13,43 @@ from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
+    def test_featured_setup_keeps_required_base_navigation_callbacks(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the native launcher to check navigation callback wiring.')
+        built = classes(decoded)
+        base = built['LA3/a;'].read_text()
+        self.assertIn('const-string v3, "onSelect"', base)
+        self.assertIn('const-string v3, "onNavigateLeft"', base)
+        setup = built['Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;'].read_text()
+        manager = built['Lcom/jeremykenedy/firetv/ui/ChannelManageRow;'].read_text()
+        for row in (setup, manager):
+            self.assertIn('move-object v6, p2', row,
+                          'Every added row must receive the actual nonnull left-navigation callback.')
+            self.assertNotIn('const/4 v6, 0x0', row)
+            self.assertNotIn('const/4 v4, 0x0', row, 'The focus requester is required too.')
+        launcher = built['LQ3/M7;'].read_text()
+        setup_call = 'invoke-static {v13, v10, v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw'
+        self.assertIn(setup_call, launcher)
+        self.assertIn('move-object/from16 v73, p4', launcher,
+                      'Manage cards must navigate left using the existing onDismiss callback.')
+
+    def test_featured_card_copy_preserves_the_producer_source_and_visibility(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the native launcher to check its featured card copy.')
+        classes_by_name = classes(decoded)
+        card = classes_by_name['LQ3/S8;'].read_text()
+        start = card.index('.method public static a(LQ3/S8;)LQ3/S8;')
+        copy = card[start:card.index('.end method', start)]
+        self.assertIn('iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;', copy)
+        self.assertNotIn('const-string v2, "Watch Next"', copy)
+        self.assertIn('iget-boolean v6, p0, LQ3/S8;->f:Z', copy)
+        mapper = classes_by_name['Landroid/support/v4/media/session/b;'].read_text()
+        start = mapper.index('.method public static M(Ljava/util/List;Ljava/util/List;)Ljava/util/ArrayList;')
+        mapper = mapper[start:mapper.index('.end method', start)]
+        self.assertIn('const/4 v13, 0x1', mapper, 'Keep the verified preview inclusion behavior unchanged.')
+
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}
@@ -130,7 +167,7 @@ class BuildChecks(unittest.TestCase):
 
     def test_rainforest_update_preserves_identity_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
-        self.assertEqual(len(entries), 31)
+        self.assertEqual(len(entries), 32)
         entry = next(item for item in entries if item['id'] == 'rainforest-cascade')
         self.assertEqual(entry['package'], 'com.jeremykenedy.rainforestcascade')
         self.assertEqual(entry['dream'], 'com.jeremykenedy.rainforestcascade/.WaterfallDreamService')
@@ -172,7 +209,7 @@ class BuildChecks(unittest.TestCase):
             'nebula-drift': (
                 'Nebula Drift', 'com.jeremykenedy.nebuladrift',
                 'com.jeremykenedy.nebuladrift/.NebulaDreamService', 'jeremykenedy/nebula-drift',
-                '85964a8c4d63e9a4c3ba0624c5902e1b20d500614c676a709b393a561a6cb108', 29368),
+                '4d2d7db1d07fb7a317d4461c8946969ba83b949b7a38801d9377b4275a039f30', 29368),
             'vortex-spiral': (
                 'Vortex Spiral', 'com.jeremykenedy.vortexspiral',
                 'com.jeremykenedy.vortexspiral/.VortexDreamService', 'jeremykenedy/vortex-spiral',
@@ -192,11 +229,11 @@ class BuildChecks(unittest.TestCase):
             'aqua-surface': (
                 'Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
                 'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService', 'jeremykenedy/aqua-surface-drift',
-                'cdab28be93938018c8fefd8cf0103c94d9c0c3413ce3b4f7c0359cca7d93cf82', 45773),
+                'b0aa42f82a1561e7c27fba8229c83d00eff93498a4e3e404c580137333021049', 45773),
             'cloud-drift-clock': (
                 'Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
                 'com.jeremykenedy.clouddriftclock/.CloudDreamService', 'jeremykenedy/cloud-drift-clock',
-                '11b72b93a82012605348698b8ff53ee1be13fb8b0ffe0d128e6a1f4e23233d27', 320287),
+                '24a88c7bcc623b3c5822e4e251ad20c02853ac2c4c41b54ef8c57bbc736ae3d2', 320287),
             'earthbound-orbit': (
                 'Earthbound Orbit', 'com.jeremykenedy.earthboundorbit',
                 'com.jeremykenedy.earthboundorbit/.EarthboundOrbitDreamService',
@@ -211,12 +248,12 @@ class BuildChecks(unittest.TestCase):
                 'Split-Flap Drift', 'com.jeremykenedy.splitflapdrift',
                 'com.jeremykenedy.splitflapdrift/.SplitFlapDreamService',
                 'jeremykenedy/split-flap-drift',
-                'bf728f8c0c717fc791117c05e6f072fc5872c13dbd43ef9fd4de366cc230b820', 25272),
+                '9cbf91acf586bdf0cb056fef5d53e204ddc9be38f9e5c994a603bbd666cbb351', 29368),
             'canopy-drift': (
                 'Canopy Drift', 'com.jeremykenedy.canopydrift',
                 'com.jeremykenedy.canopydrift/.CanopyDreamService',
                 'jeremykenedy/canopy-drift',
-                '268293380036ac64bbcb200921f9d8b16be8efa6f60dab304b2c29794e5781d1', 193229),
+                '5175918229ce69cc423bfeb35daa0729ecc7be853801fa7e367a5de06ca4e14c', 197325),
             'contour-flow': (
                 'Contour Flow', 'com.jeremykenedy.contourflow',
                 'com.jeremykenedy.contourflow/.ContourFlowDreamService',
@@ -242,7 +279,7 @@ class BuildChecks(unittest.TestCase):
             self.assertEqual(entry['package'], package)
             self.assertEqual(entry['dream'], dream)
             self.assertEqual(entry['repo'], repo)
-            release_tag = {'cloud-drift-clock': 'v1.0.1', 'pipeworks-dream': 'v1.1.0'}.get(identifier, 'v1.0.0')
+            release_tag = {name: 'v1.1.0' for name in ('cloud-drift-clock', 'pipeworks-dream', 'nebula-drift', 'aqua-surface', 'split-flap-drift', 'canopy-drift')}.get(identifier, 'v1.0.0')
             self.assertEqual(entry['tag'], release_tag)
             asset = 'aqua-surface-drift.apk' if identifier == 'aqua-surface' else f'{identifier}.apk'
             self.assertEqual(entry['url'],

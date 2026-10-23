@@ -1,5 +1,15 @@
 # Screenshots
 
+## Fire TV UI 1.6.0, code 50
+
+Current signed `45345c43` output on the API 34 TV emulator uses public sample recommendations, not personal library metadata. The actual original producer action opened item B after remote Up and Center. The recommendation setup capture precedes access approval; the later Home frame shows the published cards. Listener revoke, reconnect and disable were checked separately with exact state restoration.
+
+<table><tr>
+<td><img src="../art/screenshots/cards-home-ui-1.6.0-api34.png" alt="Fire TV UI 1.6.0 with a real sample Netflix recommendation and producer source label"><br>Recommendation on Home</td>
+<td><img src="../art/screenshots/recommendation-setup-ui-1.6.0-api34.png" alt="Fire TV UI 1.6.0 optional app recommendation setup before notification access approval"><br>Explicit source access</td>
+<td><img src="../art/screenshots/recommendation-action-ui-1.6.0-api34.png" alt="Original sample producer activity confirms item B opened from the featured card using the remote"><br>Exact original action</td>
+</tr></table>
+
 ## Fire TV UI 1.4.1, code 40
 
 Current physical Fire OS output from the exact signed `ca1b8b5a` release candidate. Live TV is visible beside OwnTV on the first page. Opening it reached the native GuideActivity; the guide frame shows schedules loading and does not establish channel playback. Back and injected Home returned to Main. A hardware remote Home check remains separate.

@@ -1,6 +1,7 @@
 # Documentation
 
 - [Configuration](configuration.md)
+- [Featured cards and personal Plex](featured-cards.md)
 - [Installation and updates](installation.md)
 - [Published app update checks](updates.md)
 - [Factory UI tile](factory-home.md)
@@ -12,6 +13,8 @@
 - [Full screenshots](screenshots.md)
 
 ## Release notes
+
+- [v1.6.0](releases/v1.6.0.md)
 
 - [v1.4.1](releases/v1.4.1.md)
 - [v1.4.0](releases/v1.4.0.md)

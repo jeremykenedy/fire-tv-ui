@@ -290,6 +290,71 @@ def patch(decoded):
     return-object p1
 .end method"""))
 
+    featured = class_paths["LQ3/S8;"]
+    text = featured.read_text()
+    signature = '.method public static a(LQ3/S8;)LQ3/S8;'
+    pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
+    copy = pattern.search(text).group(0)
+    copy = replace_once(copy, '    .locals 13',
+        '    .locals 13\n\n    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;')
+    copy = replace_once(copy, '    const-string v2, "Watch Next"\n\n', '')
+    featured.write_text(replace_method(text, signature, copy))
+
+    for descriptor, cursor, finish, temporary in (
+            ("LQ3/F8;", "v7", ":cond_c", "v8"),
+            ("LQ3/H8;", "v8", ":cond_10", "v14")):
+        loader = class_paths[descriptor]
+        contents = loader.read_text()
+        context = "v0" if descriptor == "LQ3/F8;" else "v13"
+        watched = "0x0" if descriptor == "LQ3/F8;" else "0x1"
+        hook = ("    if-eqz v0, " + finish + "\n\n")
+        contents = replace_once(contents, hook, hook
+            + "    iget-object " + context + ", v1, " + descriptor + "->l:Landroid/content/Context;\n"
+            + "    const/4 " + temporary + ", " + watched + "\n"
+            + "    invoke-static {" + context + ", " + cursor + ", " + temporary + "}, Lcom/jeremykenedy/firetv/ui/HiddenCards;->visible(Landroid/content/Context;Landroid/database/Cursor;Z)Z\n"
+            + "    move-result " + context + "\n"
+            + "    if-eqz " + context + ", :goto_0\n\n")
+        loader.write_text(contents)
+
+    featured_image = class_paths["La/a;"]
+    image_signature = '.method public static final n(LQ3/S8;IILC/d;LN2/k;LN/Z;Landroid/content/Context;LN/Z;LN/p;)V'
+    image = featured_image.read_text()
+    image_pattern = re.compile(r'^' + re.escape(image_signature) + r'\n.*?^\.end method', re.M | re.S)
+    poster = image_pattern.search(image).group(0)
+    poster = replace_once(poster, 'sget-object p0, Lw0/h;->a:Lw0/J;',
+        '''invoke-static/range {p6 .. p6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardsActivity;->fit(Landroid/content/Context;)Z
+    move-result p0
+    if-eqz p0, :featured_fill_artwork
+    sget-object p0, Lw0/h;->b:Lw0/J;
+    goto :featured_scale_ready
+    :featured_fill_artwork
+    sget-object p0, Lw0/h;->a:Lw0/J;
+    :featured_scale_ready''')
+    featured_image.write_text(replace_method(image, image_signature, poster))
+
+    renderer_signature = '.method public static final m(LQ3/S8;Ln4/a;Le0/p;ZZZZJIJJLn4/a;Ln4/a;Ln4/c;IILn4/a;JLN2/k;LN/p;II)V'
+    renderer = featured_image.read_text()
+    renderer_pattern = re.compile(r'^' + re.escape(renderer_signature) + r'\n.*?^\.end method', re.M | re.S)
+    card_render = renderer_pattern.search(renderer).group(0)
+    card_render = replace_once(card_render, '    .locals 54', '    .locals 58')
+    card_render = replace_once(card_render,
+        '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;',
+        '    new-instance v54, Lcom/jeremykenedy/firetv/ui/CardKeyAction;\n'
+        '    move-object/from16 v55, v4\n'
+        '    move-object/from16 v56, v19\n'
+        '    move-object/from16 v57, p0\n'
+        '    invoke-direct/range {v54 .. v57}, Lcom/jeremykenedy/firetv/ui/CardKeyAction;-><init>(Ln4/c;Landroid/content/Context;LQ3/S8;)V\n'
+        '    move-object/from16 v4, v54\n'
+        '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
+    featured_image.write_text(replace_method(renderer, renderer_signature, card_render))
+
+    rotation = class_paths["LQ3/h8;"]
+    rotation.write_text(replace_once(rotation.read_text(),
+        '    const-wide/16 v5, 0x1f40',
+        '    iget-object v5, v3, LQ3/T3;->a:Landroid/content/SharedPreferences;\n'
+        '    invoke-static {v5}, Lcom/jeremykenedy/firetv/ui/FeaturedCardTiming;->delay(Landroid/content/SharedPreferences;)J\n'
+        '    move-result-wide v5'))
+
     settings = class_paths["LQ3/M7;"]
     text = settings.read_text()
     text = replace_once(text, '    filled-new-array/range {v49 .. v55}, [Ljava/lang/String;',
@@ -343,6 +408,43 @@ def patch(decoded):
         '    const/4 v11, 0x0\n\n'
         '    invoke-static/range {v4 .. v11}, LQ3/M7;->I')
     text = replace_method(text, menu_signature, menu)
+    text = replace_once(text,
+        '    const-string v0, "Cards_PosterMode"\n\n    move-object/from16 v13, p29',
+        '    move-object/from16 v13, p29\n'
+        '    const-string v0, "Cards_PosterMode"')
+    poster_start = text.index('    const-string v0, "Cards_PosterMode"')
+    poster_end = text.index('    const-string v0, "Cards_HideWatchNext"', poster_start)
+    poster_row = text[poster_start:poster_end]
+    poster_row = replace_once(poster_row, '    const/4 v7, 0x0',
+        '    new-instance v7, Lcom/jeremykenedy/firetv/ui/CardFocusAction;\n'
+        '    const-string v12, "Cards_Sources"\n'
+        '    invoke-direct {v7, v13, v12}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V')
+    poster_row = replace_once(poster_row,
+        '    invoke-static/range {v0 .. v12}, LA3/a;->A',
+        '    invoke-static {v13, v10, v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw(Ljava/util/Map;LN/p;Ln4/a;)V\n\n'
+        '    invoke-static/range {v0 .. v12}, LA3/a;->A')
+    text = text[:poster_start] + poster_row + text[poster_end:]
+    channel_signature = '.method public static final j(Ljava/util/List;Ljava/util/Map;Ln4/a;Ln4/c;Ln4/a;LN/p;I)V'
+    channel_pattern = re.compile(r'^' + re.escape(channel_signature) + r'\n.*?^\.end method', re.M | re.S)
+    channel_manager = channel_pattern.search(text).group(0)
+    channel_manager = replace_once(channel_manager, '    .locals 71', '    .locals 74')
+    channel_manager = replace_once(channel_manager,
+        '    invoke-static {v4, v15}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;',
+        '    move-object/from16 v71, v15\n'
+        '    move-object/from16 v72, v40\n'
+        '    move-object/from16 v73, v9\n'
+        '    invoke-static/range {v71 .. v73}, Lcom/jeremykenedy/firetv/ui/ChannelCardsKeyAction;->wrap(Ln4/c;LQ3/l5;LN/p;)Ln4/c;\n'
+        '    move-result-object v15\n'
+        '    invoke-static {v4, v15}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
+    channel_manager = replace_once(channel_manager,
+        '    const v6, -0x14adc380',
+        '    move-object/from16 v71, v40\n'
+        '    move-object/from16 v72, v9\n'
+        '    move-object/from16 v73, p4\n'
+        '    invoke-static/range {v71 .. v73}, Lcom/jeremykenedy/firetv/ui/ChannelManageRow;->draw(LQ3/l5;LN/p;Ln4/a;)V\n\n'
+        '    const v6, -0x14adc380')
+    text = replace_method(text, channel_signature, channel_manager)
+
     text = replace_once(text,
         '    :cond_4\n    const/high16 v0, 0x10000000\n\n'
         '    :try_start_0\n    invoke-static {p2}, Landroid/media/tv/TvContract;->buildChannelUriForPassthroughInput',
@@ -467,7 +569,28 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/BackupAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/SystemControlsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/AdvancedAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/CardSourcesAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/CardFocusAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/CardKeyAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
+    shutil.copy(ROOT / 'app/smali/ChannelCardsAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/ChannelManageRow.smali', destination)
+    shutil.copy(ROOT / 'app/smali/ChannelCardsKeyAction.smali', destination)
     patch_manifest(decoded)
+
+    manifest = ET.parse(decoded / 'AndroidManifest.xml')
+    application = manifest.getroot().find('application')
+    ET.SubElement(application, 'provider', {
+        ANDROID + 'name': CONFIG['package'] + '.PlexArtworkProvider',
+        ANDROID + 'authorities': CONFIG['package'] + '.plex.art',
+        ANDROID + 'exported': 'false',
+    })
+    ET.SubElement(application, 'provider', {
+        ANDROID + 'name': CONFIG['package'] + '.RecommendationArtworkProvider',
+        ANDROID + 'authorities': CONFIG['package'] + '.recommendation.art',
+        ANDROID + 'exported': 'false',
+    })
+    manifest.write(decoded / 'AndroidManifest.xml', encoding='utf-8', xml_declaration=True)
 
     metadata = decoded / 'apktool.yml'
     text = metadata.read_text()
@@ -546,13 +669,23 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',
             ANDROID + 'screenOrientation': 'landscape',
             ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
         })
+    listener = ET.SubElement(app, 'service', {
+        ANDROID + 'name': CONFIG['package'] + '.RecommendationService',
+        ANDROID + 'label': 'Fire TV UI app recommendation cards',
+        ANDROID + 'exported': 'false',
+        ANDROID + 'permission': 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE',
+    })
+    listener_filter = ET.SubElement(listener, 'intent-filter')
+    ET.SubElement(listener_filter, 'action', {
+        ANDROID + 'name': 'android.service.notification.NotificationListenerService',
+    })
     provider = ET.SubElement(app, 'provider', {
         ANDROID + 'name': CONFIG['package'] + '.PackageFileProvider',
         ANDROID + 'authorities': CONFIG['package'] + '.install',

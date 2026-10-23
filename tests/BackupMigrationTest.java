@@ -77,6 +77,27 @@ public final class BackupMigrationTest {
         BackupStore.simpleSetup(fresh);
         check(DeviceSettings.repaired && Integer.valueOf(5).equals(fresh.prefs.values.get("apps_per_row")));
         check(fresh.prefs.values.get(REMOTE).equals("destination-identity"));
+        String hidden = new String(new char[64]).replace('\0', 'a');
+        Files.writeString(BackupStore.file(true).toPath(), new JSONObject()
+                .put("hidden_featured_cards", new org.json.JSONArray().put(hidden)).toString());
+        BackupStore.restore(context, true);
+        check(((java.util.Set<?>) context.prefs.values.get("hidden_featured_cards")).contains(hidden));
+        BackupStore.save(context);
+        check(new JSONObject(Files.readString(BackupStore.file(false).toPath()))
+                .getJSONArray("hidden_featured_cards").getString(0).equals(hidden));
+        Map<String,Object> hiddenBefore = new HashMap<>(context.prefs.values);
+        for (Object bad : new Object[] {"raw-intent", new org.json.JSONArray().put("raw-intent")}) {
+            Files.writeString(BackupStore.file(true).toPath(), new JSONObject()
+                    .put("hidden_featured_cards", bad).toString());
+            try { BackupStore.restore(context, true); throw new AssertionError("Invalid hidden identity accepted"); }
+            catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
+        }
+        for (Object invalid : new Object[] {-1, 6, 3600000, "5"}) {
+            Files.writeString(BackupStore.file(true).toPath(), new JSONObject()
+                    .put("featured_rotation_seconds", invalid).toString());
+            try { BackupStore.restore(context, true); throw new AssertionError("Invalid rotation accepted"); }
+            catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
+        }
         System.out.println("Device-local backup migration checks passed.");
     }
 }

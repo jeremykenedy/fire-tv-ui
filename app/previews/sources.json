@@ -80,12 +80,28 @@
     "source_sha256": "fa1387f06a7ec1ac4e5d03657094218b311cdea01d5ff8f704e23788d8a91f2a"
   },
   "com.jeremykenedy.jellyfishdrift/com.jeremykenedy.jellyfishdrift.JellyfishDreamService": {
-    "capture_note": "Actual Jellyfish Drift DreamService on the Fire TV, reused from the published screensaver project.",
-    "captured_on": "2026-10-08",
-    "preview_sha256": "3589a0b1664d7a45bbb66947d9d964236bfac51ffa2f795b7f751efe4fa7a953",
-    "source_file": "docs/screenshots/jellyfish-dream-fire-tv.jpg",
+    "apk_sha256": "2e3a8e5ad912b40bb614568e83c0f752b26e5be3bf9e8f06bb02e917063e3cb2",
+    "capture_note": "Actual physical Fire TV API30 non-test Dream, published v3.0.0 Android code7, clock OFF; original classic artwork",
+    "captured_on": "2026-10-22",
+    "preview_sha256": "c2a9994b8b3f6ff3e0242d631442ccb20cb5f77b499c7efbd2ac0ebd4dd5dc6a",
+    "settings_schema_count": 7,
+    "source_file": "art/screenshots/jellyfish-classic-3-physical.png",
     "source_project": "jeremykenedy/jellyfish-drift",
-    "source_sha256": "85a581e333876983dc6e80ef9f1206b58e607acf1f007c7d4663f60f1c27fbef"
+    "source_sha256": "18c2334c2bf93250947a68f6201733da8c6768543e4f4e2f63dd65d9fc3ef39d"
+  },
+  "com.jeremykenedy.jellyfishdriftv2/com.jeremykenedy.jellyfishdriftv2.JellyfishDreamService": {
+    "apk_sha256": "90697388e2719412136ecf9ee0859f9245a17fb22188e9cfeb14d685a9e5b2ed",
+    "attribution": "Aurelia labiata swimming by Eric Polk, CC BY-SA4.0. This thumbnail derives from the adapted Blue aquarium recording; resized from native capture.",
+    "capture_note": "Actual physical Fire TV API30 non-test Dream, published v2.0.0 Android code2, Blue aquarium0.9x clock OFF. Derived from Eric Polk Aurelia labiata swimming, CC BY-SA4.0; silent edited-loop source.",
+    "captured_on": "2026-10-22",
+    "license": "CC-BY-SA-4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "preview_sha256": "b192b482aabd80a412b7424ddbed9fcd181923c7fe8e61bbe67a6348405c79ce",
+    "settings_schema_count": 4,
+    "source_file": "art/screenshots/jellyfish-v2-2-physical.png",
+    "source_project": "jeremykenedy/jellyfish-drift-v2",
+    "source_sha256": "15a646bf7cc72d861c77ae38d5c4d58eb8f6dffbd6ceb88a794cb2bcce3e1d2e",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Aurelia_labiata_swimming.webm"
   },
   "com.jeremykenedy.nebuladrift/com.jeremykenedy.nebuladrift.NebulaDreamService": {
     "capture_note": "Running Nebula Drift screensaver on Android TV emulator emulator-5584.",
