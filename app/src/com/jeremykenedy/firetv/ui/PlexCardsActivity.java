@@ -16,6 +16,7 @@ public final class PlexCardsActivity extends CardActivity {
     private TextView status;
     private TextView connect;
     private TextView refresh;
+    private TextView recheck;
     private boolean destroyed;
     private long activeRequest;
 
@@ -68,6 +69,16 @@ public final class PlexCardsActivity extends CardActivity {
                             }
                         });
         addButton(body, connect);
+        recheck =
+                button(
+                        "Recheck approved link",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                recheck();
+                            }
+                        });
+        addButton(body, recheck);
         refresh =
                 button(
                         "Refresh my library cards",
@@ -177,15 +188,7 @@ public final class PlexCardsActivity extends CardActivity {
                                         if (token == null) continue;
                                         if (!PlexSession.current(request)) return;
                                         PlexConnection connection =
-                                                new PlexConnection(server, token, machine);
-                                        JSONObject authorized =
-                                                api.server(connection, "/")
-                                                        .getJSONObject("MediaContainer");
-                                        if (!machine.equals(
-                                                authorized.optString("machineIdentifier")))
-                                            throw new java.io.IOException(
-                                                    "The Plex server identity changed. Check its"
-                                                            + " address and connect again.");
+                                                api.authorize(server, machine, token);
                                         synchronize(api, connection, request);
                                         return;
                                     }
@@ -193,12 +196,12 @@ public final class PlexCardsActivity extends CardActivity {
                                             request,
                                             "The pairing code expired. Connect again for a new"
                                                     + " code.");
-                                } catch (PlexApi.AuthorizationRequired error) {
+                                } catch (PlexApi.RequestFailure error) {
                                     show(
                                             request,
-                                            "Plex authorization was not accepted by this server."
-                                                + " Your previous saved connection has been kept."
-                                                + " Connect again to retry.");
+                                            error.getMessage()
+                                                    + " Use Recheck approved link if you already"
+                                                    + " approved this TV.");
                                 } catch (Exception error) {
                                     show(
                                             request,
@@ -211,6 +214,57 @@ public final class PlexCardsActivity extends CardActivity {
                             }
                         },
                         "pair-personal-plex")
+                .start();
+    }
+
+    private void recheck() {
+        final String server;
+        try {
+            server = PlexValues.serverBase(address.getText().toString());
+        } catch (IllegalArgumentException error) {
+            status.setText(error.getMessage());
+            return;
+        }
+        final long request = activeRequest = PlexSession.begin();
+        busy(true);
+        show(request, "Rechecking this TV's approved Plex link without requesting a new code...");
+        new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    PlexApi api = new PlexApi(PlexCardsActivity.this, request);
+                                    String machine =
+                                            api.server(
+                                                            new PlexConnection(server, null),
+                                                            "/identity")
+                                                    .getJSONObject("MediaContainer")
+                                                    .getString("machineIdentifier");
+                                    String accountToken = api.refreshToken();
+                                    if (!PlexSession.current(request)) return;
+                                    synchronize(
+                                            api,
+                                            api.authorize(server, machine, accountToken),
+                                            request);
+                                } catch (PlexApi.RequestFailure error) {
+                                    show(
+                                            request,
+                                            error.getMessage()
+                                                    + " Your previous saved connection has been"
+                                                    + " kept.");
+                                } catch (Exception error) {
+                                    show(
+                                            request,
+                                            "The approved link could not finish connecting to this"
+                                                + " server. Check its address and account access,"
+                                                + " then retry. Your previous saved connection has"
+                                                + " been kept.");
+                                } finally {
+                                    finishRequest(request);
+                                }
+                            }
+                        },
+                        "recheck-approved-plex")
                 .start();
     }
 
@@ -236,18 +290,18 @@ public final class PlexCardsActivity extends CardActivity {
                                         String token = api.refreshToken();
                                         synchronize(
                                                 api,
-                                                new PlexConnection(
+                                                api.authorize(
                                                         connection.server,
-                                                        token,
-                                                        connection.machine),
+                                                        connection.machine,
+                                                        token),
                                                 request);
                                     }
-                                } catch (PlexApi.AuthorizationRequired error) {
+                                } catch (PlexApi.RequestFailure error) {
                                     show(
                                             request,
-                                            "Plex needs you to connect this TV again. Existing"
-                                                    + " cards and the saved connection have been"
-                                                    + " kept.");
+                                            error.getMessage()
+                                                    + " Existing cards and the saved connection"
+                                                    + " have been kept.");
                                 } catch (Exception error) {
                                     show(
                                             request,
@@ -332,6 +386,7 @@ public final class PlexCardsActivity extends CardActivity {
     private void busy(boolean value) {
         connect.setEnabled(!value);
         refresh.setEnabled(!value);
+        recheck.setEnabled(!value);
         address.setEnabled(!value);
     }
 

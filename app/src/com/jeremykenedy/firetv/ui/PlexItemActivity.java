@@ -1,5 +1,6 @@
 package com.jeremykenedy.firetv.ui;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,7 +12,12 @@ import java.util.List;
 
 public final class PlexItemActivity extends CardActivity {
     private TextView details;
+    private TextView open;
+    private TextView resume;
+    private String source;
+    private String id;
     private long request;
+    private boolean reading;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -20,25 +26,28 @@ public final class PlexItemActivity extends CardActivity {
         LinearLayout body = scrollBody();
         details = text("Reading this item from your Plex server...", 18, INK);
         body.addView(details);
-        addButton(
-                body,
+        open =
                 button(
-                        "Open Plex",
+                        "Open item in Plex",
                         new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                Intent plex =
-                                        getPackageManager()
-                                                .getLaunchIntentForPackage("com.plexapp.android");
-                                if (plex == null) {
-                                    details.setText(
-                                            "Install the Plex app on this TV to open Plex.");
-                                } else {
-                                    startActivity(plex);
-                                }
+                                readItem(true, false);
                             }
-                        }));
-        body.addView(text("Open Plex to browse your library in the installed app.", 17, MUTED));
+                        });
+        resume =
+                button(
+                        "Resume in Plex",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                readItem(true, true);
+                            }
+                        });
+        addButton(body, open);
+        addButton(body, resume);
+        open.setVisibility(View.GONE);
+        resume.setVisibility(View.GONE);
         Uri uri = getIntent().getData();
         if (uri == null
                 || !"firetvui".equals(uri.getScheme())
@@ -49,9 +58,17 @@ public final class PlexItemActivity extends CardActivity {
             details.setText("This Plex card is invalid. Refresh your library cards.");
             return;
         }
-        String source = uri.getPathSegments().get(1);
-        String id = uri.getPathSegments().get(2);
+        source = uri.getPathSegments().get(1);
+        id = uri.getPathSegments().get(2);
         request = PlexSession.begin();
+        readItem(false, false);
+    }
+
+    private void readItem(boolean launch, boolean resumePlayback) {
+        if (reading || !PlexSession.current(request)) return;
+        reading = true;
+        open.setVisibility(View.GONE);
+        resume.setVisibility(View.GONE);
         new Thread(
                         new Runnable() {
                             @Override
@@ -61,26 +78,77 @@ public final class PlexItemActivity extends CardActivity {
                                             PlexConnection.load(PlexItemActivity.this);
                                     if (connection == null
                                             || !source.equals(connection.sourceKey())) {
-                                        show(
+                                        showError(
                                                 "This card belongs to a previous server connection."
                                                         + " Refresh your Plex library cards.");
                                         return;
                                     }
                                     PlexApi api = new PlexApi(PlexItemActivity.this, request);
+                                    String machine =
+                                            api.server(connection, "/identity")
+                                                    .getJSONObject("MediaContainer")
+                                                    .getString("machineIdentifier");
+                                    if (connection.machine.isEmpty()
+                                            || !connection.machine.equals(machine)) {
+                                        showError(
+                                                "The Plex server identity changed. Reconnect your"
+                                                        + " server before opening this item.");
+                                        return;
+                                    }
                                     List<PlexLibrary.Item> items =
                                             PlexLibrary.items(
                                                     api.server(
                                                             connection, "/library/metadata/" + id));
                                     if (items.isEmpty() || !id.equals(items.get(0).id)) {
-                                        show(
+                                        showError(
                                                 "This item is no longer available on your server."
                                                         + " Refresh your Plex library cards.");
                                         return;
                                     }
                                     PlexLibrary.Item item = items.get(0);
-                                    show(item.title + "\n\n" + item.summary);
+                                    String detailsLink = PlexItemLinks.details(machine, item);
+                                    String resumeLink = PlexItemLinks.resume(machine, item);
+                                    runOnUiThread(
+                                            new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (!active()) return;
+                                                    reading = false;
+                                                    details.setText(
+                                                            item.title + "\n\n" + item.summary);
+                                                    open.setVisibility(
+                                                            detailsLink == null
+                                                                    ? View.GONE
+                                                                    : View.VISIBLE);
+                                                    resume.setVisibility(
+                                                            resumeLink == null
+                                                                    ? View.GONE
+                                                                    : View.VISIBLE);
+                                                    if (detailsLink == null) {
+                                                        details.append(
+                                                                "\n\n"
+                                                                    + "This item cannot be opened"
+                                                                    + " in Plex. Refresh your"
+                                                                    + " library cards.");
+                                                    } else if (launch) {
+                                                        String link =
+                                                                resumePlayback
+                                                                        ? resumeLink
+                                                                        : detailsLink;
+                                                        if (link == null) {
+                                                            details.append(
+                                                                    "\n\n"
+                                                                        + "This item no longer has"
+                                                                        + " a saved playback"
+                                                                        + " position to resume.");
+                                                        } else {
+                                                            openItem(link);
+                                                        }
+                                                    }
+                                                }
+                                            });
                                 } catch (Exception error) {
-                                    show(
+                                    showError(
                                             "This Plex item could not be read. Check your server or"
                                                     + " refresh your Plex connection.");
                                 }
@@ -90,13 +158,37 @@ public final class PlexItemActivity extends CardActivity {
                 .start();
     }
 
-    private void show(String value) {
+    private void openItem(String link) {
+        try {
+            PlexSession.commit(
+                    request,
+                    new PlexSession.Change() {
+                        @Override
+                        public void apply() {
+                            startActivity(
+                                    new Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                                            .setPackage("com.plexapp.android"));
+                        }
+                    });
+        } catch (ActivityNotFoundException unavailable) {
+            details.append("\n\nInstall or update Plex on this TV to open this item.");
+        } catch (Exception unavailable) {
+            details.append("\n\nPlex could not open this item. Your library connection is saved.");
+        }
+    }
+
+    private boolean active() {
+        return !isFinishing() && !isDestroyed() && PlexSession.current(request);
+    }
+
+    private void showError(String value) {
         runOnUiThread(
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (!isFinishing() && !isDestroyed() && PlexSession.current(request))
-                            details.setText(value);
+                        if (!active()) return;
+                        reading = false;
+                        details.setText(value);
                     }
                 });
     }

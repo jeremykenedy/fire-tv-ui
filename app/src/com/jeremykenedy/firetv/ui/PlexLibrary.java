@@ -56,8 +56,25 @@ final class PlexLibrary {
                             art,
                             landscape,
                             Math.max(0, value.optLong("viewOffset", 0)),
-                            Math.max(0, value.optLong("duration", 0))));
+                            Math.max(0, value.optLong("duration", 0)),
+                            value.optString("key", ""),
+                            playable(value.optJSONArray("Media"))));
         }
+    }
+
+    private static boolean playable(JSONArray media) {
+        if (media == null) return false;
+        for (int i = 0; i < media.length(); i++) {
+            JSONObject version = media.optJSONObject(i);
+            JSONArray parts = version == null ? null : version.optJSONArray("Part");
+            if (parts == null) continue;
+            for (int j = 0; j < parts.length(); j++) {
+                JSONObject part = parts.optJSONObject(j);
+                String key = part == null ? "" : part.optString("key", "");
+                if (key.startsWith("/library/parts/") && PlexValues.libraryPath(key)) return true;
+            }
+        }
+        return false;
     }
 
     static final class Item {
@@ -69,6 +86,8 @@ final class PlexLibrary {
         final boolean landscape;
         final long position;
         final long duration;
+        final String key;
+        final boolean playable;
 
         Item(
                 String id,
@@ -78,7 +97,9 @@ final class PlexLibrary {
                 String art,
                 boolean landscape,
                 long position,
-                long duration) {
+                long duration,
+                String key,
+                boolean playable) {
             this.id = id;
             this.title = title;
             this.summary = summary;
@@ -87,6 +108,8 @@ final class PlexLibrary {
             this.landscape = landscape;
             this.position = position;
             this.duration = duration;
+            this.key = key;
+            this.playable = playable;
         }
     }
 }

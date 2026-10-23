@@ -2,6 +2,7 @@ package com.jeremykenedy.firetv.ui;
 
 import android.content.Context;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -25,7 +26,8 @@ final class PlexApi {
                 ACCOUNT + "/pins",
                 "POST",
                 null,
-                new JSONObject().put("jwk", keys.jwk()).put("strong", false));
+                new JSONObject().put("jwk", keys.jwk()).put("strong", false),
+                "Pairing request");
     }
 
     String pollPin(long pin) throws Exception {
@@ -38,25 +40,92 @@ final class PlexApi {
                                 + URLEncoder.encode(keys.jwt(null), "UTF-8"),
                         "GET",
                         null,
-                        null);
+                        null,
+                        "Pairing approval");
         String token = result.optString("authToken", "");
         return token.isEmpty() || "null".equals(token) ? null : token;
     }
 
     String refreshToken() throws Exception {
-        String nonce = json(ACCOUNT + "/auth/nonce", "GET", null, null).getString("nonce");
+        String nonce =
+                json(ACCOUNT + "/auth/nonce", "GET", null, null, "Account refresh nonce")
+                        .getString("nonce");
         return json(
                         ACCOUNT + "/auth/token",
                         "POST",
                         null,
-                        new JSONObject().put("jwt", keys.jwt(nonce)))
+                        new JSONObject().put("jwt", keys.jwt(nonce)),
+                        "Account refresh")
                 .getString("auth_token");
+    }
+
+    PlexConnection authorize(String server, String machine, String accountToken) throws Exception {
+        JSONArray resources =
+                new JSONArray(
+                        new String(
+                                request(
+                                        ACCOUNT
+                                                + "/resources?includeHttps=1&includeRelay=1&includeIPv6=1",
+                                        "GET",
+                                        accountToken,
+                                        null,
+                                        8 * 1024 * 1024,
+                                        "Server access discovery"),
+                                StandardCharsets.UTF_8));
+        PlexConnection connection =
+                new PlexConnection(
+                        server,
+                        PlexResources.serverToken(resources, machine),
+                        machine,
+                        accountToken);
+        try {
+            verifyServer(connection);
+            return connection;
+        } catch (AuthorizationRequired unsupported) {
+            // Some PMS versions reject the JWT returned by resources, but accept
+            // the same server's legacy credential from the approved device list.
+            JSONArray devices =
+                    new JSONArray(
+                            new String(
+                                    request(
+                                            ACCOUNT + "/devices",
+                                            "GET",
+                                            accountToken,
+                                            null,
+                                            8 * 1024 * 1024,
+                                            "Server device access discovery"),
+                                    StandardCharsets.UTF_8));
+            PlexConnection compatible =
+                    new PlexConnection(
+                            server,
+                            PlexResources.deviceToken(devices, machine),
+                            machine,
+                            accountToken);
+            verifyServer(compatible);
+            return compatible;
+        }
+    }
+
+    private void verifyServer(PlexConnection connection) throws Exception {
+        String actual =
+                server(connection, "/")
+                        .getJSONObject("MediaContainer")
+                        .optString("machineIdentifier", "");
+        if (!connection.machine.equals(actual))
+            throw new IOException("The Plex server identity changed. Check its address and retry.");
     }
 
     JSONObject server(PlexConnection connection, String path) throws Exception {
         if (!path.startsWith("/") || path.startsWith("//"))
             throw new IOException("The Plex request is invalid.");
-        return json(PlexValues.serverBase(connection.server) + path, "GET", connection.token, null);
+        return json(
+                PlexValues.serverBase(connection.server) + path,
+                "GET",
+                connection.token,
+                null,
+                "/identity".equals(path)
+                        ? "Server identity"
+                        : "/".equals(path) ? "Server access" : "Library read");
     }
 
     byte[] artwork(PlexConnection connection, String path) throws Exception {
@@ -67,18 +136,20 @@ final class PlexApi {
                 "GET",
                 connection.token,
                 null,
-                4 * 1024 * 1024);
+                4 * 1024 * 1024,
+                "Artwork");
     }
 
-    private JSONObject json(String url, String method, String token, JSONObject body)
+    private JSONObject json(String url, String method, String token, JSONObject body, String phase)
             throws Exception {
         return new JSONObject(
                 new String(
-                        request(url, method, token, body, 8 * 1024 * 1024),
+                        request(url, method, token, body, 8 * 1024 * 1024, phase),
                         StandardCharsets.UTF_8));
     }
 
-    private byte[] request(String url, String method, String token, JSONObject body, int limit)
+    private byte[] request(
+            String url, String method, String token, JSONObject body, int limit, String phase)
             throws Exception {
         HttpURLConnection request = null;
         try {
@@ -90,7 +161,7 @@ final class PlexApi {
             request.setRequestProperty("Accept", "application/json");
             request.setRequestProperty("X-Plex-Client-Identifier", keys.clientId());
             request.setRequestProperty("X-Plex-Product", "Fire TV UI");
-            request.setRequestProperty("X-Plex-Version", "1.5.0");
+            request.setRequestProperty("X-Plex-Version", "1.6.0");
             request.setRequestProperty("X-Plex-Platform", "Android");
             request.setRequestProperty("X-Plex-Device", "Fire TV");
             request.setRequestProperty("X-Plex-Container-Start", "0");
@@ -106,10 +177,8 @@ final class PlexApi {
                 }
             }
             int status = request.getResponseCode();
-            if (status == 401 || status == 498) throw new AuthorizationRequired();
-            if (status < 200 || status >= 300)
-                throw new IOException(
-                        "Plex returned HTTP " + status + ". Keep the saved connection and retry.");
+            if (status == 401 || status == 498) throw new AuthorizationRequired(phase, status);
+            if (status < 200 || status >= 300) throw new RequestFailure(phase, status);
             try (InputStream input = request.getInputStream();
                     ByteArrayOutputStream output = new ByteArrayOutputStream()) {
                 byte[] buffer = new byte[8192];
@@ -121,21 +190,31 @@ final class PlexApi {
                 }
                 return output.toByteArray();
             }
-        } catch (AuthorizationRequired error) {
+        } catch (RequestFailure error) {
             throw error;
         } catch (Exception error) {
             // Network exceptions can contain the device JWT from the PIN request URL.
-            throw new IOException(
-                    "Plex could not complete this request. Check the server and connection, then"
-                        + " retry.");
+            throw new RequestFailure(phase, 0);
         } finally {
             if (request != null) request.disconnect();
         }
     }
 
-    static final class AuthorizationRequired extends IOException {
-        AuthorizationRequired() {
-            super("Plex authorization needs to be refreshed or connected again.");
+    static class RequestFailure extends IOException {
+        RequestFailure(String phase, int status) {
+            super(
+                    phase
+                            + (status == 0
+                                    ? " could not finish. Check the connection and retry."
+                                    : " returned HTTP "
+                                            + status
+                                            + ". Retry without clearing your saved connection."));
+        }
+    }
+
+    static final class AuthorizationRequired extends RequestFailure {
+        AuthorizationRequired(String phase, int status) {
+            super(phase, status);
         }
     }
 }
