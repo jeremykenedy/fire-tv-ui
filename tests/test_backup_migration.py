@@ -17,11 +17,16 @@ class BackupMigrationChecks(unittest.TestCase):
                     'status_bar_weather_loc', 'accessibility_consent_shown',
                     'fire_tv_ui_dream', 'fire_tv_ui_dream_enabled'):
             self.assertNotIn(key, data)
-        self.assertEqual(data['apps_per_row'], 5)
+        self.assertEqual(data['apps_per_row'], 6)
+        self.assertEqual(data['custom_gradient'], 'Electric Indigo')
+        self.assertFalse(data['hide_watch_next'])
+        self.assertNotIn('hidden_featured_cards', data)
+        self.assertNotIn('featured_feed_order', data)
         order = data['display_order'].split(',')
         self.assertEqual(order[:4], ['com.plexapp.android', 'com.netflix.ninja',
                                      'com.tubitv.ott', 'com.amazon.firebat'])
-        self.assertEqual(order[order.index('tv.own.owntv') + 1], 'com.amazon.tv.livetv')
+        self.assertEqual(order[4], 'com.amazon.tv.livetv')
+        self.assertGreater(order.index('tv.own.owntv'), order.index('com.amazon.tv.livetv'))
         self.assertEqual(order.count('com.amazon.tv.livetv'), 1)
         self.assertEqual(data['fire_tv_ui_sleep'], 1200000)
         self.assertEqual(data['fire_tv_ui_sleep_saved'], 1200000)
@@ -30,6 +35,7 @@ class BackupMigrationChecks(unittest.TestCase):
         apps = json.loads(data['app_visibility'])
         for name in ('HDMI 1', 'HDMI 2'):
             self.assertTrue(apps['tvinput_name:' + name]['customIconUri'].startswith('asset:input-icons/'))
+            self.assertFalse(apps['tvinput_name:' + name]['hidden'])
         for row in json.loads(data['widgets_config']):
             for widget in row:
                 self.assertEqual(widget.get('data', {}).get('location', ''), '')
