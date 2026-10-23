@@ -290,6 +290,25 @@ def patch(decoded):
     return-object p1
 .end method"""))
 
+    featured = class_paths["LQ3/S8;"]
+    text = featured.read_text()
+    signature = '.method public static a(LQ3/S8;)LQ3/S8;'
+    pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
+    copy = pattern.search(text).group(0)
+    copy = replace_once(copy, '    .locals 13',
+        '    .locals 13\n\n    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;')
+    copy = replace_once(copy, '    const-string v2, "Watch Next"\n\n', '')
+    featured.write_text(replace_method(text, signature, copy))
+
+    featured_image = class_paths["La/a;"]
+    image_signature = '.method public static final n(LQ3/S8;IILC/d;LN2/k;LN/Z;Landroid/content/Context;LN/Z;LN/p;)V'
+    image = featured_image.read_text()
+    image_pattern = re.compile(r'^' + re.escape(image_signature) + r'\n.*?^\.end method', re.M | re.S)
+    poster = image_pattern.search(image).group(0)
+    poster = replace_once(poster, 'sget-object p0, Lw0/h;->a:Lw0/J;',
+        'sget-object p0, Lw0/h;->b:Lw0/J;')
+    featured_image.write_text(replace_method(image, image_signature, poster))
+
     settings = class_paths["LQ3/M7;"]
     text = settings.read_text()
     text = replace_once(text, '    filled-new-array/range {v49 .. v55}, [Ljava/lang/String;',
@@ -350,7 +369,11 @@ def patch(decoded):
                     '    const/4 v8, 0x0\n\n'
                     '    const/16 v12, 0x41c\n\n'
                     '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V')
-    text = replace_once(text, cards_anchor, cards_anchor + '\n\n'
+    cards_navigation = cards_anchor.replace('    const/4 v8, 0x0',
+        '    new-instance v8, Lcom/jeremykenedy/firetv/ui/CardFocusAction;\n'
+        '    const-string v12, "Cards_Sources"\n'
+        '    invoke-direct {v8, v13, v12}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V')
+    text = replace_once(text, cards_anchor, cards_navigation + '\n\n'
         '    const-string v0, "Cards_Sources"\n'
         '    invoke-interface {v13, v0}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;\n'
         '    move-result-object v4\n'
@@ -366,12 +389,14 @@ def patch(decoded):
         '    new-instance v0, Lcom/jeremykenedy/firetv/ui/CardSourcesAction;\n'
         '    invoke-direct {v0, v5}, Lcom/jeremykenedy/firetv/ui/CardSourcesAction;-><init>(Landroid/content/Context;)V\n'
         '    move-object v5, v0\n'
+        '    new-instance v7, Lcom/jeremykenedy/firetv/ui/CardFocusAction;\n'
+        '    const-string v0, "Cards_TextColor"\n'
+        '    invoke-direct {v7, v13, v0}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V\n'
         '    const-string v0, "Card sources and refresh"\n'
-        '    const/4 v7, 0x0\n'
         '    const/4 v8, 0x0\n'
         '    const/4 v9, 0x0\n'
         '    const/4 v11, 0x0\n'
-        '    const/16 v12, 0x51c\n'
+        '    const/16 v12, 0x41c\n'
         '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V')
     text = replace_once(text,
         '    :cond_4\n    const/high16 v0, 0x10000000\n\n'
@@ -498,7 +523,17 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/SystemControlsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/AdvancedAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardSourcesAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/CardFocusAction.smali', destination)
     patch_manifest(decoded)
+
+    manifest = ET.parse(decoded / 'AndroidManifest.xml')
+    application = manifest.getroot().find('application')
+    ET.SubElement(application, 'provider', {
+        ANDROID + 'name': CONFIG['package'] + '.PlexArtworkProvider',
+        ANDROID + 'authorities': CONFIG['package'] + '.plex.art',
+        ANDROID + 'exported': 'false',
+    })
+    manifest.write(decoded / 'AndroidManifest.xml', encoding='utf-8', xml_declaration=True)
 
     metadata = decoded / 'apktool.yml'
     text = metadata.read_text()
@@ -577,7 +612,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

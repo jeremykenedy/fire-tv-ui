@@ -13,6 +13,22 @@ from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
+    def test_featured_card_copy_preserves_the_producer_source_and_visibility(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the native launcher to check its featured card copy.')
+        classes_by_name = classes(decoded)
+        card = classes_by_name['LQ3/S8;'].read_text()
+        start = card.index('.method public static a(LQ3/S8;)LQ3/S8;')
+        copy = card[start:card.index('.end method', start)]
+        self.assertIn('iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;', copy)
+        self.assertNotIn('const-string v2, "Watch Next"', copy)
+        self.assertIn('iget-boolean v6, p0, LQ3/S8;->f:Z', copy)
+        mapper = classes_by_name['Landroid/support/v4/media/session/b;'].read_text()
+        start = mapper.index('.method public static M(Ljava/util/List;Ljava/util/List;)Ljava/util/ArrayList;')
+        mapper = mapper[start:mapper.index('.end method', start)]
+        self.assertIn('const/4 v13, 0x1', mapper, 'Keep the verified preview inclusion behavior unchanged.')
+
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}

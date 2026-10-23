@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -22,25 +23,54 @@ public final class CardSourcesActivity extends CardActivity {
         LinearLayout body = scrollBody();
         report = text("Reading card sources...", 18, INK);
         body.addView(report);
-        body.addView(text("Fire TV recommendations inside Amazon Home use a separate service. Only Android TV cards published by apps appear here. Widgets are a separate Appearance option.", 17, MUTED));
-        refresh = button("Refresh sources", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                readSources();
-            }
-        });
+        body.addView(
+                text(
+                        "Fire TV recommendations inside Amazon Home use a separate service. Only"
+                            + " Android TV cards published by apps appear here. Widgets are a"
+                            + " separate Appearance option.",
+                        17,
+                        MUTED));
+        refresh =
+                button(
+                        "Refresh sources",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                readSources();
+                            }
+                        });
         addButton(body, refresh);
-        addButton(body, button("Reload home cards", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent home = getPackageManager().getLaunchIntentForPackage(getPackageName());
-                if (home != null) {
-                    home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(home);
-                    finish();
-                }
-            }
-        }));
+        addButton(
+                body,
+                button(
+                        "Reload home cards",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent home =
+                                        getPackageManager()
+                                                .getLaunchIntentForPackage(getPackageName());
+                                if (home != null) {
+                                    home.addFlags(
+                                            Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                                    | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                    startActivity(home);
+                                    finish();
+                                }
+                            }
+                        }));
+        addButton(
+                body,
+                button(
+                        "Connect your own Plex library",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                startActivity(
+                                        new Intent(
+                                                CardSourcesActivity.this, PlexCardsActivity.class));
+                            }
+                        }));
         refresh.requestFocus();
         readSources();
     }
@@ -49,37 +79,62 @@ public final class CardSourcesActivity extends CardActivity {
         final int request = ++generation;
         refresh.setEnabled(false);
         report.setText("Reading card sources...");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final Source preview = read("preview_program");
-                final Source watchNext = read("watch_next_program");
-                final Source channels = read("channel");
-                final boolean hidden = DeviceSettings.prefs(CardSourcesActivity.this)
-                        .getBoolean("hide_watch_next", false);
-                final String value = CardSourceStatus.summary(hidden, preview.count,
-                        watchNext.count, preview.error != null || watchNext.error != null)
-                        + "\n\n" + preview.describe("Preview cards")
-                        + "\n\n" + watchNext.describe("Continue Watching")
-                        + "\n\n" + channels.describe("TV channels (includes live TV, not only card sources)");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!isFinishing() && !isDestroyed() && request == generation) {
-                            report.setText(value);
-                            refresh.setEnabled(true);
-                        }
-                    }
-                });
-            }
-        }, "read-card-sources").start();
+        new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                final Source preview = read("preview_program");
+                                final Source watchNext = read("watch_next_program");
+                                final Source channels = read("channel");
+                                final boolean hidden =
+                                        DeviceSettings.prefs(CardSourcesActivity.this)
+                                                .getBoolean("hide_watch_next", false);
+                                final String value =
+                                        CardSourceStatus.summary(
+                                                        hidden,
+                                                        preview.count,
+                                                        watchNext.count,
+                                                        preview.error != null
+                                                                || watchNext.error != null)
+                                                + "\n\n"
+                                                + preview.describe(
+                                                        "Featured cards", CardSourcesActivity.this)
+                                                + "\n\n"
+                                                + watchNext.describe(
+                                                        "Continue Watching",
+                                                        CardSourcesActivity.this)
+                                                + "\n\n"
+                                                + channels.describe(
+                                                        "Live TV and app channels",
+                                                        CardSourcesActivity.this);
+                                runOnUiThread(
+                                        new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if (!isFinishing()
+                                                        && !isDestroyed()
+                                                        && request == generation) {
+                                                    report.setText(value);
+                                                    refresh.setEnabled(true);
+                                                }
+                                            }
+                                        });
+                            }
+                        },
+                        "read-card-sources")
+                .start();
     }
 
     private Source read(String table) {
         Source source = new Source();
-        try (Cursor cursor = getContentResolver().query(
-                Uri.parse("content://android.media.tv/" + table),
-                new String[] {"_id", "package_name"}, null, null, null)) {
+        try (Cursor cursor =
+                getContentResolver()
+                        .query(
+                                Uri.parse("content://android.media.tv/" + table),
+                                new String[] {"_id", "package_name"},
+                                null,
+                                null,
+                                null)) {
             if (cursor == null) {
                 source.error = "The TV provider returned no cursor.";
                 return source;
@@ -94,8 +149,10 @@ public final class CardSourcesActivity extends CardActivity {
         } catch (SecurityException error) {
             source.error = "The TV provider did not permit this app to read this source.";
         } catch (Exception error) {
-            source.error = "The TV provider could not read this source ("
-                    + error.getClass().getSimpleName() + ").";
+            source.error =
+                    "The TV provider could not read this source ("
+                            + error.getClass().getSimpleName()
+                            + ").";
         }
         return source;
     }
@@ -105,13 +162,24 @@ public final class CardSourcesActivity extends CardActivity {
         String error;
         final Map<String, Integer> packages = new LinkedHashMap<>();
 
-        String describe(String label) {
+        String describe(String label, android.content.Context context) {
             if (error != null) {
                 return label + ": unavailable. " + error;
             }
             StringBuilder value = new StringBuilder(label).append(": ").append(count);
             for (Map.Entry<String, Integer> item : packages.entrySet()) {
-                value.append("\n").append(item.getKey()).append(": ").append(item.getValue());
+                String name;
+                try {
+                    name =
+                            context.getPackageManager()
+                                    .getApplicationLabel(
+                                            context.getPackageManager()
+                                                    .getApplicationInfo(item.getKey(), 0))
+                                    .toString();
+                } catch (android.content.pm.PackageManager.NameNotFoundException unavailable) {
+                    name = "An app that is no longer installed";
+                }
+                value.append("\n").append(name).append(": ").append(item.getValue());
             }
             return value.toString();
         }
