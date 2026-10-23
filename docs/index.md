@@ -1,5 +1,6 @@
 # Documentation
 
+- [Featured cards](featured-cards.md)
 - [Configuration](configuration.md)
 - [Installation and updates](installation.md)
 - [Published app update checks](updates.md)
@@ -26,3 +27,5 @@
 - [Equipment Control recognition and physical verification](equipment-control.md)
 
 - [Fresh installation defaults](fresh-defaults.md)
+
+- [Fire TV UI 1.5.0 release notes](releases/v1.5.0.md)

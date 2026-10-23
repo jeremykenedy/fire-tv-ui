@@ -13,10 +13,26 @@ from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
+    def test_featured_card_copy_preserves_the_producer_source_and_visibility(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the native launcher to check its featured card copy.')
+        classes_by_name = classes(decoded)
+        card = classes_by_name['LQ3/S8;'].read_text()
+        start = card.index('.method public static a(LQ3/S8;)LQ3/S8;')
+        copy = card[start:card.index('.end method', start)]
+        self.assertIn('iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;', copy)
+        self.assertNotIn('const-string v2, "Watch Next"', copy)
+        self.assertIn('iget-boolean v6, p0, LQ3/S8;->f:Z', copy)
+        mapper = classes_by_name['Landroid/support/v4/media/session/b;'].read_text()
+        start = mapper.index('.method public static M(Ljava/util/List;Ljava/util/List;)Ljava/util/ArrayList;')
+        mapper = mapper[start:mapper.index('.end method', start)]
+        self.assertIn('const/4 v13, 0x1', mapper, 'Keep the verified preview inclusion behavior unchanged.')
+
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}
-        self.assertEqual(set(mapped), {'slot-vision', 'hearth-presence', 'rainforest-cascade', 'prism-clock'})
+        self.assertEqual(set(mapped), {'slot-vision', 'hearth-presence', 'rainforest-cascade', 'prism-clock', 'jellyfish-drift'})
         for entry in mapped.values():
             self.assertEqual(entry['preview'], entry['package'] + '/.PreviewActivity')
         decoded = ROOT / '.build/decoded'
@@ -26,6 +42,28 @@ class BuildChecks(unittest.TestCase):
             self.assertNotIn('com.neilturner.aerialviews', idle)
             self.assertIn('LQ3/T3;->V(Z)V', idle)
             self.assertIn('LQ3/T3;->S(J)V', idle)
+
+    def test_filmed_jellyfish_public_pin_and_offline_attribution(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        entry = next(item for item in entries if item['id'] == 'jellyfish-drift')
+        self.assertEqual(entry['tag'], 'v2.0.0')
+        self.assertEqual(entry['bytes'], 35288292)
+        self.assertEqual(entry['sha256'],
+                         '109099f558be22a71970b56a962907053dd3b19cd6bc95b32a03101da62f0c8e')
+        self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/jellyfish-drift/'
+                         'releases/download/v2.0.0/jellyfish-drift.apk')
+        source = json.loads((ROOT / 'app/previews/sources.json').read_text())[full_component(entry['dream'])]
+        self.assertIn('Deep ocean', source['capture_note'])
+        self.assertEqual(hashlib.sha256((ROOT / source['source_file']).read_bytes()).hexdigest(),
+                         'decd3dccc794723e7e0bb355ccb05a964a3d5b46214d3bea67148b98cff963cd')
+        notice = ROOT / 'app/notices/jellyfish-drift.txt'
+        self.assertIn('NOAA Ocean Exploration, 2016 Deepwater Exploration of the Marianas.', notice.read_text())
+        apk = ROOT / '.build/combined.apk'
+        if apk.exists():
+            with ZipFile(apk) as archive:
+                self.assertEqual(archive.read('assets/media-notices/jellyfish-drift.txt'), notice.read_bytes())
+                self.assertNotIn(b'Lcom/jeremykenedy/firetv/ui/Plex', archive.read('classes2.dex'))
+                self.assertNotIn(b'clients.plex.tv', archive.read('classes2.dex'))
 
     def test_prism_published_contract_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
