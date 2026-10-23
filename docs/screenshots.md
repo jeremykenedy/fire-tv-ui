@@ -1,8 +1,8 @@
 # Screenshots
 
-## Fire TV UI 1.6.0, code 50
+## Fire TV UI 1.6.0 interface, code 50
 
-Current signed `45345c43` output on the API 34 TV emulator uses public sample recommendations, not personal library metadata. The actual original producer action opened item B after remote Up and Center. The recommendation setup capture precedes access approval; the later Home frame shows the published cards. Listener revoke, reconnect and disable were checked separately with exact state restoration.
+Signed `45345c43` output on the API 34 TV emulator uses public sample recommendations, not personal library metadata. The actual original producer action opened item B after remote Up and Center. The recommendation setup capture precedes access approval; the later Home frame shows the published cards. Listener revoke, reconnect and disable were checked separately with exact state restoration. Final code 51 changes only package update startup dispatch; its card interface and artwork are unchanged.
 
 <table><tr>
 <td><img src="../art/screenshots/cards-home-ui-1.6.0-api34.png" alt="Fire TV UI 1.6.0 with a real sample Netflix recommendation and producer source label"><br>Recommendation on Home</td>

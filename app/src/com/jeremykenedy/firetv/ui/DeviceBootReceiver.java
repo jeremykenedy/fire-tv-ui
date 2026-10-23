@@ -22,7 +22,8 @@ public final class DeviceBootReceiver extends BroadcastReceiver {
                 // The controls page reports permission and read-back state.
             }
         }
-        if (HomeControl.wanted(context)) {
+        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())
+                && HomeControl.wanted(context)) {
             Intent launch = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
             if (launch != null) {
                 launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
