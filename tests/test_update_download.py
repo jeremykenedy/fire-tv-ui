@@ -33,7 +33,7 @@ public class SigningInfo {
 }''',
     'android/content/pm/PackageInfo.java': '''package android.content.pm;
 public class PackageInfo {
- public String packageName; public Signature[] signatures; public SigningInfo signingInfo;
+ public String packageName,versionName; public Signature[] signatures; public SigningInfo signingInfo;
  public int versionCode; public long getLongVersionCode(){return versionCode;}
 }''',
     'android/content/pm/PackageManager.java': '''package android.content.pm;

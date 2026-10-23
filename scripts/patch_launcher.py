@@ -135,6 +135,15 @@ def patch(decoded):
         '    invoke-static {v4, v5}, Lcom/jeremykenedy/firetv/ui/NativeLiveTv;->addTile(Ljava/util/List;Landroid/content/pm/PackageManager;)V\n\n'
         '    new-instance v7, Ljava/util/HashSet;')
     apps.write_text(text)
+    artwork = class_paths["LQ3/A7;"]
+    text = artwork.read_text()
+    text = replace_once(text,
+        '    :goto_6\n    const-string v0, "_"',
+        '    :goto_6\n'
+        '    invoke-static {v4, v11, v7}, Lcom/jeremykenedy/firetv/ui/NativeTileArtwork;->uri(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;\n'
+        '    move-result-object v7\n\n'
+        '    const-string v0, "_"')
+    artwork.write_text(text)
     launch = class_paths["LQ3/O4;"]
     text = launch.read_text()
     text = replace_once(text,
@@ -477,6 +486,9 @@ def patch(decoded):
     shutil.rmtree(decoded / 'assets/dexopt', ignore_errors=True)
     shutil.copytree(ROOT / 'app/previews', decoded / 'assets/screensaver-previews', dirs_exist_ok=True)
     shutil.copy(ROOT / 'app/simple-setup.json', decoded / 'assets/simple-setup.json')
+    (decoded / 'assets/native-tiles').mkdir(exist_ok=True)
+    for image in (ROOT / 'app/native-tiles').glob('*.png'):
+        shutil.copy(image, decoded / 'assets/native-tiles' / image.name)
     (decoded / 'assets/input-icons').mkdir(exist_ok=True)
     for icon in ('xbox-one.png', 'wii-u.png'):
         shutil.copy(ROOT / 'icons' / icon, decoded / 'assets/input-icons' / icon)

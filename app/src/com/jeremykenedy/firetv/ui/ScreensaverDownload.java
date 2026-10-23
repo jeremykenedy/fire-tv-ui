@@ -23,6 +23,26 @@ final class ScreensaverDownload {
     }
 
     static File download(Context context, ScreensaverCatalog.Entry entry, Progress progress) throws Exception {
+        return download(context, entry, progress, true);
+    }
+
+    static PackageInfo inspectRelease(Context context, ScreensaverCatalog.Entry entry) throws Exception {
+        File file = download(context, entry, new Progress() {
+            @Override
+            public void update(int percent) {
+            }
+        }, false);
+        try {
+            PackageInfo info = context.getPackageManager().getPackageArchiveInfo(file.getPath(), 0);
+            if (info == null) throw new IllegalStateException("The verified APK version could not be read.");
+            return info;
+        } finally {
+            file.delete();
+        }
+    }
+
+    private static File download(Context context, ScreensaverCatalog.Entry entry, Progress progress,
+            boolean requireUpgrade) throws Exception {
         HttpURLConnection connection = null;
         try {
             URL location = new URL(entry.url);
@@ -53,7 +73,7 @@ final class ScreensaverDownload {
                 location = new URL(location, next);
                 connection.disconnect();
             }
-            return receive(context, entry, connection.getInputStream(), progress);
+            return receive(context, entry, connection.getInputStream(), progress, requireUpgrade);
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -63,11 +83,11 @@ final class ScreensaverDownload {
 
     static File localUpdate(Context context, ScreensaverCatalog.Entry entry, File source,
             Progress progress) throws Exception {
-        return receive(context, entry, new FileInputStream(source), progress);
+        return receive(context, entry, new FileInputStream(source), progress, true);
     }
 
     private static File receive(Context context, ScreensaverCatalog.Entry entry, InputStream source,
-            Progress progress) throws Exception {
+            Progress progress, boolean requireUpgrade) throws Exception {
         try (InputStream input = source) {
             File file = File.createTempFile("screensaver-", ".apk", context.getCacheDir());
             boolean verified = false;
@@ -116,10 +136,13 @@ final class ScreensaverDownload {
                     }
                     long oldCode = Build.VERSION.SDK_INT >= 28 ? installed.getLongVersionCode() : installed.versionCode;
                     long newCode = Build.VERSION.SDK_INT >= 28 ? pkg.getLongVersionCode() : pkg.versionCode;
-                    if (newCode <= oldCode) {
+                    if (requireUpgrade && newCode <= oldCode) {
                         throw new IllegalStateException("The installed app is already at this version or newer. It was not replaced.");
                     }
                 } catch (PackageManager.NameNotFoundException newInstall) {
+                    if (!requireUpgrade) {
+                        throw new IllegalStateException("The app is no longer installed. Check again before updating.");
+                    }
                     // First installs are authenticated by the reviewed release checksum.
                 }
                 verified = true;

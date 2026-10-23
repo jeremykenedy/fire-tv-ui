@@ -13,6 +13,7 @@
 
 ## Release notes
 
+- [v1.4.1](releases/v1.4.1.md)
 - [v1.4.0](releases/v1.4.0.md)
 - [v1.3.2](releases/v1.3.2.md)
 - [v1.3.1](releases/v1.3.1.md)

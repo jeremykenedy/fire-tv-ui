@@ -11,6 +11,13 @@ final class UpdateVersions {
         return checkedAt > 0 && checkedAt <= now && now - checkedAt < 6 * 60 * 60 * 1000L;
     }
 
+    static Integer compare(String repositoryTag, String installedName, Long verifiedApkCode,
+            long installedCode) {
+        if (verifiedApkCode == null) return compare(repositoryTag, installedName);
+        if (verifiedApkCode <= 0 || installedCode < 0) return null;
+        return Long.compare(verifiedApkCode, installedCode);
+    }
+
     static Integer compare(String published, String installed) {
         String first = numeric(published);
         String second = numeric(installed);

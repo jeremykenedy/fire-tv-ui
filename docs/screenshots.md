@@ -1,6 +1,33 @@
 # Screenshots
 
-## Fire TV UI 1.4.0
+## Fire TV UI 1.4.1, code 40
+
+Current physical Fire OS output from the exact signed `ca1b8b5a` release candidate. Live TV is visible beside OwnTV on the first page. Opening it reached the native GuideActivity; the guide frame shows schedules loading and does not establish channel playback. Back and injected Home returned to Main. A hardware remote Home check remains separate.
+
+<table>
+<tr>
+<td><img src="../art/screenshots/home-ui-1.4.1-code40-fire-tv-1920.png" alt="Current Fire TV UI 1.4.1 code 40 first page with original Live TV artwork beside OwnTV"><br>First-page Live TV</td>
+<td><img src="../art/screenshots/native-guide-ui-1.4.1-code40-fire-tv-1920.png" alt="Native Amazon channel guide opened by the code 40 Live TV tile, with schedules loading"><br>Native guide</td>
+<td><img src="../art/screenshots/home-after-guide-ui-1.4.1-code40-fire-tv-1920.png" alt="Fire TV UI Main first page restored after leaving the native guide and pressing injected Home"><br>Back and Home</td>
+</tr>
+</table>
+
+All 46 current portable UI preferences, nine OS values and both external backup/import files were preserved. The live settings guard and VPN remained active. The comparison used the fresh current layout after the deliberate Live TV placement change, rather than restoring its old position.
+
+## Preliminary 1.4.1 code 39 helper verification
+
+Earlier physical Fire OS output from preliminary code 39, exact signed `153da5a2`. The final release is code 40; these captures establish the unchanged helper-check interface and are not final-build screenshots. The helper row verifies the Android app version separately from its repository tag and disables replacement for the already installed version. The launcher capture is scrolled to its native TV tile row. The OwnTV capture was taken before Check for updates and correctly says not checked; it is not a current-version claim. A separate completed native check verified OwnTV 5.2.1 against its published TV APK.
+
+<table>
+<tr>
+<td><img src="../art/screenshots/updates-helper-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 verified Home Redirect app 1.2.6 code 10 separately from Toolkit tag v3.9.1"><br>Verified helper version</td>
+<td><img src="../art/screenshots/home-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 preserved five-column native Factory UI and Live TV tile row"><br>Native TV tiles</td>
+<td><img src="../art/screenshots/updates-owntv-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 installed OwnTV 5.2.1 and Fire IPTV 1.1.1 before an explicit update check"><br>Before checking updates</td>
+</tr>
+</table>
+
+
+## Previous Fire TV UI 1.4.0
 
 These unretouched 1920x1080 captures show signed candidate `44057a7d` on physical Fire TV AFTDEC012E, Android 11/API 30. The repeated source build has all 631 app payload entries identical. The update check found the exact published OwnTV 5.2.1 TV APK and checksum. The native catalog installed accepted Prism Clock 1.0.0 through Android confirmation; installed APK bytes and signer were independently verified. Its picker row shows the bundled physical screenshot. The row capture shows the UI, while the separate settled Dream capture and binder record establish actual Prism rendering.
 

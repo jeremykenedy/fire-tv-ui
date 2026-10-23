@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.4.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.4.1-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,9 +38,9 @@ This repository and its APK are private. Users with repository access can instal
 Download the signed APK and its checksum from the private release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.4.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.4.1.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.4.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.4.1.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -119,7 +119,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Verification](docs/verification.md)
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
-- [Fire TV UI 1.4.0 release notes and upgrade guide](docs/releases/v1.4.0.md)
+- [Fire TV UI 1.4.1 release notes and upgrade guide](docs/releases/v1.4.1.md)
 - [Fire TV UI 1.3.2 release notes and upgrade guide](docs/releases/v1.3.2.md)
 - [Fire TV UI 1.3.1 release notes and upgrade guide](docs/releases/v1.3.1.md)
 - [Fire TV UI 1.3.0 release notes and upgrade guide](docs/releases/v1.3.0.md)
@@ -136,15 +136,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.4.0 running on physical Fire TV: the preserved five-column launcher, an exact published OwnTV update check, and the installed Prism Clock preview row. The [full gallery](docs/screenshots.md) records exact capture builds and separates historical evidence. The separate physical remote Home check remains unverified.
+Fire TV UI 1.4.1 on physical Fire TV, with Live TV visible beside OwnTV on the first page. The tile opens the native channel guide. The [full gallery](docs/screenshots.md) includes the guide and return to Home, and labels earlier helper-check captures separately. The physical remote Home check from intentional Factory UI remains unverified.
 
-<table>
-  <tr>
-    <td><img src="art/screenshots/home-ui-1.4.0-fire-tv-1920.png" alt="Fire TV UI 1.4.0 physical five-column launcher retaining its app order"><br>Five-column Home</td>
-    <td><img src="art/screenshots/updates-ui-1.4.0-fire-tv-1920.png" alt="Fire TV UI 1.4.0 checking the exact OwnTV 5.2.1 stable TV APK and checksum"><br>Verified updates</td>
-    <td><img src="art/screenshots/prism-picker-ui-1.4.0-fire-tv-1920.png" alt="Fire TV UI 1.4.0 installed Prism Clock row with its native screenshot preview"><br>Prism Clock preview</td>
-  </tr>
-</table>
+<p align="center"><img src="art/screenshots/home-ui-1.4.1-code40-fire-tv-1920.png" alt="Fire TV UI 1.4.1 code 40 with its dedicated Live TV guide icon on the first page beside OwnTV" width="900"></p>
 
 ## License
 

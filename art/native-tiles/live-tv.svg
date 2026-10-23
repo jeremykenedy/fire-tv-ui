@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+<rect width="640" height="360" fill="#142849"/>
+<path d="M0 0h268v360H0z" fill="#10203b"/>
+<rect x="53" y="108" width="185" height="124" rx="13" fill="#0b192c" stroke="#f0f7ff" stroke-width="8"/>
+<rect x="73" y="129" width="39" height="22" rx="5" fill="#63d9f3"/>
+<path d="M128 140h85M80 169h133M80 195h102" fill="none" stroke="#b9cee7" stroke-width="8" stroke-linecap="round"/>
+<path d="M145 236v19m-39 0h78" fill="none" stroke="#f0f7ff" stroke-width="8" stroke-linecap="round"/>
+<text x="295" y="202" fill="#f6faff" font-family="Arial,Helvetica,sans-serif" font-size="65" font-weight="700">Live TV</text>
+</svg>

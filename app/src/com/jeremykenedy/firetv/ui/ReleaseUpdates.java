@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Instant;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
@@ -36,15 +37,72 @@ final class ReleaseUpdates {
         if (release.getBoolean("draft") || release.getBoolean("prerelease")) {
             throw new IllegalStateException("The repository did not return a published stable release.");
         }
-        if (filename.contains("{tag}")) {
-            String tag = release.getString("tag_name");
-            if (UpdateVersions.compare(tag, tag) == null) {
-                throw new IllegalArgumentException("The release artifact requires a numeric version tag.");
-            }
-            filename = filename.replace("{tag}", tag);
+        return fromRelease(name, pkg, repo, filename, dream, preview, release,
+                !filename.contains("{tag}"));
+    }
+
+    static ScreensaverCatalog.Entry latestContainingAsset(String name, String pkg, String repo,
+            String filename, String dream, String preview) throws Exception {
+        if (!ScreensaverCatalog.knownRepository(repo)) {
+            throw new IllegalArgumentException("Unknown update repository.");
         }
+        JSONArray releases = new JSONArray(read(new URL("https://api.github.com/repos/"
+                + repo + "/releases?per_page=100"), 2 * 1048576, false));
+        JSONObject selected = null;
+        Instant newest = null;
+        for (int i = 0; i < Math.min(releases.length(), 100); i++) {
+            JSONObject release = releases.getJSONObject(i);
+            if (release.getBoolean("draft") || release.getBoolean("prerelease")) continue;
+            Instant published;
+            try {
+                published = Instant.parse(release.optString("published_at", ""));
+            } catch (java.time.format.DateTimeParseException unavailable) {
+                continue;
+            }
+            if (exactAsset(release.getJSONArray("assets"), filename) != null
+                    && (newest == null || published.isAfter(newest))) {
+                selected = release;
+                newest = published;
+            }
+        }
+        if (selected == null) {
+            throw new IllegalStateException("No exact Android APK was found in the last 100 published releases.");
+        }
+        return fromRelease(name, pkg, repo, filename, dream, preview, selected, false);
+    }
+
+    static boolean matchesRequestedAsset(ScreensaverCatalog.Entry entry, String filename) throws Exception {
+        String expected = expandFilename(filename, entry.tag);
+        String path = new URL(entry.url).getPath();
+        return expected.equals(path.substring(path.lastIndexOf('/') + 1));
+    }
+
+    private static String expandFilename(String filename, String tag) {
+        if (!filename.contains("{tag}")) return filename;
+        if (UpdateVersions.compare(tag, tag) == null) {
+            throw new IllegalArgumentException("The release artifact requires a numeric version tag.");
+        }
+        return filename.replace("{tag}", tag);
+    }
+
+    private static JSONObject exactAsset(JSONArray assets, String filename) throws Exception {
+        JSONObject found = null;
+        for (int i = 0; i < assets.length(); i++) {
+            JSONObject asset = assets.getJSONObject(i);
+            if (filename.equals(asset.getString("name"))) {
+                if (found != null) throw new IllegalStateException("The expected APK asset is ambiguous.");
+                found = asset;
+            }
+        }
+        return found;
+    }
+
+    private static ScreensaverCatalog.Entry fromRelease(String name, String pkg, String repo,
+            String filename, String dream, String preview, JSONObject release,
+            boolean allowSingleApk) throws Exception {
+        filename = expandFilename(filename, release.getString("tag_name"));
         JSONArray assets = release.getJSONArray("assets");
-        JSONObject apk = null;
+        JSONObject apk = exactAsset(assets, filename);
         JSONObject onlyApk = null;
         int apkCount = 0;
         for (int i = 0; i < assets.length(); i++) {
@@ -54,11 +112,8 @@ final class ReleaseUpdates {
                 onlyApk = asset;
                 apkCount++;
             }
-            if (filename.equals(assetName)) {
-                apk = asset;
-            }
         }
-        if (apk == null && apkCount == 1) {
+        if (apk == null && allowSingleApk && apkCount == 1) {
             apk = onlyApk;
         }
         if (apk == null) {
