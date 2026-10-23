@@ -103,7 +103,7 @@ public final class PlexItemActivity extends CardActivity {
 
     @Override
     protected void onDestroy() {
-        PlexSession.begin();
+        PlexSession.cancel(request);
         super.onDestroy();
     }
 }

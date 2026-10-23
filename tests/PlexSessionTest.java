@@ -22,5 +22,15 @@ public final class PlexSessionTest {
                 })) throw new AssertionError();
         if (!PlexSession.current(secondServer))
             throw new AssertionError("The newer server choice must remain current.");
+        PlexSession.cancel(firstServer);
+        if (!PlexSession.current(secondServer))
+            throw new AssertionError(
+                    "A destroyed old screen must not cancel the new screen's request.");
+        PlexSession.cancel(secondServer);
+        if (PlexSession.commit(secondServer, () -> saved[0]++))
+            throw new AssertionError("A destroyed current screen must not save a late response.");
+        if (saved[0] != 1)
+            throw new AssertionError(
+                    "Cancelled screen responses must not change the saved connection.");
     }
 }

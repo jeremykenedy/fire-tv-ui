@@ -17,6 +17,7 @@ public final class PlexCardsActivity extends CardActivity {
     private TextView connect;
     private TextView refresh;
     private boolean destroyed;
+    private long activeRequest;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -129,7 +130,7 @@ public final class PlexCardsActivity extends CardActivity {
             status.setText(error.getMessage());
             return;
         }
-        final long request = PlexSession.begin();
+        final long request = activeRequest = PlexSession.begin();
         busy(true);
         show(request, "Checking your Plex server...");
         new Thread(
@@ -214,7 +215,7 @@ public final class PlexCardsActivity extends CardActivity {
     }
 
     private void refresh() {
-        final long request = PlexSession.begin();
+        final long request = activeRequest = PlexSession.begin();
         busy(true);
         show(request, "Refreshing your Plex library cards...");
         new Thread(
@@ -285,7 +286,7 @@ public final class PlexCardsActivity extends CardActivity {
     }
 
     private void disconnect() {
-        long request = PlexSession.begin();
+        long request = activeRequest = PlexSession.begin();
         try {
             PlexSession.commit(
                     request,
@@ -337,7 +338,7 @@ public final class PlexCardsActivity extends CardActivity {
     @Override
     protected void onDestroy() {
         destroyed = true;
-        PlexSession.begin();
+        PlexSession.cancel(activeRequest);
         super.onDestroy();
     }
 }

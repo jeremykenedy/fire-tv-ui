@@ -14,6 +14,10 @@ final class PlexSession {
         return generation == request;
     }
 
+    static synchronized void cancel(long request) {
+        if (request != 0 && generation == request) generation++;
+    }
+
     static synchronized boolean commit(long request, Change change) throws Exception {
         if (generation != request) return false;
         change.apply();
