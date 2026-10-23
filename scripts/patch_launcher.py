@@ -585,6 +585,11 @@ def patch(decoded):
         ANDROID + 'authorities': CONFIG['package'] + '.plex.art',
         ANDROID + 'exported': 'false',
     })
+    ET.SubElement(application, 'provider', {
+        ANDROID + 'name': CONFIG['package'] + '.RecommendationArtworkProvider',
+        ANDROID + 'authorities': CONFIG['package'] + '.recommendation.art',
+        ANDROID + 'exported': 'false',
+    })
     manifest.write(decoded / 'AndroidManifest.xml', encoding='utf-8', xml_declaration=True)
 
     metadata = decoded / 'apktool.yml'
@@ -664,13 +669,23 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',
             ANDROID + 'screenOrientation': 'landscape',
             ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
         })
+    listener = ET.SubElement(app, 'service', {
+        ANDROID + 'name': CONFIG['package'] + '.RecommendationService',
+        ANDROID + 'label': 'Fire TV UI app recommendation cards',
+        ANDROID + 'exported': 'false',
+        ANDROID + 'permission': 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE',
+    })
+    listener_filter = ET.SubElement(listener, 'intent-filter')
+    ET.SubElement(listener_filter, 'action', {
+        ANDROID + 'name': 'android.service.notification.NotificationListenerService',
+    })
     provider = ET.SubElement(app, 'provider', {
         ANDROID + 'name': CONFIG['package'] + '.PackageFileProvider',
         ANDROID + 'authorities': CONFIG['package'] + '.install',
