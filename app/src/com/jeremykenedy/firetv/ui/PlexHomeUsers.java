@@ -13,8 +13,10 @@ final class PlexHomeUsers {
     private PlexHomeUsers() {}
 
     static List<User> read(Object response) throws IOException {
-        JSONObject object = response instanceof JSONObject ? (JSONObject) response : new JSONObject();
-        JSONArray users = response instanceof JSONArray ? (JSONArray) response : object.optJSONArray("users");
+        JSONObject object =
+                response instanceof JSONObject ? (JSONObject) response : new JSONObject();
+        JSONArray users =
+                response instanceof JSONArray ? (JSONArray) response : object.optJSONArray("users");
         if (users == null) users = object.optJSONArray("User");
         JSONObject container = object.optJSONObject("MediaContainer");
         if (users == null && container != null) users = container.optJSONArray("User");
@@ -30,10 +32,17 @@ final class PlexHomeUsers {
             if (name.isEmpty()) name = value.optString("friendlyName", "").trim();
             if (name.isEmpty()) name = value.optString("username", "").trim();
             if (!validId(id) || name.isEmpty() || name.length() > 128) continue;
-            User user = new User(id, name, flag(value, "protected"), flag(value, "admin"));
+            User user =
+                    new User(
+                            id,
+                            name,
+                            flag(value, "protected"),
+                            flag(value, "admin"),
+                            value.optString("id", ""));
             User previous = result.put(id, user);
-            if (previous != null && (!previous.name.equals(user.name)
-                    || previous.protectedByPin != user.protectedByPin))
+            if (previous != null
+                    && (!previous.name.equals(user.name)
+                            || previous.protectedByPin != user.protectedByPin))
                 throw new IOException("Plex returned conflicting Home profiles.");
         }
         return new ArrayList<>(result.values());
@@ -47,6 +56,15 @@ final class PlexHomeUsers {
         return value.optBoolean(name, false) || "1".equals(value.optString(name, ""));
     }
 
+    static boolean matchesIdentity(User selected, JSONObject response) {
+        JSONObject user = response.optJSONObject("user");
+        if (user == null) user = response;
+        return selected.id.equals(user.optString("uuid", ""))
+                || selected.id.equals(user.optString("id", ""))
+                || (!selected.accountId.isEmpty()
+                        && selected.accountId.equals(user.optString("id", "")));
+    }
+
     static User require(List<User> users, String id) throws IOException {
         for (User user : users) if (user.id.equals(id)) return user;
         throw new IOException("This profile is no longer available in your Plex Home.");
@@ -55,12 +73,14 @@ final class PlexHomeUsers {
     static final class User {
         final String id;
         final String name;
+        final String accountId;
         final boolean protectedByPin;
         final boolean admin;
 
-        User(String id, String name, boolean protectedByPin, boolean admin) {
+        User(String id, String name, boolean protectedByPin, boolean admin, String accountId) {
             this.id = id;
             this.name = name;
+            this.accountId = accountId;
             this.protectedByPin = protectedByPin;
             this.admin = admin;
         }

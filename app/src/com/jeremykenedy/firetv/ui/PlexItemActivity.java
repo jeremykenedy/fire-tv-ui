@@ -76,8 +76,11 @@ public final class PlexItemActivity extends CardActivity {
                                 try {
                                     PlexConnection connection =
                                             PlexConnection.load(PlexItemActivity.this);
-                                    if (connection == null
-                                            || !source.equals(connection.sourceKey())) {
+                                    connection =
+                                            connection == null
+                                                    ? null
+                                                    : connection.forSource(source);
+                                    if (connection == null) {
                                         showError(
                                                 "This card belongs to a previous server connection."
                                                         + " Refresh your Plex library cards.");
