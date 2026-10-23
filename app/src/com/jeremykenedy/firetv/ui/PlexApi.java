@@ -99,6 +99,33 @@ final class PlexApi {
         }
     }
 
+    java.util.List<PlexHomeUsers.User> homeUsers() throws Exception {
+        return homeUsers(refreshToken());
+    }
+
+    private java.util.List<PlexHomeUsers.User> homeUsers(String accountToken) throws Exception {
+        return PlexHomeUsers.read(new org.json.JSONTokener(new String(
+                request(ACCOUNT + "/home/users", "GET", accountToken, null,
+                        2 * 1024 * 1024, "Plex Home profiles"), StandardCharsets.UTF_8)).nextValue());
+    }
+
+    PlexConnection authorizeHome(String server, String machine, String profile, String pin)
+            throws Exception {
+        String accountToken = refreshToken();
+        PlexHomeUsers.User selected = PlexHomeUsers.require(homeUsers(accountToken), profile);
+        if (selected.protectedByPin && (pin == null || !pin.matches("[0-9]{4}")))
+            throw new IOException("Enter this profile's own four-digit Plex PIN on the TV.");
+        if (pin != null && !pin.isEmpty() && !pin.matches("[0-9]{4}"))
+            throw new IOException("A Plex profile PIN must contain four digits.");
+        String suffix = selected.protectedByPin ? "?pin=" + pin : "";
+        JSONObject switched = json(ACCOUNT + "/home/users/" + selected.id + "/switch" + suffix,
+                "POST", accountToken, null, "Plex Home profile authorization");
+        String token = switched.optString("authToken", "");
+        if (token.isEmpty() || "null".equals(token))
+            throw new IOException("Plex did not authorize this profile. Your connection was kept.");
+        return authorize(server, machine, token);
+    }
+
     private void verifyServer(PlexConnection connection) throws Exception {
         String actual =
                 server(connection, "/")
