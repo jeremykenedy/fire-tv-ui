@@ -17,6 +17,7 @@ public final class PlexCardsActivity extends CardActivity {
     private TextView connect;
     private TextView refresh;
     private TextView recheck;
+    private TextView completionFocus;
     private boolean destroyed;
     private long activeRequest;
 
@@ -134,6 +135,7 @@ public final class PlexCardsActivity extends CardActivity {
     }
 
     private void pair() {
+        completionFocus = connect;
         final String server;
         try {
             server = PlexValues.serverBase(address.getText().toString());
@@ -218,6 +220,7 @@ public final class PlexCardsActivity extends CardActivity {
     }
 
     private void recheck() {
+        completionFocus = recheck;
         final String server;
         try {
             server = PlexValues.serverBase(address.getText().toString());
@@ -269,6 +272,7 @@ public final class PlexCardsActivity extends CardActivity {
     }
 
     private void refresh() {
+        completionFocus = refresh;
         final long request = activeRequest = PlexSession.begin();
         busy(true);
         show(request, "Refreshing your Plex library cards...");
@@ -378,15 +382,18 @@ public final class PlexCardsActivity extends CardActivity {
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (!destroyed && PlexSession.current(request)) busy(false);
+                        if (!destroyed && PlexSession.current(request)) {
+                            busy(false);
+                            if (completionFocus != null) completionFocus.requestFocus();
+                        }
                     }
                 });
     }
 
     private void busy(boolean value) {
-        connect.setEnabled(!value);
-        refresh.setEnabled(!value);
-        recheck.setEnabled(!value);
+        connect.setClickable(!value);
+        refresh.setClickable(!value);
+        recheck.setClickable(!value);
         address.setEnabled(!value);
     }
 

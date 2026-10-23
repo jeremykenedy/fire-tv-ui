@@ -78,7 +78,7 @@ public final class CardSourcesActivity extends CardActivity {
 
     private void readSources() {
         final int request = ++generation;
-        refresh.setEnabled(false);
+        refresh.setClickable(false);
         report.setText("Reading card sources...");
         new Thread(
                         new Runnable() {
@@ -118,7 +118,7 @@ public final class CardSourcesActivity extends CardActivity {
                                                         && !isDestroyed()
                                                         && request == generation) {
                                                     report.setText(value);
-                                                    refresh.setEnabled(true);
+                                                    refresh.setClickable(true);
                                                 }
                                             }
                                         });
