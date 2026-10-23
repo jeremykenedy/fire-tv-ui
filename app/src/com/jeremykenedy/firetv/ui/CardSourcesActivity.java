@@ -51,6 +51,7 @@ public final class CardSourcesActivity extends CardActivity {
                                         getPackageManager()
                                                 .getLaunchIntentForPackage(getPackageName());
                                 if (home != null) {
+                                    home.addCategory(Intent.CATEGORY_HOME);
                                     home.addFlags(
                                             Intent.FLAG_ACTIVITY_CLEAR_TOP
                                                     | Intent.FLAG_ACTIVITY_SINGLE_TOP);

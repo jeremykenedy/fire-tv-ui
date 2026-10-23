@@ -73,11 +73,7 @@ final class PlexApi {
                                         "Server access discovery"),
                                 StandardCharsets.UTF_8));
         PlexConnection connection =
-                new PlexConnection(
-                        server,
-                        PlexResources.serverToken(resources, machine),
-                        machine,
-                        accountToken);
+                new PlexConnection(server, PlexResources.serverToken(resources, machine), machine);
         try {
             verifyServer(connection);
             return connection;
@@ -97,10 +93,7 @@ final class PlexApi {
                                     StandardCharsets.UTF_8));
             PlexConnection compatible =
                     new PlexConnection(
-                            server,
-                            PlexResources.deviceToken(devices, machine),
-                            machine,
-                            accountToken);
+                            server, PlexResources.deviceToken(devices, machine), machine);
             verifyServer(compatible);
             return compatible;
         }
