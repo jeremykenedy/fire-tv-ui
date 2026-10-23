@@ -2,9 +2,15 @@
 
 ## Fire TV UI 1.4.1
 
-Current physical Fire OS output from the exact signed `153da5a2` candidate. The helper row verifies the Android app version separately from its repository tag and disables replacement for the already installed version.
+Current physical Fire OS output from the exact signed `153da5a2` candidate. The helper row verifies the Android app version separately from its repository tag and disables replacement for the already installed version. The launcher capture is scrolled to its native TV tile row. The OwnTV capture was taken before Check for updates and correctly says not checked; it is not a current-version claim. A separate completed native check verified OwnTV 5.2.1 against its published TV APK.
 
-<table><tr><td><img src="../art/screenshots/updates-helper-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 verifying Home Redirect app 1.2.6 code 10 separately from Toolkit repository tag v3.9.1"><br>Verified helper version</td></tr></table>
+<table>
+<tr>
+<td><img src="../art/screenshots/updates-helper-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 verified Home Redirect app 1.2.6 code 10 separately from Toolkit tag v3.9.1"><br>Verified helper version</td>
+<td><img src="../art/screenshots/home-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 preserved five-column native Factory UI and Live TV tile row"><br>Native TV tiles</td>
+<td><img src="../art/screenshots/updates-owntv-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 installed OwnTV 5.2.1 and Fire IPTV 1.1.1 before an explicit update check"><br>Before checking updates</td>
+</tr>
+</table>
 
 
 ## Previous Fire TV UI 1.4.0
