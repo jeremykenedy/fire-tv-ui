@@ -2,7 +2,7 @@
 
 ## Fire TV UI 1.4.1, version code 40
 
-The final signed `ca1b8b5a191fbf5211d38fbb152267c793a37a8fe454db8f4a32ec2150e12446` build passed physical first-page Live TV artwork and placement, actual native GuideActivity launch, Back and injected Home returning to Main. A fresh baseline comparison preserved all 46 portable preferences, nine OS settings and byte-exact external backup/import files, with a healthy live guard and VPN. Native schedules were still loading; channel playback is not claimed. The final Main remained on its first page. The signed build and 30 local tests passed, with six native opt-in checks skipped.
+The final signed `ca1b8b5a191fbf5211d38fbb152267c793a37a8fe454db8f4a32ec2150e12446` build passed physical first-page Live TV artwork and placement, actual native GuideActivity launch, Back and injected Home returning to Main. A fresh baseline comparison preserved all 46 portable preferences, nine OS settings and byte-exact external backup/import files, with a healthy live guard and VPN. Native schedules were still loading; channel playback is not claimed. The final Main remained on its first page. The current README and all 39 gallery images loaded at 1920x1080 in browser reviews at 1280px and 320px; the current code 40 rows were visually checked without page overflow. The signed build and 30 local tests passed, with six native opt-in checks skipped.
 
 ### Preliminary code 39 helper check
 
