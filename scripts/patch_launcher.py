@@ -411,7 +411,6 @@ def patch(decoded):
     text = replace_once(text,
         '    const-string v0, "Cards_PosterMode"\n\n    move-object/from16 v13, p29',
         '    move-object/from16 v13, p29\n'
-        '    invoke-static {v13, v10}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw(Ljava/util/Map;LN/p;)V\n\n'
         '    const-string v0, "Cards_PosterMode"')
     poster_start = text.index('    const-string v0, "Cards_PosterMode"')
     poster_end = text.index('    const-string v0, "Cards_HideWatchNext"', poster_start)
@@ -420,7 +419,32 @@ def patch(decoded):
         '    new-instance v7, Lcom/jeremykenedy/firetv/ui/CardFocusAction;\n'
         '    const-string v12, "Cards_Sources"\n'
         '    invoke-direct {v7, v13, v12}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V')
+    poster_row = replace_once(poster_row,
+        '    invoke-static/range {v0 .. v12}, LA3/a;->A',
+        '    invoke-static {v13, v10, v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw(Ljava/util/Map;LN/p;Ln4/a;)V\n\n'
+        '    invoke-static/range {v0 .. v12}, LA3/a;->A')
     text = text[:poster_start] + poster_row + text[poster_end:]
+    channel_signature = '.method public static final j(Ljava/util/List;Ljava/util/Map;Ln4/a;Ln4/c;Ln4/a;LN/p;I)V'
+    channel_pattern = re.compile(r'^' + re.escape(channel_signature) + r'\n.*?^\.end method', re.M | re.S)
+    channel_manager = channel_pattern.search(text).group(0)
+    channel_manager = replace_once(channel_manager, '    .locals 71', '    .locals 74')
+    channel_manager = replace_once(channel_manager,
+        '    invoke-static {v4, v15}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;',
+        '    move-object/from16 v71, v15\n'
+        '    move-object/from16 v72, v40\n'
+        '    move-object/from16 v73, v9\n'
+        '    invoke-static/range {v71 .. v73}, Lcom/jeremykenedy/firetv/ui/ChannelCardsKeyAction;->wrap(Ln4/c;LQ3/l5;LN/p;)Ln4/c;\n'
+        '    move-result-object v15\n'
+        '    invoke-static {v4, v15}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
+    channel_manager = replace_once(channel_manager,
+        '    const v6, -0x14adc380',
+        '    move-object/from16 v71, v40\n'
+        '    move-object/from16 v72, v9\n'
+        '    move-object/from16 v73, p4\n'
+        '    invoke-static/range {v71 .. v73}, Lcom/jeremykenedy/firetv/ui/ChannelManageRow;->draw(LQ3/l5;LN/p;Ln4/a;)V\n\n'
+        '    const v6, -0x14adc380')
+    text = replace_method(text, channel_signature, channel_manager)
+
     text = replace_once(text,
         '    :cond_4\n    const/high16 v0, 0x10000000\n\n'
         '    :try_start_0\n    invoke-static {p2}, Landroid/media/tv/TvContract;->buildChannelUriForPassthroughInput',
@@ -549,6 +573,9 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/CardFocusAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardKeyAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
+    shutil.copy(ROOT / 'app/smali/ChannelCardsAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/ChannelManageRow.smali', destination)
+    shutil.copy(ROOT / 'app/smali/ChannelCardsKeyAction.smali', destination)
     patch_manifest(decoded)
 
     manifest = ET.parse(decoded / 'AndroidManifest.xml')
@@ -637,7 +664,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

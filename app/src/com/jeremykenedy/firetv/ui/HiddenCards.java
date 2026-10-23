@@ -16,6 +16,17 @@ public final class HiddenCards {
     private HiddenCards() {}
 
     public static boolean visible(Context context, Cursor cursor, boolean watchNext) {
+        Card card = identify(context, cursor, watchNext);
+        if (card == null) return true;
+        String intent = value(cursor, "intent_uri");
+        synchronized (cards) {
+            cards.put(FeaturedCardRules.lookup(card.source, watchNext, intent), card);
+            while (cards.size() > 2048) cards.remove(cards.keySet().iterator().next());
+        }
+        return !keys(context).contains(card.key);
+    }
+
+    static Card identify(Context context, Cursor cursor, boolean watchNext) {
         String source = value(cursor, "package_name");
         String intent = value(cursor, "intent_uri");
         String key =
@@ -24,14 +35,7 @@ public final class HiddenCards {
                         watchNext,
                         providerId(context, source, value(cursor, "internal_provider_id"), intent),
                         value(cursor, "content_id"));
-        if (key == null) return true;
-        synchronized (cards) {
-            cards.put(
-                    FeaturedCardRules.lookup(source, watchNext, intent),
-                    new Card(key, source, value(cursor, "title")));
-            while (cards.size() > 2048) cards.remove(cards.keySet().iterator().next());
-        }
-        return !keys(context).contains(key);
+        return key == null ? null : new Card(key, source, value(cursor, "title"));
     }
 
     private static String providerId(Context context, String source, String id, String intent) {
@@ -115,6 +119,12 @@ public final class HiddenCards {
     static void restore(Context context, String key) {
         Set<String> hidden = keys(context);
         hidden.remove(key);
+        save(context, hidden);
+    }
+
+    static void restore(Context context, Set<String> selected) {
+        Set<String> hidden = keys(context);
+        hidden.removeAll(selected);
         save(context, hidden);
     }
 

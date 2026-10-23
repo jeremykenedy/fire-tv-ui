@@ -13,6 +13,27 @@ from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
+    def test_featured_setup_keeps_required_base_navigation_callbacks(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the native launcher to check navigation callback wiring.')
+        built = classes(decoded)
+        base = built['LA3/a;'].read_text()
+        self.assertIn('const-string v3, "onSelect"', base)
+        self.assertIn('const-string v3, "onNavigateLeft"', base)
+        setup = built['Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;'].read_text()
+        manager = built['Lcom/jeremykenedy/firetv/ui/ChannelManageRow;'].read_text()
+        for row in (setup, manager):
+            self.assertIn('move-object v6, p2', row,
+                          'Every added row must receive the actual nonnull left-navigation callback.')
+            self.assertNotIn('const/4 v6, 0x0', row)
+            self.assertNotIn('const/4 v4, 0x0', row, 'The focus requester is required too.')
+        launcher = built['LQ3/M7;'].read_text()
+        setup_call = 'invoke-static {v13, v10, v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw'
+        self.assertIn(setup_call, launcher)
+        self.assertIn('move-object/from16 v73, p4', launcher,
+                      'Manage cards must navigate left using the existing onDismiss callback.')
+
     def test_featured_card_copy_preserves_the_producer_source_and_visibility(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():

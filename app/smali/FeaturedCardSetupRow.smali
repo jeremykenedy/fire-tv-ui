@@ -1,7 +1,7 @@
 .class public final Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;
 .super Ljava/lang/Object;
 
-.method public static draw(Ljava/util/Map;LN/p;)V
+.method public static draw(Ljava/util/Map;LN/p;Ln4/a;)V
     .locals 13
     const-string v0, "Cards_Sources"
     invoke-interface {p0, v0}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
@@ -24,7 +24,7 @@
     const/4 v1, 0x0
     const/4 v2, 0x0
     const/4 v3, 0x0
-    const/4 v6, 0x0
+    move-object v6, p2
     const/4 v7, 0x0
     const/4 v9, 0x0
     move-object v10, p1

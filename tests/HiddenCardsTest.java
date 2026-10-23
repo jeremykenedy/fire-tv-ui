@@ -84,6 +84,7 @@ public final class HiddenCardsTest {
                 HiddenCards.visible(
                         context, new Cursor("source.two", "Other publisher", "42", routeA), false),
                 "Other publishers must not inherit Plex identity normalization.");
+        channelManagement(context);
         context.prefs.fail = true;
         try {
             HiddenCards.hide(context, b);
@@ -93,6 +94,46 @@ public final class HiddenCardsTest {
                     !HiddenCards.keys(context).contains(b),
                     "A failed save must not mutate the active hidden set.");
         }
+    }
+
+    private static void channelManagement(Context context) {
+        HiddenCards.restoreAll(context);
+        String uri = "content://android.media.tv/channel/7/preview_program";
+        android.content.ContentResolver.rows.put(
+                uri,
+                new Cursor(
+                        new Cursor("source.one", "Betty", "betty", "betty-route", 7),
+                        new Cursor("source.one", "Next", "next", "next-route", 7),
+                        new Cursor("source.two", "Wrong source", "foreign", "foreign-route", 7),
+                        new Cursor(
+                                "source.one", "Wrong channel", "unrelated", "unrelated-route", 8),
+                        new Cursor("source.one", "Missing ID", "", "missing-route", 7)));
+        java.util.List<HiddenCards.Card> listed =
+                ChannelCards.read(context, "source.one", new long[] {7});
+        check(
+                listed.size() == 3 && listed.get(2).key == null,
+                "Manage cards lists only its exact channel/source, retaining nonhideable items"
+                    + " honestly.");
+        String betty = listed.get(0).key;
+        String next = listed.get(1).key;
+        String other = FeaturedCardRules.key("source.two", false, "elsewhere", "");
+        HiddenCards.hide(context, betty);
+        HiddenCards.hide(context, next);
+        HiddenCards.hide(context, other);
+        android.content.ContentResolver.rows.put(
+                uri,
+                new Cursor(
+                        new Cursor("source.one", "Betty", "betty", "betty-route", 7),
+                        new Cursor("source.one", "Next", "next", "next-route", 7)));
+        listed = ChannelCards.read(context, "source.one", new long[] {7});
+        check(
+                listed.size() == 2 && HiddenCards.keys(context).contains(listed.get(0).key),
+                "Hidden items must remain in Channel Manager so they can be restored.");
+        HiddenCards.restore(
+                context, new java.util.HashSet<String>(java.util.Arrays.asList(betty, next)));
+        check(
+                HiddenCards.keys(context).size() == 1 && HiddenCards.keys(context).contains(other),
+                "Restore all for one channel must preserve hidden choices in other channels.");
     }
 
     private static String plexRoute(String server, String item) {
