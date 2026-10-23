@@ -31,8 +31,8 @@ public final class FeaturedCardMenu {
         }
         final long feed = channel;
         final String[] options = feed >= 0
-                ? new String[]{"Hide this card", "Manage this feed and card order", "Choose feeds and card settings", "Cancel"}
-                : new String[]{"Hide this card", "Choose feeds and card settings", "Cancel"};
+                ? new String[]{"Hide this card", "Manage this feed and card order", "Choose feeds and card settings", "Arrange top-level cards", "Cancel"}
+                : new String[]{"Hide this card", "Choose feeds and card settings", "Arrange top-level cards", "Cancel"};
         new AlertDialog.Builder(context)
                 .setTitle(card.title)
                 .setItems(
@@ -47,6 +47,10 @@ public final class FeaturedCardMenu {
                                 }
                                 if (which == (feed >= 0 ? 2 : 1)) {
                                     context.startActivity(new Intent(context, FeaturedCardsActivity.class));
+                                    return;
+                                }
+                                if (which == (feed >= 0 ? 3 : 2)) {
+                                    context.startActivity(new Intent(context, FeedOrderActivity.class));
                                     return;
                                 }
                                 if (which != 0) return;

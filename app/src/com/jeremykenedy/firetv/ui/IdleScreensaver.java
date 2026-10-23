@@ -11,7 +11,10 @@ public final class IdleScreensaver {
     private IdleScreensaver() {
     }
 
-    public static void start(Context context) {
+    public static void start(Context context, long elapsedIdleMilliseconds) {
+        if (!TimeoutValues.isIdleDue(elapsedIdleMilliseconds, DeviceSettings.idle(context))) {
+            return;
+        }
         String selected = DeviceSettings.active(context.getContentResolver());
         if (!DeviceSettings.isEnabled(context.getContentResolver())) {
             return;

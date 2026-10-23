@@ -12,6 +12,10 @@ Channel Manager offers Manage cards under each channel. Right or Menu on a chann
 
 Big picture artwork can change every 5, 8, 15 or 30 seconds, or remain Manual. This controls the existing Big picture background slideshow. It does not cycle every program in a channel.
 
+## Arrange top-level feeds
+
+Choose Arrange top-level cards in Featured card setup or the focused card Menu. Move left and Move right reorder the Plex, IPTV and other feed cards on Home. This is separate from Move up and Move down inside a feed. Reset top-level order restores the normal feed sequence. Order choices are included in portable backups.
+
 ## App recommendations
 
 App recommendation cards are optional and require Android notification access. Enable the option and open Manage notification access to grant it explicitly. The launcher accepts recommendation notifications from supported installed apps, including Netflix, Prime Video, Live TV, News, YouTube, Spotify and Tubi. A listed app may publish no recommendations on a particular TV.

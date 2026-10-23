@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.7.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.8.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,9 +38,9 @@ This repository and its APK are private. Users with repository access can instal
 Download the signed APK and its checksum from the private release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.7.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.8.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.7.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.8.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -139,9 +139,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.7.0 on the TV emulator, with the current card options opened using the remote Menu button. Personal library details are kept out of screenshots. The [full gallery](docs/screenshots.md) distinguishes current card checks from earlier physical Home and native guide checks.
+Fire TV UI 1.8.0 on the TV emulator, with top-level feed ordering opened using the remote Menu button. Personal library details are kept out of screenshots. The [full gallery](docs/screenshots.md) distinguishes current card checks from earlier physical Home and native guide checks.
 
-<p align="center"><img src="art/screenshots/card-options-ui-1.7.0-api34.png" alt="Fire TV UI 1.7.0 current item options for hiding, feed ordering and source settings" width="900"></p>
+<p align="center"><img src="art/screenshots/top-feed-order-ui-1.8.0-api34.png" alt="Fire TV UI 1.8.0 top-level feed ordering with Move left and Move right" width="900"></p>
 
 ## License
 

@@ -28,6 +28,14 @@ public final class TimeoutValues {
         return (milliseconds / 1000) + " seconds";
     }
 
+    public static long launcherIdleDelay(int milliseconds) {
+        return milliseconds > 0 ? milliseconds : Long.MAX_VALUE;
+    }
+
+    public static boolean isIdleDue(long elapsedMilliseconds, int delayMilliseconds) {
+        return delayMilliseconds > 0 && elapsedMilliseconds >= delayMilliseconds;
+    }
+
     public static int deepSleepAutoWakeValue(boolean enabled) {
         return enabled ? 0 : 1;
     }

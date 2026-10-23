@@ -20,10 +20,13 @@ public final class DeviceSettings {
     public static final String KEEP_ADB = "fire_tv_ui_keep_adb";
     public static final String WIFI_ADB = "adb_wifi_enabled";
 
+    private static volatile ContentResolver launcherResolver;
+
     private DeviceSettings() {
     }
 
     public static void initialize(Context context) {
+        launcherResolver = context.getApplicationContext().getContentResolver();
         try {
             BackupStore.freshSetup(context);
         } catch (java.io.IOException | org.json.JSONException unavailable) {
@@ -143,6 +146,12 @@ public final class DeviceSettings {
 
     public static int idle(Context context) {
         return Settings.System.getInt(context.getContentResolver(), IDLE, 300000);
+    }
+
+    public static long launcherIdleDelay() {
+        ContentResolver resolver = launcherResolver;
+        int delay = resolver == null ? 300000 : Settings.System.getInt(resolver, IDLE, 300000);
+        return TimeoutValues.launcherIdleDelay(delay);
     }
 
     public static boolean hasAutoWake(Context context) {

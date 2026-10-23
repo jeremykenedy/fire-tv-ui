@@ -23,6 +23,7 @@
   "favorites_bg_mode": "String",
   "featured_artwork_fit": "Boolean",
   "featured_card_order": "StringSet",
+  "featured_feed_order": "StringSet",
   "featured_rotation_seconds": "Int",
   "fire_tv_ui_auto_wake": "Int",
   "fire_tv_ui_block_appstore": "Boolean",

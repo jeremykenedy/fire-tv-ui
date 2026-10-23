@@ -14,6 +14,7 @@
 
 ## Release notes
 
+- [v1.8.0](releases/v1.8.0.md)
 - [v1.6.0](releases/v1.6.0.md)
 
 - [v1.4.1](releases/v1.4.1.md)

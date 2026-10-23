@@ -109,6 +109,19 @@ def patch(decoded):
     text += '\n.method public startActivity(Landroid/content/Intent;)V\n    .locals 0\n'
     text += '    invoke-static {p0, p1}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->beforeLaunch(Landroid/content/Context;Landroid/content/Intent;)V\n'
     text += '    invoke-super {p0, p1}, Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V\n    return-void\n.end method\n'
+    resume_signature = '.method public final onResume()V'
+    resume = re.search(r'^' + re.escape(resume_signature) + r'\n.*?^\.end method', text, re.M | re.S).group(0)
+    resume = replace_once(resume, '    .locals 2', '    .locals 3')
+    resume = replace_once(resume,
+        '    invoke-super {p0}, Landroid/app/Activity;->onResume()V',
+        '    invoke-super {p0}, Landroid/app/Activity;->onResume()V\n'
+        '    iget-object v0, p0, Lcom/overdevs/at4k/MainActivity;->A:LQ3/T3;\n'
+        '    if-eqz v0, :resume_idle_reset_done\n'
+        '    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J\n'
+        '    move-result-wide v1\n'
+        '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
+        '    :resume_idle_reset_done')
+    text = replace_method(text, resume_signature, resume)
     main.write_text(text)
 
     hra = class_paths["Lcom/overdevs/at4k/Hra;"]
@@ -252,7 +265,7 @@ def patch(decoded):
     idle.write_text(replace_method(idle.read_text(),
         ".method public final k(Ljava/lang/Object;)Ljava/lang/Object;",
         """.method public final k(Ljava/lang/Object;)Ljava/lang/Object;
-    .locals 5
+    .locals 7
     sget-object v0, Lg4/a;->g:Lg4/a;
     iget v1, p0, LQ3/T6;->k:I
     invoke-static {p1}, Lq4/a;->l0(Ljava/lang/Object;)V
@@ -262,7 +275,16 @@ def patch(decoded):
     move-result v2
     if-eqz v2, :idle_focus_delay
     iget-object v2, p0, LQ3/T6;->m:Landroid/content/Context;
-    invoke-static {v2}, Lcom/jeremykenedy/firetv/ui/IdleScreensaver;->start(Landroid/content/Context;)V
+    iget-object v3, v1, LQ3/T3;->l1:LN/g0;
+    invoke-virtual {v3}, LN/g0;->getValue()Ljava/lang/Object;
+    move-result-object v3
+    check-cast v3, Ljava/lang/Number;
+    invoke-virtual {v3}, Ljava/lang/Number;->longValue()J
+    move-result-wide v3
+    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
+    move-result-wide v5
+    sub-long v3, v5, v3
+    invoke-static {v2, v3, v4}, Lcom/jeremykenedy/firetv/ui/IdleScreensaver;->start(Landroid/content/Context;J)V
     const/4 v2, 0x0
     invoke-virtual {v1, v2}, LQ3/T3;->V(Z)V
     invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
@@ -289,6 +311,12 @@ def patch(decoded):
     sget-object p1, Lb4/n;->a:Lb4/n;
     return-object p1
 .end method"""))
+
+    idle_clock = class_paths["LQ3/S6;"]
+    idle_clock.write_text(replace_once(idle_clock.read_text(),
+        '    const-wide/32 v5, 0x15f90',
+        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/DeviceSettings;->launcherIdleDelay()J\n'
+        '    move-result-wide v5'))
 
     featured = class_paths["LQ3/S8;"]
     text = featured.read_text()
@@ -323,6 +351,14 @@ def patch(decoded):
                 '    invoke-static {v0, v7}, Lcom/jeremykenedy/firetv/ui/CardOrder;->prepare(Landroid/content/Context;Landroid/database/Cursor;)Landroid/database/Cursor;\n'
                 '    move-result-object v7\n')
         loader.write_text(contents)
+
+    feed_loader = class_paths["LQ3/E7;"]
+    feed_loader.write_text(replace_once(feed_loader.read_text(),
+        '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;',
+        '    iget-object v0, v1, LQ3/E7;->r:Landroid/content/Context;\n'
+        '    invoke-static {v0, v10}, Lcom/jeremykenedy/firetv/ui/FeedOrderBridge;->order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;\n'
+        '    move-result-object v10\n'
+        '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;'))
 
     featured_image = class_paths["La/a;"]
     image_signature = '.method public static final n(LQ3/S8;IILC/d;LN2/k;LN/Z;Landroid/content/Context;LN/Z;LN/p;)V'
@@ -580,6 +616,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/CardSourcesAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardFocusAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardKeyAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/FeedOrderBridge.smali', destination)
     shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelCardsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelManageRow.smali', destination)
@@ -677,7 +714,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',
