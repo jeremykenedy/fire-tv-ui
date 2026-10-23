@@ -62,6 +62,8 @@ class BuildChecks(unittest.TestCase):
         if apk.exists():
             with ZipFile(apk) as archive:
                 self.assertEqual(archive.read('assets/media-notices/jellyfish-drift.txt'), notice.read_bytes())
+                self.assertEqual(archive.read('assets/media-notices/jellyfish-drift-licenses.txt'),
+                                 (ROOT / 'app/notices/jellyfish-drift-licenses.txt').read_bytes())
                 self.assertNotIn(b'Lcom/jeremykenedy/firetv/ui/Plex', archive.read('classes2.dex'))
                 self.assertNotIn(b'clients.plex.tv', archive.read('classes2.dex'))
 

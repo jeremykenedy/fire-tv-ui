@@ -16,22 +16,24 @@ public final class PreviewCreditsActivity extends CardActivity {
         body.addView(
                 text(
                         "The bundled Jellyfish Drift preview uses the Deep ocean scene credited"
-                            + " below.",
+                                + " below.",
                         18,
                         MUTED));
-        try (BufferedReader reader =
-                new BufferedReader(
-                        new InputStreamReader(
-                                getAssets().open("media-notices/jellyfish-drift.txt"),
-                                StandardCharsets.UTF_8))) {
-            StringBuilder notice = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                notice.append(line).append('\n');
+        for (String asset : new String[] {"jellyfish-drift.txt", "jellyfish-drift-licenses.txt"}) {
+            try (BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    getAssets().open("media-notices/" + asset),
+                                    StandardCharsets.UTF_8))) {
+                StringBuilder notice = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    notice.append(line).append('\n');
+                }
+                body.addView(text(notice.toString(), 17, INK));
+            } catch (java.io.IOException unavailable) {
+                body.addView(text("The bundled media notice could not be read.", 18, INK));
             }
-            body.addView(text(notice.toString(), 17, INK));
-        } catch (java.io.IOException unavailable) {
-            body.addView(text("The bundled media notice could not be read.", 18, INK));
         }
         body.setFocusable(true);
         body.requestFocus();
