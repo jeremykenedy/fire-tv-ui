@@ -1,5 +1,15 @@
 # Screenshots
 
+## Fire TV UI 1.8.0, code 53
+
+Actual signed `e7bcb815` API 34 output with safe sample cards. Remote Menu opened Arrange top-level cards. Moving Recently Added left changed Home feed order while preserving the items inside each feed.
+
+<table><tr>
+<td><img src="../art/screenshots/top-feed-options-ui-1.8.0-api34.png" alt="Focused card Menu includes Arrange top-level cards"><br>Card options</td>
+<td><img src="../art/screenshots/top-feed-order-ui-1.8.0-api34.png" alt="Top-level feed ordering with Move left and Move right"><br>Feed order</td>
+<td><img src="../art/screenshots/top-feed-home-ui-1.8.0-api34.png" alt="Recently Added moved before Continue Watching on Home"><br>Saved Home order</td>
+</tr></table>
+
 ## Fire TV UI 1.7.0, code 52
 
 Actual signed `a3c6c343` API 34 output with public sample cards. Remote Menu opened the focused card's options. Move down reordered its feed, and returning to Home showed the next item first while the other feed stayed unchanged.
