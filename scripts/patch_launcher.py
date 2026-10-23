@@ -296,7 +296,9 @@ def patch(decoded):
     pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
     copy = pattern.search(text).group(0)
     copy = replace_once(copy, '    .locals 13',
-        '    .locals 13\n\n    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;')
+        '    .locals 13\n\n    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;\n'
+        '    invoke-static {v2}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->label(Ljava/lang/String;)Ljava/lang/String;\n'
+        '    move-result-object v2')
     copy = replace_once(copy, '    const-string v2, "Watch Next"\n\n', '')
     featured.write_text(replace_method(text, signature, copy))
 
@@ -314,6 +316,12 @@ def patch(decoded):
             + "    invoke-static {" + context + ", " + cursor + ", " + temporary + "}, Lcom/jeremykenedy/firetv/ui/HiddenCards;->visible(Landroid/content/Context;Landroid/database/Cursor;Z)Z\n"
             + "    move-result " + context + "\n"
             + "    if-eqz " + context + ", :goto_0\n\n")
+        if descriptor == "LQ3/F8;":
+            contents = replace_once(contents, '->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;\n\n    move-result-object v7\n',
+                '->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;\n\n    move-result-object v7\n'
+                '    iget-object v0, v1, LQ3/F8;->l:Landroid/content/Context;\n'
+                '    invoke-static {v0, v7}, Lcom/jeremykenedy/firetv/ui/CardOrder;->prepare(Landroid/content/Context;Landroid/database/Cursor;)Landroid/database/Cursor;\n'
+                '    move-result-object v7\n')
         loader.write_text(contents)
 
     featured_image = class_paths["La/a;"]

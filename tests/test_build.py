@@ -167,7 +167,7 @@ class BuildChecks(unittest.TestCase):
 
     def test_rainforest_update_preserves_identity_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
-        self.assertEqual(len(entries), 32)
+        self.assertEqual(len(entries), 33)
         entry = next(item for item in entries if item['id'] == 'rainforest-cascade')
         self.assertEqual(entry['package'], 'com.jeremykenedy.rainforestcascade')
         self.assertEqual(entry['dream'], 'com.jeremykenedy.rainforestcascade/.WaterfallDreamService')

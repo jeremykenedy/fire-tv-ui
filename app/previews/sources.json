@@ -15,6 +15,14 @@
     "source_project": "jeremykenedy/aqua-surface-drift",
     "source_sha256": "880b8356fca0afaeed115145a7979931ebc3f85596784cdd5964935c8d1b801c"
   },
+  "com.jeremykenedy.blackscreendream/com.jeremykenedy.blackscreendream.BlackScreenDreamService": {
+    "capture_note": "Actual intentional pure-black native preview. Published1.0.0 verified on physical FireTV Dream; every captured pixel is black. No loading frame or generated illustration.",
+    "captured_on": "2026-10-22",
+    "preview_sha256": "3167c376e1873b0941389dd06a49c946d76941fc2169037e6c902aa5ef2bdd99",
+    "source_file": "art/screenshots/black-screen-native.png",
+    "source_project": "jeremykenedy/black-screen-dream",
+    "source_sha256": "05377a96972306b771d4474d00222af062992f86ab1a12b2688f0cf8da5ba55b"
+  },
   "com.jeremykenedy.bluemeridian/com.jeremykenedy.bluemeridian.BlueMeridianDreamService": {
     "capture_note": "Blue Meridian v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
     "captured_on": "2026-10-15",

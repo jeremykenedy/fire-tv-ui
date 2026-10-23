@@ -13,6 +13,7 @@ import java.util.Set;
 public final class ChannelCardsActivity extends CardActivity {
     private LinearLayout body;
     private boolean changed;
+    private String focusKey;
 
     public static void open(Context context, String name, String source, List<Long> ids) {
         long[] channels = new long[ids.size()];
@@ -72,14 +73,16 @@ public final class ChannelCardsActivity extends CardActivity {
     }
 
     private void render(List<HiddenCards.Card> cards) {
+        cards = CardOrder.sorted(this, cards);
+        final List<HiddenCards.Card> ordered = cards;
         body.removeAllViews();
         body.addView(
                 text(
                         cards.isEmpty()
                                 ? "This channel has no published cards."
-                                : "Hide individual cards without disabling this channel or changing"
-                                      + " your watch history. Hidden cards stay in this list so you"
-                                      + " can restore them.",
+                                : "Choose which cards appear and their order. Move a card up to show"
+                                      + " it first on Home. Hidden cards stay here for restoration;"
+                                      + " your watch history and other feeds stay unchanged.",
                         18,
                         MUTED));
         final Set<String> channelKeys = new HashSet<>();
@@ -113,7 +116,32 @@ public final class ChannelCardsActivity extends CardActivity {
                                     }
                                 }
                             });
-            addButton(body, action);
+            LinearLayout actions = new LinearLayout(this);
+            actions.setOrientation(LinearLayout.HORIZONTAL);
+            actions.addView(action, new LinearLayout.LayoutParams(0, -2, 3));
+            for (final int direction : new int[]{-1, 1}) {
+                TextView move = button(direction < 0 ? "Move up" : "Move down",
+                        new android.view.View.OnClickListener() {
+                            @Override public void onClick(android.view.View view) {
+                                try {
+                                    CardOrder.move(ChannelCardsActivity.this, ordered, card, direction);
+                                    changed = true;
+                                    focusKey = card.key;
+                                    render(ordered);
+                                } catch (RuntimeException failure) { error(failure); }
+                            }
+                        });
+                int position = 0, count = 0;
+                for (HiddenCards.Card other : ordered) {
+                    if (other.channel != card.channel || other.key == null) continue;
+                    if (other.key.equals(card.key)) position = count;
+                    count++;
+                }
+                move.setEnabled(direction < 0 ? position > 0 : position + 1 < count);
+                actions.addView(move, new LinearLayout.LayoutParams(0, -2, 1));
+            }
+            body.addView(actions);
+            if (card.key.equals(focusKey)) action.requestFocus();
         }
         if (!channelKeys.isEmpty())
             addButton(
@@ -126,7 +154,7 @@ public final class ChannelCardsActivity extends CardActivity {
                                     try {
                                         HiddenCards.restore(ChannelCardsActivity.this, channelKeys);
                                         changed = true;
-                                        render(cards);
+                                        render(ordered);
                                     } catch (IllegalStateException failure) {
                                         error(failure);
                                     }

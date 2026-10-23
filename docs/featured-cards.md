@@ -6,7 +6,9 @@ Open Preferences > Appearance > Cards > Featured card setup. Existing card and a
 
 Enable cards, choose Fit or Fill artwork, and select which published sources appear. Hiding a source affects its cards only, not its app tile. Refresh queries the actual available feeds. Reload home cards closes setup and rebuilds Home.
 
-Channel Manager offers Manage cards under each channel. Right or Menu on a channel also opens its individual cards. Hide or restore one card without disabling the channel. Restore all affects only that channel. The separate Hidden cards screen restores individual cards or all hidden cards. Hidden choices are included in portable launcher backups; publisher rows and watch history remain unchanged.
+Focus a card on Home and press the remote Menu button. Card options can hide that exact item, open its feed for ordering, or choose feeds and card settings.
+
+Channel Manager offers Manage cards under each channel. Right or Menu on a channel also opens its individual cards. Hide or restore one card without disabling the channel. Move up or Move down changes the item order within that feed, and Home uses the first visible item in your saved order. Newly published items follow your saved items; removed items are ignored. Restore all affects only that channel. The separate Hidden cards screen restores individual cards or all hidden cards. Hidden choices are included in portable launcher backups; publisher rows and watch history remain unchanged.
 
 Big picture artwork can change every 5, 8, 15 or 30 seconds, or remain Manual. This controls the existing Big picture background slideshow. It does not cycle every program in a channel.
 

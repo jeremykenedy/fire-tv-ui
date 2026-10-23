@@ -354,5 +354,17 @@
     "sha256": "edbf475c4a2b253ccc069adaee8cac2cbba4d16b5579d5299e2e2d1bdaa21fd5",
     "bytes": 127947,
     "preview": "com.jeremykenedy.prismclock/.PreviewActivity"
+  },
+  {
+    "id": "black-screen-dream",
+    "name": "Black Screen",
+    "package": "com.jeremykenedy.blackscreendream",
+    "dream": "com.jeremykenedy.blackscreendream/.BlackScreenDreamService",
+    "repo": "jeremykenedy/black-screen-dream",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/black-screen-dream/releases/download/v1.0.0/black-screen-dream.apk",
+    "sha256": "9e91b180c9f60748752612da496227e908b979c95f3c9e13930d4ce3ef108660",
+    "bytes": 21234,
+    "preview": "com.jeremykenedy.blackscreendream/.PreviewActivity"
   }
 ]

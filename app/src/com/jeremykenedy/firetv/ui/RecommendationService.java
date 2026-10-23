@@ -50,6 +50,14 @@ public final class RecommendationService extends NotificationListenerService {
                 .getBoolean("enabled", false);
     }
 
+    static void setEnabled(Context context, boolean enabled) {
+        if (!context.getSharedPreferences("recommendation-cards", MODE_PRIVATE)
+                .edit().putBoolean("enabled", enabled).commit()) {
+            throw new IllegalStateException("The recommendation setting could not be saved.");
+        }
+        refresh(context);
+    }
+
     static String status() { return status; }
 
     static void refresh(Context context) {

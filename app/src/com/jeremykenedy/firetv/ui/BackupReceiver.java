@@ -37,6 +37,9 @@ public final class BackupReceiver extends BroadcastReceiver {
             } else if ("simple".equals(operation)) {
                 BackupStore.simpleSetup(context);
 
+            } else if ("recommendations-on".equals(operation)
+                    || "recommendations-off".equals(operation)) {
+                RecommendationService.setEnabled(context, "recommendations-on".equals(operation));
             } else if ("home-on".equals(operation) || "home-off".equals(operation)) {
                 HomeControl.setEnabled(context, "home-on".equals(operation), true);
             } else if ("home-preference-on".equals(operation) || "home-preference-off".equals(operation)) {
