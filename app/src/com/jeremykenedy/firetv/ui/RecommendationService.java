@@ -41,6 +41,7 @@ public final class RecommendationService extends NotificationListenerService {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Map<String, PendingIntent> actions = new HashMap<>();
     private volatile boolean active;
+    private volatile boolean collecting;
 
     static boolean enabled(Context context) {
         return context.getSharedPreferences("recommendation-cards", MODE_PRIVATE)
@@ -59,10 +60,25 @@ public final class RecommendationService extends NotificationListenerService {
         RecommendationService service = connected;
         if (service == null || !service.active || !enabled(context)
                 || !RecommendationRules.validIdentity(id)) return false;
-        PendingIntent action;
-        synchronized (service.actions) { action = service.actions.get(id); }
-        if (action == null || RecommendationRules.label(action.getCreatorPackage()) == null)
-            return false;
+        synchronized (service.actions) { if (!service.actions.containsKey(id)) return false; }
+        PendingIntent action = null;
+        try {
+            StatusBarNotification[] current = service.getActiveNotifications();
+            if (current == null) return false;
+            for (StatusBarNotification posted : current) {
+                Notification notification = posted.getNotification();
+                if (notification == null || notification.contentIntent == null) continue;
+                CharSequence value = notification.extras.getCharSequence(Notification.EXTRA_TITLE);
+                String title = value == null ? "" : value.toString().trim();
+                if (RecommendationRules.eligible(posted.getPackageName(), notification.category,
+                        notification.contentIntent.getCreatorPackage(), title)
+                        && id.equals(RecommendationRules.identity(posted.getPackageName(), posted.getKey(), title))) {
+                    action = notification.contentIntent;
+                    break;
+                }
+            }
+        } catch (Exception unavailable) { return false; }
+        if (action == null) { service.refresh(); return false; }
         try {
             action.send();
             return true;
@@ -108,6 +124,9 @@ public final class RecommendationService extends NotificationListenerService {
         if (connected == this) connected = null;
         synchronized (actions) { actions.clear(); }
         main.removeCallbacksAndMessages(null);
+        worker.execute(new Runnable() {
+            @Override public void run() { publish(new LinkedHashMap<>()); }
+        });
         worker.shutdown();
         super.onDestroy();
     }
@@ -115,6 +134,10 @@ public final class RecommendationService extends NotificationListenerService {
     private final Runnable reload = new Runnable() {
         @Override public void run() {
         if (!active) return;
+        if (collecting) {
+            main.postDelayed(this, 150);
+            return;
+        }
         final StatusBarNotification[] notifications;
         try {
             notifications = enabled(RecommendationService.this) ? getActiveNotifications() : new StatusBarNotification[0];
@@ -122,8 +145,12 @@ public final class RecommendationService extends NotificationListenerService {
             status = "The TV could not read recommendation notifications.";
             return;
         }
+        collecting = true;
         worker.execute(new Runnable() {
-            @Override public void run() { collect(notifications); }
+            @Override public void run() {
+                try { collect(notifications); }
+                finally { collecting = false; }
+            }
         });
         }
     };
@@ -249,9 +276,11 @@ public final class RecommendationService extends NotificationListenerService {
             File[] files = directory(this).listFiles();
             if (files != null) for (File file : files)
                 if (file.getName().matches("[a-f0-9]{64}\\.png") && !referenced.contains(file.getName())) file.delete();
-            status = enabled(this) ? updated.size() + " app recommendation cards available."
-                    : "App recommendation cards are off.";
+            status = !enabled(this) ? "App recommendation cards are off."
+                    : !active ? "Recommendation access is disconnected. Reconnect it in card setup."
+                    : updated.size() + " app recommendation cards available.";
         } catch (Exception unavailable) {
+            synchronized (actions) { actions.clear(); }
             status = "Recommendation cards could not be updated. Check access and refresh.";
         }
     }
@@ -261,6 +290,23 @@ public final class RecommendationService extends NotificationListenerService {
     }
 
     private Uri cache(String id, String source, Notification notification) throws Exception {
+        File folder = directory(this);
+        File imageFile = new File(folder, id + ".png");
+        {
+            File[] existing = folder.listFiles();
+            long bytes = 0;
+            int count = 0;
+            if (existing != null) for (File file : existing) {
+                if (file.getName().matches("[a-f0-9]{64}\\.png(?:\\.bak)?")) {
+                    count++;
+                    bytes += file.length();
+                }
+            }
+            // Leave room for one replacement snapshot before old art is pruned.
+            if ((!imageFile.isFile() && count >= 192)
+                    || bytes - imageFile.length() + 2L * 1024 * 1024 > 48L * 1024 * 1024)
+                return null;
+        }
         Bitmap image = null;
         Object picture = notification.extras.get(Notification.EXTRA_PICTURE);
         if (picture instanceof Bitmap) image = (Bitmap) picture;
@@ -274,8 +320,11 @@ public final class RecommendationService extends NotificationListenerService {
                     || (icon.getType() == Icon.TYPE_RESOURCE && source.equals(icon.getResPackage()))) {
                 Drawable drawable = icon.loadDrawable(this);
                 if (drawable != null) {
-                    int width = Math.max(1, Math.min(960, drawable.getIntrinsicWidth()));
-                    int height = Math.max(1, Math.min(540, drawable.getIntrinsicHeight()));
+                    int originalWidth = Math.max(1, drawable.getIntrinsicWidth());
+                    int originalHeight = Math.max(1, drawable.getIntrinsicHeight());
+                    float ratio = Math.min(1f, Math.min(960f / originalWidth, 540f / originalHeight));
+                    int width = Math.max(1, Math.round(originalWidth * ratio));
+                    int height = Math.max(1, Math.round(originalHeight * ratio));
                     image = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
                     drawable.setBounds(0, 0, width, height);
                     drawable.draw(new Canvas(image));
@@ -287,9 +336,8 @@ public final class RecommendationService extends NotificationListenerService {
         float scale = Math.min(1f, Math.min(960f / image.getWidth(), 540f / image.getHeight()));
         Bitmap resized = Bitmap.createScaledBitmap(image, Math.max(1, Math.round(image.getWidth() * scale)),
                 Math.max(1, Math.round(image.getHeight() * scale)), true);
-        File folder = directory(this);
         if (!folder.isDirectory() && !folder.mkdirs()) throw new java.io.IOException();
-        android.util.AtomicFile target = new android.util.AtomicFile(new File(folder, id + ".png"));
+        android.util.AtomicFile target = new android.util.AtomicFile(imageFile);
         FileOutputStream stream = null;
         try {
             stream = target.startWrite();
