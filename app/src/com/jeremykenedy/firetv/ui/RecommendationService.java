@@ -1,5 +1,6 @@
 package com.jeremykenedy.firetv.ui;
 
+import android.app.ActivityOptions;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -81,7 +82,14 @@ public final class RecommendationService extends NotificationListenerService {
         } catch (Exception unavailable) { return false; }
         if (action == null) { service.refresh(); return false; }
         try {
-            action.send();
+            if (android.os.Build.VERSION.SDK_INT >= 34) {
+                ActivityOptions options = ActivityOptions.makeBasic();
+                options.setPendingIntentBackgroundActivityStartMode(
+                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+                action.send(context, 0, null, null, null, null, options.toBundle());
+            } else {
+                action.send();
+            }
             return true;
         } catch (PendingIntent.CanceledException unavailable) {
             service.refresh();
