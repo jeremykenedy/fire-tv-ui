@@ -1,5 +1,15 @@
 # Screenshots
 
+## Fire TV UI 1.7.0, code 52
+
+Actual signed `a3c6c343` API 34 output with public sample cards. Remote Menu opened the focused card's options. Move down reordered its feed, and returning to Home showed the next item first while the other feed stayed unchanged.
+
+<table><tr>
+<td><img src="../art/screenshots/card-options-ui-1.7.0-api34.png" alt="Current item Menu offers Hide, feed ordering and source settings"><br>Inside the card</td>
+<td><img src="../art/screenshots/card-order-ui-1.7.0-api34.png" alt="Individual feed cards each have Hide, Move up and Move down controls"><br>Individual card order</td>
+<td><img src="../art/screenshots/card-order-home-ui-1.7.0-api34.png" alt="Home honors the changed first card while preserving the other feed"><br>Saved order on Home</td>
+</tr></table>
+
 ## Fire TV UI 1.6.0 interface, code 50
 
 Signed `45345c43` output on the API 34 TV emulator uses public sample recommendations, not personal library metadata. The actual original producer action opened item B after remote Up and Center. The recommendation setup capture precedes access approval; the later Home frame shows the published cards. Listener revoke, reconnect and disable were checked separately with exact state restoration. Final code 51 changes only package update startup dispatch; its card interface and artwork are unchanged.
