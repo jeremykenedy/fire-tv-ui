@@ -171,7 +171,7 @@ public final class BackupStore {
                 continue;
             }
             Object value = data.get(key);
-            if (CardOrderRules.SETTING.equals(key) && (!(value instanceof JSONArray)
+            if ((CardOrderRules.SETTING.equals(key) || FeedOrder.SETTING.equals(key)) && (!(value instanceof JSONArray)
                     || ((JSONArray) value).length() > CardOrderRules.LIMIT)) {
                 throw new JSONException("Invalid featured card order.");
             }
@@ -231,7 +231,7 @@ public final class BackupStore {
                             && !array.getString(i).matches("[a-f0-9]{64}")) {
                         throw new JSONException("Invalid hidden featured card identity.");
                     }
-                    if (CardOrderRules.SETTING.equals(key)
+                    if ((CardOrderRules.SETTING.equals(key) || FeedOrder.SETTING.equals(key))
                             && !CardOrderRules.valid(array.getString(i)))
                         throw new JSONException("Invalid featured card position.");
                     strings.add(array.getString(i));

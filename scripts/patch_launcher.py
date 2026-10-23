@@ -324,6 +324,14 @@ def patch(decoded):
                 '    move-result-object v7\n')
         loader.write_text(contents)
 
+    feed_loader = class_paths["LQ3/E7;"]
+    feed_loader.write_text(replace_once(feed_loader.read_text(),
+        '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;',
+        '    iget-object v0, v1, LQ3/E7;->r:Landroid/content/Context;\n'
+        '    invoke-static {v0, v10}, Lcom/jeremykenedy/firetv/ui/FeedOrderBridge;->order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;\n'
+        '    move-result-object v10\n'
+        '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;'))
+
     featured_image = class_paths["La/a;"]
     image_signature = '.method public static final n(LQ3/S8;IILC/d;LN2/k;LN/Z;Landroid/content/Context;LN/Z;LN/p;)V'
     image = featured_image.read_text()
@@ -580,6 +588,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/CardSourcesAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardFocusAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardKeyAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/FeedOrderBridge.smali', destination)
     shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelCardsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelManageRow.smali', destination)
@@ -677,7 +686,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

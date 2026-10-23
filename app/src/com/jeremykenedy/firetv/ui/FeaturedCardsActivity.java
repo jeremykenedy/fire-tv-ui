@@ -49,6 +49,11 @@ public final class FeaturedCardsActivity extends CardActivity {
                             }
                         });
         addButton(body, enabled);
+        addButton(body, button("Arrange top-level cards", new android.view.View.OnClickListener() {
+            @Override public void onClick(android.view.View view) {
+                startActivity(new Intent(FeaturedCardsActivity.this, FeedOrderActivity.class));
+            }
+        }));
         artwork =
                 button(
                         "",
