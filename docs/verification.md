@@ -1,6 +1,10 @@
 # Verification
 
-## Fire TV UI 1.4.1, version code 39
+## Fire TV UI 1.4.1, version code 40
+
+The final signed `ca1b8b5a191fbf5211d38fbb152267c793a37a8fe454db8f4a32ec2150e12446` build passed physical first-page Live TV artwork and placement, actual native GuideActivity launch, Back and injected Home returning to Main. A fresh baseline comparison preserved all 46 portable preferences, nine OS settings and byte-exact external backup/import files, with a healthy live guard and VPN. Native schedules were still loading; channel playback is not claimed. The final Main remained on its first page. The signed build and 30 local tests passed, with six native opt-in checks skipped.
+
+### Preliminary code 39 helper check
 
 The exact signed `153da5a2fe5feae98fb7a9ba71ed0c4107b53912c4648726c72d1d647168d36e` candidate passed physical Fire OS helper checking: app 1.2.6/code 10 is separate from repository v3.9.1, the APK checksum matches the published helper, and Matches checked release is disabled. OwnTV 5.2.1 matched its exact current TV APK. All 46 portable preferences, nine OS values, external backup/import files, the healthy live guard and VPN were retained. The actual Factory UI tile opened Amazon Home before handback. This does not establish a hardware remote Home press.
 

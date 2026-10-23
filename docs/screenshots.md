@@ -1,8 +1,22 @@
 # Screenshots
 
-## Fire TV UI 1.4.1
+## Fire TV UI 1.4.1, code 40
 
-Current physical Fire OS output from the exact signed `153da5a2` candidate. The helper row verifies the Android app version separately from its repository tag and disables replacement for the already installed version. The launcher capture is scrolled to its native TV tile row. The OwnTV capture was taken before Check for updates and correctly says not checked; it is not a current-version claim. A separate completed native check verified OwnTV 5.2.1 against its published TV APK.
+Current physical Fire OS output from the exact signed `ca1b8b5a` release candidate. Live TV is visible beside OwnTV on the first page. Opening it reached the native GuideActivity; the guide frame shows schedules loading and does not establish channel playback. Back and injected Home returned to Main. A hardware remote Home check remains separate.
+
+<table>
+<tr>
+<td><img src="../art/screenshots/home-ui-1.4.1-code40-fire-tv-1920.png" alt="Current Fire TV UI 1.4.1 code 40 first page with original Live TV artwork beside OwnTV"><br>First-page Live TV</td>
+<td><img src="../art/screenshots/native-guide-ui-1.4.1-code40-fire-tv-1920.png" alt="Native Amazon channel guide opened by the code 40 Live TV tile, with schedules loading"><br>Native guide</td>
+<td><img src="../art/screenshots/home-after-guide-ui-1.4.1-code40-fire-tv-1920.png" alt="Fire TV UI Main first page restored after leaving the native guide and pressing injected Home"><br>Back and Home</td>
+</tr>
+</table>
+
+All 46 current portable UI preferences, nine OS values and both external backup/import files were preserved. The live settings guard and VPN remained active. The comparison used the fresh current layout after the deliberate Live TV placement change, rather than restoring its old position.
+
+## Preliminary 1.4.1 code 39 helper verification
+
+Earlier physical Fire OS output from preliminary code 39, exact signed `153da5a2`. The final release is code 40; these captures establish the unchanged helper-check interface and are not final-build screenshots. The helper row verifies the Android app version separately from its repository tag and disables replacement for the already installed version. The launcher capture is scrolled to its native TV tile row. The OwnTV capture was taken before Check for updates and correctly says not checked; it is not a current-version claim. A separate completed native check verified OwnTV 5.2.1 against its published TV APK.
 
 <table>
 <tr>

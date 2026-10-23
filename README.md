@@ -136,15 +136,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.4.1 running on physical Fire TV: the verified helper app version, preserved native TV tiles and installed apps before an explicit update check. The [full gallery](docs/screenshots.md) records exact capture builds and separates historical evidence. The separate physical remote Home check remains unverified.
+Fire TV UI 1.4.1 on physical Fire TV, with Live TV visible beside OwnTV on the first page. The tile opens the native channel guide. The [full gallery](docs/screenshots.md) includes the guide and return to Home, and labels earlier helper-check captures separately. The physical remote Home check from intentional Factory UI remains unverified.
 
-<table>
-<tr>
-<td><img src="art/screenshots/updates-helper-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 verified Home Redirect app 1.2.6 code 10 separately from Toolkit tag v3.9.1"><br>Verified helper version</td>
-<td><img src="art/screenshots/home-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 preserved five-column native Factory UI and Live TV tile row"><br>Native TV tiles</td>
-<td><img src="art/screenshots/updates-owntv-ui-1.4.1-fire-tv-1920.png" alt="Fire TV UI 1.4.1 installed OwnTV 5.2.1 and Fire IPTV 1.1.1 before an explicit update check"><br>Before checking updates</td>
-</tr>
-</table>
+<p align="center"><img src="art/screenshots/home-ui-1.4.1-code40-fire-tv-1920.png" alt="Fire TV UI 1.4.1 code 40 with its dedicated Live TV guide icon on the first page beside OwnTV" width="900"></p>
 
 ## License
 
