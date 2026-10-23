@@ -1,0 +1,23 @@
+Jellyfish Drift V2 filmed scenes
+
+Blue aquarium
+Video: Aurelia labiata swimming
+Author: Eric Polk
+Recorded: 10 July 2023 at Monterey Bay Aquarium, California, USA.
+Source: https://commons.wikimedia.org/wiki/File:Aurelia_labiata_swimming.webm
+License: Creative Commons Attribution-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-sa/4.0/
+Adaptation: the stable source interval from 2 to 19 seconds, silent H264 encoding at 30 frames per second, a 1-second editorial crossfade between ending and beginning, and a 720p fallback. The resulting loop is 16 seconds. The adapted videos and any preview images derived from them remain CC BY-SA 4.0.
+
+Deep ocean
+Video: Jellyfish, showing Crossota observed at Enigma Seamount on 24 April 2016, approximately 3,700 meters deep.
+Credit: NOAA Ocean Exploration, 2016 Deepwater Exploration of the Marianas.
+Source: https://oceanexplorer.noaa.gov/multimedia/video-playlist-best-jellyfish/
+Media: https://oceanexplorer.noaa.gov/wp-content/uploads/2018/07/0424-jelly-1920x1080-2.mp4
+Rights: NOAA public-domain material, with no separate copyright restriction identified on the source page.
+https://oceanexplorer.noaa.gov/faqs/
+Adaptation: source interval 8 to 28 seconds, removal of audio, top-field-first deinterlacing with bwdif at the recorded frame rate, a 1-second editorial loop crossfade, H264 encoding, and a 720p fallback. The resulting loop is approximately 19 seconds. The source includes its own transition between views and residual fine-line artifacts on tentacles. No text was painted out or removed from the selected scene.
+
+Application code is separately licensed under Apache License 2.0. Full code and CC BY-SA license texts are included below. No author, aquarium, agency, or expedition endorsement is implied.
+
+These are real filmed scenes with fixed recorded animals and camera movement. Scene selection changes the recording, and playback speed changes its timing. There are no independent density, species, simulated light-ray, camera, or depth controls. Legacy density, species, and light_rays preference values remain stored for compatibility, but have no visual effect in filmed mode. Random choices affect only the scene and playback speed. Loop crossfades are editorial transitions, not seamless natural events.
