@@ -98,6 +98,7 @@ public class AtomicFile {
 }''',
             'com/jeremykenedy/firetv/ui/DeviceSettings.java': '''package com.jeremykenedy.firetv.ui;
 public class DeviceSettings { public static boolean repaired; public static void sleep(android.content.Context c,int value){throw new AssertionError("Never sleep must not be applied by setup");} public static boolean canWrite(android.content.Context c){return true;} public static void repair(android.content.Context c){repaired=true;} }''',
+            'com/jeremykenedy/firetv/ui/FeedOrder.java': '''package com.jeremykenedy.firetv.ui; final class FeedOrder { static final String SETTING="featured_feed_order"; }''',
             'com/jeremykenedy/firetv/ui/EquipmentControl.java': '''package com.jeremykenedy.firetv.ui;
 final class EquipmentControl { static final String REMOTE="fire_tv_ui_equipment_remote"; }''',
         }
@@ -111,6 +112,8 @@ final class EquipmentControl { static final String REMOTE="fire_tv_ui_equipment_
                 files.append(str(target))
             subprocess.run(['javac', '-cp', str(jar), '-d', temp, *files,
                             os.environ.get('BACKUP_STORE_SOURCE', str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/BackupStore.java')),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/CardOrderRules.java'),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java'),
                             str(ROOT / 'tests/BackupMigrationTest.java')], check=True)
             subprocess.run(['java', '-cp', temp + os.pathsep + str(jar),
                             'com.jeremykenedy.firetv.ui.BackupMigrationTest', temp], check=True)
