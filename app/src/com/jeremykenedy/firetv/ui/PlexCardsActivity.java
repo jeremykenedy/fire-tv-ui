@@ -343,6 +343,16 @@ public final class PlexCardsActivity extends CardActivity {
                 && saved.server.equals(connection.server))
             connection = connection.withFeeds(saved.feeds).withProfiles(saved.profiles);
         final PlexConnection selected = connection;
+        java.util.Map<String, String> accountNames = java.util.Collections.emptyMap();
+        if (connection.feeds.enabled.contains("playing")
+                || connection.feeds.enabled.contains("history")) {
+            try {
+                accountNames = PlexFeedData.accounts(api.server(selected, "/accounts", 100));
+            } catch (PlexApi.RequestFailure unavailable) {
+                /* Names are optional; activity access is checked separately. */
+            }
+        }
+        final java.util.Map<String, String> names = accountNames;
         List<PlexFeedData.Feed> feeds =
                 PlexFeedData.read(
                         new PlexFeedData.Reader() {
@@ -351,7 +361,10 @@ public final class PlexCardsActivity extends CardActivity {
                                     throws Exception {
                                 if (!PlexSession.current(request))
                                     throw new java.io.IOException("Refresh was cancelled.");
-                                return api.server(selected, path, count);
+                                org.json.JSONObject response = api.server(selected, path, count);
+                                return path.startsWith("/status/sessions")
+                                        ? PlexFeedData.namedActivity(response, names)
+                                        : response;
                             }
                         },
                         connection.feeds,
@@ -388,8 +401,8 @@ public final class PlexCardsActivity extends CardActivity {
             } catch (PlexApi.AuthorizationRequired expired) {
                 throw new java.io.IOException(
                         "A selected Plex Home profile needs authorization. Open Other users'"
-                            + " Continue Watching to authorize it again. Existing cards were"
-                            + " kept.");
+                                + " Continue Watching to authorize it again. Existing cards were"
+                                + " kept.");
             }
             PlexFeedData.Feed feed =
                     new PlexFeedData.Feed(

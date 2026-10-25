@@ -201,7 +201,7 @@ public final class PlexFeedSettingsActivity extends CardActivity {
         if (reading) return;
         reading = true;
         final long request = activeRequest = PlexSession.begin();
-        status.setText("Reading users exposed by this server's recent activity...");
+        status.setText("Reading users exposed by your server and its recent activity...");
         new Thread(
                         new Runnable() {
                             @Override
@@ -215,6 +215,13 @@ public final class PlexFeedSettingsActivity extends CardActivity {
                                     PlexApi api =
                                             new PlexApi(PlexFeedSettingsActivity.this, request);
                                     Map<String, String> users = new LinkedHashMap<>();
+                                    try {
+                                        users.putAll(
+                                                PlexFeedData.accounts(
+                                                        api.server(current, "/accounts", 100)));
+                                    } catch (PlexApi.RequestFailure unavailable) {
+                                        /* Recent activity remains available independently. */
+                                    }
                                     int failed = 0;
                                     for (String path :
                                             new String[] {
@@ -224,12 +231,15 @@ public final class PlexFeedSettingsActivity extends CardActivity {
                                         try {
                                             users.putAll(
                                                     PlexFeedData.users(
-                                                            api.server(current, path, 100)));
+                                                            PlexFeedData.namedActivity(
+                                                                    api.server(current, path, 100),
+                                                                    users)));
                                         } catch (PlexApi.RequestFailure unavailable) {
                                             failed++;
                                         }
                                     }
-                                    if (failed == 2) throw new java.io.IOException();
+                                    if (failed == 2 && users.isEmpty())
+                                        throw new java.io.IOException();
                                     final boolean partial = failed != 0;
                                     runOnUiThread(
                                             new Runnable() {

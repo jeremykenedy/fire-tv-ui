@@ -111,6 +111,36 @@ final class PlexFeedData {
         return new JSONObject().put("MediaContainer", new JSONObject().put("Metadata", result));
     }
 
+    static Map<String, String> accounts(JSONObject response) {
+        Map<String, String> result = new LinkedHashMap<>();
+        JSONObject container = response.optJSONObject("MediaContainer");
+        JSONArray accounts = container == null ? null : container.optJSONArray("Account");
+        for (int i = 0; accounts != null && i < Math.min(256, accounts.length()); i++) {
+            JSONObject account = accounts.optJSONObject(i);
+            if (account == null) continue;
+            String id = account.optString("id", "");
+            String name = account.optString("name", "").trim();
+            if (id.matches("[0-9]{1,18}") && !name.isEmpty() && name.length() <= 128)
+                result.put(id, name);
+        }
+        return result;
+    }
+
+    static JSONObject namedActivity(JSONObject response, Map<String, String> accounts)
+            throws Exception {
+        JSONObject named = new JSONObject(response.toString());
+        JSONObject container = named.optJSONObject("MediaContainer");
+        JSONArray rows = container == null ? null : container.optJSONArray("Metadata");
+        for (int i = 0; rows != null && i < rows.length(); i++) {
+            JSONObject item = rows.optJSONObject(i);
+            if (item == null || item.optJSONObject("User") != null) continue;
+            String id = item.optString("accountID", "");
+            String name = accounts.get(id);
+            if (name != null) item.put("User", new JSONObject().put("id", id).put("title", name));
+        }
+        return named;
+    }
+
     static Map<String, String> users(JSONObject response) {
         Map<String, String> users = new LinkedHashMap<>();
         JSONObject container = response.optJSONObject("MediaContainer");

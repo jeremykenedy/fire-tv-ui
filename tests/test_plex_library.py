@@ -17,6 +17,8 @@ class PlexLibraryChecks(unittest.TestCase):
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/PlexFeedSettings.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/PlexFeedData.java'),
                             str(ROOT / 'tests/PlexFeedDataTest.java'),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/PlexArtworkRedirect.java'),
+                            str(ROOT / 'tests/PlexArtworkRedirectTest.java'),
                             str(ROOT / 'tests/PlexFeedSettingsTest.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/PlexItemLinks.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/PlexResources.java'),
@@ -25,6 +27,8 @@ class PlexLibraryChecks(unittest.TestCase):
                             str(ROOT / 'tests/PlexLibraryTest.java')], check=True)
             subprocess.run(['java', '-cp', folder + ':' + runtime,
                             'com.jeremykenedy.firetv.ui.PlexLibraryTest'], check=True)
+            subprocess.run(['java', '-cp', folder + ':' + runtime,
+                            'com.jeremykenedy.firetv.ui.PlexArtworkRedirectTest'], check=True)
             subprocess.run(['java', '-cp', folder + ':' + runtime,
                             'com.jeremykenedy.firetv.ui.PlexFeedSettingsTest'], check=True)
             subprocess.run(['java', '-cp', folder + ':' + runtime,

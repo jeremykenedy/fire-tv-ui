@@ -210,6 +210,20 @@ final class PlexApi {
             String phase,
             int pageSize)
             throws Exception {
+        return request(
+                url, method, token, body, limit, phase, pageSize, "Artwork".equals(phase) ? 3 : 0);
+    }
+
+    private byte[] request(
+            String url,
+            String method,
+            String token,
+            JSONObject body,
+            int limit,
+            String phase,
+            int pageSize,
+            int redirects)
+            throws Exception {
         HttpURLConnection request = null;
         try {
             request = (HttpURLConnection) new URL(url).openConnection();
@@ -217,14 +231,17 @@ final class PlexApi {
             request.setConnectTimeout(10000);
             request.setReadTimeout(15000);
             request.setRequestMethod(method);
-            request.setRequestProperty("Accept", "application/json");
-            request.setRequestProperty("X-Plex-Client-Identifier", keys.clientId());
-            request.setRequestProperty("X-Plex-Product", "Fire TV UI");
-            request.setRequestProperty("X-Plex-Version", "1.6.0");
-            request.setRequestProperty("X-Plex-Platform", "Android");
-            request.setRequestProperty("X-Plex-Device", "Fire TV");
-            request.setRequestProperty("X-Plex-Container-Start", "0");
-            request.setRequestProperty("X-Plex-Container-Size", Integer.toString(pageSize));
+            boolean artwork = "Artwork".equals(phase);
+            request.setRequestProperty("Accept", artwork ? "image/*" : "application/json");
+            if (!artwork || token != null) {
+                request.setRequestProperty("X-Plex-Client-Identifier", keys.clientId());
+                request.setRequestProperty("X-Plex-Product", "Fire TV UI");
+                request.setRequestProperty("X-Plex-Version", "1.6.0");
+                request.setRequestProperty("X-Plex-Platform", "Android");
+                request.setRequestProperty("X-Plex-Device", "Fire TV");
+                request.setRequestProperty("X-Plex-Container-Start", "0");
+                request.setRequestProperty("X-Plex-Container-Size", Integer.toString(pageSize));
+            }
             if (token != null) request.setRequestProperty("X-Plex-Token", token);
             if (body != null) {
                 request.setDoOutput(true);
@@ -236,7 +253,22 @@ final class PlexApi {
                 }
             }
             int status = request.getResponseCode();
-            if (status == 401 || status == 498) throw new AuthorizationRequired(phase, status);
+            if (artwork
+                    && redirects > 0
+                    && (status == 301
+                            || status == 302
+                            || status == 303
+                            || status == 307
+                            || status == 308)) {
+                String next = PlexArtworkRedirect.next(url, request.getHeaderField("Location"));
+                String credential = PlexArtworkRedirect.sameOrigin(url, next) ? token : null;
+                request.disconnect();
+                request = null;
+                return request(
+                        next, "GET", credential, null, limit, phase, pageSize, redirects - 1);
+            }
+            if ((status == 401 || status == 498) && (!artwork || token != null))
+                throw new AuthorizationRequired(phase, status);
             if (status < 200 || status >= 300) throw new RequestFailure(phase, status);
             try (InputStream input = request.getInputStream();
                     ByteArrayOutputStream output = new ByteArrayOutputStream()) {

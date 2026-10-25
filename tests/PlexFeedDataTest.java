@@ -10,6 +10,14 @@ import java.util.List;
 
 public final class PlexFeedDataTest {
     public static void main(String[] args) throws Exception {
+        JSONObject accounts = new JSONObject("{\"MediaContainer\":{\"Account\":[{\"id\":5,\"name\":\"Calvin\"}]}}");
+        JSONObject history = new JSONObject("{\"MediaContainer\":{\"Metadata\":[{\"accountID\":5,\"ratingKey\":\"55\",\"title\":\"Sample\"}]}}");
+        JSONObject named = PlexFeedData.namedActivity(history, PlexFeedData.accounts(accounts));
+        check("Calvin".equals(PlexFeedData.users(named).get("5")),
+                "History's server-local account ID resolves to its real server account name.");
+        check(history.getJSONObject("MediaContainer").getJSONArray("Metadata").getJSONObject(0).optJSONObject("User") == null,
+                "Naming activity must not mutate the original server response.");
+
         List<String> requests = new ArrayList<>();
         List<PlexFeedData.Feed> defaults =
                 PlexFeedData.read(
