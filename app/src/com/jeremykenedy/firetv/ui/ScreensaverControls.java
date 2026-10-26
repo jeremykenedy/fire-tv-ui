@@ -13,6 +13,27 @@ final class ScreensaverControls {
     private ScreensaverControls() {
     }
 
+    static Intent resolvePreview(Context context, String dream) {
+        ComponentName service = ComponentName.unflattenFromString(dream == null ? "" : dream);
+        if (service == null) {
+            return null;
+        }
+        try {
+            for (ScreensaverCatalog.Entry entry : ScreensaverCatalog.load(context)) {
+                if (!Screensavers.fullComponent(entry.dream).equals(Screensavers.fullComponent(dream))
+                        || entry.previewControls.isEmpty()) {
+                    continue;
+                }
+                ComponentName activity = ComponentName.unflattenFromString(entry.previewControls);
+                return samePackage(service, activity) && canLaunch(context, activity)
+                        ? new Intent().setComponent(activity) : null;
+            }
+        } catch (Exception unavailable) {
+            throw new IllegalStateException("The screensaver preview controls could not be read.", unavailable);
+        }
+        return resolve(context, dream);
+    }
+
     static Intent resolve(Context context, String dream) {
         ComponentName serviceName = ComponentName.unflattenFromString(dream == null ? "" : dream);
         if (serviceName == null) {

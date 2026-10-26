@@ -136,7 +136,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/nebula-drift/releases/download/v1.1.0/nebula-drift.apk",
     "bytes": 29368,
-    "sha256": "4d2d7db1d07fb7a317d4461c8946969ba83b949b7a38801d9377b4275a039f30"
+    "sha256": "4d2d7db1d07fb7a317d4461c8946969ba83b949b7a38801d9377b4275a039f30",
+    "previewControls": "com.jeremykenedy.nebuladrift/.NebulaActivity"
   },
   {
     "id": "vortex-spiral",
@@ -244,7 +245,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/split-flap-drift/releases/download/v1.1.0/split-flap-drift.apk",
     "bytes": 29368,
-    "sha256": "9cbf91acf586bdf0cb056fef5d53e204ddc9be38f9e5c994a603bbd666cbb351"
+    "sha256": "9cbf91acf586bdf0cb056fef5d53e204ddc9be38f9e5c994a603bbd666cbb351",
+    "previewControls": "com.jeremykenedy.splitflapdrift/.SplitFlapActivity"
   },
   {
     "id": "canopy-drift",
@@ -267,7 +269,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/contour-flow/releases/download/v1.0.0/contour-flow.apk",
     "bytes": 29368,
-    "sha256": "b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447"
+    "sha256": "b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447",
+    "previewControls": "com.jeremykenedy.contourflow/.ContourFlowActivity"
   },
   {
     "id": "skyburst-nocturne",

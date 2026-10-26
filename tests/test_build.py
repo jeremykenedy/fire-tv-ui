@@ -73,6 +73,12 @@ class BuildChecks(unittest.TestCase):
         private_or_missing = {'androsaver', 'aquarium-4k', 'aquarium-live', 'contour-flow',
                               'nebula-drift', 'skyburst-nocturne', 'snoozy', 'split-flap-drift'}
         self.assertFalse(private_or_missing.intersection(mapped))
+        controls = {item['id']: item['previewControls'] for item in entries if 'previewControls' in item}
+        self.assertEqual(controls, {
+            'contour-flow': 'com.jeremykenedy.contourflow/.ContourFlowActivity',
+            'nebula-drift': 'com.jeremykenedy.nebuladrift/.NebulaActivity',
+            'split-flap-drift': 'com.jeremykenedy.splitflapdrift/.SplitFlapActivity',
+        })
         self.assertEqual(mapped['aerial']['preview'],
                          'com.neilturner.aerialviews/com.neilturner.aerialviews.ui.screensaver.TestActivity')
         for entry in mapped.values():

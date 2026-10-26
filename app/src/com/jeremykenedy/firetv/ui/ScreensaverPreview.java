@@ -30,7 +30,7 @@ public final class ScreensaverPreview {
         }
         ComponentName starter = new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator");
         if (!ScreensaverControls.canLaunch(context, starter)) {
-            Intent controls = ScreensaverControls.resolve(context, component);
+            Intent controls = ScreensaverControls.resolvePreview(context, component);
             if (controls == null) {
                 throw new IllegalStateException("This screensaver does not expose a preview or accessible preview controls on this TV.");
             }
@@ -62,7 +62,7 @@ public final class ScreensaverPreview {
         if (direct) {
             return toolbar ? "Preview screensaver" : "Preview it";
         }
-        return ScreensaverControls.resolve(context, component) == null ? "Preview unavailable" : "Preview controls";
+        return ScreensaverControls.resolvePreview(context, component) == null ? "Preview unavailable" : "Preview controls";
     }
 
     private static ComponentName appPreview(Context context, String dream) {
