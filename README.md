@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.9.1-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.9.2-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,9 +38,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.9.1.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.9.2.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.9.1.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.9.2.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -55,7 +55,7 @@ Open **Fire TV UI**, accept the accessibility disclosure if you want remote shor
 
 Press **Back** or **Menu** to dismiss the Settings panel. **Home** returns to the launcher with the panel closed when Home routing is enabled.
 
-Choose **Settings > Screensavers** to select an installed screensaver. Each row has a sample image, installed storage usage, a circular selector, and a **Preview it** button. The top controls open the current screensaver's options, system timers, installation catalog, and memory usage. Previewing another app restores your prior selection afterward.
+Choose **Settings > Screensavers** to select an installed screensaver. Each row has a sample image, installed storage usage, a circular selector, and a live preview action. **Preview it** opens the app preview; **Preview controls** opens its own controls, where you choose Preview or Show aquarium. The top controls open the current screensaver's options, system timers, installation catalog, and memory usage. App previews leave your screensaver selection unchanged.
 
 Choose **Startup and protection** in Settings to enable or disable Fire TV UI as the startup and Home app, protect selected settings from reversion, or block Amazon update traffic locally. Streaming, weather, CDNs, and screensaver downloads remain available. No analytics, tracking, rating, or project prompts are included.
 
@@ -121,6 +121,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
+- [Fire TV UI 1.9.2 release notes and upgrade guide](docs/releases/v1.9.2.md)
 - [Fire TV UI 1.9.1 release notes and upgrade guide](docs/releases/v1.9.1.md)
 - [Fire TV UI 1.6.0 release notes and upgrade guide](docs/releases/v1.6.0.md)
 - [Fire TV UI 1.4.1 release notes and upgrade guide](docs/releases/v1.4.1.md)
@@ -140,9 +141,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.9.1 on the API 34 TV emulator. The installed picker shows the current Cloud Drift Clock and Blue Meridian previews while Slot Vision remains selected. The [full gallery](docs/screenshots.md) includes the updated catalog and offline credits.
+Fire TV UI 1.9.2/code 63 on a physical API 28 Fire TV. The picker distinguishes direct previews from app-owned preview controls while Black Screen remains selected. The [full gallery](docs/screenshots.md) includes the actual controls and a Blue Meridian preview.
 
-<p align="center"><img src="art/screenshots/screensavers-ui-1.9.1-api34.png" alt="Fire TV UI 1.9.1 picker with real Cloud Drift Clock flight and Blue Meridian Earth previews, preserving the selected Slot Vision screensaver" width="900"></p>
+<p align="center"><img src="art/screenshots/screensavers-ui-1.9.2-api28.png" alt="Fire TV UI 1.9.2 picker with readable single-line Preview it and Preview controls actions, preserving the selected Black Screen screensaver" width="900"></p>
 
 ## License
 

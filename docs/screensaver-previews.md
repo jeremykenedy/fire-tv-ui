@@ -10,6 +10,19 @@ The picker distinguishes the sample image from the live preview action. **Previe
 
 **Preview controls** opens the app's own accessible Dream settings or launcher when its full-screen preview is private or missing. Select the app's Preview or Show aquarium button to continue. Aquarium 4K initially shows its settings panel with Show aquarium focused. This extra step is deliberate; opening settings is not counted as a full-screen preview.
 
+The existing apps use these in-app controls:
+
+| App | Choose inside the app |
+| --- | --- |
+| AndroSaver | Start Now |
+| Aquarium 4K | Show aquarium |
+| Aquarium Live | Preview |
+| Contour Flow, Nebula Drift, Split-Flap Drift | Open full-screen preview |
+| Skyburst Nocturne | Preview animation |
+| Snoozy | Preview screensaver |
+
+Contour Flow, Nebula Drift and Split-Flap Drift keep their general settings screens separate from their preview launchers. **Screensaver settings** opens settings; **Preview controls** opens the reviewed launcher containing its preview button. An app still needs usable configured content: an empty slideshow can open correctly while showing No images found.
+
 Direct app previews and preview controls do not change the system's selected screensaver, enabled state or timers. Fire TV UI checks that the legacy system starter is callable before using it as a fallback, and restores any temporary selection on return or launch failure. Some Fire OS versions do not include that starter. If neither a live preview nor accessible controls exist, the action says Preview unavailable.
 
 ## Image sources

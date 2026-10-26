@@ -1,0 +1,46 @@
+[
+  {
+    "file": "screensavers-ui-1.9.2-api28.png",
+    "sha256": "1db05dd5eb3bab2f5c40d2494121ee672b62652fdd1f49374edc5161494bebcd",
+    "hostVersion": "1.9.2",
+    "hostCode": 63,
+    "device": "physical Fire TV",
+    "api": 28,
+    "size": "1920x1080",
+    "scene": "Fire TV UI picker",
+    "edited": false
+  },
+  {
+    "file": "blue-preview-ui-1.9.2-api28.png",
+    "sha256": "a65e212f8fe8eb868fbb5bcb8975012bf7c5c87a7585ff82df364dd5f1dbbad3",
+    "hostVersion": "1.9.2",
+    "hostCode": 63,
+    "device": "physical Fire TV",
+    "api": 28,
+    "size": "1920x1080",
+    "scene": "Blue Meridian exported preview",
+    "edited": false
+  },
+  {
+    "file": "split-flap-preview-controls-ui-1.9.2-api28.png",
+    "sha256": "7cdbfe7ee501aecee58f949fe8886bff1e8824014ecfc4ac81aebc319dff5a5f",
+    "hostVersion": "1.9.2",
+    "hostCode": 62,
+    "device": "physical Fire TV",
+    "api": 28,
+    "size": "1920x1080",
+    "scene": "Split-Flap Drift unchanged exported launcher",
+    "edited": false
+  },
+  {
+    "file": "cloud-preview-ui-1.9.2-api28.png",
+    "sha256": "92454be78b56676798f8fc7d63531ce30a82f1c4e8c39136d2ad9ff3ed106b0f",
+    "hostVersion": "1.9.2",
+    "hostCode": 61,
+    "device": "physical Fire TV",
+    "api": 28,
+    "size": "1920x1080",
+    "scene": "Cloud Drift Clock unchanged exported preview",
+    "edited": false
+  }
+]
