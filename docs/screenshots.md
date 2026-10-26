@@ -1,16 +1,16 @@
 # Screenshots
 
-## Fire TV UI 1.12.0, code 71
+## Fire TV UI 1.12.0, code 72
 
-Actual API 34 TV emulator settings from the exact final signed APK `4e992411` at 1920x1080. Flowing silk, Soft bokeh and Light rays are three of twelve animated styles, plus Off. Each capture shows native 50% controls; Brightness is below the current scroll fold. The unchanged raw settings images contain no personal cards or library history.
+Actual API 34 TV emulator settings from the exact final signed APK `930660de` at 1920x1080. Flowing silk, Soft bokeh and Light rays are three of twelve animated styles, plus Off. Each capture shows native 50% controls; Brightness is below the current scroll fold. The unchanged raw settings images contain no personal cards or library history.
 
 <table><tr>
-<td><img src="../art/screenshots/silk-settings-ui112-code71-api34.png" alt="Final signed code 71 API 34 Flowing silk background settings"><br>Flowing silk</td>
-<td><img src="../art/screenshots/bokeh-settings-ui112-code71-api34.png" alt="Final signed code 71 API 34 Soft bokeh background settings"><br>Soft bokeh</td>
-<td><img src="../art/screenshots/rays-settings-ui112-code71-api34.png" alt="Final signed code 71 API 34 Light rays background settings"><br>Light rays</td>
+<td><img src="../art/screenshots/silk-settings-ui112-code72-api34.png" alt="Final signed code 72 API 34 Flowing silk background settings"><br>Flowing silk</td>
+<td><img src="../art/screenshots/bokeh-settings-ui112-code72-api34.png" alt="Final signed code 72 API 34 Soft bokeh background settings"><br>Soft bokeh</td>
+<td><img src="../art/screenshots/rays-settings-ui112-code72-api34.png" alt="Final signed code 72 API 34 Light rays background settings"><br>Light rays</td>
 </tr></table>
 
-[Capture provenance](../art/screenshots/ui112-code71-provenance.json) records full APK, source and raw PNG hashes. The six background sources and 14 compiled background class payloads match the initial physical code 71 background candidate; this is not full DEX equality. That separate physical gate selected all 12 styles, checked saved values and maximum controls, reached ordinary Aerial at 301.296 seconds and recorded zero UI presents during a stable 3-second Dream window. [Verification](verification.md#fire-tv-ui-1120-version-code-71) distinguishes those observations from the final native same-process restore-cache check. Neither these stills nor the cache check proves physical hardware Home delivery or universal performance. Earlier feature evidence remains below under its own version.
+[Capture provenance](../art/screenshots/ui112-code72-provenance.json) records full APK, source and raw PNG hashes. The six background sources and 14 compiled background class payloads match the initial physical code 71 background candidate; this is not full DEX equality. That separate physical gate selected all 12 styles, checked saved values and maximum controls, reached ordinary Aerial at 301.296 seconds and recorded zero UI presents during a stable 3-second Dream window. [Verification](verification.md#fire-tv-ui-1120-version-code-72) distinguishes those observations from the final native same-process restore-cache check. Neither these stills nor the cache check proves physical hardware Home delivery or universal performance. Earlier feature evidence remains below under its own version.
 
 ## Fire TV UI 1.11.1, code 70
 

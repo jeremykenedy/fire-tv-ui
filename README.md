@@ -158,9 +158,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.12.0/code 71 on the API 34 TV emulator, captured from the exact final signed APK. Flowing silk is one of twelve optional animated menu backgrounds. The [full gallery](docs/screenshots.md) includes Soft bokeh and Light rays settings, with earlier feature captures labeled by version. Existing wallpaper and background choices are retained.
+Fire TV UI 1.12.0/code 72 on the API 34 TV emulator, captured from the exact final signed APK. Flowing silk is one of twelve optional animated menu backgrounds. The [full gallery](docs/screenshots.md) includes Soft bokeh and Light rays settings, with earlier feature captures labeled by version. Existing wallpaper and background choices are retained.
 
-<p align="center"><img src="art/screenshots/silk-settings-ui112-code71-api34.png" alt="Fire TV UI 1.12.0 code71 Flowing silk animated background settings on the API 34 TV emulator" width="900"></p>
+<p align="center"><img src="art/screenshots/silk-settings-ui112-code72-api34.png" alt="Fire TV UI 1.12.0 code72 Flowing silk animated background settings on the API 34 TV emulator" width="900"></p>
 
 ## License
 

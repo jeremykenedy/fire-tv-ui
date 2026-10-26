@@ -1,11 +1,11 @@
 {
   "version": "1.12.0",
-  "code": 71,
+  "code": 72,
   "platform": "API 34 TV emulator, actual native 1920x1080 output",
-  "captureSourceCommit": "6ecce0c59b002a5badcf698acce07c0a0e62da8d",
-  "captureApkSha256": "4e992411c53600b087f6c45c9d7b036502e91f5f3ff5e96ecbcbee17bb063a50",
-  "combinedSourceCommit": "6ecce0c59b002a5badcf698acce07c0a0e62da8d",
-  "scope": "Final signed code71 settings-only captures. Three styles at50% controls, Brightness below the native scroll fold. No Main, account, library or history imagery. Separate initial physical background gate is recorded below; no hardware Home delivery claim.",
+  "captureSourceCommit": "103002017726c1747821b1ee4bf6db80ea8eb1bb",
+  "captureApkSha256": "930660debcf64483ae3b2b55b7933dabb7ee54e0da578ef2ab70e45da1462785",
+  "combinedSourceCommit": "103002017726c1747821b1ee4bf6db80ea8eb1bb",
+  "scope": "Final signed code 72 settings-only captures. Three styles at50% controls, Brightness below the native scroll fold. No Main, account, library or history imagery. Separate initial physical background gate is recorded below; no hardware Home delivery claim.",
   "backgroundFiles": [
     {
       "file": "app/src/com/jeremykenedy/firetv/ui/CardActivity.java",
@@ -40,10 +40,10 @@
   ],
   "captures": [
     {
-      "file": "silk-settings-ui112-code71-api34.png",
-      "sourceFile": "final71-silk-settings-1080.png",
-      "sha256": "ca4d8a27bc06797399b12ba46f11a1ea36bac20589a27821dafb05c6aa885bf5",
-      "bytes": 297568,
+      "file": "silk-settings-ui112-code72-api34.png",
+      "sourceFile": "final72-silk-settings-1080.png",
+      "sha256": "724c0f41b2482c4a8a99e43df296227d6770bea91f2542039f24b638dcfbe3cd",
+      "bytes": 297929,
       "dimensions": [
         1920,
         1080
@@ -52,10 +52,10 @@
       "safeSettingsOnly": true
     },
     {
-      "file": "bokeh-settings-ui112-code71-api34.png",
-      "sourceFile": "final71-bokeh-settings-1080.png",
-      "sha256": "a8a2ab6e05e5fe0abf9182058b8cfb3feb8ac0980973aa2f90c94aa91301713d",
-      "bytes": 304250,
+      "file": "bokeh-settings-ui112-code72-api34.png",
+      "sourceFile": "final72-bokeh-settings-1080.png",
+      "sha256": "6a34e178744a7748d7fee2435d6809ce59cac83318eec005c7d6608d758f8599",
+      "bytes": 296417,
       "dimensions": [
         1920,
         1080
@@ -64,10 +64,10 @@
       "safeSettingsOnly": true
     },
     {
-      "file": "rays-settings-ui112-code71-api34.png",
-      "sourceFile": "final71-rays-settings-1080.png",
-      "sha256": "1138badfec39fb81a21c12411b4419d429231ae352c522f85ea6583974106c3c",
-      "bytes": 380286,
+      "file": "rays-settings-ui112-code72-api34.png",
+      "sourceFile": "final72-rays-settings-1080.png",
+      "sha256": "72a68ab71120750d43fc99d734becf521c95a8df32c8dfbdac4753129254804e",
+      "bytes": 376128,
       "dimensions": [
         1920,
         1080
@@ -114,5 +114,29 @@
     "restored": "better_home_detection=true;no window events",
     "physicalHomeDeliveryClaim": false,
     "harnessQualification": "Earlier per-call storage appop revocation killed the process. Passing transaction held its permitted package storage mode steady; not an app crash."
+  },
+  "nativeMetadataGate": {
+    "artifactSha256": "930660debcf64483ae3b2b55b7933dabb7ee54e0da578ef2ab70e45da1462785",
+    "platform": "Android34 emulator-5580",
+    "sameSignerUpgrade": "71 to72",
+    "portableValuesRetainedBeforeMain": 14,
+    "nativeChooserAndReturnPassed": true,
+    "strictCleanupErrors": [],
+    "qualification": "Metadata-only gate. No repeated cache, Dream, performance or full style matrix."
+  },
+  "metadataOnlyComparison": {
+    "comparedTo": "4e992411c53600b087f6c45c9d7b036502e91f5f3ff5e96ecbcbee17bb063a50",
+    "changedZipMembers": [
+      "AndroidManifest.xml",
+      "META-INF/FIRE-TV-.SF",
+      "META-INF/FIRE-TV-.RSA",
+      "META-INF/MANIFEST.MF"
+    ],
+    "sameDex": {
+      "classes.dex": "4d0e049caf3bb2b560d7a11158ae95cbe5b8e189ef73490d664922ac93c1779c",
+      "classes2.dex": "69da828324ca1fbd8bf78bfa9c1d123696c8b238dd858b2c622dc9708cd7fc14"
+    },
+    "sameAssetCount": 60,
+    "allOtherZipMembersIdentical": true
   }
 }
