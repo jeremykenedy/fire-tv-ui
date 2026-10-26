@@ -33,9 +33,9 @@
 
 ## Installation
 
-This repository and its APK are private. Users with repository access can install the signed APK from the private releases, or build it locally. Physical Fire TV, Android TV, and Google TV checks are still welcome; see the [device verification matrix](docs/verification.md).
+Install the signed APK from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases), or build it locally. Fire TV and Android TV have physical checks; see the [device verification matrix](docs/verification.md) for their scope.
 
-Download the signed APK and its checksum from the private release, verify the checksum, then use the repository installer:
+Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
 shasum -a 256 -c fire-tv-ui-1.9.0.apk.sha256
@@ -88,7 +88,7 @@ Use the preferences icon to open the remote-friendly Settings menu. [Configurati
 
 ## Building
 
-I'm looking for someone to live-test Fire TV UI on physical **Android TV** and **Google TV** devices. Testing so far covers Fire TV hardware and an Android TV emulator. Home routing, screensavers, timers, and backup behavior still need confirmation on those physical devices.
+Physical verification covers Fire TV and Android 9 / API 28 hardware, with additional API 34 TV emulator checks. Physical Google TV behavior remains unverified; see the device matrix for individual feature limits.
 
 ```bash
 python3 scripts/build.py
@@ -105,7 +105,7 @@ python3 scripts/build.py --unsigned
 bash scripts/test.sh
 ```
 
-The local checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. They also verify release hashes, preview provenance, and each new app's settings route on an Android TV emulator. This private repository does not run CI.
+The local checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. They also verify release hashes, preview provenance, and each new app's settings route on an Android TV emulator. Run the local suite before publishing; device-only checks require an explicitly selected test device.
 
 Device testing is described in [Verification](docs/verification.md).
 

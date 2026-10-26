@@ -14,11 +14,13 @@ Home Redirect shares the Toolkit repository, whose newest desktop release may no
 
 The small helper APK is downloaded and verified against its published size and SHA-256, expected package and currently installed signing certificate. Its compiled Android version name and code appear separately from the repository tag. For example, Toolkit tag `v3.9.1` contains Home Redirect app `1.2.6` (code 10). Installing that version already means it matches the checked release; the Toolkit tag is not a newer Home Redirect version. Read-only inspection removes its temporary APK and does not install anything.
 
-## Private Fire TV UI releases
+## Fire TV UI releases
 
-The UI repository and APKs stay private. No GitHub token is stored on the TV. When no recent authenticated handoff exists, its row says **Computer sign-in required**.
+The TV checks the public UI release directly, selects its exact versioned APK and verifies the compiled Android version, package and current production signer. A desktop or other APK is never substituted for a missing UI asset. No GitHub token is stored on the TV.
 
-On a computer, sign in to GitHub with access to the private repository and use Toolkit's **Check for updates** action or `firetv-updates --ip TV_IP --check`. Choose the checked `fire-tv-ui` update. Toolkit downloads and checksum-verifies the published APK, reads its compiled package/version metadata, and sends only the APK and reviewed release metadata to fixed files in TV Downloads. The protected receiver verifies the current signer and higher version code before acknowledging the handoff. Open the TV's Updates screen again and confirm installation there.
+If repository access is required or the published release is inaccessible, an authenticated computer handoff remains available. The row explains that the check is unavailable rather than claiming the installed version is current.
+
+On a computer, sign in to GitHub with access to the repository and use Toolkit's **Check for updates** action or `firetv-updates --ip TV_IP --check`. Choose the checked `fire-tv-ui` update. Toolkit downloads and checksum-verifies the published APK, reads its compiled package/version metadata, and sends only the APK and reviewed release metadata to fixed files in TV Downloads. The protected receiver verifies the current signer and higher version code before acknowledging the handoff. Open the TV's Updates screen again and confirm installation there.
 
 The metadata expires after six hours. APK bytes are checked again immediately before installation. The handoff does not contain credentials, change settings, grant permissions or silently install the UI.
 
@@ -26,4 +28,4 @@ The metadata expires after six hours. APK bytes are checked again immediately be
 
 An upstream app without a published checksum cannot receive an automatically verified update through this screen. Its installed version remains visible and its check explains the missing verification. Unknown version names require APK verification; they are not classified as current. Android may reject an otherwise valid APK for device compatibility or policy reasons.
 
-Fire OS can interrupt accessibility Home routing during an APK update. The package-replacement receiver and computer installer attempt to rebind an already enabled Home service without changing the saved preference. The final self-update and Home restoration behavior still requires physical testing for this release.
+Fire OS can interrupt accessibility Home routing during an APK update. The package-replacement receiver and computer installer attempt to rebind an already enabled Home service without changing the saved preference. Earlier signed in-place updates preserved the current layout and protection state. The current release's public self-check is verified separately from completing a normal Android replacement confirmation.

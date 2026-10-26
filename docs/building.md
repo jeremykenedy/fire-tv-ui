@@ -48,7 +48,7 @@ For unsigned review builds:
 python3 scripts/build.py --unsigned
 ```
 
-Unsigned APKs must be signed before installation. The release signing key stays outside the repository. Verification runs locally; this private repository has no CI workflow.
+Unsigned APKs must be signed before installation. The release signing key stays outside the repository. Verification runs locally; this repository has no CI workflow.
 
 ## Icon bundle
 
