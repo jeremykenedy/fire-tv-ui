@@ -142,10 +142,14 @@ def patch(decoded):
         '    if-eqz v0, :factory_home_redirect_normal\n'
         '    return-void\n'
         '    :factory_home_redirect_normal')
-    text = replace_once(text,
-        '.method public final onKeyEvent(Landroid/view/KeyEvent;)Z\n    .locals 2',
+    text = replace_method(text, '.method public final onKeyEvent(Landroid/view/KeyEvent;)Z',
         '.method public final onKeyEvent(Landroid/view/KeyEvent;)Z\n    .locals 2\n\n'
-        '    invoke-static {p1}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->homeKey(Landroid/view/KeyEvent;)V')
+        '    invoke-static {p1}, Lcom/jeremykenedy/firetv/ui/FactoryHome;->homeKey(Landroid/view/KeyEvent;)V\n'
+        '    iget-boolean v0, p0, Lcom/overdevs/at4k/Hra;->h:Z\n'
+        '    iget-object v1, p0, Lcom/overdevs/at4k/Hra;->j:Landroid/content/Intent;\n'
+        '    invoke-static {p0, p1, v0, v1}, Lcom/jeremykenedy/firetv/ui/HomeKeyDispatch;->dispatch(Landroid/content/Context;Landroid/view/KeyEvent;ZLandroid/content/Intent;)Z\n'
+        '    move-result v0\n'
+        '    return v0\n.end method')
     hra.write_text(text)
     apps = class_paths["LQ3/B7;"]
     text = apps.read_text()
