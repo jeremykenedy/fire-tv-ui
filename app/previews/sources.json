@@ -89,12 +89,19 @@
     "source_sha256": "24c93d929c73aa1b9a7f629d8cfa825ec4ec77471180ee687bff61eba4654a34"
   },
   "com.jeremykenedy.hearthpresence/com.jeremykenedy.hearthpresence.HearthDreamService": {
-    "capture_note": "Unretouched ADB capture of final signed Hearth Presence 1.0.0 APK 96067a79be86 on physical Fire TV AFTDEC012E, Android 11/API 30, 1920x1080. Modern linear gas-style scene with medium natural flame and slate surround. Public release artifact independently downloaded and verified.",
-    "captured_on": "2026-10-16",
-    "preview_sha256": "9e13ae1aa65231a6835b3697ec42101508af740c204f809f667d867219a91d4b",
-    "source_file": "art/screenshots/hearth-presence-fire-tv-modern-1920.png",
+    "capture_note": "Unretouched physical Fire TV AFTDEC012E API30, signed published1.1.0/code7 Preview, Large wood height above fixed logs. Actual1920x1080; resized only.",
+    "captured_on": "2026-10-26",
+    "preview_sha256": "3cf561ac64c3039f77378594e6e50822351da89ea8308942ecdaf7ffe7418287",
+    "source_file": "art/screenshots/hearth-presence-wood-large-fire-tv-api30.png",
     "source_project": "jeremykenedy/hearth-presence",
-    "source_sha256": "7db765d6b3f2735c36dbbb0fe7e819bbd98946d2f1e67b7def0ea7bcc009a80b"
+    "source_sha256": "db8e739a682b636db28d15b7fbdacdd2189e1ae31365999e7a6528813311df35",
+    "source_commit": "fadaf268eb0aa63fae16b2759f3a5c560620f8dd",
+    "source_url": "https://raw.githubusercontent.com/jeremykenedy/hearth-presence/v1.1.0/art/screenshots/physical7-wood-large.png",
+    "apk_sha256": "9541eb4fe2f4d7d69ac1f85b38144f5b5926274291ebec796d8150d27e07b781",
+    "settings_schema_count": 11,
+    "attribution": "Wood footage by free video library (2018), CC BY3.0; adapted height clip. Native screenshot resized. See bundled hearth-presence-NOTICE.txt and complete CC BY3.0 text.",
+    "license": "CC-BY-3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/"
   },
   "com.jeremykenedy.helioslightfield/com.jeremykenedy.helioslightfield.HeliosLightfieldDreamService": {
     "capture_note": "Helios Lightfield v1.0.1 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
