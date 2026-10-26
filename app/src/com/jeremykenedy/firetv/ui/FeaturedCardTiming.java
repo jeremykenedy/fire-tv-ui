@@ -17,6 +17,10 @@ public final class FeaturedCardTiming {
         return milliseconds(preferences.getInt(SETTING, 8));
     }
 
+    public static Integer setting(SharedPreferences preferences) {
+        return Integer.valueOf(seconds(preferences.getInt(SETTING, 8)));
+    }
+
     static long milliseconds(int value) {
         int seconds = seconds(value);
         return seconds == 0 ? Long.MAX_VALUE : seconds * 1000L;

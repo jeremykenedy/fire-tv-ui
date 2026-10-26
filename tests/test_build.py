@@ -13,6 +13,22 @@ from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
+    def test_rotation_setting_restarts_the_effect_without_recreating_home(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the native launcher to check rotation lifecycle wiring.')
+        built = classes(decoded)
+        model = built['LQ3/T3;'].read_text()
+        self.assertIn('featuredRotation:LN/g0;', model)
+        self.assertIn('.method public final refreshFeaturedRotation()V', model)
+        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
+        resume = main.split('.method public final onResume()V', 1)[1].split('.end method', 1)[0]
+        self.assertIn('LQ3/T3;->refreshFeaturedRotation()V', resume)
+        self.assertNotIn('->recreate()', resume)
+        wallpaper = built['LO4/m;'].read_text()
+        self.assertIn('iget-object v9, v0, LQ3/T3;->featuredRotation:LN/g0;', wallpaper)
+        self.assertIn('filled-new-array {v2, v3, v4, v7, v9}, [Ljava/lang/Object;', wallpaper)
+
     def test_featured_setup_keeps_required_base_navigation_callbacks(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():

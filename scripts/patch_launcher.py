@@ -120,6 +120,7 @@ def patch(decoded):
         '    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J\n'
         '    move-result-wide v1\n'
         '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
+        '    invoke-virtual {v0}, LQ3/T3;->refreshFeaturedRotation()V\n'
         '    :resume_idle_reset_done')
     text = replace_method(text, resume_signature, resume)
     main.write_text(text)
@@ -398,6 +399,38 @@ def patch(decoded):
         '    iget-object v5, v3, LQ3/T3;->a:Landroid/content/SharedPreferences;\n'
         '    invoke-static {v5}, Lcom/jeremykenedy/firetv/ui/FeaturedCardTiming;->delay(Landroid/content/SharedPreferences;)J\n'
         '    move-result-wide v5'))
+
+    model = class_paths["LQ3/T3;"]
+    text = replace_once(model.read_text(), '# instance fields',
+        '# instance fields\n.field public final featuredRotation:LN/g0;\n')
+    text = replace_once(text,
+        '    iput-object v0, v1, LQ3/T3;->a:Landroid/content/SharedPreferences;',
+        '    iput-object v0, v1, LQ3/T3;->a:Landroid/content/SharedPreferences;\n'
+        '    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/FeaturedCardTiming;->setting(Landroid/content/SharedPreferences;)Ljava/lang/Integer;\n'
+        '    move-result-object v2\n'
+        '    sget-object v3, LN/T;->l:LN/T;\n'
+        '    invoke-static {v2, v3}, LN/d;->M(Ljava/lang/Object;LN/I0;)LN/g0;\n'
+        '    move-result-object v2\n'
+        '    iput-object v2, v1, LQ3/T3;->featuredRotation:LN/g0;')
+    text += '''
+.method public final refreshFeaturedRotation()V
+    .locals 2
+    iget-object v0, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
+    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/FeaturedCardTiming;->setting(Landroid/content/SharedPreferences;)Ljava/lang/Integer;
+    move-result-object v0
+    iget-object v1, p0, LQ3/T3;->featuredRotation:LN/g0;
+    invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
+    return-void
+.end method
+'''
+    model.write_text(text)
+    wallpaper = class_paths["LO4/m;"]
+    wallpaper.write_text(replace_once(wallpaper.read_text(),
+        '    filled-new-array {v2, v3, v4, v7}, [Ljava/lang/Object;',
+        '    iget-object v9, v0, LQ3/T3;->featuredRotation:LN/g0;\n'
+        '    invoke-virtual {v9}, LN/g0;->getValue()Ljava/lang/Object;\n'
+        '    move-result-object v9\n'
+        '    filled-new-array {v2, v3, v4, v7, v9}, [Ljava/lang/Object;'))
 
     settings = class_paths["LQ3/M7;"]
     text = settings.read_text()
