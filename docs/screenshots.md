@@ -1,5 +1,19 @@
 # Screenshots
 
+## Fire TV UI 1.10.0 candidate, code 66
+
+These unretouched API 34 emulator captures show signed `3fe275c0` with two owned sample feeds, not a personal Plex library. The same two card positions retain coherent child titles and artwork while rotating. The native Menu holds the current child. Animated backgrounds are optional and stop away from Main. These images establish emulator behavior, not physical TV performance or Plex playback.
+
+<table><tr>
+<td><img src="../art/screenshots/fixed-feeds-first-ui110-api34.png" alt="Two fixed sample feeds with first child titles and cyan artwork"><br>Fixed feed positions</td>
+<td><img src="../art/screenshots/fixed-feeds-next-ui110-api34.png" alt="The same positions show next titles with matching red and yellow artwork"><br>Independent child rotation</td>
+<td><img src="../art/screenshots/card-menu-ui110-api34.png" alt="Current sample card menu holds its title and offers item and feed actions"><br>Current item actions</td>
+</tr><tr>
+<td><img src="../art/screenshots/background-particles-ui110-api34.png" alt="Quiet particles behind the native launcher"><br>Quiet particles</td>
+<td><img src="../art/screenshots/background-aurora-ui110-api34.png" alt="Aurora ribbons behind the native launcher"><br>Aurora ribbons</td>
+<td><img src="../art/screenshots/background-prism-ui110-api34.png" alt="Prism light behind the native launcher"><br>Prism light</td>
+</tr></table>
+
 ## Fire TV UI 1.9.2, code 63
 
 The current picker and Blue Meridian action were captured from signed `f6e859da` on a physical API 28 Fire TV. The full button labels fit on one line. Black Screen remained selected and enabled after returning from the previews. The Split-Flap image is its own unchanged released launcher, reached through final code 62's preview-controls route before the host-only label adjustment.

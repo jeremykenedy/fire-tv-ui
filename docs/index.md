@@ -2,6 +2,7 @@
 
 - [Configuration](configuration.md)
 - [Featured cards and personal Plex](featured-cards.md)
+- [Animated menu backgrounds](animated-backgrounds.md)
 - [Installation and updates](installation.md)
 - [Published app update checks](updates.md)
 - [Factory UI tile](factory-home.md)

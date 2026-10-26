@@ -64,7 +64,8 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | Feature | What it does | Guide |
 | --- | --- | --- |
 | Home layout | Arrange apps, folders, favorites, channels and custom icons. | [Configuration](docs/configuration.md) |
-| Featured cards | Order feeds and items, hide individual cards, and add authorized Plex Home profiles. | [Featured cards](docs/featured-cards.md) |
+| Featured cards | Keep feeds fixed while their titles rotate; order or hide items and add authorized Plex profiles. | [Featured cards](docs/featured-cards.md) |
+| Animated backgrounds | Optional particles, ribbons, connected lights or prism effects behind Main. | [Animated backgrounds](docs/animated-backgrounds.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
 | Screensavers | Select, preview, configure and install reviewed screensaver releases. | [Screensavers](docs/device-controls.md#screensavers) |
 | Launcher idle | Follow the selected TV screensaver when the launcher is idle. | [Platform limits](docs/device-controls.md#launcher-idle-activation) |
@@ -121,6 +122,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
+- [Animated menu backgrounds](docs/animated-backgrounds.md)
 - [Fire TV UI 1.9.2 release notes and upgrade guide](docs/releases/v1.9.2.md)
 - [Fire TV UI 1.9.1 release notes and upgrade guide](docs/releases/v1.9.1.md)
 - [Fire TV UI 1.6.0 release notes and upgrade guide](docs/releases/v1.6.0.md)
@@ -141,9 +143,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.9.2/code 63 on a physical API 28 Fire TV. The picker distinguishes direct previews from app-owned preview controls while Black Screen remains selected. The [full gallery](docs/screenshots.md) includes the actual controls and a Blue Meridian preview.
+The unreleased 1.10.0/code 66 candidate on an API 34 TV emulator, using safe sample feeds. Each top-level card stays in position while its child title and artwork change. The [full gallery](docs/screenshots.md) includes current menus, optional animated backgrounds and the published 1.9.2 preview controls. Physical checks for this candidate are still pending.
 
-<p align="center"><img src="art/screenshots/screensavers-ui-1.9.2-api28.png" alt="Fire TV UI 1.9.2 picker with readable single-line Preview it and Preview controls actions, preserving the selected Black Screen screensaver" width="900"></p>
+<p align="center"><img src="art/screenshots/fixed-feeds-next-ui110-api34.png" alt="Fire TV UI candidate fixed feed positions with coherent next-title sample artwork" width="900"></p>
 
 ## License
 
