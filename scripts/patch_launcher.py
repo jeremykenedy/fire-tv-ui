@@ -314,7 +314,10 @@ def patch(decoded):
 .end method"""))
 
     idle_clock = class_paths["LQ3/S6;"]
-    idle_clock.write_text(replace_once(idle_clock.read_text(),
+    idle_threshold = replace_once(idle_clock.read_text(),
+        '    invoke-virtual {p1}, LQ3/T3;->y()Z',
+        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/DeviceSettings;->launcherIdleEnabled()Z')
+    idle_clock.write_text(replace_once(idle_threshold,
         '    const-wide/32 v5, 0x15f90',
         '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/DeviceSettings;->launcherIdleDelay()J\n'
         '    move-result-wide v5'))
@@ -486,6 +489,13 @@ def patch(decoded):
         '    invoke-static/range {v4 .. v11}, LQ3/M7;->I')
     text = replace_method(text, menu_signature, menu)
     text = replace_once(text,
+        '    move/from16 v1, p15\n\n'
+        '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V',
+        '    move/from16 v1, p15\n\n'
+        '    move-object/from16 v0, p1\n'
+        '    invoke-static {v13, v10, v0}, Lcom/jeremykenedy/firetv/ui/ScreensaverSettingsRow;->draw(Ljava/util/Map;LN/p;Ln4/a;)V')
+
+    text = replace_once(text,
         '    const-string v0, "Cards_PosterMode"\n\n    move-object/from16 v13, p29',
         '    move-object/from16 v13, p29\n'
         '    const-string v0, "Cards_PosterMode"')
@@ -643,6 +653,7 @@ def patch(decoded):
     destination = decoded / 'smali/com/jeremykenedy/firetv/ui'
     destination.mkdir(parents=True, exist_ok=True)
     shutil.copy(ROOT / 'app/smali/ScreensaverAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/ScreensaverSettingsRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/BackupAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/SystemControlsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/AdvancedAction.smali', destination)

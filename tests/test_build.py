@@ -29,6 +29,24 @@ class BuildChecks(unittest.TestCase):
         self.assertIn('iget-object v9, v0, LQ3/T3;->featuredRotation:LN/g0;', wallpaper)
         self.assertIn('filled-new-array {v2, v3, v4, v7, v9}, [Ljava/lang/Object;', wallpaper)
 
+    def test_appearance_screensaver_row_opens_the_dedicated_controls(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the launcher to check the actual Appearance route.')
+        built = classes(decoded)
+        launcher = built['LQ3/M7;'].read_text()
+        start = launcher.index('const-string v0, "Appearance_Screensaver"')
+        end = launcher.index(':goto_19e', start)
+        row = launcher[start:end]
+        self.assertIn('ScreensaverSettingsRow;->draw', row)
+        self.assertNotIn('LA3/a;->A(', row,
+                         'The legacy toggle must not remain rendered alongside its replacement.')
+        shortcut = built['Lcom/jeremykenedy/firetv/ui/ScreensaverSettingsRow;'].read_text()
+        self.assertIn('ScreensaverAction;-><init>', shortcut)
+        self.assertIn('move-object v6, p2', shortcut)
+        self.assertIn('Appearance_Favorites', shortcut)
+        self.assertNotIn('SharedPreferences', shortcut)
+
     def test_featured_setup_keeps_required_base_navigation_callbacks(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():
