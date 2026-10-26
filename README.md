@@ -46,9 +46,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.11.1.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.12.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.11.1.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.12.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -73,7 +73,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | --- | --- | --- |
 | Home layout | Arrange apps, folders, favorites, channels and custom icons. | [Configuration](docs/configuration.md) |
 | Featured cards | Keep feeds fixed while their titles rotate; order or hide items and add authorized Plex profiles. | [Featured cards](docs/featured-cards.md) |
-| Animated backgrounds | Optional particles, ribbons, connected lights or prism effects behind Main. | [Animated backgrounds](docs/animated-backgrounds.md) |
+| Animated backgrounds | Twelve optional animations behind Home and supported menu panels. | [Animated backgrounds](docs/animated-backgrounds.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
 | Screensavers | Select, preview, configure and install reviewed screensaver releases. | [Screensavers](docs/device-controls.md#screensavers) |
 | Launcher idle | Follow the selected TV screensaver when the launcher is idle. | [Platform limits](docs/device-controls.md#launcher-idle-activation) |
@@ -86,7 +86,9 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 
 ## Input icons
 
-The [32 HD icons](docs/icons.md) cover consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The installer copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
+The [32 HD icons](docs/icons.md) cover consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The repository installer copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
+
+APK-only updates do not copy the separate shared icon pack. Use the release icon ZIP or the repository icon installer; see the [icon guide](docs/icons.md).
 
 Long press the app or input tile, choose **Change Icon**, then select an image. For LTvLauncher, use **Set Custom Banner** on an app. See the [icon guide](docs/icons.md) for the full catalog and standalone installation.
 
@@ -131,6 +133,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
 - [Animated menu backgrounds](docs/animated-backgrounds.md)
+- [Fire TV UI 1.12.0 release notes and upgrade guide](docs/releases/v1.12.0.md)
 - [Fire TV UI 1.11.1 release notes and upgrade guide](docs/releases/v1.11.1.md)
 - [Fire TV UI 1.11.0 release notes and upgrade guide](docs/releases/v1.11.0.md)
 - [Fire TV UI 1.10.1 release notes and upgrade guide](docs/releases/v1.10.1.md)
@@ -155,9 +158,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.11.1/code 70 on the TV emulator, showing the new Lumen Breaker entry. The [full gallery](docs/screenshots.md) includes its actual native preview, app-owned settings and offline notice, with earlier feature captures labeled by version. This catalog update retains the code 69 runtime and existing Home preference API.
+Fire TV UI 1.12.0/code 71 on the API 34 TV emulator, captured from the exact final signed APK. Flowing silk is one of twelve optional animated menu backgrounds. The [full gallery](docs/screenshots.md) includes Soft bokeh and Light rays settings, with earlier feature captures labeled by version. Existing wallpaper and background choices are retained.
 
-<p align="center"><img src="art/screenshots/lumen-picker-ui1111-code70-api34.png" alt="Fire TV UI 1.11.1 code 70 picker showing the actual Lumen Breaker thumbnail" width="900"></p>
+<p align="center"><img src="art/screenshots/silk-settings-ui112-code71-api34.png" alt="Fire TV UI 1.12.0 code71 Flowing silk animated background settings on the API 34 TV emulator" width="900"></p>
 
 ## License
 

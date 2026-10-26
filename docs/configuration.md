@@ -5,7 +5,7 @@
 | Screensavers | Select, preview, configure, install, or remove screensavers; manage timers and memory. |
 | Theme Mode | Choose wallpapers, gradients, icon packs, and text contrast. |
 | Appearance | Configure widgets, status bar, favorites and cards; its Screensavers action opens the same dedicated picker. |
-| Animated backgrounds | Choose an optional Main-only animation, speed, intensity and brightness. |
+| Animated backgrounds | Choose one of twelve optional Home and menu animations, with speed, intensity and brightness. |
 | Controls | Configure remote actions and app rows. |
 | Backup/Restore | Save or restore the persistent TV backup, or restore a backup sent by the CLI. |
 | Startup and protection | Enable or disable startup and Home routing; protect settings and block Amazon updates. |

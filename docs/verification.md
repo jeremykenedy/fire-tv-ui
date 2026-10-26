@@ -1,5 +1,24 @@
 # Verification
 
+## Fire TV UI 1.12.0, version code 71
+
+The exact final signed APK `4e992411c53600b087f6c45c9d7b036502e91f5f3ff5e96ecbcbee17bb063a50` supplied the current API 34 native settings captures at 1920x1080. Flowing silk, Soft bokeh and Light rays show native 50% controls, with Brightness below the scroll fold. Private Home cards and library history are excluded from the public gallery. A separate initial code 71 physical Fire TV API 30 gate selected all 12 styles and read back their saved values; speed, intensity and brightness 100 were checked separately.
+
+The capture APK has SHA-256 `5e2263b2bd1af6bc71c59476cad76933bf9efb0c1e7918bcd3c93bc9aa15de78`, source `4aad2ef8d8f5ce8e023cdd9ea910a4503480eeb9`. Its six background source files match final source `6ecce0c59b002a5badcf698acce07c0a0e62da8d` byte for byte. [Provenance](../art/screenshots/ui112-code71-provenance.json) records those sources and the current final-APK raw PNG hashes. These source comparisons do not substitute for native checks of unrelated changes in the combined APK.
+
+The initial code 71 physical background gate also left maximum Soft bokeh active on Main without sending input. The original selected Aerial screensaver first appeared as an ordinary non-test Dream at 301.296 seconds with the configured 300000ms delay and unchanged input timestamps. Once that actual Dream was stable, a separate 3-second window recorded zero UI SurfaceFlinger presents. An earlier generic Settings offscreen probe was invalid because Home protection returned Main during the observation; it is not treated as a lifecycle failure or pass.
+
+Strict restoration reported no errors: all 51 portable UI preferences, 61 protected package/UID identities, UI UID/grants/appops, 19 protected OS values and external backup/import bytes matched. The original Aerial selection and 300000ms delay were retained. These results belong to the initial background candidate, not a new hardware Home result for the combined APK. The combined build retains the same six background source files and 14 compiled background JVM class payloads byte for byte.
+
+The separate Home dispatch correction passed actual helper execution for successful dispatch, null intent, thrown launch failure, disabled handling, unrelated keys and non-up actions. The rebuilt Hra bytecode forwards its saved hardware-mode flag and cached intent and returns the helper result. The cached intent and successful launch flags are unchanged. Required native-build CI passed for the focused change. This does not establish hardware key delivery or resolve the reported Calvin Home failure; that remains a separate physical check.
+
+A successful backup restore now sends the existing package-pinned PREFS_CHANGED notification after committing preferences. The actual BackupStore tests prove one notification with committed values, no notification or value changes for invalid data and failed commits, and retained saved values if notification delivery is rejected. This corrects a source-level stale-cache path; it does not establish the cause of the current hardware Home report. The final build passed six Java suites and 59 Python cases, with 53 executed and six native-only skips.
+
+The exact final signed APK also passed an API 34 native restore-cache check through the real protected BackupReceiver. Restoring improved Home detection from true to false changed the existing Hra service from no window events to WINDOW_STATE_CHANGED; restoring true removed those window events again. The process ID and ServiceRecord stayed the same throughout both directions. Storage access stayed steady during that transaction. An earlier test revoked its temporary package storage app-op between calls and Android killed the process; that harness transition is separate from the passing same-process check and is not an app crash. This proves cache refresh after restore, not delivery of a physical remote Home key or resolution of the Calvin hardware report.
+
+Existing banner bytes are unchanged from the prior full eight-state theme/width/reduced-motion review. No new all-device animation performance, screensaver quality or automatic Plex playback claim is added. Earlier results below retain their original release and platform qualifications.
+
+
 ## Fire TV UI 1.11.1, version code 70
 
 Exact signed `14676d28103f059178de13f4f4a3f8fbce63a4c98317a3635d31f064c63e5d43`

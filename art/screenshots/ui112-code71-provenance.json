@@ -1,0 +1,118 @@
+{
+  "version": "1.12.0",
+  "code": 71,
+  "platform": "API 34 TV emulator, actual native 1920x1080 output",
+  "captureSourceCommit": "6ecce0c59b002a5badcf698acce07c0a0e62da8d",
+  "captureApkSha256": "4e992411c53600b087f6c45c9d7b036502e91f5f3ff5e96ecbcbee17bb063a50",
+  "combinedSourceCommit": "6ecce0c59b002a5badcf698acce07c0a0e62da8d",
+  "scope": "Final signed code71 settings-only captures. Three styles at50% controls, Brightness below the native scroll fold. No Main, account, library or history imagery. Separate initial physical background gate is recorded below; no hardware Home delivery claim.",
+  "backgroundFiles": [
+    {
+      "file": "app/src/com/jeremykenedy/firetv/ui/CardActivity.java",
+      "sha256": "578fc7dcc2691783274369ebb0930d31c34da73acfe41b39629ab403a31be05b",
+      "identicalToInitialPhysicalBackgroundSource": true
+    },
+    {
+      "file": "app/src/com/jeremykenedy/firetv/ui/MenuBackgroundActivity.java",
+      "sha256": "a65b63c4f449bfda6cc124b9fc17dd50822adea5692cc84fdf7425950affc1a4",
+      "identicalToInitialPhysicalBackgroundSource": true
+    },
+    {
+      "file": "app/src/com/jeremykenedy/firetv/ui/MenuBackgroundClock.java",
+      "sha256": "6ce7462bd37aa6cc5a5b35dac3d727e069d09813df2c78e7075f96e1b5408baa",
+      "identicalToInitialPhysicalBackgroundSource": true
+    },
+    {
+      "file": "app/src/com/jeremykenedy/firetv/ui/MenuBackgroundMotion.java",
+      "sha256": "c29d0f1e34bc70c6623f2cc3421c4d0de06cc748cd6a691b83b20ff33d8ddcd4",
+      "identicalToInitialPhysicalBackgroundSource": true
+    },
+    {
+      "file": "app/src/com/jeremykenedy/firetv/ui/MenuBackgroundOptions.java",
+      "sha256": "13186e4393f09bc949d2c8c0e424980493092eeadbc6f99fea9b6e2552aaf85b",
+      "identicalToInitialPhysicalBackgroundSource": true
+    },
+    {
+      "file": "app/src/com/jeremykenedy/firetv/ui/MenuBackgroundView.java",
+      "sha256": "a0ed04fb5aec908ad07c69b55a800f29e0d6ab8641f2e5c6037ca2e5c6da0f02",
+      "identicalToInitialPhysicalBackgroundSource": true
+    }
+  ],
+  "captures": [
+    {
+      "file": "silk-settings-ui112-code71-api34.png",
+      "sourceFile": "final71-silk-settings-1080.png",
+      "sha256": "ca4d8a27bc06797399b12ba46f11a1ea36bac20589a27821dafb05c6aa885bf5",
+      "bytes": 297568,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "modification": "None",
+      "safeSettingsOnly": true
+    },
+    {
+      "file": "bokeh-settings-ui112-code71-api34.png",
+      "sourceFile": "final71-bokeh-settings-1080.png",
+      "sha256": "a8a2ab6e05e5fe0abf9182058b8cfb3feb8ac0980973aa2f90c94aa91301713d",
+      "bytes": 304250,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "modification": "None",
+      "safeSettingsOnly": true
+    },
+    {
+      "file": "rays-settings-ui112-code71-api34.png",
+      "sourceFile": "final71-rays-settings-1080.png",
+      "sha256": "1138badfec39fb81a21c12411b4419d429231ae352c522f85ea6583974106c3c",
+      "bytes": 380286,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "modification": "None",
+      "safeSettingsOnly": true
+    }
+  ],
+  "nativeBackgroundGate": {
+    "artifactSha256": "5e2263b2bd1af6bc71c59476cad76933bf9efb0c1e7918bcd3c93bc9aa15de78",
+    "allAnimatedStylesChecked": 12,
+    "maxControlsChecked": [
+      100,
+      100,
+      100
+    ],
+    "normalNonTestSelectedDreamFirstObservedSeconds": 301.296,
+    "selectedDelayMs": 300000,
+    "inputTimestampsUnchanged": true,
+    "stableDreamObservationSeconds": 3,
+    "stableDreamUiPresentsDelta": 0,
+    "strictCleanupErrors": [],
+    "portableUiKeysRestored": 51,
+    "protectedPackageUidIdentitiesRestored": 61,
+    "protectedOsKeysRestored": 19,
+    "externalBackupImportBytesRestored": true,
+    "originalSelectionRestored": true,
+    "qualification": "Initial background candidate evidence. GenericSettings offscreen probe excluded because Home protection returned Main. No combined hardware Home pass."
+  },
+  "combinedBackgroundJvmPayloads": {
+    "count": 14,
+    "byteIdenticalToInitialCandidate": true,
+    "qualification": "Background class payload comparison only, not full DEX equality. CombinedAPK has the separate Home dispatch correction."
+  },
+  "captureApkBytes": 9062094,
+  "nativeRestoreCacheGate": {
+    "artifactSha256": "4e992411c53600b087f6c45c9d7b036502e91f5f3ff5e96ecbcbee17bb063a50",
+    "platform": "API34 TV emulator",
+    "sameProcessAndServiceBinding": true,
+    "actualEventTypesUpdatedBothDirections": true,
+    "throughRealBackupReceiver": true,
+    "before": "better_home_detection=true;no window events",
+    "opposite": "better_home_detection=false;WINDOW_STATE_CHANGED",
+    "restored": "better_home_detection=true;no window events",
+    "physicalHomeDeliveryClaim": false,
+    "harnessQualification": "Earlier per-call storage appop revocation killed the process. Passing transaction held its permitted package storage mode steady; not an app crash."
+  }
+}
