@@ -4,6 +4,14 @@ Each screensaver row shows a small sample beside its name. Screenshots captured 
 
 The bundled samples cover Amazon screensaver, Aerial Views, AndroSaver, Aquarium 4K, Aquarium Live, Cloud Drift Clock, Colors, Earthbound Orbit, Firefly Grove, Jellyfish Drift, Neon Corridor, Snoozy, Starfield Drift, Twilight Hearth, Nebula Drift, Vortex Spiral, Signal Rain, Retro Flight, Pipeworks Dream, Aqua Surface Drift, Perseid Passage, Split-Flap Drift, Canopy Drift, Contour Flow, Skyburst Nocturne, Pulse Circuit, Rain on Glass, Rainforest Cascade, Blue Meridian, Helios Lightfield, Slot Vision, and Hearth Presence. These are examples of the apps' output; the scene or animation can change with the app's configuration.
 
+## Running a preview
+
+The picker distinguishes the sample image from the live preview action. **Preview it** opens a reviewed exported preview activity when the installed app provides one. The target must belong to the selected screensaver's package, be enabled and exported, and require no permission missing from Fire TV UI.
+
+**Preview controls** opens the app's own accessible Dream settings or launcher when its full-screen preview is private or missing. Select the app's Preview or Show aquarium button to continue. Aquarium 4K initially shows its settings panel with Show aquarium focused. This extra step is deliberate; opening settings is not counted as a full-screen preview.
+
+Direct app previews and preview controls do not change the system's selected screensaver, enabled state or timers. Fire TV UI checks that the legacy system starter is callable before using it as a fallback, and restores any temporary selection on return or launch failure. Some Fire OS versions do not include that starter. If neither a live preview nor accessible controls exist, the action says Preview unavailable.
+
 ## Image sources
 
 Amazon screensaver, AndroSaver, Aquarium 4K, Aquarium Live, and Colors were captured from the connected Fire TV on October 8, 2026. AndroSaver's [full screenshot](../art/screenshots/androsaver-tv-1920.png) shows a colorful visualizer after cycling through its animation modes with the remote. They remain the property of their respective app and content owners.
