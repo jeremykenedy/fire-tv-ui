@@ -105,6 +105,15 @@ public final class BackupMigrationTest {
         BackupStore.restore(context, true);
         check(context.prefs.values.get("menu_animation").equals("aurora"));
         check(context.prefs.values.get("menu_animation_speed").equals(25));
+        for (String value : new String[]{"silk", "bokeh", "stars", "embers", "waves", "rain", "orbits", "rays"}) {
+            animation.put("menu_animation", value);
+            Files.writeString(BackupStore.file(true).toPath(), animation.toString());
+            BackupStore.restore(context, true);
+            check(context.prefs.values.get("menu_animation").equals(value));
+            BackupStore.save(context);
+            check(new JSONObject(Files.readString(BackupStore.file(false).toPath()))
+                    .getString("menu_animation").equals(value));
+        }
         Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).toString());
         BackupStore.restore(context, true);
         for (Object invalid : new Object[] {-1, 6, 3600000, "5"}) {
