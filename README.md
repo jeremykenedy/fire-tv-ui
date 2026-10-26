@@ -46,9 +46,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.11.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.11.1.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.11.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.11.1.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -131,6 +131,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
 - [Animated menu backgrounds](docs/animated-backgrounds.md)
+- [Fire TV UI 1.11.1 release notes and upgrade guide](docs/releases/v1.11.1.md)
 - [Fire TV UI 1.11.0 release notes and upgrade guide](docs/releases/v1.11.0.md)
 - [Fire TV UI 1.10.1 release notes and upgrade guide](docs/releases/v1.10.1.md)
 - [Fire TV UI 1.10.0 release notes and upgrade guide](docs/releases/v1.10.0.md)
@@ -154,9 +155,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.11.0/code 69 on the TV emulator, showing the new Nibbles HD catalog entry. The [full gallery](docs/screenshots.md) includes its actual native preview, app-owned settings and offline credits, with earlier feature captures labeled by version. The update preserves mixed Home choices and missing keys; the complete test baseline was restored.
+Fire TV UI 1.11.1/code 70 on the TV emulator, showing the new Lumen Breaker entry. The [full gallery](docs/screenshots.md) includes its actual native preview, app-owned settings and offline notice, with earlier feature captures labeled by version. This catalog update retains the code 69 runtime and existing Home preference API.
 
-<p align="center"><img src="art/screenshots/nibbles-catalog-ui111-code69-api34.png" alt="Fire TV UI 1.11.0 code 69 catalog showing the installed Nibbles HD entry" width="900"></p>
+<p align="center"><img src="art/screenshots/lumen-picker-ui1111-code70-api34.png" alt="Fire TV UI 1.11.1 code 70 picker showing the actual Lumen Breaker thumbnail" width="900"></p>
 
 ## License
 
