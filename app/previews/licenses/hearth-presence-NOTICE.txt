@@ -1,0 +1,36 @@
+Hearth Presence
+Copyright 2026 Jeremy Kenedy
+Application source code is licensed under Apache License 2.0.
+
+Bundled wood footage: Fantastic-fireplace-fire-chimney-hearth- background -
+texture - motion graphics - free video library.webm by free video library (2018).
+Creative Commons Attribution 3.0 Unported (CC BY 3.0).
+https://commons.wikimedia.org/wiki/File:Fantastic-fireplace-fire-chimney-hearth-_background_-_texture_-_motion_graphics_-_free_video_library.webm
+https://creativecommons.org/licenses/by/3.0/
+Adapted by slight desaturation, H.264 transcoding and loop-boundary blending.
+The wood flame-height backdrop is a temporal minimum of this licensed footage.
+Its alpha channel records the fixed log silhouette. Only the separately sampled
+moving flame emission changes height; the recorded logs keep their geometry.
+Small and large wood videos bake that height adaptation at 1920x1080, 30 fps;
+medium uses the original bundled wood video. The backdrop and adapted videos
+retain the same CC BY 3.0 attribution and license.
+
+Bundled gas footage: Fireplace 1 2021-02-14.webm by FASTILY (2021), CC BY-SA 4.0.
+https://commons.wikimedia.org/wiki/File:Fireplace_1_2021-02-14.webm
+https://creativecommons.org/licenses/by-sa/4.0/
+Adapted into the traditional gas clip by cropping, scaling, noise reduction
+and transcoding.
+The gas video adaptation and displayed composites containing it remain CC BY-SA 4.0.
+The modern linear scene combines isolated flame emission from the wood source
+above (CC BY 3.0) with an original rendered black-steel burner and glass bed
+(Apache-2.0). Changes include temporal background subtraction, removal of fuel
+and room pixels, independent time offsets, additive compositing and loop blending.
+It depicts a modern burner; its recorded flame source is wood combustion.
+Original authors do not endorse this application.
+
+Material diffuse and normal maps from Poly Haven, CC0-1.0:
+red_brick, white_plaster_02, wood_floor, slate_floor, marble_01.
+https://polyhaven.com/license
+Exact source links and hashes: assets/materials/provenance.json
+
+Crackle audio is original synthesized audio, Apache-2.0.

@@ -147,12 +147,12 @@ class BuildChecks(unittest.TestCase):
         entry = next(item for item in entries if item['id'] == 'prism-clock')
         self.assertEqual(entry['package'], 'com.jeremykenedy.prismclock')
         self.assertEqual(entry['dream'], entry['package'] + '/.PrismDreamService')
-        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['tag'], 'v1.1.0')
         self.assertEqual(entry['bytes'], 127947)
         self.assertEqual(entry['sha256'],
-                         'edbf475c4a2b253ccc069adaee8cac2cbba4d16b5579d5299e2e2d1bdaa21fd5')
+                         '6d1a3204ca648033c3c0c1d68adcceb29e90ed1ff61ec24b7f65e1326b7621e8')
         self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/prism-clock/releases/'
-                         'download/v1.0.0/prism-clock.apk')
+                         'download/v1.1.0/prism-clock.apk')
         source = json.loads((ROOT / 'app/previews/sources.json').read_text())[
             full_component(entry['dream'])]
         self.assertIn('physical Fire TV', source['capture_note'])
@@ -160,6 +160,12 @@ class BuildChecks(unittest.TestCase):
                          source['source_sha256'])
         preview = ROOT / 'app/previews' / preview_file(entry['dream'])
         self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), source['preview_sha256'])
+
+        self.assertEqual(source['settings_schema_count'], 12)
+        self.assertEqual(source['clock_visibility'], {'key': 'show_clock', 'type': 'boolean',
+                                                    'default': True, 'randomAllowed': False})
+        self.assertTrue((ROOT / 'app/previews/licenses/prism-clock-NOTICE.txt').is_file())
+        self.assertTrue((ROOT / 'app/previews/licenses/prism-clock-APACHE-2.0.txt').is_file())
 
     def test_pinned_base(self):
         config = json.loads((ROOT / 'build.json').read_text())
@@ -250,12 +256,12 @@ class BuildChecks(unittest.TestCase):
         entry = next(item for item in entries if item['id'] == 'hearth-presence')
         self.assertEqual(entry['package'], 'com.jeremykenedy.hearthpresence')
         self.assertEqual(entry['dream'], 'com.jeremykenedy.hearthpresence/.HearthDreamService')
-        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['tag'], 'v1.1.0')
         self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/hearth-presence/releases/'
-                         'download/v1.0.0/hearth-presence.apk')
+                         'download/v1.1.0/hearth-presence.apk')
         self.assertEqual(entry['sha256'],
-                         '96067a79be86a0f29f034ee4bcc647e9da7195978b690a7d982f28a17b78278f')
-        self.assertEqual(entry['bytes'], 69011424)
+                         '9541eb4fe2f4d7d69ac1f85b38144f5b5926274291ebec796d8150d27e07b781')
+        self.assertEqual(entry['bytes'], 121223466)
         sources = json.loads((ROOT / 'app/previews/sources.json').read_text())
         source = sources[full_component(entry['dream'])]
         self.assertIn('physical Fire TV AFTDEC012E', source['capture_note'])
@@ -263,6 +269,10 @@ class BuildChecks(unittest.TestCase):
                          source['source_sha256'])
         image = ROOT / 'app/previews' / preview_file(entry['dream'])
         self.assertEqual(hashlib.sha256(image.read_bytes()).hexdigest(), source['preview_sha256'])
+
+        self.assertEqual(source['settings_schema_count'], 11)
+        self.assertEqual(source['license'], 'CC-BY-3.0')
+        self.assertIn('free video library', (ROOT / 'app/previews/licenses/hearth-presence-NOTICE.txt').read_text())
 
     def test_rainforest_update_preserves_identity_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())

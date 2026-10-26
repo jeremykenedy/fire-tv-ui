@@ -1,5 +1,21 @@
 # Screenshots
 
+## Fire TV UI 1.10.1, code 68
+
+Current signed `ab7b5019` output on the API 34 TV emulator. The catalog still has 34 entries, with the verified public Hearth Presence and Prism Clock 1.1.0 APKs. Both launcher DEX files match public code 67. The picker uses current physical thumbnails. Screensaver settings opened each app's real native controls: Hearth retains eleven provider rows and Prism has twelve, including independent, nonrandom Show clock. These images are emulator output; they do not establish physical performance or system Dream binding.
+
+<table><tr>
+<td><img src="../art/screenshots/hearth-prism-picker-ui1101-code68-api34.png" alt="Code 68 picker with the new real Prism thumbnail and its temporary selected state"><br>Current native picker</td>
+<td><img src="../art/screenshots/hearth-options-ui1101-code68-api34.png" alt="Hearth native wood settings with the existing Flame height control"><br>App-owned Hearth options</td>
+<td><img src="../art/screenshots/prism-options-ui1101-code68-api34.png" alt="Prism native settings with the new Show clock switch"><br>App-owned Prism options</td>
+</tr><tr>
+<td><img src="../art/screenshots/hearth-preview-ui1101-code68-api34.png" alt="Actual Hearth wood fireplace preview opened from its native controls"><br>Hearth Preview</td>
+<td><img src="../art/screenshots/prism-clock-off-ui1101-code68-api34.png" alt="Actual Prism surface with clock, date and seconds absent"><br>Show clock Off</td>
+<td><img src="../art/screenshots/prism-clock-on-ui1101-code68-api34.png" alt="Actual Prism surface with the clock and date visible again"><br>Show clock On</td>
+</tr></table>
+
+The remote toggled Show clock Off and On, opened both previews and returned with Back. The previous On value was retained. Settings > Advanced > Preview media credits opened the bundled reader, which scrolled with the D-pad and closed with Back. Full Hearth and Prism notices and applicable licenses are byte-verified in the signed APK. The original Slot Vision selection, all fourteen UI preferences, nineteen OS values, readable providers, external files, appops and accessibility/guard state were restored. [Capture provenance](../art/screenshots/ui1101-code68-provenance.json) records the exact images.
+
 ## Fire TV UI 1.10.0, code 67
 
 Current native output from signed `1a64f59c` on API 34. The catalog contains 34 screensavers. Its new Skycast Weather entry uses the verified public 1.0.0/code 4 APK and a real word-free physical thumbnail. The host Preview it action opened its exported PreviewActivity and visibly rendered the clouds-only film; Back returned without changing the selected screensaver. The public app's native Show weather control and the host's offline attribution reader are shown below. Weather settings retained the original no-city/display choices and the new default Show weather On after cleanup. No personal Plex data was used.

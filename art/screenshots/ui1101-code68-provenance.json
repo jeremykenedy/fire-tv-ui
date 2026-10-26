@@ -1,0 +1,51 @@
+{
+  "version": "1.10.1",
+  "code": 68,
+  "sha256": "ab7b501954f23f9bbc1f4f3e8bab8580afcfd4be9a0f853003d300841a131dc1",
+  "platform": "API 34 Android TV emulator, actual1920x1080 surface",
+  "scope": "Real native catalog/options/Preview/Back and D-pad clock toggle. No physical performance or natural Dream claim. Temporary system selection restored; all UI14/OS19/providers/files/appops/health preserved. UI68/Prism4 retained stopped.",
+  "captures": [
+    {
+      "file": "hearth-prism-picker-ui1101-code68-api34.png",
+      "sourceFile": "prism-picker68.png",
+      "sha256": "f84432e4fe68789659665cf34a563a19857d589d680bf483aba1aa7c4a75bdab",
+      "modification": "None"
+    },
+    {
+      "file": "hearth-options-ui1101-code68-api34.png",
+      "sourceFile": "hearth-options68.png",
+      "sha256": "d7ba64eac82be5c0e3ec7dc63579a3bb7dd60bdaf17b9c88ebd5f46af214fe6c",
+      "modification": "None"
+    },
+    {
+      "file": "prism-options-ui1101-code68-api34.png",
+      "sourceFile": "prism-options68.png",
+      "sha256": "c34bef903374f99d36fa0cacef3efeecede75546471642a0af24b219da20885a",
+      "modification": "None"
+    },
+    {
+      "file": "hearth-preview-ui1101-code68-api34.png",
+      "sourceFile": "hearth-preview68.png",
+      "sha256": "b0fdcc1b1d0dae62600c69324eb2b93858a8b1a58836abd01930abda6835ab58",
+      "modification": "None"
+    },
+    {
+      "file": "prism-clock-off-ui1101-code68-api34.png",
+      "sourceFile": "prism-clock-off68.png",
+      "sha256": "55d14a62f478ebfc94a9d68c71d5d13900e0a0c9b642bce8927bf91567bb0e7b",
+      "modification": "None"
+    },
+    {
+      "file": "prism-clock-on-ui1101-code68-api34.png",
+      "sourceFile": "prism-clock-on68.png",
+      "sha256": "d35beb32a30fd88d076bbe865fcca78e1bce724d4f02e88d84a2d8cd46acc8a8",
+      "modification": "None"
+    },
+    {
+      "file": "preview-credits-ui1101-code68-api34.png",
+      "sourceFile": "credits-scrolled68.png",
+      "sha256": "ee4af01e1b6f3713103367037da045f97459beadf69291b0dcacdf2352d9f142",
+      "modification": "None"
+    }
+  ]
+}

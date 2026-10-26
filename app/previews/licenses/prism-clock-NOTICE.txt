@@ -1,0 +1,5 @@
+Prism Clock
+Copyright 2026 Jeremy Kenedy
+
+Native settings, build and DreamService scaffolding adapted from Cloud Drift Clock
+by Jeremy Kenedy, Apache License 2.0. Modified for the original Prism Clock scene.
