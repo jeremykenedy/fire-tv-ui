@@ -62,6 +62,12 @@ class BuildChecks(unittest.TestCase):
         self.assertIn('FeaturedGroupBridge;->start', main)
         self.assertIn('FeaturedCardClock;->stop', main)
         self.assertIn('MenuBackgroundView;->resumed(Z)V', main)
+        resume = main[main.index('.method public final onResume()V'):]
+        resume = resume[:resume.index('.end method')]
+        self.assertLess(resume.index('\n    :resume_idle_reset_done\n'), resume.index('FeaturedGroupBridge;->start'),
+                        'Cold Main has no model until Compose assigns it; its clock must still start.')
+        self.assertLess(resume.index('\n    :resume_idle_reset_done\n'), resume.index('MenuBackgroundView;->resumed'),
+                        'Native backgrounds must start on the first resume too.')
         background = built['LQ3/T5;'].read_text()
         self.assertIn('MenuBackgroundLayer;->draw', background)
         self.assertIn('if-nez v14, :goto_3', background)

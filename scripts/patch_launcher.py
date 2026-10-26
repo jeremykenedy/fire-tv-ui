@@ -121,10 +121,10 @@ def patch(decoded):
         '    move-result-wide v1\n'
         '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
         '    invoke-virtual {v0}, LQ3/T3;->refreshFeaturedRotation()V\n'
+        '    :resume_idle_reset_done\n'
         '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->start(Landroid/content/Context;)V\n'
         '    const/4 v1, 0x1\n'
-        '    invoke-static {v1}, Lcom/jeremykenedy/firetv/ui/MenuBackgroundView;->resumed(Z)V\n'
-        '    :resume_idle_reset_done')
+        '    invoke-static {v1}, Lcom/jeremykenedy/firetv/ui/MenuBackgroundView;->resumed(Z)V')
     text = replace_method(text, resume_signature, resume)
     text += '\n.method public onPause()V\n    .locals 1\n'
     text += '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/FeaturedCardClock;->stop()V\n'
