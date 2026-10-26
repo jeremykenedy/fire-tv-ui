@@ -1,22 +1,22 @@
 # Screenshots
 
-## Fire TV UI1.10.0, code67
+## Fire TV UI 1.10.0, code67
 
-Current native output from signed `1a64f59c` on API34. The catalog contains34screensavers. Its new Skycast Weather entry uses the verified public1.0.0/code4 APK and a real word-free physical thumbnail. The host Preview it action opened its exported PreviewActivity and visibly rendered the clouds-only film; Back returned without changing the selected screensaver. The public app's native Show weather control and the host's offline attribution reader are shown below. Weather settings retained the original no-city/display choices and the new default Show weather On after cleanup. No personal Plex data was used.
+Current native output from signed `1a64f59c` on API 34. The catalog contains 34 screensavers. Its new Skycast Weather entry uses the verified public1.0.0/code 4 APK and a real word-free physical thumbnail. The host Preview it action opened its exported PreviewActivity and visibly rendered the clouds-only film; Back returned without changing the selected screensaver. The public app's native Show weather control and the host's offline attribution reader are shown below. Weather settings retained the original no-city/display choices and the new default Show weather On after cleanup. No personal Plex data was used.
 
 <table><tr>
-<td><img src="../art/screenshots/weather-picker-ui110-code67-api34.png" alt="Final code67 picker showing the real text-free Weather thumbnail without changing Slot Vision selection"><br>Word-free preview</td>
-<td><img src="../art/screenshots/weather-catalog-ui110-code67-api34.png" alt="Final code67 catalog entry describes optional weather and its real ambient cloud flight"><br>34th catalog entry</td>
+<td><img src="../art/screenshots/weather-picker-ui110-code67-api34.png" alt="Final code 67 picker showing the real text-free Weather thumbnail without changing Slot Vision selection"><br>Word-free preview</td>
+<td><img src="../art/screenshots/weather-catalog-ui110-code67-api34.png" alt="Final code 67 catalog entry describes optional weather and its real ambient cloud flight"><br>34th catalog entry</td>
 <td><img src="../art/screenshots/weather-options-ui110-code67-api34.png" alt="Published Weather native settings with Show weather information turned Off and no city configured"><br>Native Weather options</td>
 </tr><tr>
 <td><img src="../art/screenshots/weather-preview-ui110-code67-api34.png" alt="Actual clouds-only film reached through the final host's direct Weather preview action"><br>Direct native preview</td>
-<td><img src="../art/screenshots/credits-start-ui110-code67-api34.png" alt="Final code67 offline media credits reader"><br>Offline credits</td>
+<td><img src="../art/screenshots/credits-start-ui110-code67-api34.png" alt="Final code 67 offline media credits reader"><br>Offline credits</td>
 <td><img src="../art/screenshots/credits-weather-ui110-code67-api34.png" alt="Weather film creator, source, license and resize attribution visible at the end of offline credits"><br>Weather attribution</td>
 </tr></table>
 
-## Fixed feeds and backgrounds, code66 runtime
+## Fixed feeds and backgrounds, code 66 runtime
 
-Both DEX files are byte-identical between code66 and final code67. These unretouched API34emulator captures show signed `3fe275c0` with two owned sample feeds, not a personal Plex library. The same two card positions retain coherent child titles and artwork while rotating. The native Menu holds the current child. Animated backgrounds are optional and stop away from Main. These images establish emulator behavior, not physical TV performance or Plex playback.
+Both DEX files are byte-identical between code 66 and final code67. These unretouched API 34 emulator captures show signed `3fe275c0` with two owned sample feeds, not a personal Plex library. The same two card positions retain coherent child titles and artwork while rotating. The native Menu holds the current child. Animated backgrounds are optional and stop away from Main. These images establish emulator behavior, not physical TV performance or Plex playback.
 
 <table><tr>
 <td><img src="../art/screenshots/fixed-feeds-first-ui110-api34.png" alt="Two fixed sample feeds with first child titles and cyan artwork"><br>Fixed feed positions</td>

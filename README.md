@@ -144,9 +144,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI1.10.0/code67 on an API34TV emulator, showing the new word-free Weather preview. The [full gallery](docs/screenshots.md) includes the current catalog, native options, offline credits and safe fixed-feed/background demonstrations. The original Fire TV also passed shared screensaver controls, real source visibility and normal five-minute idle activation with particles enabled.
+Fire TV UI 1.10.0/code 67 on an API 34 TV emulator, showing the new word-free Weather preview. The [full gallery](docs/screenshots.md) includes the current catalog, native options, offline credits and safe fixed-feed/background demonstrations. The original Fire TV also passed shared screensaver controls, real source visibility and normal five-minute idle activation with particles enabled.
 
-<p align="center"><img src="art/screenshots/weather-picker-ui110-code67-api34.png" alt="Final Fire TV UI1.10.0 code67 picker with a real text-free Skycast Weather thumbnail and direct preview action" width="900"></p>
+<p align="center"><img src="art/screenshots/weather-picker-ui110-code67-api34.png" alt="Final Fire TV UI 1.10.0 code 67 picker with a real text-free Skycast Weather thumbnail and direct preview action" width="900"></p>
 
 ## License
 
