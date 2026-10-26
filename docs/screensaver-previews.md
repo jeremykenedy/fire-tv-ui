@@ -66,7 +66,7 @@ The isolated integration candidate 1.3.0/code 34, SHA-256 e65025fc2199fc3a1107ea
 
 ## Prism Clock published preview
 
-Prism Clock uses the [unretouched physical silver capture](../art/screenshots/prism-clock-fire-tv-silver-1920.png) of v1.0.0 on the Fire TV AFTDEC012E, Android 11/API 30 at 1920x1080. The catalog pins its verified public APK, 127,947 bytes with SHA-256 edbf475c4a2b253ccc069adaee8cac2cbba4d16b5579d5299e2e2d1bdaa21fd5. The 384x216 bundled image is resized from that capture. Its installed settings interface is `content://com.jeremykenedy.prismclock.settings/schema` and `/settings`; the app provides eleven controls, a Settings activity and an explicit Preview activity. Registering it does not change the selected screensaver.
+Prism Clock uses the [unretouched physical clock-On capture](../art/screenshots/prism-clock-clock-visible-fire-tv-api28.png) of public 1.1.0/code 4 on Fire TV AFTALMO/API 28 at 1920x1080. Its verified APK is 127,947 bytes, SHA-256 6d1a3204ca648033c3c0c1d68adcceb29e90ed1ff61ec24b7f65e1326b7621e8. The twelve-row provider retains the original eleven choices and adds Show clock (`show_clock`, boolean/default true/randomAllowed false). Turning it Off hides clock, date and seconds without discarding their choices; randomize-all cannot turn them back on. The renderer remains the original accepted surface, with API 28 default 17-18 presents/s and no GPU-upgrade claim. Native final 4 Preview/controls and preservation are separate from equivalent code 2 natural-idle evidence. The bundled native thumbnail is a plain resize; tagged Apache 2.0 NOTICE and license are included in offline Preview media credits.
 
 ## Cloud Drift Clock 2.0
 

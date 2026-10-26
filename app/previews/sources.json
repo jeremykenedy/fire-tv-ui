@@ -89,7 +89,7 @@
     "source_sha256": "24c93d929c73aa1b9a7f629d8cfa825ec4ec77471180ee687bff61eba4654a34"
   },
   "com.jeremykenedy.hearthpresence/com.jeremykenedy.hearthpresence.HearthDreamService": {
-    "capture_note": "Unretouched physical Fire TV AFTDEC012E API30, signed published1.1.0/code7 Preview, Large wood height above fixed logs. Actual1920x1080; resized only.",
+    "capture_note": "Unretouched physical Fire TV AFTDEC012E API 30, signed published 1.1.0/code 7 Preview, Large wood height above fixed logs. Actual 1920x1080; resized only.",
     "captured_on": "2026-10-26",
     "preview_sha256": "3cf561ac64c3039f77378594e6e50822351da89ea8308942ecdaf7ffe7418287",
     "source_file": "art/screenshots/hearth-presence-wood-large-fire-tv-api30.png",
@@ -99,7 +99,7 @@
     "source_url": "https://raw.githubusercontent.com/jeremykenedy/hearth-presence/v1.1.0/art/screenshots/physical7-wood-large.png",
     "apk_sha256": "9541eb4fe2f4d7d69ac1f85b38144f5b5926274291ebec796d8150d27e07b781",
     "settings_schema_count": 11,
-    "attribution": "Wood footage by free video library (2018), CC BY3.0; adapted height clip. Native screenshot resized. See bundled hearth-presence-NOTICE.txt and complete CC BY3.0 text.",
+    "attribution": "Wood footage by free video library (2018), CC BY 3.0; adapted height clip. Native screenshot resized. See bundled hearth-presence-NOTICE.txt and complete CC BY 3.0 text.",
     "license": "CC-BY-3.0",
     "license_url": "https://creativecommons.org/licenses/by/3.0/"
   },
@@ -168,12 +168,25 @@
     "source_sha256": "c90d3c96bcee56aeebcb97e65101fdb862499204ba457d00af4995599b799d43"
   },
   "com.jeremykenedy.prismclock/com.jeremykenedy.prismclock.PrismDreamService": {
-    "capture_note": "Unretouched physical Fire TV AFTDEC012E capture of the signed Prism Clock v1.0.0 release, Android 11/API 30, 1920x1080.",
-    "captured_on": "2026-10-22",
-    "preview_sha256": "41ff08daab7ac74c6f06e46c8b78e279ded0a399f1aa197ec1097af3e0ea1f9a",
-    "source_file": "art/screenshots/prism-clock-fire-tv-silver-1920.png",
+    "capture_note": "Unretouched physical Fire TV AFTALMO/API 28 Preview of exact published 1.1.0/code 4, clock ON, original accepted faceted renderer. Actual 1920x1080; resized only.",
+    "captured_on": "2026-10-26",
+    "preview_sha256": "aad70dcc519e4c9fb78e7074a8c45350af10114dfa90eba0097054b943ed01f1",
+    "source_file": "art/screenshots/prism-clock-clock-visible-fire-tv-api28.png",
     "source_project": "jeremykenedy/prism-clock",
-    "source_sha256": "7217ea6e4efd79d177cbbaef77ec95c1faaebf7be80811ad8554b7172b5c41cb"
+    "source_sha256": "fa716030ec0baeed32a627998977284aeff1743e5296a7320d4e7a90a5a4b303",
+    "source_commit": "3c3ff6ad104bcfdd95ae48747dceb80ae8de549e",
+    "source_url": "https://raw.githubusercontent.com/jeremykenedy/prism-clock/v1.1.0/art/screenshots/clock-visible-fire-tv-api28.png",
+    "apk_sha256": "6d1a3204ca648033c3c0c1d68adcceb29e90ed1ff61ec24b7f65e1326b7621e8",
+    "settings_schema_count": 12,
+    "clock_visibility": {
+      "key": "show_clock",
+      "type": "boolean",
+      "default": true,
+      "randomAllowed": false
+    },
+    "attribution": "Original Prism Clock scene and adapted native scaffolding, Apache 2.0. Preserve bundled prism-clock-NOTICE.txt and complete Apache 2.0 text.",
+    "license": "Apache-2.0",
+    "license_url": "https://www.apache.org/licenses/LICENSE-2.0"
   },
   "com.jeremykenedy.pulsecircuit/com.jeremykenedy.pulsecircuit.PulseDreamService": {
     "capture_note": "Running Pulse Circuit PreviewActivity on Google TV emulator API 34 at 1920x1080.",

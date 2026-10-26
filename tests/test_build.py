@@ -147,12 +147,12 @@ class BuildChecks(unittest.TestCase):
         entry = next(item for item in entries if item['id'] == 'prism-clock')
         self.assertEqual(entry['package'], 'com.jeremykenedy.prismclock')
         self.assertEqual(entry['dream'], entry['package'] + '/.PrismDreamService')
-        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['tag'], 'v1.1.0')
         self.assertEqual(entry['bytes'], 127947)
         self.assertEqual(entry['sha256'],
-                         'edbf475c4a2b253ccc069adaee8cac2cbba4d16b5579d5299e2e2d1bdaa21fd5')
+                         '6d1a3204ca648033c3c0c1d68adcceb29e90ed1ff61ec24b7f65e1326b7621e8')
         self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/prism-clock/releases/'
-                         'download/v1.0.0/prism-clock.apk')
+                         'download/v1.1.0/prism-clock.apk')
         source = json.loads((ROOT / 'app/previews/sources.json').read_text())[
             full_component(entry['dream'])]
         self.assertIn('physical Fire TV', source['capture_note'])
@@ -160,6 +160,12 @@ class BuildChecks(unittest.TestCase):
                          source['source_sha256'])
         preview = ROOT / 'app/previews' / preview_file(entry['dream'])
         self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), source['preview_sha256'])
+
+        self.assertEqual(source['settings_schema_count'], 12)
+        self.assertEqual(source['clock_visibility'], {'key': 'show_clock', 'type': 'boolean',
+                                                    'default': True, 'randomAllowed': False})
+        self.assertTrue((ROOT / 'app/previews/licenses/prism-clock-NOTICE.txt').is_file())
+        self.assertTrue((ROOT / 'app/previews/licenses/prism-clock-APACHE-2.0.txt').is_file())
 
     def test_pinned_base(self):
         config = json.loads((ROOT / 'build.json').read_text())
