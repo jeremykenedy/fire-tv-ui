@@ -309,5 +309,34 @@
     "source_file": "docs/screenshots/screensaver-snoozy.jpg",
     "source_project": "Fire TV CLI",
     "source_sha256": "fd457f2133cd0ee1709a93efb27328ae2ea65bc44d44bfdb83b36460ffc92caf"
+  },
+  "com.jeremykenedy.nibbleshd/com.jeremykenedy.nibbleshd.NibblesDreamService": {
+    "apk_bytes": 41727,
+    "apk_sha256": "c49bc22e5cbf5067da4bbcb1cd63140d31b0a49a83f6826e111986ee4b7d7971",
+    "attribution": "Original game and procedural artwork by Jeremy Kenedy, Apache-2.0; bundled Nibbles NOTICE and Apache license.",
+    "capture_note": "Actual physical Fire TV AFTDEC012E on API 30 at 1920x1080, matte code 2. Public code 3 preserves game, options, renderer, provider, Preview and Dream source and class bytes; its final native packaging also passed API 34. Plain 384x216 resize without retouching.",
+    "captured_on": "2026-10-26",
+    "min_sdk": 23,
+    "preview_sha256": "99c65890a75fe6404d95f198be309811be60d995d3249ad735ea3035356fef59",
+    "release": "v1.0.0",
+    "settings_keys": [
+      "speed",
+      "snakes",
+      "palette",
+      "stage",
+      "board",
+      "effects",
+      "brightness",
+      "randomize_all"
+    ],
+    "settings_schema": "content://com.jeremykenedy.nibbleshd.settings/schema",
+    "settings_schema_count": 8,
+    "signer_sha256": "cdf8f4f4fd70dbb133fe8b05b6ab165eb3e98b033ddcb7d305cf0d84d874bc75",
+    "source_commit": "0fd97691fd56e328d9ea76de1f799d55cee04dcf",
+    "source_file": "art/screenshots/nibbles-hd-physical-runtime-equivalent-1080p.png",
+    "source_project": "jeremykenedy/nibbles-hd",
+    "source_sha256": "4db4f6d7ea407a997c15c00c851b749aa5ef365b79bb99c358b4b4ce727be432",
+    "source_url": "https://raw.githubusercontent.com/jeremykenedy/nibbles-hd/v1.0.0/art/screenshots/default-physical-1080p.png",
+    "target_sdk": 36
   }
 }
