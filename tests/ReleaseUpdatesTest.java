@@ -115,6 +115,42 @@ public final class ReleaseUpdatesTest {
             throw new AssertionError("The ordinary single-APK compatibility path changed");
         }
         checks++;
+        String uiRepo = "jeremykenedy/fire-tv-ui";
+        String uiApi = "https://api.github.com/repos/" + uiRepo + "/releases/latest";
+        String uiUrl = "https://github.com/" + uiRepo
+                + "/releases/download/v1.9.0/fire-tv-ui-1.9.0.apk";
+        JSONObject uiRelease = release().put("tag_name", "v1.9.0")
+                .put("assets", new JSONArray().put(asset("fire-tv-ui-1.9.0.apk", uiUrl)
+                        .put("digest", "sha256:" + HASH)));
+        content.put(uiApi, uiRelease.toString());
+        ScreensaverCatalog.Entry publicUi = ReleaseUpdates.latest("Fire TV UI",
+                "com.jeremykenedy.firetv.ui", uiRepo, "fire-tv-ui-{version}.apk", "", "");
+        if (!uiUrl.equals(publicUi.url) || !HASH.equals(publicUi.sha256)
+                || !ReleaseUpdates.matchesRequestedAsset(publicUi, "fire-tv-ui-{version}.apk"))
+            throw new AssertionError("Public UI checks did not resolve the exact versioned APK");
+        checks++;
+        uiRelease.put("assets", new JSONArray().put(asset("unrelated.apk", uiUrl)
+                .put("digest", "sha256:" + HASH)));
+        content.put(uiApi, uiRelease.toString());
+        try {
+            ReleaseUpdates.latest("Fire TV UI", "com.jeremykenedy.firetv.ui", uiRepo,
+                    "fire-tv-ui-{version}.apk", "", "");
+            throw new AssertionError("A different single APK replaced the expected UI release");
+        } catch (IllegalStateException expected) { checks++; }
+        for (int inaccessible : new int[]{401, 403, 404}) {
+            status = inaccessible;
+            try {
+                ReleaseUpdates.latest("Fire TV UI", "com.jeremykenedy.firetv.ui", uiRepo,
+                        "fire-tv-ui-{version}.apk", "", "");
+                throw new AssertionError("An inaccessible source became a current-version claim");
+            } catch (ReleaseUpdates.AccessUnavailableException expected) { checks++; }
+        }
+        status = 429;
+        try {
+            ReleaseUpdates.latest("Fire TV UI", "com.jeremykenedy.firetv.ui", uiRepo,
+                    "fire-tv-ui-{version}.apk", "", "");
+            throw new AssertionError("Rate limiting was mistaken for private repository access");
+        } catch (ReleaseUpdates.RateLimitException expected) { checks++; }
         JSONObject helper = release().put("tag_name", "v3.9.1")
                 .put("published_at", "2026-10-10T12:00:00Z")
                 .put("assets", new JSONArray().put(asset("firetv-home-redirect.apk",

@@ -24,12 +24,30 @@ public final class AdvancedActivity extends CardActivity {
                             }
                         });
         addButton(body, diagnostics);
-        addButton(body, button("Updates: installed TV apps", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(AdvancedActivity.this, UpdatesActivity.class));
-            }
-        }));
+        addButton(
+                body,
+                button(
+                        "Updates: installed TV apps",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                startActivity(
+                                        new Intent(AdvancedActivity.this, UpdatesActivity.class));
+                            }
+                        }));
+        addButton(
+                body,
+                button(
+                        "Preview media credits",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                startActivity(
+                                        new Intent(
+                                                AdvancedActivity.this,
+                                                PreviewCreditsActivity.class));
+                            }
+                        }));
         diagnostics.requestFocus();
     }
 }

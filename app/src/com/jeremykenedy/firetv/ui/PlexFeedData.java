@@ -17,10 +17,15 @@ final class PlexFeedData {
         final String source;
         final String title;
         final List<PlexLibrary.Item> items;
+        String credentialSource;
 
         Feed(String key, List<PlexLibrary.Item> items) {
-            this.source = source(key);
-            this.title = label(this.source);
+            this(source(key), label(source(key)), items);
+        }
+
+        Feed(String source, String title, List<PlexLibrary.Item> items) {
+            this.source = source;
+            this.title = title;
             this.items = items;
         }
     }
@@ -36,12 +41,18 @@ final class PlexFeedData {
             if (source(PlexFeedSettings.KEYS[i]).equals(source))
                 return "Plex " + PlexFeedSettings.LABELS[i];
         }
+        if (source != null && source.matches("fire-tv-ui-plex-profile-[0-9a-f]{64}"))
+            return "Plex Home Continue Watching";
         return "fire-tv-ui-plex-recent".equals(source) ? "Plex Recently Added" : null;
     }
 
     static List<Feed> read(Reader reader, PlexFeedSettings options) throws Exception {
+        return read(reader, options, options.limit());
+    }
+
+    static List<Feed> read(Reader reader, PlexFeedSettings options, int limit) throws Exception {
+        if (limit < 1 || limit > 12) throw new IllegalArgumentException("Invalid Plex card limit.");
         List<Feed> feeds = new ArrayList<>();
-        int limit = options.limit();
         for (String key : PlexFeedSettings.KEYS) {
             if (!options.enabled.contains(key)) continue;
             String path;
@@ -98,6 +109,36 @@ final class PlexFeedData {
             result.put(item);
         }
         return new JSONObject().put("MediaContainer", new JSONObject().put("Metadata", result));
+    }
+
+    static Map<String, String> accounts(JSONObject response) {
+        Map<String, String> result = new LinkedHashMap<>();
+        JSONObject container = response.optJSONObject("MediaContainer");
+        JSONArray accounts = container == null ? null : container.optJSONArray("Account");
+        for (int i = 0; accounts != null && i < Math.min(256, accounts.length()); i++) {
+            JSONObject account = accounts.optJSONObject(i);
+            if (account == null) continue;
+            String id = account.optString("id", "");
+            String name = account.optString("name", "").trim();
+            if (id.matches("[0-9]{1,18}") && !name.isEmpty() && name.length() <= 128)
+                result.put(id, name);
+        }
+        return result;
+    }
+
+    static JSONObject namedActivity(JSONObject response, Map<String, String> accounts)
+            throws Exception {
+        JSONObject named = new JSONObject(response.toString());
+        JSONObject container = named.optJSONObject("MediaContainer");
+        JSONArray rows = container == null ? null : container.optJSONArray("Metadata");
+        for (int i = 0; rows != null && i < rows.length(); i++) {
+            JSONObject item = rows.optJSONObject(i);
+            if (item == null || item.optJSONObject("User") != null) continue;
+            String id = item.optString("accountID", "");
+            String name = accounts.get(id);
+            if (name != null) item.put("User", new JSONObject().put("id", id).put("title", name));
+        }
+        return named;
     }
 
     static Map<String, String> users(JSONObject response) {

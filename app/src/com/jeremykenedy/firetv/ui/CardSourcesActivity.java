@@ -72,11 +72,19 @@ public final class CardSourcesActivity extends CardActivity {
                                                 CardSourcesActivity.this, PlexCardsActivity.class));
                             }
                         }));
-        addButton(body, button("App recommendation cards", new View.OnClickListener() {
-            @Override public void onClick(View view) {
-                startActivity(new Intent(CardSourcesActivity.this, RecommendationCardsActivity.class));
-            }
-        }));
+        addButton(
+                body,
+                button(
+                        "App recommendation cards",
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                startActivity(
+                                        new Intent(
+                                                CardSourcesActivity.this,
+                                                RecommendationCardsActivity.class));
+                            }
+                        }));
         refresh.requestFocus();
         readSources();
     }
@@ -141,7 +149,12 @@ public final class CardSourcesActivity extends CardActivity {
                     getContentResolver()
                             .query(
                                     Uri.parse("content://android.media.tv/channel"),
-                                    new String[] {"_id", "package_name", "internal_provider_id"},
+                                    new String[] {
+                                        "_id",
+                                        "package_name",
+                                        "internal_provider_id",
+                                        "display_name"
+                                    },
                                     null,
                                     null,
                                     null)) {
@@ -150,6 +163,10 @@ public final class CardSourcesActivity extends CardActivity {
                     if (!getPackageName().equals(cursor.getString(1))) continue;
                     String logical = cursor.getString(2);
                     String name = PlexFeedData.label(logical);
+                    if (name != null
+                            && logical.startsWith("fire-tv-ui-plex-profile-")
+                            && !cursor.isNull(3)
+                            && !cursor.getString(3).trim().isEmpty()) name = cursor.getString(3);
                     if (name != null) {
                         feeds.put(cursor.getLong(0), name);
                         counts.put(cursor.getLong(0), 0);
@@ -184,7 +201,7 @@ public final class CardSourcesActivity extends CardActivity {
             return report.toString();
         } catch (Exception unavailable) {
             return "Your Plex library feeds: unavailable. The TV provider could not read these"
-                       + " feeds.";
+                    + " feeds.";
         }
     }
 

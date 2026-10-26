@@ -27,7 +27,13 @@ final class PlexCards {
         java.util.Map<String, List<ContentValues>> rows = new java.util.LinkedHashMap<>();
         int total = 0;
         for (PlexFeedData.Feed feed : feeds) {
-            List<ContentValues> items = values(context, api, connection, feed.items, request);
+            PlexConnection credential =
+                    feed.credentialSource == null
+                            ? connection
+                            : connection.forSource(feed.credentialSource);
+            if (credential == null)
+                throw new java.io.IOException("This Plex profile is no longer connected.");
+            List<ContentValues> items = values(context, api, credential, feed.items, request);
             rows.put(feed.source, items);
             total += items.size();
         }
@@ -53,6 +59,46 @@ final class PlexCards {
                                                     : selected,
                                             changes,
                                             selected != null);
+                                }
+                                for (PlexFeedData.Feed feed : feeds) {
+                                    if (feed.credentialSource != null)
+                                        replace(
+                                                context,
+                                                feed.source,
+                                                feed.title,
+                                                rows.get(feed.source),
+                                                changes,
+                                                true);
+                                }
+                                try (Cursor owned =
+                                        context.getContentResolver()
+                                                .query(
+                                                        TvContract.Channels.CONTENT_URI,
+                                                        new String[] {
+                                                            "internal_provider_id", "package_name"
+                                                        },
+                                                        null,
+                                                        null,
+                                                        null)) {
+                                    if (owned == null)
+                                        throw new java.io.IOException(
+                                                "Plex profile feeds could not be read.");
+                                    while (owned.moveToNext()) {
+                                        String source = owned.getString(0);
+                                        if (context.getPackageName().equals(owned.getString(1))
+                                                && source != null
+                                                && source.matches(
+                                                        "fire-tv-ui-plex-profile-[0-9a-f]{64}")
+                                                && !rows.containsKey(source))
+                                            replace(
+                                                    context,
+                                                    source,
+                                                    "Plex Home Continue Watching",
+                                                    java.util.Collections
+                                                            .<ContentValues>emptyList(),
+                                                    changes,
+                                                    false);
+                                    }
                                 }
                                 replace(
                                         context,

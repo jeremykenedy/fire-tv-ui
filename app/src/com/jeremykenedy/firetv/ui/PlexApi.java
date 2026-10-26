@@ -99,6 +99,51 @@ final class PlexApi {
         }
     }
 
+    java.util.List<PlexHomeUsers.User> homeUsers() throws Exception {
+        return homeUsers(refreshToken());
+    }
+
+    private java.util.List<PlexHomeUsers.User> homeUsers(String accountToken) throws Exception {
+        return PlexHomeUsers.read(
+                new org.json.JSONTokener(
+                                new String(
+                                        request(
+                                                ACCOUNT + "/home/users",
+                                                "GET",
+                                                accountToken,
+                                                null,
+                                                2 * 1024 * 1024,
+                                                "Plex Home profiles"),
+                                        StandardCharsets.UTF_8))
+                        .nextValue());
+    }
+
+    PlexConnection authorizeHome(String server, String machine, String profile, String pin)
+            throws Exception {
+        String accountToken = refreshToken();
+        PlexHomeUsers.User selected = PlexHomeUsers.require(homeUsers(accountToken), profile);
+        if (selected.protectedByPin && (pin == null || !pin.matches("[0-9]{4}")))
+            throw new IOException("Enter this profile's own four-digit Plex PIN on the TV.");
+        if (pin != null && !pin.isEmpty() && !pin.matches("[0-9]{4}"))
+            throw new IOException("A Plex profile PIN must contain four digits.");
+        String suffix = selected.protectedByPin ? "?pin=" + pin : "";
+        JSONObject switched =
+                json(
+                        ACCOUNT + "/home/users/" + selected.id + "/switch" + suffix,
+                        "POST",
+                        accountToken,
+                        null,
+                        "Plex Home profile authorization");
+        String token = switched.optString("authToken", "");
+        if (token.isEmpty() || "null".equals(token))
+            throw new IOException("Plex did not authorize this profile. Your connection was kept.");
+        JSONObject identity =
+                json(ACCOUNT + "/user", "GET", token, null, "Plex Home profile identity");
+        if (!PlexHomeUsers.matchesIdentity(selected, identity))
+            throw new IOException("Plex authorized a different profile. Your connection was kept.");
+        return authorize(server, machine, token);
+    }
+
     private void verifyServer(PlexConnection connection) throws Exception {
         String actual =
                 server(connection, "/")
@@ -165,6 +210,20 @@ final class PlexApi {
             String phase,
             int pageSize)
             throws Exception {
+        return request(
+                url, method, token, body, limit, phase, pageSize, "Artwork".equals(phase) ? 3 : 0);
+    }
+
+    private byte[] request(
+            String url,
+            String method,
+            String token,
+            JSONObject body,
+            int limit,
+            String phase,
+            int pageSize,
+            int redirects)
+            throws Exception {
         HttpURLConnection request = null;
         try {
             request = (HttpURLConnection) new URL(url).openConnection();
@@ -172,14 +231,17 @@ final class PlexApi {
             request.setConnectTimeout(10000);
             request.setReadTimeout(15000);
             request.setRequestMethod(method);
-            request.setRequestProperty("Accept", "application/json");
-            request.setRequestProperty("X-Plex-Client-Identifier", keys.clientId());
-            request.setRequestProperty("X-Plex-Product", "Fire TV UI");
-            request.setRequestProperty("X-Plex-Version", "1.6.0");
-            request.setRequestProperty("X-Plex-Platform", "Android");
-            request.setRequestProperty("X-Plex-Device", "Fire TV");
-            request.setRequestProperty("X-Plex-Container-Start", "0");
-            request.setRequestProperty("X-Plex-Container-Size", Integer.toString(pageSize));
+            boolean artwork = "Artwork".equals(phase);
+            request.setRequestProperty("Accept", artwork ? "image/*" : "application/json");
+            if (!artwork || token != null) {
+                request.setRequestProperty("X-Plex-Client-Identifier", keys.clientId());
+                request.setRequestProperty("X-Plex-Product", "Fire TV UI");
+                request.setRequestProperty("X-Plex-Version", "1.6.0");
+                request.setRequestProperty("X-Plex-Platform", "Android");
+                request.setRequestProperty("X-Plex-Device", "Fire TV");
+                request.setRequestProperty("X-Plex-Container-Start", "0");
+                request.setRequestProperty("X-Plex-Container-Size", Integer.toString(pageSize));
+            }
             if (token != null) request.setRequestProperty("X-Plex-Token", token);
             if (body != null) {
                 request.setDoOutput(true);
@@ -191,7 +253,22 @@ final class PlexApi {
                 }
             }
             int status = request.getResponseCode();
-            if (status == 401 || status == 498) throw new AuthorizationRequired(phase, status);
+            if (artwork
+                    && redirects > 0
+                    && (status == 301
+                            || status == 302
+                            || status == 303
+                            || status == 307
+                            || status == 308)) {
+                String next = PlexArtworkRedirect.next(url, request.getHeaderField("Location"));
+                String credential = PlexArtworkRedirect.sameOrigin(url, next) ? token : null;
+                request.disconnect();
+                request = null;
+                return request(
+                        next, "GET", credential, null, limit, phase, pageSize, redirects - 1);
+            }
+            if ((status == 401 || status == 498) && (!artwork || token != null))
+                throw new AuthorizationRequired(phase, status);
             if (status < 200 || status >= 300) throw new RequestFailure(phase, status);
             try (InputStream input = request.getInputStream();
                     ByteArrayOutputStream output = new ByteArrayOutputStream()) {

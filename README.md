@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.8.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.9.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -33,14 +33,14 @@
 
 ## Installation
 
-This repository and its APK are private. Users with repository access can install the signed APK from the private releases, or build it locally. Physical Fire TV, Android TV, and Google TV checks are still welcome; see the [device verification matrix](docs/verification.md).
+Install the signed APK from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases), or build it locally. Fire TV and Android TV have physical checks; see the [device verification matrix](docs/verification.md) for their scope.
 
-Download the signed APK and its checksum from the private release, verify the checksum, then use the repository installer:
+Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.8.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.9.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.8.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.9.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -64,7 +64,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | Feature | What it does | Guide |
 | --- | --- | --- |
 | Home layout | Arrange apps, folders, favorites, channels and custom icons. | [Configuration](docs/configuration.md) |
-| Featured cards | Choose sources, hide individual cards, and connect a personal Plex server. | [Featured cards](docs/featured-cards.md) |
+| Featured cards | Order feeds and items, hide individual cards, and add authorized Plex Home profiles. | [Featured cards](docs/featured-cards.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
 | Screensavers | Select, preview, configure and install reviewed screensaver releases. | [Screensavers](docs/device-controls.md#screensavers) |
 | Launcher idle | Follow the selected TV screensaver when the launcher is idle. | [Platform limits](docs/device-controls.md#launcher-idle-activation) |
@@ -88,7 +88,7 @@ Use the preferences icon to open the remote-friendly Settings menu. [Configurati
 
 ## Building
 
-I'm looking for someone to live-test Fire TV UI on physical **Android TV** and **Google TV** devices. Testing so far covers Fire TV hardware and an Android TV emulator. Home routing, screensavers, timers, and backup behavior still need confirmation on those physical devices.
+Physical verification covers Fire TV and Android 9 / API 28 hardware, with additional API 34 TV emulator checks. Physical Google TV behavior remains unverified; see the device matrix for individual feature limits.
 
 ```bash
 python3 scripts/build.py
@@ -105,7 +105,7 @@ python3 scripts/build.py --unsigned
 bash scripts/test.sh
 ```
 
-The local checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. They also verify release hashes, preview provenance, and each new app's settings route on an Android TV emulator. This private repository does not run CI.
+The local checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. They also verify release hashes, preview provenance, and each new app's settings route on an Android TV emulator. Run the local suite before publishing; device-only checks require an explicitly selected test device.
 
 Device testing is described in [Verification](docs/verification.md).
 
@@ -121,6 +121,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
+- [Fire TV UI 1.9.0 release notes and upgrade guide](docs/releases/v1.9.0.md)
 - [Fire TV UI 1.6.0 release notes and upgrade guide](docs/releases/v1.6.0.md)
 - [Fire TV UI 1.4.1 release notes and upgrade guide](docs/releases/v1.4.1.md)
 - [Fire TV UI 1.3.2 release notes and upgrade guide](docs/releases/v1.3.2.md)
@@ -139,9 +140,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.8.0 on the TV emulator, with top-level feed ordering opened using the remote Menu button. Personal library details are kept out of screenshots. The [full gallery](docs/screenshots.md) distinguishes current card checks from earlier physical Home and native guide checks.
+Fire TV UI 1.9.0 on the TV emulator, checking the previous published release before 1.9.0 publication. The check verifies the actual APK version and correctly preserves a newer installed build. The [full gallery](docs/screenshots.md) includes authorized Plex Home controls with safe sample names.
 
-<p align="center"><img src="art/screenshots/top-feed-order-ui-1.8.0-api34.png" alt="Fire TV UI 1.8.0 top-level feed ordering with Move left and Move right" width="900"></p>
+<p align="center"><img src="art/screenshots/public-ui-update-ui-1.9.0-api34.png" alt="Fire TV UI 1.9.0 public self-update check verifies the previous stable Android APK without treating the newer installed build as an update" width="900"></p>
 
 ## License
 

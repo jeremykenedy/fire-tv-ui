@@ -53,7 +53,7 @@ class BuildChecks(unittest.TestCase):
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}
-        self.assertEqual(set(mapped), {'slot-vision', 'hearth-presence', 'rainforest-cascade', 'prism-clock'})
+        self.assertEqual(set(mapped), {'slot-vision', 'hearth-presence', 'rainforest-cascade', 'prism-clock', 'black-screen-dream'})
         for entry in mapped.values():
             self.assertEqual(entry['preview'], entry['package'] + '/.PreviewActivity')
         decoded = ROOT / '.build/decoded'

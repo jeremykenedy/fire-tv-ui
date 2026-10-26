@@ -72,7 +72,8 @@ public final class UpdatesActivity extends CardActivity {
         rows = scrollBody();
         Row self = new Row("Fire TV UI", getPackageName(), null);
         self.sourceRepo = "jeremykenedy/fire-tv-ui";
-        self.sourceAsset = "fire-tv-ui.apk";
+        self.sourceAsset = "fire-tv-ui-{version}.apk";
+        self.apkVersioned = true;
         apps.add(self);
         try {
             for (ScreensaverCatalog.Entry entry : ScreensaverCatalog.load(this)) {
@@ -184,15 +185,7 @@ public final class UpdatesActivity extends CardActivity {
                         if (app.sourceRepo == null) {
                             throw new IllegalStateException("No reviewed release source. Use the app publisher or TV system updates.");
                         }
-                        StagedUiUpdate.Release staged = getPackageName().equals(app.pkg) ? StagedUiUpdate.load(UpdatesActivity.this) : null;
-                        if (staged != null) {
-                            found = staged.entry;
-                            local = true;
-                            message = checkedMessage(found, staged.checkedAt, app.apkVersioned) + " (sent by computer)";
-                        } else {
-                            if (getPackageName().equals(app.pkg)) {
-                                throw new IllegalStateException("Private repositories require an authenticated computer check.");
-                            }
+                        try {
                             JSONObject cached = cached(app);
                             if (cached != null) {
                                 found = new ScreensaverCatalog.Entry(cached.getJSONObject("release"));
@@ -201,7 +194,7 @@ public final class UpdatesActivity extends CardActivity {
                                 if (rateLimited) {
                                     throw new IllegalStateException("Not checked: GitHub rate limit paused remaining requests.");
                                 }
-                                found = app.apkVersioned
+                                found = app.apkVersioned && !getPackageName().equals(app.pkg)
                                     ? ReleaseUpdates.latestContainingAsset(app.name, app.pkg,
                                             app.sourceRepo, app.sourceAsset, "", "")
                                     : app.bundled == null
@@ -211,8 +204,16 @@ public final class UpdatesActivity extends CardActivity {
                                 saveCached(found, checkedAt);
                                 message = checkedMessage(found, checkedAt, app.apkVersioned);
                             }
+                        } catch (ReleaseUpdates.AccessUnavailableException inaccessible) {
+                            StagedUiUpdate.Release staged = getPackageName().equals(app.pkg)
+                                    ? StagedUiUpdate.load(UpdatesActivity.this) : null;
+                            if (staged == null) throw inaccessible;
+                            found = staged.entry;
+                            local = true;
+                            message = checkedMessage(found, staged.checkedAt, app.apkVersioned)
+                                    + " (sent by computer)";
                         }
-                        if (app.apkVersioned) {
+                        if (app.apkVersioned && !local) {
                             PackageInfo inspected = ScreensaverDownload.inspectRelease(UpdatesActivity.this, found);
                             apkCode = versionCode(inspected);
                             if (apkCode <= 0) throw new IllegalStateException("The Android APK has no usable version code.");
@@ -225,8 +226,8 @@ public final class UpdatesActivity extends CardActivity {
                         rateLimited |= failed instanceof ReleaseUpdates.RateLimitException;
                         message = "Check unavailable: " + failed.getMessage();
                         if (app.bundled == null && getPackageName().equals(app.pkg)
-                                && String.valueOf(failed.getMessage()).contains("Private repositories")) {
-                            message = "Computer sign-in required. Use Toolkit on an authenticated computer to check and send a private UI update, then check here again.";
+                                && failed instanceof ReleaseUpdates.AccessUnavailableException) {
+                            message = "Published release inaccessible. Use Toolkit on an authenticated computer to check and send a private UI update, then check here again.";
                         }
                     }
                     final Long checkedCode = apkCode;

@@ -323,9 +323,19 @@ public final class RecommendationService extends NotificationListenerService {
                     || bytes - imageFile.length() + 2L * 1024 * 1024 > 48L * 1024 * 1024)
                 return null;
         }
+        if (imageFile.isFile() && System.currentTimeMillis() - imageFile.lastModified() >= 0
+                && System.currentTimeMillis() - imageFile.lastModified() < 600000)
+            return new Uri.Builder().scheme("content").authority(getPackageName() + ".recommendation.art")
+                    .appendPath(id + ".png").build();
         Bitmap image = null;
         Object picture = notification.extras.get(Notification.EXTRA_PICTURE);
         if (picture instanceof Bitmap) image = (Bitmap) picture;
+        boolean ownedBackground = false;
+        if (image == null) {
+            image = RecommendationArtwork.load(this, source,
+                    notification.extras.get("android.backgroundImageUri"));
+            ownedBackground = image != null;
+        }
         if (image == null && android.os.Build.VERSION.SDK_INT < 28)
             image = notification.largeIcon;
         if (image == null && android.os.Build.VERSION.SDK_INT >= 28
@@ -364,6 +374,7 @@ public final class RecommendationService extends NotificationListenerService {
             throw failure;
         } finally {
             if (resized != image) resized.recycle();
+            if (ownedBackground && !image.isRecycled()) image.recycle();
         }
         return new Uri.Builder().scheme("content").authority(getPackageName() + ".recommendation.art")
                 .appendPath(id + ".png").build();

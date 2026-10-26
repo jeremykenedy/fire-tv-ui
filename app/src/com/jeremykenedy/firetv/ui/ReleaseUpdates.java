@@ -12,6 +12,11 @@ import org.json.JSONObject;
 
 /** Explicit checks of published stable releases; bundled pins are never called latest. */
 final class ReleaseUpdates {
+    static final class AccessUnavailableException extends IllegalStateException {
+        AccessUnavailableException() {
+            super("No accessible published release. Private releases require the computer updater.");
+        }
+    }
     static final class RateLimitException extends IllegalStateException {
         RateLimitException() {
             super("GitHub limited update checks. Remaining network checks were paused; try again later.");
@@ -38,7 +43,7 @@ final class ReleaseUpdates {
             throw new IllegalStateException("The repository did not return a published stable release.");
         }
         return fromRelease(name, pkg, repo, filename, dream, preview, release,
-                !filename.contains("{tag}"));
+                !filename.contains("{tag}") && !filename.contains("{version}"));
     }
 
     static ScreensaverCatalog.Entry latestContainingAsset(String name, String pkg, String repo,
@@ -78,11 +83,12 @@ final class ReleaseUpdates {
     }
 
     private static String expandFilename(String filename, String tag) {
-        if (!filename.contains("{tag}")) return filename;
+        if (!filename.contains("{tag}") && !filename.contains("{version}")) return filename;
         if (UpdateVersions.compare(tag, tag) == null) {
             throw new IllegalArgumentException("The release artifact requires a numeric version tag.");
         }
-        return filename.replace("{tag}", tag);
+        String version = tag.startsWith("v") ? tag.substring(1) : tag;
+        return filename.replace("{tag}", tag).replace("{version}", version);
     }
 
     private static JSONObject exactAsset(JSONArray assets, String filename) throws Exception {
@@ -188,11 +194,11 @@ final class ReleaseUpdates {
             connection.setRequestProperty("Accept", "application/vnd.github+json");
             try {
                 int code = connection.getResponseCode();
-                if (code == 404) {
-                    throw new IllegalStateException("No accessible published release. Private repositories require the computer updater.");
-                }
                 if (code == 429 || code == 403 && "0".equals(connection.getHeaderField("X-RateLimit-Remaining"))) {
                     throw new RateLimitException();
+                }
+                if (code == 401 || code == 403 || code == 404) {
+                    throw new AccessUnavailableException();
                 }
                 if (code == 200) {
                     ByteArrayOutputStream output = new ByteArrayOutputStream();
