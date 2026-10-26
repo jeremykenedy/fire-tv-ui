@@ -69,9 +69,14 @@ class BuildChecks(unittest.TestCase):
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}
-        self.assertEqual(set(mapped), {'slot-vision', 'hearth-presence', 'rainforest-cascade', 'prism-clock', 'black-screen-dream'})
+        self.assertEqual(len(mapped), 25)
+        private_or_missing = {'androsaver', 'aquarium-4k', 'aquarium-live', 'contour-flow',
+                              'nebula-drift', 'skyburst-nocturne', 'snoozy', 'split-flap-drift'}
+        self.assertFalse(private_or_missing.intersection(mapped))
+        self.assertEqual(mapped['aerial']['preview'],
+                         'com.neilturner.aerialviews/com.neilturner.aerialviews.ui.screensaver.TestActivity')
         for entry in mapped.values():
-            self.assertEqual(entry['preview'], entry['package'] + '/.PreviewActivity')
+            self.assertEqual(entry['preview'].split('/', 1)[0], entry['package'])
         decoded = ROOT / '.build/decoded'
         if decoded.exists():
             idle = classes(decoded)['LQ3/T6;'].read_text()
