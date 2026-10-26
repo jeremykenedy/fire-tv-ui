@@ -1,0 +1,6 @@
+Lumen Breaker
+Copyright 2026 Jeremy Kenedy
+
+Android settings, provider, DreamService and build adapters follow the Nibbles HD
+source family by Jeremy Kenedy, distributed under the Apache License, Version 2.0.
+The gameplay, physics, formations and scene artwork are original to Lumen Breaker.

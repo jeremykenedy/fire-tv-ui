@@ -1,0 +1,53 @@
+{
+  "version": "1.11.1",
+  "code": 70,
+  "sourceCommit": "5d0d47a7579745fb9f02ee6f4fb9a43dc6c1ebea",
+  "sha256": "14676d28103f059178de13f4f4a3f8fbce63a4c98317a3635d31f064c63e5d43",
+  "platform": "API 34 TV emulator, actual native 1920x1080 output",
+  "scope": "Same-signer 69 to 70 packaging update; both DEX files and all35 prior catalog entries unchanged. Real thumbnail, catalog36,40s native Preview, Back, declared settings and new offline notice. Complete34-app protected baseline restored except intended stoppedUI70. No new Home, Dream, physical or performance claim.",
+  "settingsRoute": "Lumen SettingsActivity opened directly; selected-saver Settings remained Slot because Dream selection was preserved.",
+  "apacheReaderProof": {
+    "fullNativeTextViewEqualsBundledBody": true,
+    "characters": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "allLicensePagesVisuallyRead": false,
+    "poorlyFramedHeaderCaptureExcluded": true
+  },
+  "captures": [
+    {
+      "file": "lumen-picker-ui1111-code70-api34.png",
+      "sourceFile": "ui70-lumen-installed-thumbnail.png",
+      "sha256": "0b7eaeda40dce078e16395245c36f7e59fa5cb53768c296f4a05a1b479ff4a34",
+      "modification": "None"
+    },
+    {
+      "file": "lumen-catalog-ui1111-code70-api34.png",
+      "sourceFile": "ui70-lumen-catalog-entry36.png",
+      "sha256": "d15790e54df84d42baa9e62908a61bace8ffc268ac42312c19389d961211c175",
+      "modification": "None"
+    },
+    {
+      "file": "lumen-preview-ui1111-code70-api34.png",
+      "sourceFile": "ui70-opened-lumen-native-preview.png",
+      "sha256": "db7203efb1312190ac884d7c2a9648708a78edd2875348d2f1fe724780d70747",
+      "modification": "None"
+    },
+    {
+      "file": "lumen-options-ui1111-code70-api34.png",
+      "sourceFile": "lumen-declared-settings.png",
+      "sha256": "635a9b227601cbf35fac3a208ddb4b2c893c2fa1fb8256ede580fd7961394f84",
+      "modification": "None"
+    },
+    {
+      "file": "lumen-notice-ui1111-code70-api34.png",
+      "sourceFile": "ui70-lumen-notice-reader.png",
+      "sha256": "4d3b1ac1eafaf134878bb9a240a8fe1d9c6c2a92145f87f98a791d4ce31d79aa",
+      "modification": "None"
+    }
+  ],
+  "backProof": "Activity returned to UI picker; immediate Back screenshot held a stale game surface and is excluded.",
+  "excludedCaptures": [
+    "ui70-preview-back-to-picker.png",
+    "ui70-lumen-apache-2.0-reader.png"
+  ]
+}

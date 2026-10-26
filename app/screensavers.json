@@ -416,5 +416,18 @@
     "sha256": "c49bc22e5cbf5067da4bbcb1cd63140d31b0a49a83f6826e111986ee4b7d7971",
     "bytes": 41727,
     "preview": "com.jeremykenedy.nibbleshd/.PreviewActivity"
+  },
+  {
+    "id": "lumen-breaker",
+    "name": "Lumen Breaker",
+    "package": "com.jeremykenedy.lumenbreaker",
+    "dream": "com.jeremykenedy.lumenbreaker/.LumenDreamService",
+    "preview": "com.jeremykenedy.lumenbreaker/.PreviewActivity",
+    "repo": "jeremykenedy/lumen-breaker",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/lumen-breaker/releases/download/v1.0.0/lumen-breaker.apk",
+    "sha256": "fc0513f85fc8563cd8463546108bbf5ea9c459ab72465c669b126fcc6c14269c",
+    "bytes": 74551,
+    "description": "Autonomous brick breaking with varied stages, up to three balls and restrained matte materials."
   }
 ]

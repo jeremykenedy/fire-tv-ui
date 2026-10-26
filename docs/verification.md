@@ -1,5 +1,37 @@
 # Verification
 
+## Fire TV UI 1.11.1, version code 70
+
+Exact signed `14676d28103f059178de13f4f4a3f8fbce63a4c98317a3635d31f064c63e5d43`
+passed the API 34 native packaging gate. It updated code 69 in place while both
+launcher DEX files, all 35 prior catalog entries, settings, permissions and SDKs
+remained unchanged. Lumen entry 36, its full actual 384x216 thumbnail, a
+40-second native Preview, Back and declared SettingsActivity passed. Slot Vision
+remained selected. The selected-saver Settings action continued to address Slot;
+Lumen's settings were opened directly through its declared activity.
+
+Actual Main preferences > Advanced > Preview media credits reached the complete
+Lumen notice. D-pad/Page Down scrolled the Apache text. Its native TextView
+matched the full bundled 11,358-character body with SHA-256
+`cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`.
+This does not claim that every license page was visually read. The gallery omits
+a poorly framed license-header image and an immediate Back capture containing a
+stale game surface. Back is established by the Activity return and the separately
+settled picker capture; the complete notice image is retained.
+
+Strict restoration passed with no errors: all 14 UI preferences, 19 protected OS
+values, 34 APK identities, readable provider settings, grants, UID/appops modes,
+external files and stopped flags matched, apart from the intended stopped UI 70
+upgrade. Provider/export reads preceded final stopped-state restoration. The
+original secure-settings denial remained; temporary storage access was confined
+to the UI package export and restored immediately. No UID appop was written.
+Final state was Google Home awake, Dream null, accessibility zero and guard
+stopped. Live system counters and IP lifetime changes were recorded and not
+rewritten. This gate adds no physical Home, Dream binding, performance or new
+hardware claim. [Current raw captures](screenshots.md#fire-tv-ui-1111-code-70)
+and their provenance identify the actual signed build.
+
+
 ## Fire TV UI 1.11.0, version code 69
 
 The exact signed `d5abce3b88a9311ef9c9094858f7f3c3982cff6c61fd088360043acfd6163af4`
