@@ -20,7 +20,7 @@ Choose Arrange top-level cards in Featured card setup or the focused card Menu. 
 
 App recommendation cards are optional and require Android notification access. Enable the option and open Manage notification access to grant it explicitly. The launcher accepts recommendation notifications from supported installed apps, including Netflix, Prime Video, Live TV, News, YouTube, Spotify and Tubi. A listed app may publish no recommendations on a particular TV.
 
-Cards use the app's original action. Other notification categories and actions created by a different package are ignored. Notification access and private recommendation artwork stay on that TV. Turning the option off or removing access withdraws its cards.
+Cards use the app's original action. Other notification categories and actions created by a different package are ignored. Notification access and private recommendation artwork stay on that TV. URI artwork is read only through the producer's normal content-provider access or a reviewed public HTTPS image host, with bounded downloads and image dimensions. Turning the option off or removing access withdraws its cards.
 
 System Watch Next, Android preview channels and app recommendation notifications are separate sources. Source status distinguishes empty feeds from unavailable access. Amazon catalog integration does not automatically provide a feed to a third party launcher.
 
@@ -28,8 +28,8 @@ System Watch Next, Android preview channels and app recommendation notifications
 
 Connect your server in Plex setup and approve the displayed code at plex.tv/link. Credentials are encrypted in device storage and excluded from portable backups. Existing connections can recheck their approved registration without requesting another code.
 
-Feeds and users provides Continue Watching, New movies, New TV episodes, Currently playing and Recently watched. Continue Watching belongs to the authorized account. Activity feeds can filter one or more users actually visible to that account; this does not switch or unlock profiles or provide another user's Continue Watching feed. The server's permissions determine which sessions and history are available.
+Feeds and users provides Continue Watching, New movies, New TV episodes, Currently playing and Recently watched. Continue Watching belongs to the authorized account. Activity feeds can filter one or more users actually visible to that account. Other users' Continue Watching opens a separate Plex Home profile picker: select an authorized profile to add its own feed, or remove it later. Protected profiles require their own PIN. Each profile uses a separately authorized server credential; activity history is never presented as another user's Continue Watching. The server's permissions determine which sessions and history are available.
 
 Choose a requested card count per feed. The combined cache limits the effective total to 24 cards. Disabling a feed removes its cards after the next successful update. A failed request preserves the prior working connection.
 
-Opening a personal card validates its server and media identity. Resume appears only for a playable item with real progress. Plex may request a household profile selection before opening the item. Selected item playback after that selection requires verification on the installed Plex version; opening its profile picker alone does not establish playback.
+Opening a personal card validates its server and media identity. Resume appears only for a playable item with real progress. Plex may request a household profile selection before opening the item. The native Plex app may consume the first item request while selecting a household profile. Select the correct profile and open the same card again if needed. The original TV check confirmed the matching episode and actual playback under its authorized managed profile. Other installed Plex versions may behave differently.

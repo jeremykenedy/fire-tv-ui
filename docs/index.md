@@ -30,3 +30,5 @@
 - [Equipment Control recognition and physical verification](equipment-control.md)
 
 - [Fresh installation defaults](fresh-defaults.md)
+
+- [Fire TV UI 1.9.0](releases/v1.9.0.md)

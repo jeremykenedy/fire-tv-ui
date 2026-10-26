@@ -1,5 +1,15 @@
 # Screenshots
 
+## Fire TV UI 1.9.0, code 56
+
+Actual signed `f32cbc7a` API 34 output. The profile controls use an isolated sample connection with fictional names; no account authorization, personal server details or library content are shown. The bundled media credits opened offline, scrolled with the D-pad and closed with Back. The fixture was removed after capture.
+
+<table><tr>
+<td><img src="../art/screenshots/plex-home-ui-1.9.0-api34.png" alt="Separate authorized Plex Home Continue Watching profiles using safe sample names"><br>Plex Home profiles</td>
+<td><img src="../art/screenshots/preview-media-credits-ui-1.9.0-api34.png" alt="Offline preview media attribution and complete license text"><br>Preview media credits</td>
+<td><img src="../art/screenshots/preview-media-credits-scroll-ui-1.9.0-api34.png" alt="Full bundled preview license scrolled with the TV remote"><br>Remote scrolling</td>
+</tr></table>
+
 ## Fire TV UI 1.8.0, code 53
 
 Actual signed `e7bcb815` API 34 output with safe sample cards. Remote Menu opened Arrange top-level cards. Moving Recently Added left changed Home feed order while preserving the items inside each feed.

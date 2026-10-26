@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.8.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.9.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,9 +38,9 @@ This repository and its APK are private. Users with repository access can instal
 Download the signed APK and its checksum from the private release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.8.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.9.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.8.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.9.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -64,7 +64,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | Feature | What it does | Guide |
 | --- | --- | --- |
 | Home layout | Arrange apps, folders, favorites, channels and custom icons. | [Configuration](docs/configuration.md) |
-| Featured cards | Choose sources, hide individual cards, and connect a personal Plex server. | [Featured cards](docs/featured-cards.md) |
+| Featured cards | Order feeds and items, hide individual cards, and add authorized Plex Home profiles. | [Featured cards](docs/featured-cards.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
 | Screensavers | Select, preview, configure and install reviewed screensaver releases. | [Screensavers](docs/device-controls.md#screensavers) |
 | Launcher idle | Follow the selected TV screensaver when the launcher is idle. | [Platform limits](docs/device-controls.md#launcher-idle-activation) |
@@ -121,6 +121,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
+- [Fire TV UI 1.9.0 release notes and upgrade guide](docs/releases/v1.9.0.md)
 - [Fire TV UI 1.6.0 release notes and upgrade guide](docs/releases/v1.6.0.md)
 - [Fire TV UI 1.4.1 release notes and upgrade guide](docs/releases/v1.4.1.md)
 - [Fire TV UI 1.3.2 release notes and upgrade guide](docs/releases/v1.3.2.md)
@@ -139,9 +140,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.8.0 on the TV emulator, with top-level feed ordering opened using the remote Menu button. Personal library details are kept out of screenshots. The [full gallery](docs/screenshots.md) distinguishes current card checks from earlier physical Home and native guide checks.
+Fire TV UI 1.9.0 on the TV emulator, with separate authorized Plex Home feeds. These sample profiles contain no account or personal library data. The [full gallery](docs/screenshots.md) includes current controls and earlier verified card ordering.
 
-<p align="center"><img src="art/screenshots/top-feed-order-ui-1.8.0-api34.png" alt="Fire TV UI 1.8.0 top-level feed ordering with Move left and Move right" width="900"></p>
+<p align="center"><img src="art/screenshots/plex-home-ui-1.9.0-api34.png" alt="Fire TV UI 1.9.0 controls for adding and removing authorized Plex Home Continue Watching profiles" width="900"></p>
 
 ## License
 
