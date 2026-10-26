@@ -116,9 +116,9 @@ public final class MenuBackgroundView extends View {
             paint.setColor(i % 3 == 0 ? 0xff44c7d2 : 0xffb7c8e4);
             paint.setAlpha(45 + brightness);
             canvas.drawCircle(px, py, (1 + i % 3) * w / 1280, paint);
-            if (style == 3 && i > 0) {
-                float qx = ((x[i - 1] + phase * (0.06f + (i - 1) % 4 * 0.01f)) % 1f) * w;
-                float qy = ((y[i - 1] + (float)Math.sin(phase + i - 1) * 0.025f + 1) % 1f) * h;
+            if (style == 3 && i >= 5) {
+                float qx = ((x[i - 5] + phase * (0.06f + (i - 5) % 4 * 0.01f)) % 1f) * w;
+                float qy = ((y[i - 5] + (float)Math.sin(phase + i - 5) * 0.025f + 1) % 1f) * h;
                 if (Math.abs(px - qx) < w * 0.2f && Math.abs(py - qy) < h * 0.25f) {
                     paint.setAlpha(18 + brightness / 2);
                     canvas.drawLine(px, py, qx, qy, paint);

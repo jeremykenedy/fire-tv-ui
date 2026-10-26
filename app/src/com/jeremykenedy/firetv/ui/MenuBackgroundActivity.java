@@ -50,7 +50,10 @@ public final class MenuBackgroundActivity extends CardActivity {
         new AlertDialog.Builder(this).setTitle("Menu background")
                 .setSingleChoiceItems(MenuBackgroundOptions.LABELS, selected, new android.content.DialogInterface.OnClickListener() {
                     @Override public void onClick(android.content.DialogInterface dialog, int which) {
-                        DeviceSettings.prefs(MenuBackgroundActivity.this).edit().putString(MenuBackgroundOptions.STYLE, MenuBackgroundOptions.STYLES[which]).commit();
+                        if (!DeviceSettings.prefs(MenuBackgroundActivity.this).edit().putString(MenuBackgroundOptions.STYLE, MenuBackgroundOptions.STYLES[which]).commit()) {
+                            error(new IllegalStateException("The background choice could not be saved."));
+                            return;
+                        }
                         dialog.dismiss(); refresh(); style.requestFocus();
                     }
                 }).setNegativeButton("Cancel", null).show();
@@ -62,7 +65,10 @@ public final class MenuBackgroundActivity extends CardActivity {
         for (int i = 0; i < choices.length; i++) { labels[i] = choices[i] + "%"; if (choices[i] == current) selected = i; }
         new AlertDialog.Builder(this).setTitle(title).setSingleChoiceItems(labels, selected, new android.content.DialogInterface.OnClickListener() {
             @Override public void onClick(android.content.DialogInterface dialog, int which) {
-                DeviceSettings.prefs(MenuBackgroundActivity.this).edit().putInt(setting, choices[which]).commit();
+                if (!DeviceSettings.prefs(MenuBackgroundActivity.this).edit().putInt(setting, choices[which]).commit()) {
+                    error(new IllegalStateException("The animation setting could not be saved."));
+                    return;
+                }
                 dialog.dismiss(); refresh();
             }
         }).setNegativeButton("Cancel", null).show();
