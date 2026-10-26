@@ -8,6 +8,8 @@ OwnTV releases use the exact TV artifact name `OwnTV-{tag}.apk`, with the checke
 
 Choose **Install update** to download and verify the APK. Fire TV UI checks its byte count, SHA-256, expected package, installed signing certificate and higher Android version code before opening the normal Android installation confirmation. Replacement installs retain the existing app's data. A cancelled or rejected install does not remove the current app. The TV may require you to allow installation from Fire TV UI through its normal settings screen.
 
+The shared 32-image icon pack is separate from the APK. A native UI replacement does not copy it. Use the matching release icon ZIP or repository icon installer; Fire TV Toolkit also offers the paired APK-and-icons path. See [icons](icons.md).
+
 ## Home Redirect releases
 
 Home Redirect shares the Toolkit repository, whose newest desktop release may not contain an Android helper. Its check searches up to 100 release-history entries for the exact `firetv-home-redirect.apk` in a published stable release, choosing the newest publication time. Other APKs are never substituted.

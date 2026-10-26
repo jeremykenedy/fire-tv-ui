@@ -1,6 +1,7 @@
 package com.jeremykenedy.firetv.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
@@ -263,6 +264,12 @@ public final class BackupStore {
         editor.putBoolean("is_premium", true);
         if (!editor.commit()) {
             throw new IOException("The TV could not save the restored settings.");
+        }
+        try {
+            context.sendBroadcast(new Intent("com.jeremykenedy.firetv.ui.PREFS_CHANGED")
+                    .setPackage(context.getPackageName()));
+        } catch (RuntimeException ignored) {
+            // Restored settings remain saved if notification delivery is unavailable.
         }
     }
 

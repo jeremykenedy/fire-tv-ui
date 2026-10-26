@@ -47,7 +47,7 @@ class BuildChecks(unittest.TestCase):
         self.assertIn('Appearance_Favorites', shortcut)
         self.assertNotIn('SharedPreferences', shortcut)
 
-    def test_grouped_cards_keep_positions_and_backgrounds_are_main_only(self):
+    def test_grouped_cards_keep_positions_and_backgrounds_keep_main_lifecycle_hooks(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():
             self.skipTest('Build the launcher before verifying actual native integration.')

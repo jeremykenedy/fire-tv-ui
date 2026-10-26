@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 public final class MenuBackgroundActivity extends CardActivity {
     private TextView style, speed, intensity, brightness;
+    private MenuBackgroundView preview;
 
     public static void open(Context context) {
         context.startActivity(new Intent(context, MenuBackgroundActivity.class));
@@ -19,7 +20,12 @@ public final class MenuBackgroundActivity extends CardActivity {
         super.onCreate(state);
         title("Animated menu backgrounds");
         LinearLayout body = scrollBody();
-        body.addView(text("Quiet native animation behind your menu. Off brings back your existing wallpaper. Animation stops when you leave Home.", 18, MUTED));
+        body.addView(text("Choose an animation to preview it here and on Home. The same background follows your Fire TV UI panels. Off restores your wallpaper.", 18, MUTED));
+        preview = new MenuBackgroundView(this, false);
+        LinearLayout.LayoutParams previewSize = new LinearLayout.LayoutParams(dp(320), dp(180));
+        previewSize.topMargin = dp(12);
+        previewSize.bottomMargin = dp(12);
+        body.addView(preview, previewSize);
         style = button("", new View.OnClickListener() {
             @Override public void onClick(View view) { chooseStyle(); }
         });
@@ -38,11 +44,24 @@ public final class MenuBackgroundActivity extends CardActivity {
     }
 
     private void refresh() {
+        refreshMenuBackground();
+        preview.setVisibility(MenuBackgroundView.enabled(this) ? View.VISIBLE : View.GONE);
+        preview.refresh();
         android.content.SharedPreferences prefs = DeviceSettings.prefs(this);
         style.setText("Background: " + MenuBackgroundOptions.LABELS[MenuBackgroundOptions.style(prefs.getString(MenuBackgroundOptions.STYLE, "off"))]);
         speed.setText("Speed: " + MenuBackgroundOptions.speed(prefs.getInt(MenuBackgroundOptions.SPEED, 50)) + "%");
         intensity.setText("Intensity: " + MenuBackgroundOptions.level(prefs.getInt(MenuBackgroundOptions.INTENSITY, 50)) + "%");
         brightness.setText("Brightness: " + MenuBackgroundOptions.level(prefs.getInt(MenuBackgroundOptions.BRIGHTNESS, 50)) + "%");
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        preview.menuResumed(true);
+    }
+
+    @Override protected void onPause() {
+        preview.menuResumed(false);
+        super.onPause();
     }
 
     private void chooseStyle() {

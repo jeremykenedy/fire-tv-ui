@@ -7,7 +7,7 @@ adb connect YOUR_TV_IP:5555
 python3 scripts/install.py --serial YOUR_TV_IP:5555
 ```
 
-The installer grants WRITE_SECURE_SETTINGS and the storage, usage and package-install access supported by the TV's Android version. It copies the shared icons, rebinds an already enabled Home service and opens Fire TV UI. Pass `--apk /path/to/fire-tv-ui-1.11.1.apk` to install a downloaded signed release instead of the locally built APK. Verify the release checksum first.
+The installer grants WRITE_SECURE_SETTINGS and the storage, usage and package-install access supported by the TV's Android version. It copies the shared icons, rebinds an already enabled Home service and opens Fire TV UI. Pass `--apk /path/to/fire-tv-ui-1.12.0.apk` to install a downloaded signed release instead of the locally built APK. Verify the release checksum first.
 
 Select **Settings > Screensavers**. Each row includes a sample image to help identify the screensaver. Selecting an app makes it the active TV screensaver and enables it. The On/Off control preserves the selected app while changing the enabled state.
 
@@ -34,6 +34,8 @@ Save a backup first, then run the repository installer with the new signed APK. 
 ## Removing Fire TV UI
 
 Remove its accessibility services from the enabled list before uninstalling it. Uninstalling the launcher does not uninstall or delete any screensaver apps. The TV's selected screensaver and enabled state are system settings and remain in place.
+
+After a successful preference restore, the existing Home controls are notified to reload their cached choices. No notification is sent for invalid data or a failed commit. This is separate from verifying the TV's hardware Home behavior.
 
 ## Shared icon pack
 

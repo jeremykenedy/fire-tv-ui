@@ -53,14 +53,18 @@ public interface SharedPreferences {
  Editor putLong(String k,long v); Editor putFloat(String k,float v); Editor putString(String k,String v);
  Editor putStringSet(String k,Set<String> v); boolean commit(); }
 }''',
+            'android/content/Intent.java': '''package android.content; public class Intent { public final String action; public String pkg; public Intent(String action){this.action=action;} public Intent setPackage(String pkg){this.pkg=pkg;return this;} }''',
             'android/content/Context.java': '''package android.content;
 import java.util.*;
 public class Context {
+ public final List<Intent> broadcasts=new ArrayList<>(); public Map<String,Object> valuesAtBroadcast;
+ public boolean rejectBroadcast;
+ public void sendBroadcast(Intent intent){if(rejectBroadcast)throw new SecurityException("notification denied"); broadcasts.add(intent); valuesAtBroadcast=new HashMap<>(prefs.values);}
  public String getPackageName(){return "ui.test";} public android.content.pm.PackageManager getPackageManager(){return new android.content.pm.PackageManager();} public static final int MODE_PRIVATE=0; public static java.io.File files; public final Prefs prefs=new Prefs(); public java.io.File getFilesDir(){return files;}
  public SharedPreferences getSharedPreferences(String name,int mode) { return prefs; }
  public android.content.res.AssetManager getAssets() { return new android.content.res.AssetManager(); }
  public static class Prefs implements SharedPreferences {
-  public final Map<String,Object> values=new HashMap<>();
+  public final Map<String,Object> values=new HashMap<>(); public boolean failCommit;
   public Map<String,?> getAll() { return values; }
   public String getString(String k,String fallback) { return (String)values.getOrDefault(k,fallback); }
   public Editor edit() { return new Editor() {
@@ -72,7 +76,7 @@ public class Context {
    public Editor putFloat(String k,float v){pending.put(k,v);return this;}
    public Editor putString(String k,String v){pending.put(k,v);return this;}
    public Editor putStringSet(String k,Set<String> v){pending.put(k,v);return this;}
-   public boolean commit(){if(clear)values.clear();values.putAll(pending);return true;}
+   public boolean commit(){if(failCommit)return false;if(clear)values.clear();values.putAll(pending);return true;}
   }; }
  }
 }''',

@@ -16,6 +16,7 @@ import android.widget.TextView;
 /** Shared TV card, focus treatment, and error presentation. */
 public abstract class CardActivity extends Activity {
     protected LinearLayout card;
+    private MenuBackgroundView menuBackground;
     protected static final int INK = Color.WHITE;
     protected static final int MUTED = Color.rgb(207, 207, 207);
 
@@ -24,14 +25,35 @@ public abstract class CardActivity extends Activity {
         super.onCreate(state);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        FrameLayout root = new FrameLayout(this);
+        menuBackground = new MenuBackgroundView(this, false);
+        root.addView(menuBackground, new FrameLayout.LayoutParams(-1, -1));
         FrameLayout page = new FrameLayout(this);
         page.setPadding(dp(32), dp(24), dp(32), dp(24));
         card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(24), dp(20), dp(24), dp(20));
-        card.setBackground(background(Color.rgb(59, 59, 59), 16));
         page.addView(card, new FrameLayout.LayoutParams(-1, -1));
-        setContentView(page);
+        root.addView(page, new FrameLayout.LayoutParams(-1, -1));
+        setContentView(root);
+        refreshMenuBackground();
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        menuBackground.menuResumed(true);
+        refreshMenuBackground();
+    }
+
+    @Override protected void onPause() {
+        menuBackground.menuResumed(false);
+        super.onPause();
+    }
+
+    protected void refreshMenuBackground() {
+        menuBackground.refresh();
+        card.setBackground(background(MenuBackgroundView.enabled(this)
+                ? Color.argb(220, 28, 31, 42) : Color.rgb(59, 59, 59), 16));
     }
 
     protected void title(String value) {
