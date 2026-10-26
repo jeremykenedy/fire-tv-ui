@@ -335,7 +335,7 @@ public final class DeviceSettings {
         }
         try {
             if (HomeControl.wanted(context) && !HomeControl.isEnabled(context)) {
-                HomeControl.setEnabled(context, true, true);
+                HomeControl.rebind(context);
             }
         } catch (RuntimeException failed) {
             if (failure == null) {

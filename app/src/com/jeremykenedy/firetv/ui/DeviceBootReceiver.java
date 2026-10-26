@@ -16,7 +16,11 @@ public final class DeviceBootReceiver extends BroadcastReceiver {
                 ProtectionService.start(context);
                 DeviceSettings.repair(context);
                 if (HomeControl.wanted(context)) {
-                    HomeControl.setEnabled(context, true, true);
+                    if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
+                        HomeControl.rebind(context);
+                    } else {
+                        HomeControl.setEnabled(context, true, true);
+                    }
                 }
             } catch (RuntimeException ignored) {
                 // The controls page reports permission and read-back state.
