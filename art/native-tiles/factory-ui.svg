@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
-<rect width="640" height="360" fill="#142849"/>
-<path d="M0 0h268v360H0z" fill="#10203b"/>
-<path d="M63 166l82-66 83 66m-146-6v92h127v-92" fill="none" stroke="#f0f7ff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M126 249v-59h40v59" fill="#63d9f3"/>
-<text x="290" y="198" fill="#f6faff" font-family="Arial,Helvetica,sans-serif" font-size="54" font-weight="700">Factory UI</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="640" height="360" fill="#142849"/><path fill="#10203b" d="M0 0h268v360H0z"/><path fill="none" stroke="#f0f7ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="9" d="M63 166l82-66 83 66m-146-6v92h127v-92"/><path fill="#63d9f3" d="M126 249v-59h40v59"/><text x="290" y="198" fill="#f6faff" font-family="Arial,Helvetica,sans-serif" font-size="54" font-weight="700">Factory UI</text></svg>
