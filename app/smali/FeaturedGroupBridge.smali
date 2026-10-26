@@ -46,13 +46,20 @@
 .end method
 
 .method public static current(LQ3/S8;)LQ3/S8;
-    .locals 1
+    .locals 4
     sget-object v0, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->revision:LN/g0;
     invoke-virtual {v0}, LN/g0;->getValue()Ljava/lang/Object;
-    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/FeaturedGroups;->current(Ljava/lang/Object;)Ljava/lang/Object;
+    if-eqz p0, :no_card
+    iget-object v1, p0, LQ3/S8;->c:Ljava/lang/String;
+    iget-wide v2, p0, LQ3/S8;->h:J
+    invoke-static {v1, v2, v3}, Lcom/jeremykenedy/firetv/ui/FeaturedGroups;->feedKey(Ljava/lang/String;J)Ljava/lang/String;
+    move-result-object v1
+    invoke-static {p0, v1}, Lcom/jeremykenedy/firetv/ui/FeaturedGroups;->current(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
     move-result-object v0
     check-cast v0, LQ3/S8;
     return-object v0
+    :no_card
+    return-object p0
 .end method
 
 .method public static group(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;

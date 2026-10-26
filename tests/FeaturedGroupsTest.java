@@ -16,6 +16,10 @@ public final class FeaturedGroupsTest {
         check(FeaturedGroups.current(slots.get(1)).equals("Show C"), "Single-item feed stays put");
         check(FeaturedGroups.current(slots.get(2)).equals("News B"), "Other feed rotates independently");
         check(slots.equals(Arrays.asList("Movie A", "Show C", "News A")), "Tick never reorders the strip");
+        Object copiedSlot = new Object();
+        check(FeaturedGroups.current(copiedSlot, "plex").equals("Movie B"), "A copied slot resolves its stable logical feed");
+        check(FeaturedGroups.current(copiedSlot, "plex-tv").equals("Show C"), "Same app's other logical channel stays distinct");
+        check(FeaturedGroups.current(copiedSlot, "missing") == copiedSlot, "Removed feed cannot show an unrelated title");
         slots = FeaturedGroups.group(cards, feeds, ids);
         check(FeaturedGroups.current(slots.get(0)).equals("Movie B"), "Refresh retains current identity");
         slots = FeaturedGroups.group(Arrays.<Object>asList("News A", "News B", "Movie A", "Movie B", "Show C"),
@@ -33,6 +37,14 @@ public final class FeaturedGroupsTest {
         check(slots.size()==1, "Many items cannot flood top-level slots");
         for (int i=0; i<74; i++) FeaturedGroups.advance();
         check(FeaturedGroups.current(slots.get(0)).equals("Title74"), "No old ten-title cap");
+        FeaturedGroups.prepare();
+        String registered = FeaturedGroups.feedKey(new android.content.Context(), "app", 1);
+        FeaturedGroups.group(Arrays.<Object>asList("First", "Second"),
+                Arrays.asList(registered, registered), Arrays.asList("first", "second"));
+        FeaturedGroups.advance();
+        FeaturedGroups.prepare();
+        check(FeaturedGroups.feedKey("app", 1).equals(registered), "Refresh preparation retains the active stable feed cache");
+        check(FeaturedGroups.current(new Object(), registered).equals("Second"), "Current child remains available during refresh");
         slots = FeaturedGroups.group(new ArrayList<Object>(), new ArrayList<String>(), new ArrayList<String>());
         check(slots.isEmpty(), "Removing last feed clears slots safely");
         FeaturedGroups.advance();

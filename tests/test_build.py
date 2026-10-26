@@ -59,6 +59,9 @@ class BuildChecks(unittest.TestCase):
         self.assertLess(row.index('FeaturedGroupBridge;->current'), row.index('new-instance v9, LN4/k;'),
                         'Both rendering and the existing click action must receive the current child.')
         main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
+        bridge = built['Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;'].read_text()
+        self.assertIn('FeaturedGroups;->feedKey(Ljava/lang/String;J)', bridge)
+        self.assertIn('FeaturedGroups;->current(Ljava/lang/Object;Ljava/lang/String;)', bridge)
         self.assertIn('FeaturedGroupBridge;->start', main)
         self.assertIn('FeaturedCardClock;->stop', main)
         self.assertIn('MenuBackgroundView;->resumed(Z)V', main)

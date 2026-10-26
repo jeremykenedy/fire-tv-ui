@@ -10,18 +10,19 @@ import java.util.Map;
 public final class FeaturedGroups {
     private static final Map<String, Group> feeds = new LinkedHashMap<>();
     private static final Map<String, String> feedKeys = new LinkedHashMap<>();
+    private static final Map<String, String> pendingFeedKeys = new LinkedHashMap<>();
     private static final Map<Object, Group> slots = new IdentityHashMap<>();
 
     private FeaturedGroups() {}
 
     public static synchronized void prepare() {
-        feedKeys.clear();
+        pendingFeedKeys.clear();
     }
 
     public static synchronized String feedKey(android.content.Context context, String source, long channel) {
         String lookup = source + ":" + channel;
-        if (!feedKeys.containsKey(lookup)) feedKeys.put(lookup, FeedOrder.key(context, source, channel));
-        return feedKeys.get(lookup);
+        if (!pendingFeedKeys.containsKey(lookup)) pendingFeedKeys.put(lookup, FeedOrder.key(context, source, channel));
+        return pendingFeedKeys.get(lookup);
     }
 
     public static String itemKey(String source, android.net.Uri intent, boolean watchNext) {
@@ -67,11 +68,22 @@ public final class FeaturedGroups {
         }
         feeds.clear();
         feeds.putAll(stable);
+        FeaturedGroups.feedKeys.clear();
+        FeaturedGroups.feedKeys.putAll(pendingFeedKeys);
         return result;
     }
 
+    public static synchronized String feedKey(String source, long channel) {
+        return feedKeys.get(source + ":" + channel);
+    }
+
     public static synchronized Object current(Object slot) {
+        return current(slot, null);
+    }
+
+    public static synchronized Object current(Object slot, String feedKey) {
         Group group = slots.get(slot);
+        if (group == null && feedKey != null) group = feeds.get(feedKey);
         return group == null ? slot : group.cards.get(group.index);
     }
 
