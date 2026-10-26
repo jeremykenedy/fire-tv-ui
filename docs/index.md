@@ -15,7 +15,7 @@
 
 ## Release notes
 
-- [v1.10.0 preparation](releases/v1.10.0.md)
+- [v1.10.0](releases/v1.10.0.md)
 
 - [v1.9.1](releases/v1.9.1.md)
 

@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.9.2-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.10.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,9 +38,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.9.2.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.10.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.9.2.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.10.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -123,6 +123,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
 - [Animated menu backgrounds](docs/animated-backgrounds.md)
+- [Fire TV UI 1.10.0 release notes and upgrade guide](docs/releases/v1.10.0.md)
 - [Fire TV UI 1.9.2 release notes and upgrade guide](docs/releases/v1.9.2.md)
 - [Fire TV UI 1.9.1 release notes and upgrade guide](docs/releases/v1.9.1.md)
 - [Fire TV UI 1.6.0 release notes and upgrade guide](docs/releases/v1.6.0.md)
@@ -143,9 +144,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-The unreleased 1.10.0/code 66 candidate on an API 34 TV emulator, using safe sample feeds. Each top-level card stays in position while its child title and artwork change. The [full gallery](docs/screenshots.md) includes current menus, optional animated backgrounds and the published 1.9.2 preview controls. The original Fire TV passed shared screensaver controls, real source visibility and normal five-minute idle activation with particles enabled. The new Weather catalog row remains under final integration checks.
+Fire TV UI1.10.0/code67 on an API34TV emulator, showing the new word-free Weather preview. The [full gallery](docs/screenshots.md) includes the current catalog, native options, offline credits and safe fixed-feed/background demonstrations. The original Fire TV also passed shared screensaver controls, real source visibility and normal five-minute idle activation with particles enabled.
 
-<p align="center"><img src="art/screenshots/fixed-feeds-next-ui110-api34.png" alt="Fire TV UI candidate fixed feed positions with coherent next-title sample artwork" width="900"></p>
+<p align="center"><img src="art/screenshots/weather-picker-ui110-code67-api34.png" alt="Final Fire TV UI1.10.0 code67 picker with a real text-free Skycast Weather thumbnail and direct preview action" width="900"></p>
 
 ## License
 
