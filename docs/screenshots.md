@@ -1,8 +1,8 @@
 # Screenshots
 
-## Fire TV UI 1.10.0, code67
+## Fire TV UI 1.10.0, code 67
 
-Current native output from signed `1a64f59c` on API 34. The catalog contains 34 screensavers. Its new Skycast Weather entry uses the verified public1.0.0/code 4 APK and a real word-free physical thumbnail. The host Preview it action opened its exported PreviewActivity and visibly rendered the clouds-only film; Back returned without changing the selected screensaver. The public app's native Show weather control and the host's offline attribution reader are shown below. Weather settings retained the original no-city/display choices and the new default Show weather On after cleanup. No personal Plex data was used.
+Current native output from signed `1a64f59c` on API 34. The catalog contains 34 screensavers. Its new Skycast Weather entry uses the verified public 1.0.0/code 4 APK and a real word-free physical thumbnail. The host Preview it action opened its exported PreviewActivity and visibly rendered the clouds-only film; Back returned without changing the selected screensaver. The public app's native Show weather control and the host's offline attribution reader are shown below. Weather settings retained the original no-city/display choices and the new default Show weather On after cleanup. No personal Plex data was used.
 
 <table><tr>
 <td><img src="../art/screenshots/weather-picker-ui110-code67-api34.png" alt="Final code 67 picker showing the real text-free Weather thumbnail without changing Slot Vision selection"><br>Word-free preview</td>
@@ -16,7 +16,7 @@ Current native output from signed `1a64f59c` on API 34. The catalog contains 34 
 
 ## Fixed feeds and backgrounds, code 66 runtime
 
-Both DEX files are byte-identical between code 66 and final code67. These unretouched API 34 emulator captures show signed `3fe275c0` with two owned sample feeds, not a personal Plex library. The same two card positions retain coherent child titles and artwork while rotating. The native Menu holds the current child. Animated backgrounds are optional and stop away from Main. These images establish emulator behavior, not physical TV performance or Plex playback.
+Both DEX files are byte-identical between code 66 and final code 67. These unretouched API 34 emulator captures show signed `3fe275c0` with two owned sample feeds, not a personal Plex library. The same two card positions retain coherent child titles and artwork while rotating. The native Menu holds the current child. Animated backgrounds are optional and stop away from Main. These images establish emulator behavior, not physical TV performance or Plex playback.
 
 <table><tr>
 <td><img src="../art/screenshots/fixed-feeds-first-ui110-api34.png" alt="Two fixed sample feeds with first child titles and cyan artwork"><br>Fixed feed positions</td>
