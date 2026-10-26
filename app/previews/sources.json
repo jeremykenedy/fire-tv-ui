@@ -338,5 +338,34 @@
     "source_sha256": "4db4f6d7ea407a997c15c00c851b749aa5ef365b79bb99c358b4b4ce727be432",
     "source_url": "https://raw.githubusercontent.com/jeremykenedy/nibbles-hd/v1.0.0/art/screenshots/default-physical-1080p.png",
     "target_sdk": 36
+  },
+  "com.jeremykenedy.lumenbreaker/com.jeremykenedy.lumenbreaker.LumenDreamService": {
+    "capture_note": "Actual public Lumen Breaker code 3 API 34 native Preview, 1920x1080. Plain 384x216 resize only; no scene edits. Physical API 30 Dream evidence belongs to runtime-equivalent code 2.",
+    "captured_on": "2026-10-26",
+    "preview_sha256": "d49613aca18cbb871e24bf0c516b3d5e1c8117f47f47d2b988d0f8234df86e51",
+    "source_file": "art/screenshots/lumen-breaker-code3-api34.png",
+    "source_project": "jeremykenedy/lumen-breaker",
+    "source_sha256": "970ffa170c0b34f9cd6345f2bf24c2884e05406a9e6a1f602615104c7ccf5200",
+    "source_url": "https://raw.githubusercontent.com/jeremykenedy/lumen-breaker/v1.0.0/art/screenshots/lumen-preview-code3-api34.png",
+    "source_commit": "8dd501703697ec337e3fc875ab585b0525f0499b",
+    "settings_schema_count": 9,
+    "settings_keys": [
+      "speed",
+      "palette",
+      "layout",
+      "density",
+      "balls",
+      "effects",
+      "brightness",
+      "drift",
+      "randomize_all"
+    ],
+    "randomizable": true,
+    "boolean_default_false": "randomize_all",
+    "min_sdk": 23,
+    "target_sdk": 36,
+    "signer_sha256": "d3404786108a0b54fab7bedb1119d3851bd688cdea9c4712155a9582852182e4",
+    "license": "Apache-2.0",
+    "license_url": "https://github.com/jeremykenedy/lumen-breaker/blob/v1.0.0/LICENSE"
   }
 }

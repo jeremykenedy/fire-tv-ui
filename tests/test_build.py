@@ -120,7 +120,7 @@ class BuildChecks(unittest.TestCase):
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}
-        self.assertEqual(len(mapped), 27)
+        self.assertEqual(len(mapped), 28)
         private_or_missing = {'androsaver', 'aquarium-4k', 'aquarium-live', 'contour-flow',
                               'nebula-drift', 'skyburst-nocturne', 'snoozy', 'split-flap-drift'}
         self.assertFalse(private_or_missing.intersection(mapped))
@@ -193,6 +193,31 @@ class BuildChecks(unittest.TestCase):
         self.assertIn('Original autonomous snake gameplay',
                       (ROOT / 'app/previews/licenses/nibbles-hd-NOTICE.txt').read_text())
         self.assertTrue((ROOT / 'app/previews/licenses/nibbles-hd-APACHE-2.0.txt').is_file())
+
+    def test_lumen_published_pin_matches_native_preview_and_offline_notices(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        entry = next(item for item in entries if item['id'] == 'lumen-breaker')
+        self.assertEqual(entry['package'], 'com.jeremykenedy.lumenbreaker')
+        self.assertEqual(entry['dream'], entry['package'] + '/.LumenDreamService')
+        self.assertEqual(entry['preview'], entry['package'] + '/.PreviewActivity')
+        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['bytes'], 74551)
+        self.assertEqual(entry['sha256'],
+                         'fc0513f85fc8563cd8463546108bbf5ea9c459ab72465c669b126fcc6c14269c')
+        source = json.loads((ROOT / 'app/previews/sources.json').read_text())[
+            full_component(entry['dream'])]
+        self.assertEqual(source['settings_schema_count'], 9)
+        self.assertEqual(source['min_sdk'], 23)
+        self.assertEqual(source['target_sdk'], 36)
+        self.assertEqual(source['signer_sha256'],
+                         'd3404786108a0b54fab7bedb1119d3851bd688cdea9c4712155a9582852182e4')
+        self.assertEqual(hashlib.sha256((ROOT / source['source_file']).read_bytes()).hexdigest(),
+                         source['source_sha256'])
+        preview = ROOT / 'app/previews' / preview_file(entry['dream'])
+        self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), source['preview_sha256'])
+        self.assertIn('original to Lumen Breaker',
+                      (ROOT / 'app/previews/licenses/lumen-breaker-NOTICE.txt').read_text())
+        self.assertTrue((ROOT / 'app/previews/licenses/lumen-breaker-APACHE-2.0.txt').is_file())
 
     def test_pinned_base(self):
         config = json.loads((ROOT / 'build.json').read_text())
@@ -303,7 +328,7 @@ class BuildChecks(unittest.TestCase):
 
     def test_rainforest_update_preserves_identity_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
-        self.assertEqual(len(entries), 35)
+        self.assertEqual(len(entries), 36)
         entry = next(item for item in entries if item['id'] == 'rainforest-cascade')
         self.assertEqual(entry['package'], 'com.jeremykenedy.rainforestcascade')
         self.assertEqual(entry['dream'], 'com.jeremykenedy.rainforestcascade/.WaterfallDreamService')
