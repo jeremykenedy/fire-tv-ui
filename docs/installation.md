@@ -29,7 +29,7 @@ Manage TV backups saves `/sdcard/Download/fire-tv-ui-backup.txt`, which survives
 
 ## Updating
 
-Save a backup first, then run the repository installer with the new signed APK. It uses `adb install -r` to preserve app data and explicitly rebinds previously enabled Home routing. A raw APK installation or force-stop can leave an accessibility service unbound even while its enabled setting remains present; use the installer and verify Home afterward. Installing an APK signed with a different key requires uninstalling the existing Fire TV UI installation, which deletes its app data.
+Save a backup first, then run the repository installer with the new signed APK. It uses `adb install -r` to preserve app data. Code 69 and newer rebind enabled Home routing through the native package-replacement receiver and settings repair, preserving the four saved Home choices. The installer does not issue the explicit Home-on setting operation during an update. A raw APK installation or force-stop can leave an accessibility service unbound even while its enabled setting remains present; use the installer and verify Home afterward. Installing an APK signed with a different key requires uninstalling the existing Fire TV UI installation, which deletes its app data.
 
 ## Removing Fire TV UI
 
