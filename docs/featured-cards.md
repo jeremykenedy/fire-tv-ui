@@ -10,7 +10,7 @@ Focus a card on Home and press the remote Menu button. Card options can hide tha
 
 Channel Manager offers Manage cards under each channel. Right or Menu on a channel also opens its individual cards. Hide or restore one card without disabling the channel. Move up or Move down changes the item order within that feed, and Home uses the first visible item in your saved order. Newly published items follow your saved items; removed items are ignored. Restore all affects only that channel. The separate Hidden cards screen restores individual cards or all hidden cards. Hidden choices are included in portable launcher backups; publisher rows and watch history remain unchanged.
 
-Big picture artwork can change every 5, 8, 15 or 30 seconds, or remain Manual. This controls the existing Big picture background slideshow. It does not cycle every program in a channel.
+Big picture artwork can change every 5, 8, 15 or 30 seconds, or remain Manual. This controls the existing Big picture background slideshow. It does not cycle every program in a channel. Changing the interval, including switching from Manual to automatic rotation, applies when you return from settings. Your selected source, card position and ordering are retained.
 
 ## Arrange top-level feeds
 
