@@ -208,3 +208,15 @@ Original-TV cleanup retained all 51 current portable preferences and 12 OS value
 Final code 57 `be47742d` checked the public UI release through the native Updates screen. It verified 1.8.0/code 53 from its published checksum and current signer, showed the actual Android version separately from the repository tag, and disabled replacing the newer installed 1.9.0 build. No installer was opened. UI14/OS11, external backup/import bytes and existence, storage appop default, guardStopped and prior Home were restored.
 
 Final code 57 `be47742d` also passed the physical Android 9/API 28 smoke: Main was visible without a Dream overlay, Tubi and Spotify artwork rendered, and 49 current portable preferences, 10 recorded OS values and external backup/import bytes were retained exactly. The Netflix URI loader is unchanged from the separately verified code 56 physical check.
+
+
+## 1.9.1 artwork rotation regression
+
+Published 1.9.0 reproduced an actual native edge case: Manual mode held its artwork for 35 seconds, but changing to Every 5 seconds through the native Featured cards picker and returning with Back did not restart the slideshow within 12 seconds. The selected source and six available sample cards were unchanged.
+
+Candidate 1.9.1/code 59 `6109bc40` refreshes a model-owned Compose rotation setting on Main resume and uses it as an effect key. This cancels the old suspended Manual timer and starts the selected interval without recreating Main or resetting source, card index, order or focus. The same native picker/Back path then resumed at 5.004 seconds. Manual remained unchanged for 35 seconds. Steady observed intervals were 5.007, 8.014, 14.996 and 30.005 seconds for the 5/8/15/30 choices.
+
+These are API 34 emulator observations of the actual production slideshow index, sampled every 25ms, with owned local sample cards and a temporary in-memory source descriptor. They are not physical-TV timing proof. The fixture's provider IDs, artwork and ownership record were removed; all 14 portable preferences, 11 OS values, external backup bytes, storage appop default and stopped guard were restored, and the emulator remained alive at its original Home. An unrelated preexisting fixture package was preserved.
+
+
+Final integrated UI 1.9.1/code 59 `2ac87445` passed API 34 native catalog and picker checks with the published Cloud 2.0 and Blue 1.0.1 assets. Both current preview images appeared while Slot Vision remained selected. The offline license reader opened, scrolled with the D-pad and returned with Back. Temporary Cloud installation was removed to restore its original absence. UI14/OS11/external backup bytes/storage appop/actual accessibility state/guardStopped all matched the fresh baseline; prior Google TV Home and the live emulator were retained. The slideshow/base DEX is byte-identical to the separately native-tested rotation-fix candidate. No physical timing, automatic Plex resume or new-episode subtitle claim is added.

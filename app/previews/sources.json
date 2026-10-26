@@ -24,12 +24,18 @@
     "source_sha256": "05377a96972306b771d4474d00222af062992f86ab1a12b2688f0cf8da5ba55b"
   },
   "com.jeremykenedy.bluemeridian/com.jeremykenedy.bluemeridian.BlueMeridianDreamService": {
-    "capture_note": "Blue Meridian v1.0.0 signed public release running in native PreviewActivity after45seconds on Android TV API31 emulator-5584 at1920x1080, host GPU. Current release output; broader visual quality correction remains in progress.",
-    "captured_on": "2026-10-15",
-    "preview_sha256": "9296bce1e7f117b324eacc78a53c47e768c3c60d729bd493a3d41702ad143543",
-    "source_file": "art/screenshots/blue-meridian-native-api31-1920.png",
+    "attribution": "Archival Earth imagery: NASA Blue Marble Next Generation and Blue Marble Clouds by Reto Stockli/NASA, plus NASA/NOAA Black Marble night lights. Not current weather or NASA endorsement.",
+    "capture_note": "Actual final Blue Meridian 1.0.1/code 2 physical Fire TV API 30 output, 1920x1080. No on-scene NASA label or watermark. Camera moves by gentle screen drift, not orbital flight. Resized only.",
+    "captured_on": "2026-10-25",
+    "license": "NASA public-domain source imagery; attribution and source notices bundled offline.",
+    "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "preview_sha256": "16f186ad0eb3a6d18b3d9816e6aad6a2709f24c41f689fdb4b2c9d8b774fe88b",
+    "settings_schema_count": 7,
+    "source_commit": "e6cbe5e0dd422401d8ac1872cb7ae57ebc2ce79f",
+    "source_file": "art/screenshots/blue-meridian-earth-fire-tv-api30-1920.png",
     "source_project": "jeremykenedy/blue-meridian",
-    "source_sha256": "30a2069395f3ccff460eb8348e492411c72ca77c5830baae4fe32ddc604abe3c"
+    "source_sha256": "32e8fbe4c354edbf3873a4dd0fa18c1e4b12603219c799a756003262554b614c",
+    "source_url": "https://raw.githubusercontent.com/jeremykenedy/blue-meridian/v1.0.1/art/screenshots/earth-fire-tv-api30.png"
   },
   "com.jeremykenedy.canopydrift/com.jeremykenedy.canopydrift.CanopyDreamService": {
     "capture_note": "Canopy Drift animation running on Google TV emulator API 34 at 1920x1080.",
@@ -40,12 +46,23 @@
     "source_sha256": "2712ae377eab5d496683276e4ca10ed539c1a31acb91c6417026b0f2f4e768ca"
   },
   "com.jeremykenedy.clouddriftclock/com.jeremykenedy.clouddriftclock.CloudDreamService": {
-    "capture_note": "Cloud Drift Clock PreviewActivity running on Android TV emulator API 31; screenshot published by the project.",
-    "captured_on": "2026-10-08",
-    "preview_sha256": "f2dfb479d84f0b50bc77d886a1ebb37c5eec827029c0a5d5c51d50dfd5acbc6c",
-    "source_file": "art/screenshots/cloud-drift-clock-android-tv-1920.png",
+    "attribution": "Sunset cloud flight by anotherview, CC BY3.0. Native capture of the silent edited flight loop; thumbnail resized without other changes.",
+    "capture_note": "Actual final code5 Fire TV AFTALMO/API28 Preview,1920x1080,clockOff. Published Cloud Drift Clock2.0.0/code5, actual filmed sunset flight, clock OFF. Resized only.",
+    "captured_on": "2026-10-25",
+    "effective_controls": 7,
+    "license": "CC-BY-3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/",
+    "preview_sha256": "d6d09688bab1dd887c1a9f4d12db0b4b669b5893c1ba8998de5492657fea841e",
+    "retained_inactive_keys": [
+      "palette",
+      "density"
+    ],
+    "settings_schema_count": 9,
+    "source_commit": "b9cb6180b4a23c8af2e55097b3d90c6628d0c067",
+    "source_file": "art/screenshots/cloud-flight-fire-tv-api28-1920.png",
     "source_project": "jeremykenedy/cloud-drift-clock",
-    "source_sha256": "b7c8d00ef6b6aee5a110b04b7a5acb72a2ef3e16b3ebd96317e3baaa1651408e"
+    "source_sha256": "8169a2175b2b4b9552e24691bbb404b2405ee7dd78dce51f2dd3a9fc08227993",
+    "source_url": "https://raw.githubusercontent.com/jeremykenedy/cloud-drift-clock/v2.0.0/art/screenshots/cloud-flight-preview-final-fire-tv-api28.png"
   },
   "com.jeremykenedy.contourflow/com.jeremykenedy.contourflow.ContourFlowDreamService": {
     "capture_note": "Running Contour Flow preview on Google TV emulator API 34.",

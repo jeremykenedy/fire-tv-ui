@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.9.0-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.9.1-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,9 +38,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.9.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.9.1.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.9.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.9.1.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -121,7 +121,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
-- [Fire TV UI 1.9.0 release notes and upgrade guide](docs/releases/v1.9.0.md)
+- [Fire TV UI 1.9.1 release notes and upgrade guide](docs/releases/v1.9.1.md)
 - [Fire TV UI 1.6.0 release notes and upgrade guide](docs/releases/v1.6.0.md)
 - [Fire TV UI 1.4.1 release notes and upgrade guide](docs/releases/v1.4.1.md)
 - [Fire TV UI 1.3.2 release notes and upgrade guide](docs/releases/v1.3.2.md)
@@ -140,9 +140,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.9.0 on the TV emulator, checking the previous published release before 1.9.0 publication. The check verifies the actual APK version and correctly preserves a newer installed build. The [full gallery](docs/screenshots.md) includes authorized Plex Home controls with safe sample names.
+Fire TV UI 1.9.1 on the API 34 TV emulator. The installed picker shows the current Cloud Drift Clock and Blue Meridian previews while Slot Vision remains selected. The [full gallery](docs/screenshots.md) includes the updated catalog and offline credits.
 
-<p align="center"><img src="art/screenshots/public-ui-update-ui-1.9.0-api34.png" alt="Fire TV UI 1.9.0 public self-update check verifies the previous stable Android APK without treating the newer installed build as an update" width="900"></p>
+<p align="center"><img src="art/screenshots/screensavers-ui-1.9.1-api34.png" alt="Fire TV UI 1.9.1 picker with real Cloud Drift Clock flight and Blue Meridian Earth previews, preserving the selected Slot Vision screensaver" width="900"></p>
 
 ## License
 

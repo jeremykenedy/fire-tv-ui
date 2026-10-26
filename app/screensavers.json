@@ -192,10 +192,11 @@
     "package": "com.jeremykenedy.clouddriftclock",
     "dream": "com.jeremykenedy.clouddriftclock/.CloudDreamService",
     "repo": "jeremykenedy/cloud-drift-clock",
-    "tag": "v1.1.0",
-    "url": "https://github.com/jeremykenedy/cloud-drift-clock/releases/download/v1.1.0/cloud-drift-clock.apk",
-    "bytes": 320287,
-    "sha256": "24a88c7bcc623b3c5822e4e251ad20c02853ac2c4c41b54ef8c57bbc736ae3d2"
+    "tag": "v2.0.0",
+    "url": "https://github.com/jeremykenedy/cloud-drift-clock/releases/download/v2.0.0/cloud-drift-clock.apk",
+    "bytes": 40297575,
+    "sha256": "abb8fdf3abdd1c94b95106b6bd0cbdf85822ccffd4caec9cdbd6dcb99919fae8",
+    "description": "Real sunset cloud flight with playback speed and an optional clock. Legacy palette and density values are retained but inactive."
   },
   {
     "id": "earthbound-orbit",
@@ -303,10 +304,11 @@
     "package": "com.jeremykenedy.bluemeridian",
     "dream": "com.jeremykenedy.bluemeridian/.BlueMeridianDreamService",
     "repo": "jeremykenedy/blue-meridian",
-    "tag": "v1.0.0",
-    "url": "https://github.com/jeremykenedy/blue-meridian/releases/download/v1.0.0/blue-meridian.apk",
-    "bytes": 451363,
-    "sha256": "01c1e0917921385f247470e8d34b1297d4c407240ed4cbfcaf2fa11e86f8e25b"
+    "tag": "v1.0.1",
+    "url": "https://github.com/jeremykenedy/blue-meridian/releases/download/v1.0.1/blue-meridian.apk",
+    "bytes": 2569417,
+    "sha256": "7f3b575f45d7afa5ca68ff8510d84f5b42c6ac6c3c21903628898f6a5dff5ec2",
+    "description": "Earth day and night from archival satellite imagery, with cloud cover, city lights and gentle screen drift."
   },
   {
     "id": "helios-lightfield",

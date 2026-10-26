@@ -1,0 +1,32 @@
+Blue Meridian
+Copyright 2026 Jeremy Kenedy
+
+Original application source code is licensed under Apache License 2.0.
+
+Bundled Earth imagery is derived from NASA source material:
+
+Blue Marble Next Generation, July 2004 base map:
+Reto Stockli, NASA Earth Observatory / NASA Goddard Space Flight Center.
+https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-map/
+
+Blue Marble Clouds, 2002:
+Reto Stockli, NASA Goddard Space Flight Center; MODIS Atmosphere Group.
+https://visibleearth.nasa.gov/images/57747/blue-marble-clouds/77558l
+
+Black Marble, 2012 night-light composite:
+NASA Earth Observatory, NOAA National Geophysical Data Center,
+and Suomi National Polar-orbiting Partnership VIIRS data.
+https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps/
+
+The source images were resized, converted to JPEG, and stripped of metadata.
+The globe combines archival images from different years for visual display.
+It is not current weather or a scientific observation of one moment.
+
+NASA material is used under its Images and Media Usage Guidelines:
+https://www.nasa.gov/nasa-brand-center/images-and-media/
+NASA does not endorse this application.
+
+Exact source URLs, source hashes, and shipped hashes are recorded in
+assets/SOURCES.json.
+
+Fire TV UI thumbnail: resized to 384x216 from the unretouched physical API 30 capture of 1.0.1. No scene label is added.

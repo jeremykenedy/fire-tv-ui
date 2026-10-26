@@ -13,6 +13,22 @@ from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
+    def test_rotation_setting_restarts_the_effect_without_recreating_home(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the native launcher to check rotation lifecycle wiring.')
+        built = classes(decoded)
+        model = built['LQ3/T3;'].read_text()
+        self.assertIn('featuredRotation:LN/g0;', model)
+        self.assertIn('.method public final refreshFeaturedRotation()V', model)
+        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
+        resume = main.split('.method public final onResume()V', 1)[1].split('.end method', 1)[0]
+        self.assertIn('LQ3/T3;->refreshFeaturedRotation()V', resume)
+        self.assertNotIn('->recreate()', resume)
+        wallpaper = built['LO4/m;'].read_text()
+        self.assertIn('iget-object v9, v0, LQ3/T3;->featuredRotation:LN/g0;', wallpaper)
+        self.assertIn('filled-new-array {v2, v3, v4, v7, v9}, [Ljava/lang/Object;', wallpaper)
+
     def test_featured_setup_keeps_required_base_navigation_callbacks(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():
@@ -233,7 +249,11 @@ class BuildChecks(unittest.TestCase):
             'cloud-drift-clock': (
                 'Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
                 'com.jeremykenedy.clouddriftclock/.CloudDreamService', 'jeremykenedy/cloud-drift-clock',
-                '24a88c7bcc623b3c5822e4e251ad20c02853ac2c4c41b54ef8c57bbc736ae3d2', 320287),
+                'abb8fdf3abdd1c94b95106b6bd0cbdf85822ccffd4caec9cdbd6dcb99919fae8', 40297575),
+            'blue-meridian': (
+                'Blue Meridian', 'com.jeremykenedy.bluemeridian',
+                'com.jeremykenedy.bluemeridian/.BlueMeridianDreamService', 'jeremykenedy/blue-meridian',
+                '7f3b575f45d7afa5ca68ff8510d84f5b42c6ac6c3c21903628898f6a5dff5ec2', 2569417),
             'earthbound-orbit': (
                 'Earthbound Orbit', 'com.jeremykenedy.earthboundorbit',
                 'com.jeremykenedy.earthboundorbit/.EarthboundOrbitDreamService',
@@ -279,7 +299,7 @@ class BuildChecks(unittest.TestCase):
             self.assertEqual(entry['package'], package)
             self.assertEqual(entry['dream'], dream)
             self.assertEqual(entry['repo'], repo)
-            release_tag = {name: 'v1.1.0' for name in ('cloud-drift-clock', 'pipeworks-dream', 'nebula-drift', 'aqua-surface', 'split-flap-drift', 'canopy-drift')}.get(identifier, 'v1.0.0')
+            release_tag = 'v2.0.0' if identifier == 'cloud-drift-clock' else 'v1.0.1' if identifier == 'blue-meridian' else {name: 'v1.1.0' for name in ('cloud-drift-clock', 'pipeworks-dream', 'nebula-drift', 'aqua-surface', 'split-flap-drift', 'canopy-drift')}.get(identifier, 'v1.0.0')
             self.assertEqual(entry['tag'], release_tag)
             asset = 'aqua-surface-drift.apk' if identifier == 'aqua-surface' else f'{identifier}.apk'
             self.assertEqual(entry['url'],

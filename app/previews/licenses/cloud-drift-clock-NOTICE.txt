@@ -1,0 +1,23 @@
+Cloud Drift Clock
+Copyright 2026 Jeremy Kenedy
+
+Sunset cloud flight
+Film: breathtaking sunset and cloudsurfing lake Lucerne (Vierwaldstaettersee) 4k cinematic DJI fpv oneshot
+Creator: anotherview
+https://www.youtube.com/@anotherview1
+Source: https://www.youtube.com/watch?v=kKPvF0rwqHA
+License: Creative Commons Attribution 3.0
+https://creativecommons.org/licenses/by/3.0/
+Changes: no audio; source 213.5-248.7 seconds, 1.2-second editorial dissolve,
+34-second loop; actual 2160p25 source encoded at 1080p25 and 720p25.
+
+The primary upload explicitly states Creative Commons Attribution reuse allowed.
+This is an edited loop of real flight, not a naturally closed camera path.
+Source lighting, cloud cover and camera banking are retained. Playback speed
+changes timing; it does not add unique source frames. The film has 25 unique source frames per second. Slowing playback
+retains those frames for longer. No music or other source audio is included.
+
+Application code: Apache License 2.0.
+Original cloudscape artwork remains in historical source but is not used in the filmed scenes.
+
+Fire TV UI preview: resized to384x216 from the actual final API28 clock-OFF capture. This thumbnail is licensed under CC BY3.0.

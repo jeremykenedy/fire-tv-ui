@@ -75,6 +75,12 @@ public final class ReleaseUpdatesTest {
             }
         });
         ScreensaverCatalog.Entry valid = check(release());
+        ScreensaverCatalog.Entry described = new ScreensaverCatalog.Entry(
+                valid.json().put("description", "Real filmed flight with an optional clock."));
+        if (!described.description.equals(described.json().getString("description")))
+            throw new AssertionError("Catalog descriptions must survive verified metadata caching.");
+        if (!valid.description.isEmpty())
+            throw new AssertionError("Existing catalog entries must not gain invented descriptions.");
         if (!valid.sha256.equals(HASH) || !valid.tag.equals("v2.0.0") || !valid.url.equals(APK)) throw new AssertionError();
         checks++;
         reject(release().put("draft", true));
