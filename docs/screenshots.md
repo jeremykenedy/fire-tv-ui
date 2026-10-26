@@ -1,5 +1,19 @@
 # Screenshots
 
+## Fire TV UI 1.9.2, code 63
+
+The current picker and Blue Meridian action were captured from signed `f6e859da` on a physical API 28 Fire TV. The full button labels fit on one line. Black Screen remained selected and enabled after returning from the previews. The Split-Flap image is its own unchanged released launcher, reached through final code 62's preview-controls route before the host-only label adjustment.
+
+<table><tr>
+<td><img src="../art/screenshots/screensavers-ui-1.9.2-api28.png" alt="Final code 63 Screensavers picker with fully readable Preview controls labels"><br>Readable preview actions</td>
+<td><img src="../art/screenshots/split-flap-preview-controls-ui-1.9.2-api28.png" alt="Split-Flap Drift launcher exposes Open full-screen preview separately from Settings"><br>App-owned preview controls</td>
+<td><img src="../art/screenshots/blue-preview-ui-1.9.2-api28.png" alt="Blue Meridian visibly rendering detailed Earth after the final host preview action"><br>Direct app preview</td>
+</tr></table>
+
+The unchanged direct route also showed the [Cloud Drift Clock scene](../art/screenshots/cloud-preview-ui-1.9.2-api28.png) for 40 seconds on code 61. Preview controls requires choosing the app's own Preview or Show aquarium control. All 25 reviewed direct routes and eight controls routes returned with state restored on code 62. The layout-only code 63 then passed the current-label check, direct Blue route and Contour controls/full-screen Preview/Back route. These are activity-preview checks, not system DreamService binding claims. Aerial's video area remained absent from its capture; AndroSaver's selected slideshow had no images. App content and video visibility are separate from opening its preview.
+
+[Preview behavior and available controls](screensaver-previews.md) documents the extra step. The existing offline [media attribution](screensaver-previews.md#image-sources) applies to these screensaver captures.
+
 ## Fire TV UI 1.9.1, code 59
 
 Actual signed `2ac87445` output on the API 34 emulator. The catalog pins the public Cloud Drift Clock 2.0.0 and Blue Meridian 1.0.1 APKs. The installed picker loads their real native captures while Slot Vision stays selected. Cloud was initially absent, temporarily installed from its verified public release for this check, then removed to restore that absence. No account or existing screensaver settings were changed.

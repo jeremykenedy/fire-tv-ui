@@ -8,7 +8,8 @@
     "tag": "1.8.5",
     "url": "https://github.com/theothernt/AerialViews/releases/download/1.8.5/aerial-views-1.8.5.apk",
     "bytes": 9147039,
-    "sha256": "a20b4bc748da5ce890d96536494952aa4f50a6b589c50dee176415c021407070"
+    "sha256": "a20b4bc748da5ce890d96536494952aa4f50a6b589c50dee176415c021407070",
+    "preview": "com.neilturner.aerialviews/com.neilturner.aerialviews.ui.screensaver.TestActivity"
   },
   {
     "id": "androsaver",
@@ -63,7 +64,8 @@
     "tag": "v3.0.0",
     "url": "https://github.com/jeremykenedy/jellyfish-drift/releases/download/v3.0.0/jellyfish-drift.apk",
     "bytes": 1242197,
-    "sha256": "2e3a8e5ad912b40bb614568e83c0f752b26e5be3bf9e8f06bb02e917063e3cb2"
+    "sha256": "2e3a8e5ad912b40bb614568e83c0f752b26e5be3bf9e8f06bb02e917063e3cb2",
+    "preview": "com.jeremykenedy.jellyfishdrift/.PreviewActivity"
   },
   {
     "id": "jellyfish-drift-v2",
@@ -74,7 +76,8 @@
     "tag": "v2.0.0",
     "url": "https://github.com/jeremykenedy/jellyfish-drift-v2/releases/download/v2.0.0/jellyfish-drift-v2.apk",
     "sha256": "90697388e2719412136ecf9ee0859f9245a17fb22188e9cfeb14d685a9e5b2ed",
-    "bytes": 35292388
+    "bytes": 35292388,
+    "preview": "com.jeremykenedy.jellyfishdriftv2/.PreviewActivity"
   },
   {
     "id": "firefly-grove",
@@ -85,7 +88,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/firefly-grove/releases/download/v1.0.0/firefly-grove.apk",
     "bytes": 74445,
-    "sha256": "737dadedfad696ad03de96821b75c43c33e2e6ca7c2a7dfde812e987256f628a"
+    "sha256": "737dadedfad696ad03de96821b75c43c33e2e6ca7c2a7dfde812e987256f628a",
+    "preview": "com.jeremykenedy.fireflygrove/.PreviewActivity"
   },
   {
     "id": "neon-corridor",
@@ -96,7 +100,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/neon-corridor/releases/download/v1.0.0/neon-corridor.apk",
     "sha256": "883626ba2660a719672a2ef30bbeecd852c3c65ee7c2c34984b9a1c035e9a924",
-    "bytes": 172749
+    "bytes": 172749,
+    "preview": "com.jeremykenedy.neoncorridor/.PreviewActivity"
   },
   {
     "id": "starfield-drift",
@@ -107,7 +112,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/starfield-drift/releases/download/v1.1.0/starfield-drift.apk",
     "sha256": "ecc33ebde27ab9e88edff58a0163f16c09b6d867fb12a919102686e97a012a50",
-    "bytes": 33485
+    "bytes": 33485,
+    "preview": "com.jeremykenedy.starfielddrift/.PreviewActivity"
   },
   {
     "id": "twilight-hearth",
@@ -118,7 +124,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/twilight-hearth/releases/download/v1.1.0/twilight-hearth.apk",
     "bytes": 27207363,
-    "sha256": "dd39810f8bf2a67af7f133554897741323d9a14d606b3fc1a441285646b440f5"
+    "sha256": "dd39810f8bf2a67af7f133554897741323d9a14d606b3fc1a441285646b440f5",
+    "preview": "com.jeremykenedy.twilighthearth/.PreviewActivity"
   },
   {
     "id": "nebula-drift",
@@ -129,7 +136,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/nebula-drift/releases/download/v1.1.0/nebula-drift.apk",
     "bytes": 29368,
-    "sha256": "4d2d7db1d07fb7a317d4461c8946969ba83b949b7a38801d9377b4275a039f30"
+    "sha256": "4d2d7db1d07fb7a317d4461c8946969ba83b949b7a38801d9377b4275a039f30",
+    "previewControls": "com.jeremykenedy.nebuladrift/.NebulaActivity"
   },
   {
     "id": "vortex-spiral",
@@ -140,7 +148,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/vortex-spiral/releases/download/v1.0.0/vortex-spiral.apk",
     "bytes": 49869,
-    "sha256": "dc689afed574024d97fc40ae40912cfc2d3d5ad6db3c1008ce2273118c6e72af"
+    "sha256": "dc689afed574024d97fc40ae40912cfc2d3d5ad6db3c1008ce2273118c6e72af",
+    "preview": "com.jeremykenedy.vortexspiral/.PreviewActivity"
   },
   {
     "id": "signal-rain",
@@ -151,7 +160,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/signal-rain/releases/download/v1.0.0/signal-rain.apk",
     "bytes": 33485,
-    "sha256": "39a05659217658d39d44200d931ace8fb4edfe5034372ee35c945159fe392615"
+    "sha256": "39a05659217658d39d44200d931ace8fb4edfe5034372ee35c945159fe392615",
+    "preview": "com.jeremykenedy.signalrain/.PreviewActivity"
   },
   {
     "id": "retro-flight",
@@ -162,7 +172,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/retro-flight/releases/download/v1.0.0/retro-flight.apk",
     "bytes": 53965,
-    "sha256": "7845db142ef5f4cb4e92d96c1b6fa92ee2f7bd86fe7c47cd52627b37cc92cbf2"
+    "sha256": "7845db142ef5f4cb4e92d96c1b6fa92ee2f7bd86fe7c47cd52627b37cc92cbf2",
+    "preview": "com.jeremykenedy.retroflight/.PreviewActivity"
   },
   {
     "id": "pipeworks-dream",
@@ -173,7 +184,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/pipeworks-dream/releases/download/v1.1.0/pipeworks-dream.apk",
     "bytes": 62276,
-    "sha256": "a9642a20efe37fd3b39974d04f59b17eb4940935dbaca60c4b6cbf655eef03d0"
+    "sha256": "a9642a20efe37fd3b39974d04f59b17eb4940935dbaca60c4b6cbf655eef03d0",
+    "preview": "com.jeremykenedy.pipeworksdream/.PreviewActivity"
   },
   {
     "id": "aqua-surface",
@@ -184,7 +196,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/aqua-surface-drift/releases/download/v1.1.0/aqua-surface-drift.apk",
     "bytes": 45773,
-    "sha256": "b0aa42f82a1561e7c27fba8229c83d00eff93498a4e3e404c580137333021049"
+    "sha256": "b0aa42f82a1561e7c27fba8229c83d00eff93498a4e3e404c580137333021049",
+    "preview": "com.jeremykenedy.aquasurfacedrift/.PreviewActivity"
   },
   {
     "id": "cloud-drift-clock",
@@ -196,7 +209,8 @@
     "url": "https://github.com/jeremykenedy/cloud-drift-clock/releases/download/v2.0.0/cloud-drift-clock.apk",
     "bytes": 40297575,
     "sha256": "abb8fdf3abdd1c94b95106b6bd0cbdf85822ccffd4caec9cdbd6dcb99919fae8",
-    "description": "Real sunset cloud flight with playback speed and an optional clock. Legacy palette and density values are retained but inactive."
+    "description": "Real sunset cloud flight with playback speed and an optional clock. Legacy palette and density values are retained but inactive.",
+    "preview": "com.jeremykenedy.clouddriftclock/.PreviewActivity"
   },
   {
     "id": "earthbound-orbit",
@@ -207,7 +221,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/earthbound-orbit/releases/download/v1.0.0/earthbound-orbit.apk",
     "bytes": 582419,
-    "sha256": "b8ff3f377513360bd246ae569ac0872cfd9ed06d75a90d7f13199ae0715b21b9"
+    "sha256": "b8ff3f377513360bd246ae569ac0872cfd9ed06d75a90d7f13199ae0715b21b9",
+    "preview": "com.jeremykenedy.earthboundorbit/.PreviewActivity"
   },
   {
     "id": "perseid-passage",
@@ -218,7 +233,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/perseid-passage/releases/download/v1.0.0/perseid-passage.apk",
     "bytes": 33652,
-    "sha256": "9fa45a8f906fd9783d2831dcc594d3387e8f6cc5f95900be1b2447b450df4799"
+    "sha256": "9fa45a8f906fd9783d2831dcc594d3387e8f6cc5f95900be1b2447b450df4799",
+    "preview": "com.jeremykenedy.perseidpassage/.PreviewActivity"
   },
   {
     "id": "split-flap-drift",
@@ -229,7 +245,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/split-flap-drift/releases/download/v1.1.0/split-flap-drift.apk",
     "bytes": 29368,
-    "sha256": "9cbf91acf586bdf0cb056fef5d53e204ddc9be38f9e5c994a603bbd666cbb351"
+    "sha256": "9cbf91acf586bdf0cb056fef5d53e204ddc9be38f9e5c994a603bbd666cbb351",
+    "previewControls": "com.jeremykenedy.splitflapdrift/.SplitFlapActivity"
   },
   {
     "id": "canopy-drift",
@@ -240,7 +257,8 @@
     "tag": "v1.1.0",
     "url": "https://github.com/jeremykenedy/canopy-drift/releases/download/v1.1.0/canopy-drift.apk",
     "bytes": 197325,
-    "sha256": "5175918229ce69cc423bfeb35daa0729ecc7be853801fa7e367a5de06ca4e14c"
+    "sha256": "5175918229ce69cc423bfeb35daa0729ecc7be853801fa7e367a5de06ca4e14c",
+    "preview": "com.jeremykenedy.canopydrift/.PreviewActivity"
   },
   {
     "id": "contour-flow",
@@ -251,7 +269,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/contour-flow/releases/download/v1.0.0/contour-flow.apk",
     "bytes": 29368,
-    "sha256": "b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447"
+    "sha256": "b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447",
+    "previewControls": "com.jeremykenedy.contourflow/.ContourFlowActivity"
   },
   {
     "id": "skyburst-nocturne",
@@ -273,7 +292,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/pulse-circuit/releases/download/v1.0.0/pulse-circuit.apk",
     "bytes": 33485,
-    "sha256": "5e71095d0b2966d1cf803ad9299ad7a233309848d1aea8e27423cfcf8ff96c95"
+    "sha256": "5e71095d0b2966d1cf803ad9299ad7a233309848d1aea8e27423cfcf8ff96c95",
+    "preview": "com.jeremykenedy.pulsecircuit/.PreviewActivity"
   },
   {
     "id": "rain-on-glass",
@@ -284,7 +304,8 @@
     "tag": "v1.0.0",
     "url": "https://github.com/jeremykenedy/rain-on-glass/releases/download/v1.0.0/rain-on-glass.apk",
     "bytes": 33485,
-    "sha256": "99c7c1c130644c8057db65a6a2398c98d69daa3f20bacc77588c4870624e340e"
+    "sha256": "99c7c1c130644c8057db65a6a2398c98d69daa3f20bacc77588c4870624e340e",
+    "preview": "com.jeremykenedy.rainonglass/.PreviewActivity"
   },
   {
     "id": "rainforest-cascade",
@@ -308,7 +329,8 @@
     "url": "https://github.com/jeremykenedy/blue-meridian/releases/download/v1.0.1/blue-meridian.apk",
     "bytes": 2569417,
     "sha256": "7f3b575f45d7afa5ca68ff8510d84f5b42c6ac6c3c21903628898f6a5dff5ec2",
-    "description": "Earth day and night from archival satellite imagery, with cloud cover, city lights and gentle screen drift."
+    "description": "Earth day and night from archival satellite imagery, with cloud cover, city lights and gentle screen drift.",
+    "preview": "com.jeremykenedy.bluemeridian/.PreviewActivity"
   },
   {
     "id": "helios-lightfield",
@@ -319,7 +341,8 @@
     "tag": "v1.0.1",
     "url": "https://github.com/jeremykenedy/helios-lightfield/releases/download/v1.0.1/helios-lightfield.apk",
     "bytes": 33485,
-    "sha256": "2716752c678916f947dec465213f23be20af4eb224272a54e9ae500c5bed6eb2"
+    "sha256": "2716752c678916f947dec465213f23be20af4eb224272a54e9ae500c5bed6eb2",
+    "preview": "com.jeremykenedy.helioslightfield/.PreviewActivity"
   },
   {
     "id": "hearth-presence",

@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.provider.Settings;
 
-/** Uses the system's exported dream starter, then restores the real selection. */
+/** Opens reviewed app previews without changing the system screensaver selection. */
 public final class ScreensaverPreview {
     public static final String PENDING = "fire_tv_ui_preview_pending";
 
@@ -16,6 +16,30 @@ public final class ScreensaverPreview {
     public static void start(Context context, String component) {
         ComponentCheck.requireInstalledDream(context, component);
         restore(context);
+        if (DeviceSettings.prefs(context).getBoolean(PENDING, false)) {
+            throw new IllegalStateException("Restore the previous screensaver before starting another preview.");
+        }
+        ComponentName preview = appPreview(context, component);
+        if (preview != null) {
+            try {
+                context.startActivity(new Intent().setComponent(preview));
+                return;
+            } catch (RuntimeException unavailable) {
+                // An app update can remove its preview between resolution and launch.
+            }
+        }
+        ComponentName starter = new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator");
+        if (!ScreensaverControls.canLaunch(context, starter)) {
+            Intent controls = ScreensaverControls.resolvePreview(context, component);
+            if (controls == null) {
+                throw new IllegalStateException("This screensaver does not expose a preview or accessible preview controls on this TV.");
+            }
+            context.startActivity(controls);
+            return;
+        }
+        if (!DeviceSettings.canWrite(context)) {
+            throw new IllegalStateException("System screensaver previews require the existing screensaver settings access.");
+        }
         SharedPreferences prefs = DeviceSettings.prefs(context);
         if (!prefs.edit().putString("fire_tv_ui_preview_previous", DeviceSettings.active(context.getContentResolver()))
                 .putBoolean("fire_tv_ui_preview_enabled", DeviceSettings.isEnabled(context.getContentResolver()))
@@ -24,13 +48,41 @@ public final class ScreensaverPreview {
         }
         try {
             DeviceSettings.select(context.getContentResolver(), component);
-            Intent intent = new Intent().setComponent(new ComponentName("com.android.systemui",
-                    "com.android.systemui.Somnambulator"));
+            Intent intent = new Intent().setComponent(starter);
             context.startActivity(intent);
         } catch (RuntimeException failed) {
             restore(context);
             throw new IllegalStateException("This TV could not start a screensaver preview.", failed);
         }
+    }
+
+    public static String actionLabel(Context context, String component, boolean toolbar) {
+        boolean direct = appPreview(context, component) != null || ScreensaverControls.canLaunch(context,
+                new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator"));
+        if (direct) {
+            return toolbar ? "Preview screensaver" : "Preview it";
+        }
+        return ScreensaverControls.resolvePreview(context, component) == null ? "Preview unavailable" : "Preview controls";
+    }
+
+    private static ComponentName appPreview(Context context, String dream) {
+        ComponentName selected = ComponentName.unflattenFromString(dream);
+        try {
+            for (ScreensaverCatalog.Entry entry : ScreensaverCatalog.load(context)) {
+                if (!Screensavers.fullComponent(entry.dream).equals(Screensavers.fullComponent(dream))) {
+                    continue;
+                }
+                ComponentName preview = ComponentName.unflattenFromString(entry.preview);
+                if (preview != null && selected != null
+                        && selected.getPackageName().equals(preview.getPackageName())
+                        && ScreensaverControls.canLaunch(context, preview)) {
+                    return preview;
+                }
+            }
+        } catch (Exception unavailable) {
+            throw new IllegalStateException("The screensaver preview catalog could not be read.", unavailable);
+        }
+        return null;
     }
 
     public static void restore(Context context) {
@@ -46,7 +98,9 @@ public final class ScreensaverPreview {
             throw new IllegalStateException("The TV did not restore your screensaver after previewing.");
         }
         DeviceSettings.setEnabled(context.getContentResolver(), enabled);
-        prefs.edit().remove(PENDING).remove("fire_tv_ui_preview_previous")
-                .remove("fire_tv_ui_preview_enabled").commit();
+        if (!prefs.edit().remove(PENDING).remove("fire_tv_ui_preview_previous")
+                .remove("fire_tv_ui_preview_enabled").commit()) {
+            throw new IllegalStateException("The restored screensaver could not be saved. Try returning again.");
+        }
     }
 }

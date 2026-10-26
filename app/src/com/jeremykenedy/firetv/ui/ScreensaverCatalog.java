@@ -20,6 +20,7 @@ public final class ScreensaverCatalog {
         public final String tag;
         public final String dream;
         public final String preview;
+        public final String previewControls;
         public final String repo;
         public final long bytes;
 
@@ -32,6 +33,7 @@ public final class ScreensaverCatalog {
             tag = value.getString("tag");
             dream = value.getString("dream");
             preview = value.optString("preview", "");
+            previewControls = value.optString("previewControls", "");
             bytes = value.getLong("bytes");
             repo = value.getString("repo");
             URL source = new URL(url);
@@ -48,7 +50,7 @@ public final class ScreensaverCatalog {
         JSONObject json() throws Exception {
             return new JSONObject().put("name", name).put("package", pkg).put("repo", repo)
                     .put("description", description)
-                    .put("dream", dream).put("preview", preview).put("url", url)
+                    .put("dream", dream).put("preview", preview).put("previewControls", previewControls).put("url", url)
                     .put("sha256", sha256).put("bytes", bytes).put("tag", tag);
         }
     }

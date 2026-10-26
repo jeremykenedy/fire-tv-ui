@@ -9,7 +9,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
-import android.content.res.XmlResourceParser;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -29,6 +28,7 @@ import java.util.Map;
 public final class ScreensaverActivity extends CardActivity {
     private TextView current;
     private TextView enabled;
+    private TextView previewCurrent;
     private LinearLayout rows;
     private List<Screensavers.Choice> choices = new ArrayList<>();
     private final Map<String, ServiceInfo> services = new HashMap<>();
@@ -66,7 +66,7 @@ public final class ScreensaverActivity extends CardActivity {
         current.setPadding(0, 0, 0, dp(10));
         card.addView(current);
         LinearLayout first = toolbar();
-        toolbarButton(first, "Preview screensaver", "preview-current", new View.OnClickListener() {
+        previewCurrent = toolbarButton(first, "Preview screensaver", "preview-current", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Screensavers.Choice selected = selected();
@@ -116,7 +116,7 @@ public final class ScreensaverActivity extends CardActivity {
         heading.setPadding(0, dp(8), 0, dp(8));
         card.addView(heading);
         rows = scrollBody();
-        TextView hint = text("Select to make active. Preview it tries the screensaver without changing your selection. Back returns here.", 13, MUTED);
+        TextView hint = text("Select to make active. Preview controls opens the app; choose Preview or Show aquarium there. Back returns here. Your screensaver selection stays unchanged.", 13, MUTED);
         hint.setPadding(0, dp(8), 0, 0);
         card.addView(hint);
         IntentFilter filter = new IntentFilter(Intent.ACTION_DREAMING_STOPPED);
@@ -206,6 +206,8 @@ public final class ScreensaverActivity extends CardActivity {
         current.setText("Current screensaver: " + (selected < 0 ? "None selected" : choices.get(selected).label)
                 + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.DREAM_UNLOCKED, false)
                     ? " (selection unlocked)" : ""));
+        previewCurrent.setText(selected < 0 ? "Preview screensaver"
+                : ScreensaverPreview.actionLabel(this, choices.get(selected).component, true));
         enabled.setText("Screensaver: " + (DeviceSettings.isEnabled(getContentResolver()) ? "On" : "Off"));
         for (int i = 0; i < choices.size(); i++) {
             row(choices.get(i), i == selected);
@@ -306,14 +308,16 @@ public final class ScreensaverActivity extends CardActivity {
             }
         });
         focusTargets.put("select:" + choice.component, select);
-        TextView tryIt = button("Preview it", new View.OnClickListener() {
+        TextView tryIt = button(ScreensaverPreview.actionLabel(this, choice.component, false), new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 focusKey = "preview:" + choice.component;
                 preview(choice.component);
             }
         });
-        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(110), dp(42));
+        tryIt.setSingleLine(true);
+        tryIt.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(210), dp(42));
         previewParams.setMargins(dp(6), dp(6), dp(8), dp(6));
         row.addView(tryIt, previewParams);
         focusTargets.put("preview:" + choice.component, tryIt);
@@ -341,31 +345,10 @@ public final class ScreensaverActivity extends CardActivity {
         if (choice == null) {
             return;
         }
-        ServiceInfo service = services.get(Screensavers.fullComponent(choice.component));
         try {
-            ComponentName settings = null;
-            XmlResourceParser xml = service.loadXmlMetaData(getPackageManager(), "android.service.dream");
-            if (xml != null) {
-                try {
-                    while (xml.next() != XmlResourceParser.END_DOCUMENT) {
-                        if (xml.getEventType() == XmlResourceParser.START_TAG && "dream".equals(xml.getName())) {
-                            String activity = xml.getAttributeValue("http://schemas.android.com/apk/res/android", "settingsActivity");
-                            if (activity != null && !activity.isEmpty()) {
-                                settings = activity.contains("/") ? ComponentName.unflattenFromString(activity)
-                                        : new ComponentName(service.packageName, activity.startsWith(".")
-                                                ? service.packageName + activity : activity);
-                            }
-                            break;
-                        }
-                    }
-                } finally {
-                    xml.close();
-                }
-            }
-            Intent options = settings == null ? getPackageManager().getLaunchIntentForPackage(service.packageName)
-                    : new Intent().setComponent(settings);
+            Intent options = ScreensaverControls.resolve(this, choice.component);
             if (options == null) {
-                throw new IllegalStateException(choice.label + " does not provide a settings screen.");
+                throw new IllegalStateException(choice.label + " does not provide an accessible settings screen.");
             }
             startActivity(options);
         } catch (Exception failed) {
