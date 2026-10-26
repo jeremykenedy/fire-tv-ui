@@ -1,0 +1,9 @@
+Nibbles HD
+Copyright 2026 Jeremy Kenedy
+
+Original autonomous snake gameplay, procedural artwork and native rendering.
+Native settings, build and DreamService scaffolding adapted from Prism Clock
+and Cloud Drift Clock by Jeremy Kenedy, Apache License 2.0. Modified for Nibbles HD.
+Standalone installer adapted from Prism Clock by Jeremy Kenedy, Apache
+License 2.0. Modified for Nibbles HD.
+No QBasic source, third-party game assets, fonts or sounds are bundled.

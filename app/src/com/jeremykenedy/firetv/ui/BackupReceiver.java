@@ -43,7 +43,13 @@ public final class BackupReceiver extends BroadcastReceiver {
             } else if ("home-on".equals(operation) || "home-off".equals(operation)) {
                 HomeControl.setEnabled(context, "home-on".equals(operation), true);
             } else if ("home-preference-on".equals(operation) || "home-preference-off".equals(operation)) {
-                HomeControl.remember(context, "home-preference-on".equals(operation));
+                HomeControl.rememberEnabledPreference(context, "home-preference-on".equals(operation));
+            } else if ("home-preference-clear".equals(operation)) {
+                HomeControl.clearEnabledPreference(context);
+            } else if ("home-preference-state".equals(operation)) {
+                setResultCode(0);
+                setResultData(HomeControl.enabledPreferenceState(context));
+                return;
             } else if ("dream-unlock".equals(operation)) {
                 DeviceSettings.prefs(context).edit().putBoolean(DeviceSettings.DREAM_UNLOCKED, true).commit();
             } else if ("adb-protection-on".equals(operation) || "adb-protection-off".equals(operation)) {

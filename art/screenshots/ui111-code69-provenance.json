@@ -1,0 +1,41 @@
+{
+  "version": "1.11.0",
+  "code": 69,
+  "sourceCommit": "215c6ebd6b4f9c300d994d7b52211f7ae0d02782",
+  "sha256": "d5abce3b88a9311ef9c9094858f7f3c3982cff6c61fd088360043acfd6163af4",
+  "platform": "API 34 TV emulator, actual native 1920x1080 output",
+  "scope": "Actual code 68 to 69 same-signer update, four Home-key values and absence, narrow API and permission-denied rollback, native catalog of 35 entries, D-pad, Preview, Back and offline credits. Original UI 14, OS 19, all 34 APKs, providers, grants, appops, files, stopped flags and accessibility/guard state restored except the intended stopped UI 69 upgrade. No physical or performance claim.",
+  "settingsRoute": "Nibbles Settings opened directly through its declared activity. Slot remained selected, so the selected-saver Settings action was not changed to Nibbles.",
+  "captures": [
+    {
+      "file": "nibbles-catalog-ui111-code69-api34.png",
+      "sourceFile": "ui69-nibbles-catalog.png",
+      "sha256": "462e8c3e00b5e11050e8d193f79c3319a978929dd09732fb8164a7ed090c8fb3",
+      "modification": "None"
+    },
+    {
+      "file": "nibbles-preview-ui111-code69-api34.png",
+      "sourceFile": "ui69-to-nibbles-native-preview.png",
+      "sha256": "c48058fbc0647fe860bc2ebe3a4c640059b843186b4049aaa61c1824b7968922",
+      "modification": "None"
+    },
+    {
+      "file": "nibbles-options-ui111-code69-api34.png",
+      "sourceFile": "ui69-context-nibbles-settings.png",
+      "sha256": "100a7a989aa517327eb7dd1cbe5c0aeaf0a290590bb053b12716fb73a69b4579",
+      "modification": "None"
+    },
+    {
+      "file": "nibbles-credits-ui111-code69-api34.png",
+      "sourceFile": "ui69-native-nibbles-hd-NOTICE.png",
+      "sha256": "9747b246c4ccf316b5016272bc8459a2e74a4d342cb43bc72367d2f50f531436",
+      "modification": "None"
+    },
+    {
+      "file": "nibbles-license-ui111-code69-api34.png",
+      "sourceFile": "ui69-native-nibbles-hd-APACHE-2.0.png",
+      "sha256": "188172f32ebef1353abff0f88c92369e926c5a288b6a400a5423e845dac5afa5",
+      "modification": "None"
+    }
+  ]
+}

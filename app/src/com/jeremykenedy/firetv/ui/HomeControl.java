@@ -12,6 +12,9 @@ public final class HomeControl {
     public static final String PREFERENCE = "fire_tv_ui_home_enabled";
     private static final String SERVICES = "enabled_accessibility_services";
     private static final String ENABLED = "accessibility_enabled";
+    private static final String[] CHOICES = {
+        PREFERENCE, "start_on_boot", "override_home_button", "better_home_detection"
+    };
 
     private HomeControl() {
     }
@@ -40,16 +43,57 @@ public final class HomeControl {
     }
 
     public static void remember(Context context, boolean enabled) {
-        DeviceSettings.prefs(context).edit().putBoolean(PREFERENCE, enabled)
+        if (!DeviceSettings.prefs(context).edit().putBoolean(PREFERENCE, enabled)
                 .putBoolean("start_on_boot", enabled)
                 .putBoolean("override_home_button", enabled)
-                .putBoolean("better_home_detection", true).commit();
+                .putBoolean("better_home_detection", true).commit()) {
+            throw new IllegalStateException("The TV did not save Home preferences.");
+        }
+    }
+
+    public static void rememberEnabledPreference(Context context, boolean enabled) {
+        if (!DeviceSettings.prefs(context).edit().putBoolean(PREFERENCE, enabled).commit()) {
+            throw new IllegalStateException("The TV did not save the Home preference.");
+        }
+    }
+
+    public static void clearEnabledPreference(Context context) {
+        if (!DeviceSettings.prefs(context).edit().remove(PREFERENCE).commit()) {
+            throw new IllegalStateException("The TV did not clear the Home preference.");
+        }
+    }
+
+    public static String enabledPreferenceState(Context context) {
+        SharedPreferences prefs = DeviceSettings.prefs(context);
+        return "home-preference=" + (!prefs.contains(PREFERENCE) ? "unset"
+                : prefs.getBoolean(PREFERENCE, true) ? "on" : "off");
     }
 
     public static void setEnabled(Context context, boolean enabled, boolean rebind) {
+        setEnabled(context, enabled, rebind, true);
+    }
+
+    public static void rebind(Context context) {
+        if (wanted(context)) {
+            setEnabled(context, true, true, false);
+        }
+    }
+
+    private static void setEnabled(Context context, boolean enabled, boolean rebind,
+            boolean rememberChoice) {
         String before = Settings.Secure.getString(context.getContentResolver(), SERVICES);
         int accessibility = Settings.Secure.getInt(context.getContentResolver(), ENABLED, 0);
-        boolean wantedBefore = wanted(context);
+        SharedPreferences prefs = DeviceSettings.prefs(context);
+        boolean[] present = new boolean[CHOICES.length];
+        boolean[] saved = new boolean[CHOICES.length];
+        if (rememberChoice) {
+            for (int i = 0; i < CHOICES.length; i++) {
+                present[i] = prefs.contains(CHOICES[i]);
+                if (present[i]) {
+                    saved[i] = prefs.getBoolean(CHOICES[i], false);
+                }
+            }
+        }
         List<String> others = services(before);
         others.remove(redirect(context));
         others.remove(controls(context));
@@ -58,8 +102,10 @@ public final class HomeControl {
             others.remove("com.jeremykenedy.firetv.homeredirect/com.jeremykenedy.firetv.homeredirect.HomeRedirectService");
             others.remove("com.overdevs.at4khelper/com.overdevs.at4khelper.HomeRedirectAccessibilityService");
         }
-        remember(context, enabled);
         try {
+            if (rememberChoice) {
+                remember(context, enabled);
+            }
             if (enabled && rebind) {
                 write(context, others);
             }
@@ -72,7 +118,17 @@ public final class HomeControl {
                 throw new IllegalStateException("The TV did not save Home routing.");
             }
         } catch (RuntimeException error) {
-            remember(context, wantedBefore);
+            if (rememberChoice) {
+                SharedPreferences.Editor restore = prefs.edit();
+                for (int i = 0; i < CHOICES.length; i++) {
+                    if (present[i]) {
+                        restore.putBoolean(CHOICES[i], saved[i]);
+                    } else {
+                        restore.remove(CHOICES[i]);
+                    }
+                }
+                restore.commit();
+            }
             Settings.Secure.putString(context.getContentResolver(), SERVICES, before);
             Settings.Secure.putInt(context.getContentResolver(), ENABLED, accessibility);
             throw error;

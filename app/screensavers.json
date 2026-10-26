@@ -404,5 +404,17 @@
     "bytes": 39552020,
     "description": "Real sunset cloud flight with optional weather text, explicit city setup and one to seven forecast days. Hide weather for a text-free scene. The backdrop is not the city or current conditions.",
     "preview": "com.jeremykenedy.skycastweather/.PreviewActivity"
+  },
+  {
+    "id": "nibbles-hd",
+    "name": "Nibbles HD",
+    "package": "com.jeremykenedy.nibbleshd",
+    "dream": "com.jeremykenedy.nibbleshd/.NibblesDreamService",
+    "repo": "jeremykenedy/nibbles-hd",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/nibbles-hd/releases/download/v1.0.0/nibbles-hd.apk",
+    "sha256": "c49bc22e5cbf5067da4bbcb1cd63140d31b0a49a83f6826e111986ee4b7d7971",
+    "bytes": 41727,
+    "preview": "com.jeremykenedy.nibbleshd/.PreviewActivity"
   }
 ]

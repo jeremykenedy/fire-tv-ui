@@ -20,11 +20,6 @@ if __name__ == '__main__':
     if not options.apk.is_file():
         parser.error('Build a signed APK first or pass --apk.')
     adb = ['adb', '-s', options.serial]
-    home = CONFIG['package'] + '/' + CONFIG['package'] + '.HomeRedirectService'
-    controls = CONFIG['package'] + '/' + CONFIG['package'] + '.Hra'
-    before = subprocess.check_output(adb + ['shell', 'settings', 'get', 'secure',
-                                           'enabled_accessibility_services'], text=True).strip()
-    had_home = home in before.split(':')
     subprocess.run(adb + ['install', '-r', str(options.apk)], check=True)
     subprocess.run(adb + ['shell', 'pm', 'grant', CONFIG['package'],
                          'android.permission.WRITE_SECURE_SETTINGS'], check=True)
@@ -38,9 +33,6 @@ if __name__ == '__main__':
                                  'android.permission.' + permission], check=True)
     for operation in ('GET_USAGE_STATS', 'REQUEST_INSTALL_PACKAGES'):
         subprocess.run(adb + ['shell', 'appops', 'set', CONFIG['package'], operation, 'allow'], check=True)
-    if had_home:
-        subprocess.run(adb + ['shell', 'am', 'broadcast', '--include-stopped-packages', '-n',
-                             CONFIG['package'] + '/.BackupReceiver', '--es', 'operation', 'home-on'], check=True)
     install_icons(options.serial)
     subprocess.run(adb + ['shell', 'am', 'start', '-n',
                          CONFIG['package'] + '/.MainActivity'], check=True)

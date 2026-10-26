@@ -28,4 +28,20 @@ The metadata expires after six hours. APK bytes are checked again immediately be
 
 An upstream app without a published checksum cannot receive an automatically verified update through this screen. Its installed version remains visible and its check explains the missing verification. Unknown version names require APK verification; they are not classified as current. Android may reject an otherwise valid APK for device compatibility or policy reasons.
 
-Fire OS can interrupt accessibility Home routing during an APK update. The package-replacement receiver and computer installer attempt to rebind an already enabled Home service without changing the saved preference. Earlier signed in-place updates preserved the current layout and protection state. The current release's public self-check is verified separately from completing a normal Android replacement confirmation.
+Fire OS can interrupt accessibility Home routing during an APK update. From 1.11.0/code 69, the package-replacement receiver and settings repair rebind enabled Home routing while preserving the values and presence of all four saved Home choices: enabled preference, startup, Home override and improved detection. Earlier builds could normalize the latter three choices during repair. Explicitly enabling or disabling Home still applies the ordinary startup and routing choices. Earlier signed in-place updates preserved the current layout and protection state. The current release's public self-check is verified separately from completing a normal Android replacement confirmation.
+
+## Computer Home transactions
+
+Code 69 adds a narrow, DUMP-protected receiver contract for computer clients. The
+`home-preference-state` operation returns exactly `home-preference=unset`,
+`home-preference=on` or `home-preference=off`. The `home-preference-on` and
+`home-preference-off` operations write only the enabled preference;
+`home-preference-clear` restores its absence. These operations do not change
+accessibility routing or the other three saved Home choices.
+
+A client can set this preference before changing the OS Home route, verify that
+route, then use `home-on` or `home-off` to commit the ordinary explicit Home
+behavior. If routing fails, restore the prior enabled preference, including an
+absent key, and the prior OS route. A failed full native Home operation restores
+all four prior preference values and key presence before reporting the error.
+Clients requiring this preservation contract must require code 69 or newer.

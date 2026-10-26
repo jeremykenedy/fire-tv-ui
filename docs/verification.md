@@ -1,5 +1,50 @@
 # Verification
 
+## Fire TV UI 1.11.0, version code 69
+
+The exact signed `d5abce3b88a9311ef9c9094858f7f3c3982cff6c61fd088360043acfd6163af4`
+APK passed an actual public code 68 replacement on the API 34 TV emulator at
+native 1920x1080. A temporary same-signer instrumentation fixture changed only
+the four boolean Home keys. The update retained enabled=true, startup=false,
+improved detection=false and an absent override key before intentional Main
+initialization. The native Home services rebound with two bound services and the
+enabled flag set. The new protected state/on/off/clear operations preserved the
+other three values and key presence.
+
+Ordinary full Home on/off retained its explicit behavior. After revoking the
+temporary WRITE_SECURE_SETTINGS grant, both full operations returned a real
+SecurityException and restored the four prior values and absence, with OS
+accessibility unchanged. The original ungranted permission and every final raw
+grant/flag matched. Export cleanup's temporary storage-appop restoration caused
+an explicitly logged process kill followed by service rebinding; that transition
+is distinct from an APK exception. A transient permission-dump omission settled
+back to the original explicit false row without normalization.
+
+All 35 native catalog entries were observed with D-pad navigation, with no
+install or uninstall selected. Nibbles' real thumbnail, UI Preview to app Preview
+and Back, the declared settings activity and offline NOTICE/Apache reader
+passed. The selected-saver Settings button remained associated with Slot; its
+Nibbles route was not selected because this gate left Dream selection unchanged.
+The direct settings launch reused the neutral Nibbles task, so Back revealed its
+existing Preview before returning to UI. The [gallery](screenshots.md) identifies
+the actual current captures and their provenance.
+
+Strict cleanup restored UI 14, OS 19, all 34 APKs apart from the intended UI
+upgrade, all readable providers, UID/grants/package and UID appops, network/audio
+settings, external backup/import bytes, preview cache bytes and package stopped
+flags after final provider reads. The temporary fixture was uninstalled and UI
+69 retained stopped with no PID. Final state was Google Home, no Dream, zero
+bound accessibility services and a stopped guard, with binding/crashed sets
+empty. No TV, reboot or ADB-server restart was used. These are emulator functional
+checks, not physical Fire OS Home, hardware-remote, Dream or performance claims.
+
+The full local suite has 55 Python cases: 49 executed and six device-only skips,
+plus standalone Java checks. Focused tests execute the actual HomeControl,
+package receiver and protected receiver, including each routing-write failure,
+mixed/missing preference rollback and rejected commits. Installer tests execute
+the actual script with isolated process boundaries: updates do not send a full
+Home operation, and rejected APK installs cannot proceed to grants, icons or Main.
+
 ## Fire TV UI 1.4.1, version code 40
 
 The final signed `ca1b8b5a191fbf5211d38fbb152267c793a37a8fe454db8f4a32ec2150e12446` build passed physical first-page Live TV artwork and placement, actual native GuideActivity launch, Back and injected Home returning to Main. A fresh baseline comparison preserved all 46 portable preferences, nine OS settings and byte-exact external backup/import files, with a healthy live guard and VPN. Native schedules were still loading; channel playback is not claimed. The final Main remained on its first page. The current README and all 39 gallery images loaded at 1920x1080 in browser reviews at 1280px and 320px; the current code 40 rows were visually checked without page overflow. The signed build and 30 local tests passed, with six native opt-in checks skipped.

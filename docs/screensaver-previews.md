@@ -85,3 +85,10 @@ The catalog pins the independently downloaded 1.0.1/code 2 APK, 2,569,417 bytes,
 The bundled image is the published 1.0.0/code 4 [clouds-only physical API 28 Dream capture](../art/screenshots/skycast-weather-clouds-only-fire-tv-api28-1920.png), resized only to 384x216. The silent sunset flight is by anotherview under CC BY 3.0; the full notice and license are available in the offline Preview media credits. The edited ambient loop does not depict the configured city or current conditions.
 
 Skycast Weather offers units, one/three/five/seven days, motion speed and Show weather, plus explicit city setup in its native Settings. Show weather Off removes all scene text and stops scene weather requests. No owner location or forecast is bundled into Fire TV UI. Weather/geocoding provider terms remain separate from the app's code license.
+
+
+## Nibbles HD 1.0
+
+The Nibbles HD preview is a plain 384x216 resize of the [physical native matte capture](../art/screenshots/nibbles-hd-physical-runtime-equivalent-1080p.png). The public 1.0.0/code 3 APK preserves the physically reviewed code 2 game, renderer, options, provider, Preview and Dream source and compiled classes. Exact code 3 settings, Preview/Back, offline credits, retained values and app-provided thumbnail passed on the API 34 emulator. The source and thumbnail hashes, SDK 23/36, eight-key settings schema and original signer are recorded in `app/previews/sources.json`.
+
+The catalog pins the anonymously downloaded signed APK at 41,727 bytes, SHA-256 `c49bc22e5cbf5067da4bbcb1cd63140d31b0a49a83f6826e111986ee4b7d7971`. Its native settings control speed, snake count, palette, stage, board scale, effects, lighting and randomization. Settings stay app-owned. The original Apache NOTICE and license are bundled in offline Preview media credits. [Tagged native evidence](https://github.com/jeremykenedy/nibbles-hd/blob/v1.0.0/docs/verification.md) preserves physical code 2 normal-idle and mixed pacing limits; neither this image nor a host preview proves physical code 3 Dream activation.
