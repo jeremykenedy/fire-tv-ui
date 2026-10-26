@@ -7,7 +7,7 @@ adb connect YOUR_TV_IP:5555
 python3 scripts/install.py --serial YOUR_TV_IP:5555
 ```
 
-The installer grants WRITE_SECURE_SETTINGS and the storage, usage and package-install access supported by the TV's Android version. It copies the shared icons, rebinds an already enabled Home service and opens Fire TV UI. Pass `--apk /path/to/fire-tv-ui-1.4.0.apk` to install a downloaded signed release instead of the locally built APK. Verify the release checksum first.
+The installer grants WRITE_SECURE_SETTINGS and the storage, usage and package-install access supported by the TV's Android version. It copies the shared icons, rebinds an already enabled Home service and opens Fire TV UI. Pass `--apk /path/to/fire-tv-ui-1.11.1.apk` to install a downloaded signed release instead of the locally built APK. Verify the release checksum first.
 
 Select **Settings > Screensavers**. Each row includes a sample image to help identify the screensaver. Selecting an app makes it the active TV screensaver and enables it. The On/Off control preserves the selected app while changing the enabled state.
 
@@ -19,7 +19,7 @@ New screensaver APKs can provide their own preview image through dream metadata.
 
 Fire OS can keep its protected Amazon launcher as the Home target. Fire TV UI includes a Home-button accessibility service that opens Fire TV UI when Amazon Home appears. It waits briefly during transitions to Amazon Settings so those settings remain reachable.
 
-Use **Settings > Startup and protection** to enable or disable startup and Home routing after the installer grants WRITE_SECURE_SETTINGS. This preserves unrelated accessibility services and rebinds the launcher services after updates and boot. Check Home, Amazon Settings, and reboot on the actual device. See [Device controls and backups](device-controls.md) for protection and update blocking.
+Use **Settings > Startup and protection** to enable or disable startup and Home routing after the installer grants WRITE_SECURE_SETTINGS. This preserves unrelated accessibility services and rebinds the launcher services after updates and boot. Check Home and Amazon Settings on the actual device. See [Device controls and backups](device-controls.md) for protection and update blocking.
 
 ## Transfer existing launcher settings
 

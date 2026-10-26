@@ -1,8 +1,24 @@
 # Screenshots
 
+## Fire TV UI 1.11.1, code 70
+
+Signed `14676d28` output on the API 34 TV emulator at native 1920x1080. Entry 36 is the verified public Lumen Breaker 1.0.0 release. Its thumbnail comes from an actual native code 3 capture. The host's Preview it action opened its real PreviewActivity for 40 seconds, and Back returned with Slot Vision still selected. Both launcher DEX files and all 35 previous catalog entries match public code 69.
+
+<table><tr>
+<td><img src="../art/screenshots/lumen-picker-ui1111-code70-api34.png" alt="Code 70 installed picker showing the full native Lumen thumbnail while Slot Vision stays selected"><br>Native picker image</td>
+<td><img src="../art/screenshots/lumen-catalog-ui1111-code70-api34.png" alt="Code 70 installation catalog showing Nibbles and the new Lumen Breaker entry with its description"><br>Catalog entry 36</td>
+<td><img src="../art/screenshots/lumen-preview-ui1111-code70-api34.png" alt="Lumen gameplay after the code 70 host opened its real native PreviewActivity"><br>Actual app Preview</td>
+</tr><tr>
+<td><img src="../art/screenshots/lumen-options-ui1111-code70-api34.png" alt="Lumen's declared native settings activity with ball speed, palette, formations, density and balls controls"><br>App-owned settings</td>
+<td><img src="../art/screenshots/lumen-notice-ui1111-code70-api34.png" alt="Code 70 offline reader shows the complete Lumen original-work notice"><br>Offline Lumen notice</td>
+</tr></table>
+
+Lumen's declared SettingsActivity was opened directly and returned with Back. The selected-saver Settings button continued to address Slot because Dream selection was preserved. The actual Advanced > Preview media credits route displayed the complete Lumen notice and scrolled through its Apache text. The native TextView exactly matched the bundled 11,358-character license body; this is content proof, not a claim that every license page was visually read. A poorly framed Apache-header image and an immediate Back capture holding a stale game surface are excluded. Back is established by the returned Activity and the separately settled picker image. All 14 UI preferences, 19 protected OS values, 34 APK identities, provider settings, grants, UID/appops modes, external files and stopped states were restored apart from the intended stopped UI 70 upgrade. [Capture provenance](../art/screenshots/ui1111-code70-provenance.json) records the unchanged raw bytes. These are native emulator packaging and routing captures; they add no physical Home, system Dream binding or performance claim. Earlier feature evidence remains below with its release identified.
+
+
 ## Fire TV UI 1.11.0, code 69
 
-Current signed `d5abce3b` output on the API 34 TV emulator at native 1920x1080. The catalog now has 35 entries and pins the verified public Nibbles HD 1.0.0 APK. Its thumbnail comes from actual physical gameplay, and Preview it opens the app's real PreviewActivity without changing the selected Slot Vision Dream.
+Signed `d5abce3b` output on the API 34 TV emulator at native 1920x1080. The catalog now has 35 entries and pins the verified public Nibbles HD 1.0.0 APK. Its thumbnail comes from actual physical gameplay, and Preview it opens the app's real PreviewActivity without changing the selected Slot Vision Dream.
 
 <table><tr>
 <td><img src="../art/screenshots/nibbles-catalog-ui111-code69-api34.png" alt="Code69 catalog showing the 35th entry, installed Nibbles HD"><br>New catalog entry</td>
