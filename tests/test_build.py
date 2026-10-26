@@ -120,7 +120,7 @@ class BuildChecks(unittest.TestCase):
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}
-        self.assertEqual(len(mapped), 25)
+        self.assertEqual(len(mapped), 26)
         private_or_missing = {'androsaver', 'aquarium-4k', 'aquarium-live', 'contour-flow',
                               'nebula-drift', 'skyburst-nocturne', 'snoozy', 'split-flap-drift'}
         self.assertFalse(private_or_missing.intersection(mapped))
@@ -198,6 +198,27 @@ class BuildChecks(unittest.TestCase):
                     self.assertEqual(archive.read('assets/screensaver-previews/' + filename),
                                      (ROOT / 'app/previews' / filename).read_bytes())
 
+    def test_weather_public_release_uses_current_native_preview_and_explicit_settings(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        entry = next(item for item in entries if item['id'] == 'skycast-weather')
+        self.assertEqual(entry['package'], 'com.jeremykenedy.skycastweather')
+        self.assertEqual(entry['dream'], entry['package'] + '/.WeatherDreamService')
+        self.assertEqual(entry['preview'], entry['package'] + '/.PreviewActivity')
+        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/skycast-weather/releases/download/v1.0.0/skycast-weather.apk')
+        self.assertEqual(entry['sha256'], 'b8680ebc7314e8687281e5d405aa84d1b0f38d1f6505193f652b96fc9cf0e7e0')
+        self.assertEqual(entry['bytes'], 39552020)
+        source = json.loads((ROOT / 'app/previews/sources.json').read_text())[full_component(entry['dream'])]
+        self.assertEqual(source['settings_keys'], ['units', 'days', 'motion', 'show_weather', 'location'])
+        self.assertFalse(source['randomizable'])
+        self.assertIn('overlay OFF', source['capture_note'])
+        self.assertEqual(hashlib.sha256((ROOT / source['source_file']).read_bytes()).hexdigest(), source['source_sha256'])
+        preview = ROOT / 'app/previews' / preview_file(entry['dream'])
+        self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), source['preview_sha256'])
+        notice = (ROOT / 'app/previews/licenses/skycast-weather-NOTICE.txt').read_text()
+        self.assertIn('anotherview', notice)
+        self.assertIn('Creative Commons Attribution 3.0', notice)
+
     def test_twilight_hearth_catalog_release_and_preview_are_pinned(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         entry = next(item for item in entries if item['id'] == 'twilight-hearth')
@@ -245,7 +266,7 @@ class BuildChecks(unittest.TestCase):
 
     def test_rainforest_update_preserves_identity_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
-        self.assertEqual(len(entries), 33)
+        self.assertEqual(len(entries), 34)
         entry = next(item for item in entries if item['id'] == 'rainforest-cascade')
         self.assertEqual(entry['package'], 'com.jeremykenedy.rainforestcascade')
         self.assertEqual(entry['dream'], 'com.jeremykenedy.rainforestcascade/.WaterfallDreamService')

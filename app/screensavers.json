@@ -391,5 +391,18 @@
     "sha256": "9e91b180c9f60748752612da496227e908b979c95f3c9e13930d4ce3ef108660",
     "bytes": 21234,
     "preview": "com.jeremykenedy.blackscreendream/.PreviewActivity"
+  },
+  {
+    "id": "skycast-weather",
+    "name": "Skycast Weather",
+    "package": "com.jeremykenedy.skycastweather",
+    "dream": "com.jeremykenedy.skycastweather/.WeatherDreamService",
+    "repo": "jeremykenedy/skycast-weather",
+    "tag": "v1.0.0",
+    "url": "https://github.com/jeremykenedy/skycast-weather/releases/download/v1.0.0/skycast-weather.apk",
+    "sha256": "b8680ebc7314e8687281e5d405aa84d1b0f38d1f6505193f652b96fc9cf0e7e0",
+    "bytes": 39552020,
+    "description": "Real sunset cloud flight with optional weather text, explicit city setup and one to seven forecast days. Hide weather for a text-free scene. The backdrop is not the city or current conditions.",
+    "preview": "com.jeremykenedy.skycastweather/.PreviewActivity"
   }
 ]

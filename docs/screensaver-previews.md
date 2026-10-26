@@ -2,7 +2,7 @@
 
 Each screensaver row shows a small sample beside its name. Screenshots captured for the device take priority, followed by bundled samples and the installed app's `android:previewImage` resource. An installed app without any image remains selectable and shows **Preview unavailable**.
 
-The bundled samples cover Amazon screensaver, Aerial Views, AndroSaver, Aquarium 4K, Aquarium Live, Cloud Drift Clock, Colors, Earthbound Orbit, Firefly Grove, Jellyfish Drift, Neon Corridor, Snoozy, Starfield Drift, Twilight Hearth, Nebula Drift, Vortex Spiral, Signal Rain, Retro Flight, Pipeworks Dream, Aqua Surface Drift, Perseid Passage, Split-Flap Drift, Canopy Drift, Contour Flow, Skyburst Nocturne, Pulse Circuit, Rain on Glass, Rainforest Cascade, Blue Meridian, Helios Lightfield, Slot Vision, and Hearth Presence. These are examples of the apps' output; the scene or animation can change with the app's configuration.
+The bundled samples cover Amazon screensaver, Aerial Views, AndroSaver, Aquarium 4K, Aquarium Live, Cloud Drift Clock, Colors, Earthbound Orbit, Firefly Grove, Jellyfish Drift, Neon Corridor, Snoozy, Starfield Drift, Twilight Hearth, Nebula Drift, Vortex Spiral, Signal Rain, Retro Flight, Pipeworks Dream, Aqua Surface Drift, Perseid Passage, Split-Flap Drift, Canopy Drift, Contour Flow, Skyburst Nocturne, Pulse Circuit, Rain on Glass, Rainforest Cascade, Blue Meridian, Helios Lightfield, Slot Vision, Hearth Presence, and Skycast Weather. These are examples of the apps' output; the scene or animation can change with the app's configuration.
 
 ## Running a preview
 
@@ -79,3 +79,9 @@ The catalog pins the published 2.0.0/code5 APK, 40,297,575 bytes, SHA-256 `abb8f
 Blue Meridian uses its unretouched [physical Fire TV API 30 Earth capture](../art/screenshots/blue-meridian-earth-fire-tv-api30-1920.png), resized to 384x216 for the picker. There is no NASA word or watermark painted on the scene. Its archival day, cloud and night-light imagery is attributed in the offline preview credits. The globe is not current weather; camera movement is gentle screen drift rather than orbital flight.
 
 The catalog pins the independently downloaded 1.0.1/code 2 APK, 2,569,417 bytes, SHA-256 `7f3b575f45d7afa5ca68ff8510d84f5b42c6ac6c3c21903628898f6a5dff5ec2`. Its existing package, production signer and seven stored settings remain unchanged.
+
+## Skycast Weather
+
+The bundled image is the published1.0.0/code4 [clouds-only physical API28 Dream capture](../art/screenshots/skycast-weather-clouds-only-fire-tv-api28-1920.png), resized only to384x216. The silent sunset flight is by anotherview under CC BY3.0; the full notice and license are available in the offline Preview media credits. The edited ambient loop does not depict the configured city or current conditions.
+
+Skycast Weather offers units, one/three/five/seven days, motion speed and Show weather, plus explicit city setup in its native Settings. Show weather Off removes all scene text and stops scene weather requests. No owner location or forecast is bundled into Fire TV UI. Weather/geocoding provider terms remain separate from the app's code license.

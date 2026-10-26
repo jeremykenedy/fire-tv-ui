@@ -224,6 +224,28 @@
     "source_project": "jeremykenedy/skyburst-nocturne",
     "source_sha256": "fd85a398b5463831a9e5419ff3c92c8507a0cbe34df5752e622ac1764c17f2e7"
   },
+  "com.jeremykenedy.skycastweather/com.jeremykenedy.skycastweather.WeatherDreamService": {
+    "attribution": "Sunset cloud film by anotherview, CC BY3.0; edited silent loop. See bundled skycast-weather-NOTICE.txt and complete CC BY3.0 license.",
+    "capture_note": "Actual final published Skycast Weather1.0.0/code4 physical API28 normal Dream, weather overlay OFF. Real sunset flight; text-free scene, resized only. Not a depiction of a configured city or current conditions.",
+    "captured_on": "2026-10-26",
+    "license": "CC-BY-3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/",
+    "preview_sha256": "01da379fb6150dd24ed906593bee625b18497a0d556205493657fc0fe4c05753",
+    "randomizable": false,
+    "settings_keys": [
+      "units",
+      "days",
+      "motion",
+      "show_weather",
+      "location"
+    ],
+    "settings_schema_count": 5,
+    "source_commit": "bd050295b6d74d9834c572fca51d702fd47942ad",
+    "source_file": "art/screenshots/skycast-weather-clouds-only-fire-tv-api28-1920.png",
+    "source_project": "jeremykenedy/skycast-weather",
+    "source_sha256": "8ba5c5e474792be5716b56b0e73b6fbc5580008e9dcf2f461ac1866649b81469",
+    "source_url": "https://raw.githubusercontent.com/jeremykenedy/skycast-weather/v1.0.0/art/screenshots/weather-clouds-only-physical-api28.png"
+  },
   "com.jeremykenedy.splitflapdrift/com.jeremykenedy.splitflapdrift.SplitFlapDreamService": {
     "capture_note": "Split-Flap Drift animation captured on Android TV emulator API 31 after the scene settled.",
     "captured_on": "2026-10-09",

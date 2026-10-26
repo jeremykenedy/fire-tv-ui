@@ -143,7 +143,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-The unreleased 1.10.0/code 66 candidate on an API 34 TV emulator, using safe sample feeds. Each top-level card stays in position while its child title and artwork change. The [full gallery](docs/screenshots.md) includes current menus, optional animated backgrounds and the published 1.9.2 preview controls. Physical checks for this candidate are still pending.
+The unreleased 1.10.0/code 66 candidate on an API 34 TV emulator, using safe sample feeds. Each top-level card stays in position while its child title and artwork change. The [full gallery](docs/screenshots.md) includes current menus, optional animated backgrounds and the published 1.9.2 preview controls. The original Fire TV passed shared screensaver controls, real source visibility and normal five-minute idle activation with particles enabled. The new Weather catalog row remains under final integration checks.
 
 <p align="center"><img src="art/screenshots/fixed-feeds-next-ui110-api34.png" alt="Fire TV UI candidate fixed feed positions with coherent next-title sample artwork" width="900"></p>
 
