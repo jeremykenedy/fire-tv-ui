@@ -71,6 +71,7 @@ class DeviceSettings {
             'com/jeremykenedy/firetv/ui/StagedUiUpdate.java': 'package com.jeremykenedy.firetv.ui; class StagedUiUpdate { static void stage(android.content.Context c){} }',
             'com/jeremykenedy/firetv/ui/BackupStore.java': 'package com.jeremykenedy.firetv.ui; class BackupStore { static void save(android.content.Context c){} static void restore(android.content.Context c,boolean imported){} static void simpleSetup(android.content.Context c){} }',
             'com/jeremykenedy/firetv/ui/RecommendationService.java': 'package com.jeremykenedy.firetv.ui; class RecommendationService { static void setEnabled(android.content.Context c,boolean enabled){} }',
+            'com/jeremykenedy/firetv/ui/BundledIcons.java': 'package com.jeremykenedy.firetv.ui; class BundledIcons { static int attempts; static void afterUpdate(android.content.BroadcastReceiver r,android.content.Context c){attempts++;} }',
             'com/jeremykenedy/firetv/ui/HomeRedirectService.java': 'package com.jeremykenedy.firetv.ui; class HomeRedirectService {}',
         }
         check = '''package com.jeremykenedy.firetv.ui;
@@ -117,7 +118,9 @@ public final class BootReceiverTest {
   }
 
   settings(OTHER);c=mixed(true);before=new HashMap<>(c.prefs.values);DeviceSettings.writable=false;
+  int priorIcons=BundledIcons.attempts;
   receiver.onReceive(c,new Intent(Intent.ACTION_MY_PACKAGE_REPLACED));same(c.prefs.values,before,"Missing permission changed choices");
+  same(BundledIcons.attempts,priorIcons+1,"Icon attempt must not require secure-settings access");
   same(DeviceSettings.repairs,0,"Missing permission repaired");same(Settings.Secure.writes,0,"Missing permission wrote settings");
 
   settings(OTHER);c=new Context();same(HomeControl.enabledPreferenceState(c),"home-preference=unset","Missing state");

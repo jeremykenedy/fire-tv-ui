@@ -2,7 +2,9 @@
 """Apply checked changes to the pinned launcher before packaging."""
 
 import json
+import hashlib
 from pathlib import Path
+from install_icons import icon_files
 import re
 import shutil
 import xml.etree.ElementTree as ET
@@ -815,8 +817,14 @@ def patch(decoded):
     for image in (ROOT / 'app/native-tiles').glob('*.png'):
         shutil.copy(image, decoded / 'assets/native-tiles' / image.name)
     (decoded / 'assets/input-icons').mkdir(exist_ok=True)
-    for icon in ('xbox-one.png', 'wii-u.png'):
-        shutil.copy(ROOT / 'icons' / icon, decoded / 'assets/input-icons' / icon)
+    icon_manifest = []
+    for icon in icon_files():
+        shutil.copy(icon, decoded / 'assets/input-icons' / icon.name)
+        icon_manifest.append({'file': icon.name, 'bytes': icon.stat().st_size,
+                              'sha256': hashlib.sha256(icon.read_bytes()).hexdigest()})
+    (decoded / 'assets/input-icons/manifest.json').write_text(json.dumps(icon_manifest))
+    shutil.copy(ROOT / 'icons/NOTICE.txt', decoded / 'assets/input-icons/NOTICE.txt')
+    shutil.copy(ROOT / 'icons/catalog.json', decoded / 'assets/input-icons/catalog.json')
     shutil.copy(ROOT / 'app/screensavers.json', decoded / 'assets/screensavers.json')
     shutil.copy(ROOT / 'app/preference-types.json', decoded / 'assets/preference-types.json')
 
