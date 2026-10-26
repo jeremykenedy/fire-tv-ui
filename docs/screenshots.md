@@ -1,5 +1,21 @@
 # Screenshots
 
+## Fire TV UI 1.9.1, code 59
+
+Actual signed `2ac87445` output on the API 34 emulator. The catalog pins the public Cloud Drift Clock 2.0.0 and Blue Meridian 1.0.1 APKs. The installed picker loads their real native captures while Slot Vision stays selected. Cloud was initially absent, temporarily installed from its verified public release for this check, then removed to restore that absence. No account or existing screensaver settings were changed.
+
+<table><tr>
+<td><img src="../art/screenshots/screensavers-ui-1.9.1-api34.png" alt="Current installed picker showing the new real Cloud and Blue previews with Slot Vision still selected"><br>Real picker previews</td>
+<td><img src="../art/screenshots/cloud-catalog-ui-1.9.1-api34.png" alt="Cloud Drift Clock 2.0.0 catalog entry with accurate real-flight description"><br>Cloud public catalog</td>
+<td><img src="../art/screenshots/blue-catalog-ui-1.9.1-api34.png" alt="Blue Meridian installed entry with archival Earth imagery and gentle screen-drift description"><br>Blue public catalog</td>
+</tr><tr>
+<td><img src="../art/screenshots/cloud-2-settings-api34.png" alt="Cloud Drift Clock 2.0 native playback and clock settings without inactive palette or density widgets"><br>Cloud native controls</td>
+<td><img src="../art/screenshots/preview-credits-ui-1.9.1-api34.png" alt="Current offline preview attribution and full license reader"><br>Offline media credits</td>
+<td><img src="../art/screenshots/preview-credits-scroll-ui-1.9.1-api34.png" alt="Full bundled license text scrolling with the TV remote"><br>Remote scrolling</td>
+</tr></table>
+
+The Cloud settings image is that screensaver's own native activity. Fire TV UI's Screensaver settings action resolves the app-provided activity rather than inventing a generic scene editor. The credits reader opened, scrolled with the D-pad and closed with Back. All 14 portable preferences, 11 OS values, external backup bytes, storage appop and actual accessibility state were restored, with the guard stopped and the emulator alive at its prior Home. Hearth and preexisting fixtures were left untouched.
+
 ## Fire TV UI 1.9.0, code 57
 
 Actual signed `be47742d` API 34 public self-update check before publication. The previous stable 1.8.0 APK was downloaded and verified, its compiled code 53 appeared, and the newer installed 1.9.0 build was preserved. No installation was requested.
