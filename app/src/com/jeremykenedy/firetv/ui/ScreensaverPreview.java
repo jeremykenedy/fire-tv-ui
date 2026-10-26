@@ -4,8 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.provider.Settings;
 
 /** Opens reviewed app previews without changing the system screensaver selection. */
@@ -31,8 +29,13 @@ public final class ScreensaverPreview {
             }
         }
         ComponentName starter = new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator");
-        if (!canLaunch(context, starter)) {
-            throw new IllegalStateException("This screensaver does not expose a preview on this TV. Open its settings to check its preview options.");
+        if (!ScreensaverControls.canLaunch(context, starter)) {
+            Intent controls = ScreensaverControls.resolve(context, component);
+            if (controls == null) {
+                throw new IllegalStateException("This screensaver does not expose a preview or accessible preview controls on this TV.");
+            }
+            context.startActivity(controls);
+            return;
         }
         if (!DeviceSettings.canWrite(context)) {
             throw new IllegalStateException("System screensaver previews require the existing screensaver settings access.");
@@ -53,6 +56,15 @@ public final class ScreensaverPreview {
         }
     }
 
+    public static String actionLabel(Context context, String component, boolean toolbar) {
+        boolean direct = appPreview(context, component) != null || ScreensaverControls.canLaunch(context,
+                new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator"));
+        if (direct) {
+            return toolbar ? "Preview screensaver" : "Preview it";
+        }
+        return ScreensaverControls.resolve(context, component) == null ? "Preview unavailable" : "Preview controls";
+    }
+
     private static ComponentName appPreview(Context context, String dream) {
         ComponentName selected = ComponentName.unflattenFromString(dream);
         try {
@@ -63,7 +75,7 @@ public final class ScreensaverPreview {
                 ComponentName preview = ComponentName.unflattenFromString(entry.preview);
                 if (preview != null && selected != null
                         && selected.getPackageName().equals(preview.getPackageName())
-                        && canLaunch(context, preview)) {
+                        && ScreensaverControls.canLaunch(context, preview)) {
                     return preview;
                 }
             }
@@ -71,17 +83,6 @@ public final class ScreensaverPreview {
             throw new IllegalStateException("The screensaver preview catalog could not be read.", unavailable);
         }
         return null;
-    }
-
-    private static boolean canLaunch(Context context, ComponentName component) {
-        try {
-            ActivityInfo activity = context.getPackageManager().getActivityInfo(component, 0);
-            return activity.enabled && activity.exported && activity.applicationInfo.enabled
-                    && (activity.permission == null || activity.permission.isEmpty()
-                            || context.checkSelfPermission(activity.permission) == PackageManager.PERMISSION_GRANTED);
-        } catch (PackageManager.NameNotFoundException | SecurityException unavailable) {
-            return false;
-        }
     }
 
     public static void restore(Context context) {
