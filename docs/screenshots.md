@@ -1,5 +1,20 @@
 # Screenshots
 
+## Fire TV UI 1.11.0, code 69
+
+Current signed `d5abce3b` output on the API 34 TV emulator at native 1920x1080. The catalog now has 35 entries and pins the verified public Nibbles HD 1.0.0 APK. Its thumbnail comes from actual physical gameplay, and Preview it opens the app's real PreviewActivity without changing the selected Slot Vision Dream.
+
+<table><tr>
+<td><img src="../art/screenshots/nibbles-catalog-ui111-code69-api34.png" alt="Code69 catalog showing the 35th entry, installed Nibbles HD"><br>New catalog entry</td>
+<td><img src="../art/screenshots/nibbles-preview-ui111-code69-api34.png" alt="Actual Nibbles HD native game opened by the code 69 Preview action"><br>Native Preview</td>
+<td><img src="../art/screenshots/nibbles-options-ui111-code69-api34.png" alt="Nibbles HD's declared settings activity with its own game and appearance controls"><br>App-owned settings</td>
+</tr><tr>
+<td><img src="../art/screenshots/nibbles-credits-ui111-code69-api34.png" alt="Code69 offline reader showing the Nibbles original-work notice"><br>Nibbles notice</td>
+<td><img src="../art/screenshots/nibbles-license-ui111-code69-api34.png" alt="Code69 offline reader showing the full bundled Nibbles Apache license"><br>Full license</td>
+</tr></table>
+
+The declared Nibbles settings activity was opened directly, navigated with the D-pad and closed with Back. The selected-saver Settings button remained associated with Slot because the gate did not change Dream selection. Both new offline texts opened through Advanced and scrolled with D-pad/Page Down. The actual 68-to-69 update preserved mixed Home values and a missing override key before Main initialization. Permission-denied Home on/off restored all four prior values and key presence. All 14 UI preferences, 19 OS values, 34 APK identities, readable providers, grants, appops, cached images, external files and stopped states were restored apart from the intended stopped UI 69 upgrade. [Capture provenance](../art/screenshots/ui111-code69-provenance.json) records unchanged raw images. These emulator checks do not establish physical Fire OS Home behavior, a new Dream binding result or performance. The sections below preserve historical feature evidence for their named releases.
+
 ## Fire TV UI 1.10.1, code 68
 
 Current signed `ab7b5019` output on the API 34 TV emulator. The catalog still has 34 entries, with the verified public Hearth Presence and Prism Clock 1.1.0 APKs. Both launcher DEX files match public code 67. The picker uses current physical thumbnails. Screensaver settings opened each app's real native controls: Hearth retains eleven provider rows and Prism has twelve, including independent, nonrandom Show clock. These images are emulator output; they do not establish physical performance or system Dream binding.
