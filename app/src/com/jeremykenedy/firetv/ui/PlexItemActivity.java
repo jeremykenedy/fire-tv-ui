@@ -13,7 +13,6 @@ import java.util.List;
 public final class PlexItemActivity extends CardActivity {
     private TextView details;
     private TextView open;
-    private TextView resume;
     private String source;
     private String id;
     private long request;
@@ -32,22 +31,11 @@ public final class PlexItemActivity extends CardActivity {
                         new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                readItem(true, false);
-                            }
-                        });
-        resume =
-                button(
-                        "Resume in Plex",
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                readItem(true, true);
+                                readItem(true);
                             }
                         });
         addButton(body, open);
-        addButton(body, resume);
         open.setVisibility(View.GONE);
-        resume.setVisibility(View.GONE);
         Uri uri = getIntent().getData();
         if (uri == null
                 || !"firetvui".equals(uri.getScheme())
@@ -61,14 +49,13 @@ public final class PlexItemActivity extends CardActivity {
         source = uri.getPathSegments().get(1);
         id = uri.getPathSegments().get(2);
         request = PlexSession.begin();
-        readItem(false, false);
+        readItem(false);
     }
 
-    private void readItem(boolean launch, boolean resumePlayback) {
+    private void readItem(boolean launch) {
         if (reading || !PlexSession.current(request)) return;
         reading = true;
         open.setVisibility(View.GONE);
-        resume.setVisibility(View.GONE);
         new Thread(
                         new Runnable() {
                             @Override
@@ -110,7 +97,6 @@ public final class PlexItemActivity extends CardActivity {
                                     }
                                     PlexLibrary.Item item = items.get(0);
                                     String detailsLink = PlexItemLinks.details(machine, item);
-                                    String resumeLink = PlexItemLinks.resume(machine, item);
                                     runOnUiThread(
                                             new Runnable() {
                                                 @Override
@@ -118,13 +104,13 @@ public final class PlexItemActivity extends CardActivity {
                                                     if (!active()) return;
                                                     reading = false;
                                                     details.setText(
-                                                            item.title + "\n\n" + item.summary);
+                                                            item.title
+                                                                    + "\n\n"
+                                                                    + item.summary
+                                                                    + PlexItemLinks.savedProgress(
+                                                                            item));
                                                     open.setVisibility(
                                                             detailsLink == null
-                                                                    ? View.GONE
-                                                                    : View.VISIBLE);
-                                                    resume.setVisibility(
-                                                            resumeLink == null
                                                                     ? View.GONE
                                                                     : View.VISIBLE);
                                                     if (detailsLink == null) {
@@ -134,19 +120,7 @@ public final class PlexItemActivity extends CardActivity {
                                                                     + " in Plex. Refresh your"
                                                                     + " library cards.");
                                                     } else if (launch) {
-                                                        String link =
-                                                                resumePlayback
-                                                                        ? resumeLink
-                                                                        : detailsLink;
-                                                        if (link == null) {
-                                                            details.append(
-                                                                    "\n\n"
-                                                                        + "This item no longer has"
-                                                                        + " a saved playback"
-                                                                        + " position to resume.");
-                                                        } else {
-                                                            openItem(link);
-                                                        }
+                                                        openItem(detailsLink);
                                                     }
                                                 }
                                             });
