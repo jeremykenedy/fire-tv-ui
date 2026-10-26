@@ -315,7 +315,9 @@ public final class ScreensaverActivity extends CardActivity {
                 preview(choice.component);
             }
         });
-        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(142), dp(42));
+        tryIt.setSingleLine(true);
+        tryIt.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(210), dp(42));
         previewParams.setMargins(dp(6), dp(6), dp(8), dp(6));
         row.addView(tryIt, previewParams);
         focusTargets.put("preview:" + choice.component, tryIt);
