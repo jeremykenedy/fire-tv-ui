@@ -13,6 +13,7 @@ import java.util.List;
 public final class ScreensaverCatalog {
     public static final class Entry {
         public final String name;
+        public final String description;
         public final String pkg;
         public final String url;
         public final String sha256;
@@ -24,6 +25,7 @@ public final class ScreensaverCatalog {
 
         Entry(JSONObject value) throws Exception {
             name = value.getString("name");
+            description = value.optString("description", "");
             pkg = value.getString("package");
             url = value.getString("url");
             sha256 = value.getString("sha256");
@@ -45,6 +47,7 @@ public final class ScreensaverCatalog {
 
         JSONObject json() throws Exception {
             return new JSONObject().put("name", name).put("package", pkg).put("repo", repo)
+                    .put("description", description)
                     .put("dream", dream).put("preview", preview).put("url", url)
                     .put("sha256", sha256).put("bytes", bytes).put("tag", tag);
         }

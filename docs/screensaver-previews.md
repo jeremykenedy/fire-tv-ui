@@ -46,3 +46,9 @@ The isolated integration candidate 1.3.0/code 34, SHA-256 e65025fc2199fc3a1107ea
 ## Prism Clock published preview
 
 Prism Clock uses the [unretouched physical silver capture](../art/screenshots/prism-clock-fire-tv-silver-1920.png) of v1.0.0 on the Fire TV AFTDEC012E, Android 11/API 30 at 1920x1080. The catalog pins its verified public APK, 127,947 bytes with SHA-256 edbf475c4a2b253ccc069adaee8cac2cbba4d16b5579d5299e2e2d1bdaa21fd5. The 384x216 bundled image is resized from that capture. Its installed settings interface is `content://com.jeremykenedy.prismclock.settings/schema` and `/settings`; the app provides eleven controls, a Settings activity and an explicit Preview activity. Registering it does not change the selected screensaver.
+
+## Cloud Drift Clock 2.0
+
+The Cloud Drift Clock preview now comes from its final physical Fire TV API 28 capture of the real sunset flight, with the clock off. The 384x216 thumbnail is resized from the unretouched [native capture](../art/screenshots/cloud-flight-fire-tv-api28-1920.png). The filmed scene is by anotherview under CC BY 3.0; its attribution and complete license are bundled in **Advanced > Preview media credits**.
+
+The catalog pins the published 2.0.0/code5 APK, 40,297,575 bytes, SHA-256 `abb8fdf3abdd1c94b95106b6bd0cbdf85822ccffd4caec9cdbd6dcb99919fae8`. The package, signer and CloudDreamService remain unchanged. Screensaver settings opens the app's native settings activity, which exposes seven effective controls for playback and the optional clock. The old palette and density values remain stored but are inactive and are not offered as visual effects. Updating the catalog does not change the selected screensaver or its configuration.

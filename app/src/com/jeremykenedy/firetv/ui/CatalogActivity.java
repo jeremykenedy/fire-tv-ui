@@ -66,6 +66,7 @@ public final class CatalogActivity extends CardActivity {
                 TextView label = text(entry.name + "  |  " + (installed ? "Installed" : entry.tag), 21, INK);
                 label.setPadding(0, dp(12), 0, dp(4));
                 rows.addView(label);
+                if (!entry.description.isEmpty()) rows.addView(text(entry.description, 14, MUTED));
                 rows.addView(text(installed ? PackageStorage.summary(this, entry.pkg)
                         : "Download " + PackageStorage.size(entry.bytes), 14, MUTED));
                 TextView action = button(installed ? "Uninstall " + entry.name : "Install " + entry.name,

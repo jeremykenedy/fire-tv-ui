@@ -249,7 +249,7 @@ class BuildChecks(unittest.TestCase):
             'cloud-drift-clock': (
                 'Cloud Drift Clock', 'com.jeremykenedy.clouddriftclock',
                 'com.jeremykenedy.clouddriftclock/.CloudDreamService', 'jeremykenedy/cloud-drift-clock',
-                '24a88c7bcc623b3c5822e4e251ad20c02853ac2c4c41b54ef8c57bbc736ae3d2', 320287),
+                'abb8fdf3abdd1c94b95106b6bd0cbdf85822ccffd4caec9cdbd6dcb99919fae8', 40297575),
             'earthbound-orbit': (
                 'Earthbound Orbit', 'com.jeremykenedy.earthboundorbit',
                 'com.jeremykenedy.earthboundorbit/.EarthboundOrbitDreamService',
@@ -295,7 +295,7 @@ class BuildChecks(unittest.TestCase):
             self.assertEqual(entry['package'], package)
             self.assertEqual(entry['dream'], dream)
             self.assertEqual(entry['repo'], repo)
-            release_tag = {name: 'v1.1.0' for name in ('cloud-drift-clock', 'pipeworks-dream', 'nebula-drift', 'aqua-surface', 'split-flap-drift', 'canopy-drift')}.get(identifier, 'v1.0.0')
+            release_tag = 'v2.0.0' if identifier == 'cloud-drift-clock' else {name: 'v1.1.0' for name in ('cloud-drift-clock', 'pipeworks-dream', 'nebula-drift', 'aqua-surface', 'split-flap-drift', 'canopy-drift')}.get(identifier, 'v1.0.0')
             self.assertEqual(entry['tag'], release_tag)
             asset = 'aqua-surface-drift.apk' if identifier == 'aqua-surface' else f'{identifier}.apk'
             self.assertEqual(entry['url'],
