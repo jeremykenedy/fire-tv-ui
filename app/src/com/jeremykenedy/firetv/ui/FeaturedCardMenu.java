@@ -31,25 +31,38 @@ public final class FeaturedCardMenu {
         }
         final long feed = channel;
         final String[] options = feed >= 0
-                ? new String[]{"Hide this card", "Manage this feed and card order", "Choose feeds and card settings", "Arrange top-level cards", "Cancel"}
-                : new String[]{"Hide this card", "Choose feeds and card settings", "Arrange top-level cards", "Cancel"};
+                ? new String[]{"Hide this card", "Next title in this feed", "Previous title in this feed", "Manage this feed and card order", "Choose feeds and card settings", "Arrange top-level cards", "Cancel"}
+                : new String[]{"Hide this card", "Next title in this feed", "Previous title in this feed", "Choose feeds and card settings", "Arrange top-level cards", "Cancel"};
+        FeaturedCardClock.pause();
         new AlertDialog.Builder(context)
+                .setOnDismissListener(new android.content.DialogInterface.OnDismissListener() {
+                    @Override public void onDismiss(android.content.DialogInterface dialog) {
+                        FeaturedCardClock.resume();
+                    }
+                })
                 .setTitle(card.title)
                 .setItems(
                         options,
                         new android.content.DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(android.content.DialogInterface dialog, int which) {
-                                if (feed >= 0 && which == 1) {
+                                String action = options[which];
+                                if (action.equals("Next title in this feed") || action.equals("Previous title in this feed")) {
+                                    FeaturedGroups.move(FeedOrder.key(context, card.source, feed),
+                                            action.startsWith("Next") ? 1 : -1);
+                                    FeaturedCardClock.changed();
+                                    return;
+                                }
+                                if (action.equals("Manage this feed and card order")) {
                                     ChannelCardsActivity.open(context, "Current feed", card.source,
                                             java.util.Collections.singletonList(feed));
                                     return;
                                 }
-                                if (which == (feed >= 0 ? 2 : 1)) {
+                                if (action.equals("Choose feeds and card settings")) {
                                     context.startActivity(new Intent(context, FeaturedCardsActivity.class));
                                     return;
                                 }
-                                if (which == (feed >= 0 ? 3 : 2)) {
+                                if (action.equals("Arrange top-level cards")) {
                                     context.startActivity(new Intent(context, FeedOrderActivity.class));
                                     return;
                                 }

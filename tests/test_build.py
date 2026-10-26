@@ -47,6 +47,27 @@ class BuildChecks(unittest.TestCase):
         self.assertIn('Appearance_Favorites', shortcut)
         self.assertNotIn('SharedPreferences', shortcut)
 
+    def test_grouped_cards_keep_positions_and_backgrounds_are_main_only(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the launcher before verifying actual native integration.')
+        built = classes(decoded)
+        rotation = built['LQ3/h8;'].read_text()
+        self.assertNotIn('LQ3/T3;->U(I)V', rotation)
+        self.assertNotIn('LQ3/T3;->t0:LN/g0;', rotation)
+        row = built['LQ3/r3;'].read_text()
+        self.assertLess(row.index('FeaturedGroupBridge;->current'), row.index('new-instance v9, LN4/k;'),
+                        'Both rendering and the existing click action must receive the current child.')
+        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
+        self.assertIn('FeaturedGroupBridge;->start', main)
+        self.assertIn('FeaturedCardClock;->stop', main)
+        self.assertIn('MenuBackgroundView;->resumed(Z)V', main)
+        background = built['LQ3/T5;'].read_text()
+        self.assertIn('MenuBackgroundLayer;->draw', background)
+        self.assertIn('if-nez v14, :goto_3', background)
+        manifest = (decoded / 'AndroidManifest.xml').read_text()
+        self.assertIn('MenuBackgroundActivity', manifest)
+
     def test_featured_setup_keeps_required_base_navigation_callbacks(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():
@@ -82,7 +103,10 @@ class BuildChecks(unittest.TestCase):
         mapper = classes_by_name['Landroid/support/v4/media/session/b;'].read_text()
         start = mapper.index('.method public static M(Ljava/util/List;Ljava/util/List;)Ljava/util/ArrayList;')
         mapper = mapper[start:mapper.index('.end method', start)]
-        self.assertIn('const/4 v13, 0x1', mapper, 'Keep the verified preview inclusion behavior unchanged.')
+        self.assertIn('FeaturedProgramMapper;->map', mapper)
+        programs = classes_by_name['Lcom/jeremykenedy/firetv/ui/FeaturedProgramMapper;'].read_text()
+        self.assertIn('const/4 v6, 0x1', programs, 'Keep the verified preview inclusion behavior unchanged.')
+        self.assertNotIn('const/16 v3, 0xa', programs, 'One app must not consume a global ten-item cap.')
 
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())

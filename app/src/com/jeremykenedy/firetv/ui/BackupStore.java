@@ -183,6 +183,18 @@ public final class BackupStore {
                             || !java.util.Arrays.asList(0, 5, 8, 15, 30).contains(value))) {
                 throw new JSONException("Invalid featured artwork rotation time.");
             }
+            if (MenuBackgroundOptions.STYLE.equals(key)
+                    && (!(value instanceof String) || !java.util.Arrays.asList(MenuBackgroundOptions.STYLES).contains(value))) {
+                throw new JSONException("Invalid animated menu background.");
+            }
+            if (MenuBackgroundOptions.SPEED.equals(key)
+                    && (!(value instanceof Integer) || MenuBackgroundOptions.speed((Integer) value) != (Integer) value)) {
+                throw new JSONException("Invalid menu animation speed.");
+            }
+            if ((MenuBackgroundOptions.INTENSITY.equals(key) || MenuBackgroundOptions.BRIGHTNESS.equals(key))
+                    && (!(value instanceof Integer) || MenuBackgroundOptions.level((Integer) value) != (Integer) value)) {
+                throw new JSONException("Invalid menu animation level.");
+            }
             String expected = schema.optString(key, "");
             if ("Float".equals(expected) && value instanceof Number) {
                 value = ((Number) value).floatValue();

@@ -78,5 +78,9 @@
   "use_24h_clock": "Boolean",
   "white_border": "Boolean",
   "widgets_config": "String",
-  "won": "Boolean"
+  "won": "Boolean",
+  "menu_animation": "String",
+  "menu_animation_speed": "Int",
+  "menu_animation_intensity": "Int",
+  "menu_animation_brightness": "Int"
 }

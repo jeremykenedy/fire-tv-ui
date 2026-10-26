@@ -3,6 +3,10 @@
 
 .method public static order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;
     .locals 7
+    invoke-static {p0, p1}, Lcom/jeremykenedy/firetv/ui/FeaturedProgramMapper;->labels(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;
+    move-result-object p1
+    invoke-static {p0, p1}, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->group(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;
+    move-result-object p1
     new-instance v0, Ljava/util/ArrayList;
     invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
     invoke-interface {p1}, Ljava/util/List;->iterator()Ljava/util/Iterator;

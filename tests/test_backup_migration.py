@@ -113,6 +113,7 @@ final class EquipmentControl { static final String REMOTE="fire_tv_ui_equipment_
             subprocess.run(['javac', '-cp', str(jar), '-d', temp, *files,
                             os.environ.get('BACKUP_STORE_SOURCE', str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/BackupStore.java')),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/CardOrderRules.java'),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/MenuBackgroundOptions.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java'),
                             str(ROOT / 'tests/BackupMigrationTest.java')], check=True)
             subprocess.run(['java', '-cp', temp + os.pathsep + str(jar),
