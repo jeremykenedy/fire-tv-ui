@@ -75,7 +75,7 @@ public final class FeedOrder {
         return result;
     }
 
-    private static String appName(Context context, String source) {
+    public static String appName(Context context, String source) {
         try { return context.getPackageManager().getApplicationLabel(
                 context.getPackageManager().getApplicationInfo(source, 0)).toString(); }
         catch (Exception unavailable) { return "Unavailable app"; }

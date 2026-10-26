@@ -148,6 +148,11 @@ public final class DeviceSettings {
         return Settings.System.getInt(context.getContentResolver(), IDLE, 300000);
     }
 
+    public static boolean launcherIdleEnabled() {
+        ContentResolver resolver = launcherResolver;
+        return resolver != null && isEnabled(resolver);
+    }
+
     public static long launcherIdleDelay() {
         ContentResolver resolver = launcherResolver;
         int delay = resolver == null ? 300000 : Settings.System.getInt(resolver, IDLE, 300000);

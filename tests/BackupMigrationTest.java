@@ -92,6 +92,21 @@ public final class BackupMigrationTest {
             try { BackupStore.restore(context, true); throw new AssertionError("Invalid hidden identity accepted"); }
             catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
         }
+        for (String key : new String[]{"menu_animation", "menu_animation_speed", "menu_animation_intensity", "menu_animation_brightness"}) {
+            Object invalid = key.equals("menu_animation") ? "unknown-style" : 6;
+            Files.writeString(BackupStore.file(true).toPath(), new JSONObject().put(key, invalid).toString());
+            try { BackupStore.restore(context, true); throw new AssertionError("Invalid animation accepted"); }
+            catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
+        }
+        JSONObject animation = new JSONObject().put("menu_animation", "aurora")
+                .put("menu_animation_speed", 25).put("menu_animation_intensity", 75)
+                .put("menu_animation_brightness", 50);
+        Files.writeString(BackupStore.file(true).toPath(), animation.toString());
+        BackupStore.restore(context, true);
+        check(context.prefs.values.get("menu_animation").equals("aurora"));
+        check(context.prefs.values.get("menu_animation_speed").equals(25));
+        Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).toString());
+        BackupStore.restore(context, true);
         for (Object invalid : new Object[] {-1, 6, 3600000, "5"}) {
             Files.writeString(BackupStore.file(true).toPath(), new JSONObject()
                     .put("featured_rotation_seconds", invalid).toString());

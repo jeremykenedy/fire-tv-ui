@@ -79,7 +79,7 @@ public final class FeaturedCardsActivity extends CardActivity {
                             }
                         });
         addButton(body, rotation);
-        body.addView(text("Rotation controls artwork in Big picture wallpaper mode.", 17, MUTED));
+        body.addView(text("Each app or channel stays in place and rotates its own visible titles. Manual only stops automatic title changes.", 17, MUTED));
 
         addButton(
                 body,
@@ -168,7 +168,7 @@ public final class FeaturedCardsActivity extends CardActivity {
                                 : "On"));
         artwork.setText("Artwork: " + (fit(this) ? "Fit entire image" : "Fill card (crop edges)"));
         rotation.setText(
-                "Big-picture artwork rotation: "
+                "Titles inside each card: "
                         + FeaturedCardTiming.label(
                                 DeviceSettings.prefs(this).getInt(FeaturedCardTiming.SETTING, 8)));
     }
@@ -184,7 +184,7 @@ public final class FeaturedCardsActivity extends CardActivity {
             if (FeaturedCardTiming.OPTIONS[i] == current) selected = i;
         }
         new android.app.AlertDialog.Builder(this)
-                .setTitle("Big-picture artwork rotation")
+                .setTitle("Titles inside each card")
                 .setSingleChoiceItems(
                         labels,
                         selected,

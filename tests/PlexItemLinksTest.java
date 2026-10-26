@@ -2,9 +2,6 @@ package com.jeremykenedy.firetv.ui;
 
 import org.json.JSONObject;
 
-import java.net.URI;
-import java.net.URLDecoder;
-
 public final class PlexItemLinksTest {
     public static void main(String[] args) throws Exception {
         PlexLibrary.Item movie = item("movie", "/library/metadata/42", 123456, 600000, true);
@@ -23,24 +20,23 @@ public final class PlexItemLinksTest {
                         .equals(
                                 "plex://libraries/server_A-12/unmatched/tv/%2Flibrary%2Fmetadata%2F42"),
                 "A show's children key must open that exact show's details, not its children"
-                    + " path.");
-        String resume = PlexItemLinks.resume("server_A-12", episode);
-        String query = new URI(resume).getRawQuery();
-        check(query.endsWith("&offset=123"), "Resume must floor real milliseconds to seconds.");
-        check(
-                URLDecoder.decode(query.substring(4, query.indexOf('&')), "UTF-8")
-                        .equals(
-                                "server://server_A-12/com.plexapp.plugins.library/library/metadata/42"),
-                "Playback must identify the exact library item without server credentials.");
+                        + " path.");
         check(
                 !details.equals(PlexItemLinks.details("other_server", movie)),
                 "Items with the same rating key on different servers must remain distinct.");
         check(
-                PlexItemLinks.resume(
-                                "server_A-12",
-                                item("movie", "/library/metadata/42", 999, 5000, true))
-                        .endsWith("&offset=0"),
-                "A subsecond saved offset must not be rounded into a later playback position.");
+                PlexItemLinks.savedProgress(episode)
+                        .equals("\n\nSaved progress: 2:03 of 10:00. Open Plex to choose playback."),
+                "Saved metadata must describe progress without advertising automatic playback.");
+        check(
+                PlexItemLinks.savedProgress(
+                                item("movie", "/library/metadata/42", 3723999, 7200000, false))
+                        .contains("1:02:03 of 2:00:00"),
+                "Long saved positions must preserve hours and floor fractional seconds.");
+        check(
+                PlexItemLinks.savedProgress(item("movie", "/library/metadata/42", 999, 5000, true))
+                        .contains("0:00 of 0:05"),
+                "A subsecond saved position must not be rounded forward.");
         for (String key :
                 new String[] {
                     "",
@@ -51,30 +47,28 @@ public final class PlexItemLinksTest {
                 }) {
             PlexLibrary.Item invalid = item("movie", key, 1000, 5000, true);
             check(
-                    PlexItemLinks.details("server_A-12", invalid) == null
-                            && PlexItemLinks.resume("server_A-12", invalid) == null,
+                    PlexItemLinks.details("server_A-12", invalid) == null,
                     "Metadata keys must match the selected item exactly and contain no"
-                        + " credentials.");
+                            + " credentials.");
         }
         for (String machine :
                 new String[] {"", "bad/server", "server?token=example", "server#fragment"}) {
             check(
-                    PlexItemLinks.details(machine, movie) == null
-                            && PlexItemLinks.resume(machine, movie) == null,
+                    PlexItemLinks.details(machine, movie) == null,
                     "Server identity must not inject another route, query, or fragment.");
         }
-        for (PlexLibrary.Item noResume :
+        for (PlexLibrary.Item noProgress :
                 new PlexLibrary.Item[] {
                     item("show", "/library/metadata/42", 1000, 5000, true),
-                    item("movie", "/library/metadata/42", 1000, 5000, false),
+                    null,
                     item("movie", "/library/metadata/42", 0, 5000, true),
                     item("episode", "/library/metadata/42", 5000, 5000, true),
                     item("movie", "/library/metadata/42", 5001, 5000, true),
                     item("movie", "/library/metadata/42", 1000, 0, true)
                 }) {
             check(
-                    PlexItemLinks.resume("server_A-12", noResume) == null,
-                    "Only playable movies or episodes with a real unfinished position can resume.");
+                    PlexItemLinks.savedProgress(noProgress).isEmpty(),
+                    "Only unfinished movies or episodes with saved positions show progress.");
         }
     }
 

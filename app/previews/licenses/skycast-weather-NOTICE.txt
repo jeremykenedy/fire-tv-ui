@@ -1,0 +1,38 @@
+Skycast Weather
+Copyright 2026 Jeremy Kenedy
+
+Build and installer scaffolding adapted from Prism Clock by Jeremy Kenedy,
+Apache License 2.0. Modified for the Skycast Weather package.
+
+Weather content is supplied by Open-Meteo, https://open-meteo.com/,
+under Creative Commons Attribution 4.0. Forecast presentation converts units,
+selects the requested day range, and omits unavailable fields. The free API
+endpoint is restricted to noncommercial use under its service terms.
+https://open-meteo.com/en/terms
+https://creativecommons.org/licenses/by/4.0/
+
+City search uses Open-Meteo's geocoding API, with location data based on
+GeoNames, https://www.geonames.org/. Provider attribution and current terms:
+https://open-meteo.com/en/docs/geocoding-api
+
+The source-code license does not remove the content provider's conditions.
+
+Sunset cloud flight
+Film: breathtaking sunset and cloudsurfing lake Lucerne (Vierwaldstaettersee) 4k cinematic DJI fpv oneshot
+Creator: anotherview
+https://www.youtube.com/@anotherview1
+Source: https://www.youtube.com/watch?v=kKPvF0rwqHA
+License: Creative Commons Attribution 3.0
+https://creativecommons.org/licenses/by/3.0/
+Changes: no audio; source 213.5-248.7 seconds, 1.2-second editorial dissolve,
+34-second loop; actual 2160p25 source encoded at 1080p25 and 720p25.
+
+The primary upload explicitly states Creative Commons Attribution reuse allowed.
+This is an edited loop of real flight, not a naturally closed camera path.
+Source lighting, cloud cover and camera banking are retained. Playback speed
+changes timing; it does not add unique source frames. The film has 25 unique source frames per second. Slowing playback
+retains those frames for longer. No music or other source audio is included.
+
+This film is an ambient backdrop; it does not depict the selected city or current forecast.
+
+Fire TV UI preview: an unretouched native clouds-only normal Dream capture, resized to384x216. No city/forecast data is painted into this thumbnail. Complete CC BY3.0 text is bundled in cloud-drift-clock-CC-BY-3.0.txt.

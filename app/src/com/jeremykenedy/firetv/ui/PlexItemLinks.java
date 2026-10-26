@@ -2,6 +2,7 @@ package com.jeremykenedy.firetv.ui;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Locale;
 
 final class PlexItemLinks {
     private PlexItemLinks() {}
@@ -15,20 +16,25 @@ final class PlexItemLinks {
                 + encode("/library/metadata/" + item.id);
     }
 
-    static String resume(String machine, PlexLibrary.Item item) {
-        if (!valid(machine, item) || !canResume(item)) return null;
-        return "plex://watch/video?uri="
-                + encode("server://" + machine + "/com.plexapp.plugins.library" + item.key)
-                + "&offset="
-                + item.position / 1000;
+    static String savedProgress(PlexLibrary.Item item) {
+        if (item == null
+                || !("movie".equals(item.type) || "episode".equals(item.type))
+                || item.position <= 0
+                || item.duration <= item.position) return "";
+        return "\n\nSaved progress: "
+                + time(item.position)
+                + " of "
+                + time(item.duration)
+                + ". Open Plex to choose playback.";
     }
 
-    static boolean canResume(PlexLibrary.Item item) {
-        return item != null
-                && ("movie".equals(item.type) || "episode".equals(item.type))
-                && item.playable
-                && item.position > 0
-                && item.duration > item.position;
+    private static String time(long milliseconds) {
+        long seconds = milliseconds / 1000;
+        if (seconds >= 3600) {
+            return String.format(
+                    Locale.ROOT, "%d:%02d:%02d", seconds / 3600, seconds / 60 % 60, seconds % 60);
+        }
+        return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
     }
 
     private static boolean valid(String machine, PlexLibrary.Item item) {

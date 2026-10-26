@@ -6,7 +6,7 @@
 <p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
 
 <p align="center">
-    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.9.2-blue" alt="Build version"></a>
+    <a href="#building"><img src="https://img.shields.io/badge/Fire_TV_UI-v1.10.0-blue" alt="Build version"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"></a>
 </p>
 
@@ -38,9 +38,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.9.2.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.10.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.9.2.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.10.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -64,7 +64,8 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | Feature | What it does | Guide |
 | --- | --- | --- |
 | Home layout | Arrange apps, folders, favorites, channels and custom icons. | [Configuration](docs/configuration.md) |
-| Featured cards | Order feeds and items, hide individual cards, and add authorized Plex Home profiles. | [Featured cards](docs/featured-cards.md) |
+| Featured cards | Keep feeds fixed while their titles rotate; order or hide items and add authorized Plex profiles. | [Featured cards](docs/featured-cards.md) |
+| Animated backgrounds | Optional particles, ribbons, connected lights or prism effects behind Main. | [Animated backgrounds](docs/animated-backgrounds.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
 | Screensavers | Select, preview, configure and install reviewed screensaver releases. | [Screensavers](docs/device-controls.md#screensavers) |
 | Launcher idle | Follow the selected TV screensaver when the launcher is idle. | [Platform limits](docs/device-controls.md#launcher-idle-activation) |
@@ -121,6 +122,8 @@ Device testing is described in [Verification](docs/verification.md).
 - [Screensaver previews](docs/screensaver-previews.md)
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
+- [Animated menu backgrounds](docs/animated-backgrounds.md)
+- [Fire TV UI 1.10.0 release notes and upgrade guide](docs/releases/v1.10.0.md)
 - [Fire TV UI 1.9.2 release notes and upgrade guide](docs/releases/v1.9.2.md)
 - [Fire TV UI 1.9.1 release notes and upgrade guide](docs/releases/v1.9.1.md)
 - [Fire TV UI 1.6.0 release notes and upgrade guide](docs/releases/v1.6.0.md)
@@ -141,9 +144,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.9.2/code 63 on a physical API 28 Fire TV. The picker distinguishes direct previews from app-owned preview controls while Black Screen remains selected. The [full gallery](docs/screenshots.md) includes the actual controls and a Blue Meridian preview.
+Fire TV UI 1.10.0/code 67 on an API 34 TV emulator, showing the new word-free Weather preview. The [full gallery](docs/screenshots.md) includes the current catalog, native options, offline credits and safe fixed-feed/background demonstrations. The original Fire TV also passed shared screensaver controls, real source visibility and normal five-minute idle activation with particles enabled.
 
-<p align="center"><img src="art/screenshots/screensavers-ui-1.9.2-api28.png" alt="Fire TV UI 1.9.2 picker with readable single-line Preview it and Preview controls actions, preserving the selected Black Screen screensaver" width="900"></p>
+<p align="center"><img src="art/screenshots/weather-picker-ui110-code67-api34.png" alt="Final Fire TV UI 1.10.0 code 67 picker with a real text-free Skycast Weather thumbnail and direct preview action" width="900"></p>
 
 ## License
 

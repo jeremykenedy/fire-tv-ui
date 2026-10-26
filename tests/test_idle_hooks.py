@@ -13,6 +13,8 @@ class IdleHookChecks(unittest.TestCase):
         threshold = (root / 'Q3/S6.smali').read_text()
         self.assertNotIn('const-wide/32 v5, 0x15f90', threshold)
         self.assertIn('DeviceSettings;->launcherIdleDelay()J', threshold)
+        self.assertIn('DeviceSettings;->launcherIdleEnabled()Z', threshold)
+        self.assertNotIn('LQ3/T3;->y()Z', threshold)
         dispatch = (root / 'Q3/T6.smali').read_text()
         self.assertIn('    .locals 7', dispatch)
         self.assertIn('LQ3/T3;->l1:LN/g0;', dispatch)

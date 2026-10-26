@@ -29,6 +29,54 @@ class BuildChecks(unittest.TestCase):
         self.assertIn('iget-object v9, v0, LQ3/T3;->featuredRotation:LN/g0;', wallpaper)
         self.assertIn('filled-new-array {v2, v3, v4, v7, v9}, [Ljava/lang/Object;', wallpaper)
 
+    def test_appearance_screensaver_row_opens_the_dedicated_controls(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the launcher to check the actual Appearance route.')
+        built = classes(decoded)
+        launcher = built['LQ3/M7;'].read_text()
+        start = launcher.index('const-string v0, "Appearance_Screensaver"')
+        end = launcher.index(':goto_19e', start)
+        row = launcher[start:end]
+        self.assertIn('ScreensaverSettingsRow;->draw', row)
+        self.assertNotIn('LA3/a;->A(', row,
+                         'The legacy toggle must not remain rendered alongside its replacement.')
+        shortcut = built['Lcom/jeremykenedy/firetv/ui/ScreensaverSettingsRow;'].read_text()
+        self.assertIn('ScreensaverAction;-><init>', shortcut)
+        self.assertIn('move-object v6, p2', shortcut)
+        self.assertIn('Appearance_Favorites', shortcut)
+        self.assertNotIn('SharedPreferences', shortcut)
+
+    def test_grouped_cards_keep_positions_and_backgrounds_are_main_only(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the launcher before verifying actual native integration.')
+        built = classes(decoded)
+        rotation = built['LQ3/h8;'].read_text()
+        self.assertNotIn('LQ3/T3;->U(I)V', rotation)
+        self.assertNotIn('LQ3/T3;->t0:LN/g0;', rotation)
+        row = built['LQ3/r3;'].read_text()
+        self.assertLess(row.index('FeaturedGroupBridge;->current'), row.index('new-instance v9, LN4/k;'),
+                        'Both rendering and the existing click action must receive the current child.')
+        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
+        bridge = built['Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;'].read_text()
+        self.assertIn('FeaturedGroups;->feedKey(Ljava/lang/String;J)', bridge)
+        self.assertIn('FeaturedGroups;->current(Ljava/lang/Object;Ljava/lang/String;)', bridge)
+        self.assertIn('FeaturedGroupBridge;->start', main)
+        self.assertIn('FeaturedCardClock;->stop', main)
+        self.assertIn('MenuBackgroundView;->resumed(Z)V', main)
+        resume = main[main.index('.method public final onResume()V'):]
+        resume = resume[:resume.index('.end method')]
+        self.assertLess(resume.index('\n    :resume_idle_reset_done\n'), resume.index('FeaturedGroupBridge;->start'),
+                        'Cold Main has no model until Compose assigns it; its clock must still start.')
+        self.assertLess(resume.index('\n    :resume_idle_reset_done\n'), resume.index('MenuBackgroundView;->resumed'),
+                        'Native backgrounds must start on the first resume too.')
+        background = built['LQ3/T5;'].read_text()
+        self.assertIn('MenuBackgroundLayer;->draw', background)
+        self.assertIn('if-nez v14, :goto_3', background)
+        manifest = (decoded / 'AndroidManifest.xml').read_text()
+        self.assertIn('MenuBackgroundActivity', manifest)
+
     def test_featured_setup_keeps_required_base_navigation_callbacks(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():
@@ -64,12 +112,15 @@ class BuildChecks(unittest.TestCase):
         mapper = classes_by_name['Landroid/support/v4/media/session/b;'].read_text()
         start = mapper.index('.method public static M(Ljava/util/List;Ljava/util/List;)Ljava/util/ArrayList;')
         mapper = mapper[start:mapper.index('.end method', start)]
-        self.assertIn('const/4 v13, 0x1', mapper, 'Keep the verified preview inclusion behavior unchanged.')
+        self.assertIn('FeaturedProgramMapper;->map', mapper)
+        programs = classes_by_name['Lcom/jeremykenedy/firetv/ui/FeaturedProgramMapper;'].read_text()
+        self.assertIn('const/4 v6, 0x1', programs, 'Keep the verified preview inclusion behavior unchanged.')
+        self.assertNotIn('const/16 v3, 0xa', programs, 'One app must not consume a global ten-item cap.')
 
     def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         mapped = {item['id']: item for item in entries if 'preview' in item}
-        self.assertEqual(len(mapped), 25)
+        self.assertEqual(len(mapped), 26)
         private_or_missing = {'androsaver', 'aquarium-4k', 'aquarium-live', 'contour-flow',
                               'nebula-drift', 'skyburst-nocturne', 'snoozy', 'split-flap-drift'}
         self.assertFalse(private_or_missing.intersection(mapped))
@@ -147,6 +198,27 @@ class BuildChecks(unittest.TestCase):
                     self.assertEqual(archive.read('assets/screensaver-previews/' + filename),
                                      (ROOT / 'app/previews' / filename).read_bytes())
 
+    def test_weather_public_release_uses_current_native_preview_and_explicit_settings(self):
+        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
+        entry = next(item for item in entries if item['id'] == 'skycast-weather')
+        self.assertEqual(entry['package'], 'com.jeremykenedy.skycastweather')
+        self.assertEqual(entry['dream'], entry['package'] + '/.WeatherDreamService')
+        self.assertEqual(entry['preview'], entry['package'] + '/.PreviewActivity')
+        self.assertEqual(entry['tag'], 'v1.0.0')
+        self.assertEqual(entry['url'], 'https://github.com/jeremykenedy/skycast-weather/releases/download/v1.0.0/skycast-weather.apk')
+        self.assertEqual(entry['sha256'], 'b8680ebc7314e8687281e5d405aa84d1b0f38d1f6505193f652b96fc9cf0e7e0')
+        self.assertEqual(entry['bytes'], 39552020)
+        source = json.loads((ROOT / 'app/previews/sources.json').read_text())[full_component(entry['dream'])]
+        self.assertEqual(source['settings_keys'], ['units', 'days', 'motion', 'show_weather', 'location'])
+        self.assertFalse(source['randomizable'])
+        self.assertIn('overlay OFF', source['capture_note'])
+        self.assertEqual(hashlib.sha256((ROOT / source['source_file']).read_bytes()).hexdigest(), source['source_sha256'])
+        preview = ROOT / 'app/previews' / preview_file(entry['dream'])
+        self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), source['preview_sha256'])
+        notice = (ROOT / 'app/previews/licenses/skycast-weather-NOTICE.txt').read_text()
+        self.assertIn('anotherview', notice)
+        self.assertIn('Creative Commons Attribution 3.0', notice)
+
     def test_twilight_hearth_catalog_release_and_preview_are_pinned(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
         entry = next(item for item in entries if item['id'] == 'twilight-hearth')
@@ -194,7 +266,7 @@ class BuildChecks(unittest.TestCase):
 
     def test_rainforest_update_preserves_identity_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
-        self.assertEqual(len(entries), 33)
+        self.assertEqual(len(entries), 34)
         entry = next(item for item in entries if item['id'] == 'rainforest-cascade')
         self.assertEqual(entry['package'], 'com.jeremykenedy.rainforestcascade')
         self.assertEqual(entry['dream'], 'com.jeremykenedy.rainforestcascade/.WaterfallDreamService')
