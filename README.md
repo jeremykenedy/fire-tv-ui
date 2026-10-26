@@ -140,9 +140,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.9.0 on the TV emulator, with separate authorized Plex Home feeds. These sample profiles contain no account or personal library data. The [full gallery](docs/screenshots.md) includes current controls and earlier verified card ordering.
+Fire TV UI 1.9.0 on the TV emulator, checking the previous published release before 1.9.0 publication. The check verifies the actual APK version and correctly preserves a newer installed build. The [full gallery](docs/screenshots.md) includes authorized Plex Home controls with safe sample names.
 
-<p align="center"><img src="art/screenshots/plex-home-ui-1.9.0-api34.png" alt="Fire TV UI 1.9.0 controls for adding and removing authorized Plex Home Continue Watching profiles" width="900"></p>
+<p align="center"><img src="art/screenshots/public-ui-update-ui-1.9.0-api34.png" alt="Fire TV UI 1.9.0 public self-update check verifies the previous stable Android APK without treating the newer installed build as an update" width="900"></p>
 
 ## License
 
