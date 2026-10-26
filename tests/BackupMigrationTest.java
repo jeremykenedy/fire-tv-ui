@@ -25,6 +25,10 @@ public final class BackupMigrationTest {
         BackupStore.restore(context, true);
         check("destination-identity".equals(context.prefs.values.get(REMOTE)));
         check("new".equals(context.prefs.values.get("theme")));
+        check(context.broadcasts.size() == 1);
+        check(context.broadcasts.get(0).action.equals("com.jeremykenedy.firetv.ui.PREFS_CHANGED"));
+        check(context.broadcasts.get(0).pkg.equals(context.getPackageName()));
+        check(context.valuesAtBroadcast.equals(context.prefs.values));
         BackupStore.save(context);
         JSONObject exported = new JSONObject(Files.readString(BackupStore.file(false).toPath()));
         check(!exported.has(REMOTE) && exported.getString("theme").equals("new"));
@@ -33,6 +37,14 @@ public final class BackupMigrationTest {
         check(!context.prefs.values.containsKey(REMOTE));
         context.prefs.values.put(REMOTE, "destination-identity");
         Map<String,Object> before = new HashMap<>(context.prefs.values);
+        int notificationsBefore = context.broadcasts.size();
+        context.prefs.failCommit = true;
+        try { BackupStore.restore(context, true); throw new AssertionError("Failed commit accepted"); }
+        catch (java.io.IOException expected) {
+            check(before.equals(context.prefs.values));
+            check(context.broadcasts.size() == notificationsBefore);
+        }
+        context.prefs.failCommit = false;
         Files.writeString(BackupStore.file(true).toPath(), new JSONObject()
                 .put(REMOTE, "source-identity").put("theme", 123).toString());
         try { BackupStore.restore(context, true); throw new AssertionError("Invalid backup accepted"); }
@@ -40,6 +52,12 @@ public final class BackupMigrationTest {
         Files.writeString(BackupStore.file(true).toPath(), new JSONObject().put(REMOTE, "source-identity").toString());
         try { BackupStore.restore(context, true); throw new AssertionError("Identity-only backup accepted"); }
         catch (org.json.JSONException expected) { check(before.equals(context.prefs.values)); }
+        check(context.broadcasts.size() == notificationsBefore);
+        Context notificationDenied = new Context();
+        notificationDenied.rejectBroadcast = true;
+        Files.writeString(BackupStore.file(true).toPath(), new JSONObject().put("theme", "saved").toString());
+        BackupStore.restore(notificationDenied, true);
+        check(notificationDenied.prefs.values.get("theme").equals("saved"));
         JSONObject visibility = new JSONObject().put("hdmi", new JSONObject()
                 .put("customIconUri", "asset:input-icons/xbox-one.png"));
         JSONObject defaults = new JSONObject().put("apps_per_row", 5)
