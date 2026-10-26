@@ -304,10 +304,11 @@
     "package": "com.jeremykenedy.bluemeridian",
     "dream": "com.jeremykenedy.bluemeridian/.BlueMeridianDreamService",
     "repo": "jeremykenedy/blue-meridian",
-    "tag": "v1.0.0",
-    "url": "https://github.com/jeremykenedy/blue-meridian/releases/download/v1.0.0/blue-meridian.apk",
-    "bytes": 451363,
-    "sha256": "01c1e0917921385f247470e8d34b1297d4c407240ed4cbfcaf2fa11e86f8e25b"
+    "tag": "v1.0.1",
+    "url": "https://github.com/jeremykenedy/blue-meridian/releases/download/v1.0.1/blue-meridian.apk",
+    "bytes": 2569417,
+    "sha256": "7f3b575f45d7afa5ca68ff8510d84f5b42c6ac6c3c21903628898f6a5dff5ec2",
+    "description": "Earth day and night from archival satellite imagery, with cloud cover, city lights and gentle screen drift."
   },
   {
     "id": "helios-lightfield",

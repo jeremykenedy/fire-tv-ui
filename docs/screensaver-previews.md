@@ -52,3 +52,9 @@ Prism Clock uses the [unretouched physical silver capture](../art/screenshots/pr
 The Cloud Drift Clock preview now comes from its final physical Fire TV API 28 capture of the real sunset flight, with the clock off. The 384x216 thumbnail is resized from the unretouched [native capture](../art/screenshots/cloud-flight-fire-tv-api28-1920.png). The filmed scene is by anotherview under CC BY 3.0; its attribution and complete license are bundled in **Advanced > Preview media credits**.
 
 The catalog pins the published 2.0.0/code5 APK, 40,297,575 bytes, SHA-256 `abb8fdf3abdd1c94b95106b6bd0cbdf85822ccffd4caec9cdbd6dcb99919fae8`. The package, signer and CloudDreamService remain unchanged. Screensaver settings opens the app's native settings activity, which exposes seven effective controls for playback and the optional clock. The old palette and density values remain stored but are inactive and are not offered as visual effects. Updating the catalog does not change the selected screensaver or its configuration.
+
+## Blue Meridian 1.0.1
+
+Blue Meridian uses its unretouched [physical Fire TV API 30 Earth capture](../art/screenshots/blue-meridian-earth-fire-tv-api30-1920.png), resized to 384x216 for the picker. There is no NASA word or watermark painted on the scene. Its archival day, cloud and night-light imagery is attributed in the offline preview credits. The globe is not current weather; camera movement is gentle screen drift rather than orbital flight.
+
+The catalog pins the independently downloaded 1.0.1/code 2 APK, 2,569,417 bytes, SHA-256 `7f3b575f45d7afa5ca68ff8510d84f5b42c6ac6c3c21903628898f6a5dff5ec2`. Its existing package, production signer and seven stored settings remain unchanged.
