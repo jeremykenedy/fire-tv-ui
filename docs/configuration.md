@@ -5,8 +5,9 @@
 | Screensavers | Configure or preview any installed saver, choose the active saver, and manage timers and installations. |
 | UI settings | Configure layout and focus, widgets, status bar, favorites and cards. |
 | Theme and wallpaper | Choose wallpapers, gradients, icon packs, text contrast and animated backgrounds. |
-| Controls | Configure remote actions and accessibility. |
+| Remote controls | Configure remote actions and accessibility. |
 | Updates | Check installed apps, compare versions, install verified updates and recover missing shared icons. |
+| Advanced | Open diagnostics, updates and preview media credits. |
 | Backup/Restore | Save or restore the persistent TV backup, or restore a backup sent by the CLI. |
 | Startup and protection | Enable or disable startup and Home routing; protect settings and block Amazon updates. |
 | About | View the app name, version, credits, and privacy information. |
