@@ -27,7 +27,7 @@ public final class CardSourcesActivity extends CardActivity {
                 text(
                         "Fire TV recommendations inside Amazon Home use a separate service. Only"
                                 + " Android TV cards published by apps appear here. Widgets are a"
-                                + " separate Appearance option.",
+                                + " separate UI settings option.",
                         17,
                         MUTED));
         refresh =
