@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 
 public final class MenuMotion {
@@ -21,7 +22,8 @@ public final class MenuMotion {
     public static void choose(final Activity activity, final Runnable refresh) {
         new AlertDialog.Builder(activity).setTitle("Settings transitions")
                 .setSingleChoiceItems(MenuMotionOptions.LABELS,
-                        MenuMotionOptions.index(style(activity)), (dialog, index) -> {
+                        MenuMotionOptions.index(style(activity)), new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int index) {
                     SharedPreferences.Editor editor = DeviceSettings.prefs(activity).edit();
                     if (index == 0) editor.remove(MenuMotionOptions.SETTING);
                     else editor.putString(MenuMotionOptions.SETTING, MenuMotionOptions.VALUES[index]);
@@ -31,6 +33,7 @@ public final class MenuMotion {
                     } else {
                         new AlertDialog.Builder(activity).setTitle("Could not save transitions")
                                 .setMessage("Please try again.").setPositiveButton("OK", null).show();
+                    }
                     }
                 }).setNegativeButton("Cancel", null).show();
     }
