@@ -98,9 +98,9 @@ def patch(decoded):
     home_signature = '.method public final onNewIntent(Landroid/content/Intent;)V'
     home_pattern = re.compile(r'^' + re.escape(home_signature) + r'\n.*?^\.end method', re.M | re.S)
     home = home_pattern.search(text).group(0)
-    # App context menus keep composition-local state outside the launcher model.
+    # Ordinary Home delivery keeps the existing scene. Only a focused popup needs the legacy reset.
     home = replace_once(home, '    :cond_2\n    return-void',
-        '    invoke-virtual {p0}, Landroid/app/Activity;->recreate()V\n\n'
+        '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/HomePresentation;->closeTransientWindow(Landroid/app/Activity;)V\n\n'
         '    :cond_2\n    return-void')
     text = replace_method(text, home_signature, home)
     counter_start = text.index('    const-string v5, "app_launch_count"')
@@ -115,18 +115,21 @@ def patch(decoded):
     resume = replace_once(resume,
         '    invoke-super {p0}, Landroid/app/Activity;->onResume()V',
         '    invoke-super {p0}, Landroid/app/Activity;->onResume()V\n'
+        '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/HomePresentation;->resumed(Landroid/app/Activity;)V\n'
         '    iget-object v0, p0, Lcom/overdevs/at4k/MainActivity;->A:LQ3/T3;\n'
         '    if-eqz v0, :resume_idle_reset_done\n'
         '    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J\n'
         '    move-result-wide v1\n'
         '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
         '    invoke-virtual {v0}, LQ3/T3;->refreshFeaturedRotation()V\n'
+        '    invoke-virtual {v0}, LQ3/T3;->refreshLauncherLayout()V\n'
         '    :resume_idle_reset_done\n'
         '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->start(Landroid/content/Context;)V\n'
         '    const/4 v1, 0x1\n'
         '    invoke-static {v1}, Lcom/jeremykenedy/firetv/ui/MenuBackgroundView;->resumed(Z)V')
     text = replace_method(text, resume_signature, resume)
     text += '\n.method public onPause()V\n    .locals 1\n'
+    text += '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/HomePresentation;->paused(Landroid/app/Activity;)V\n'
     text += '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/FeaturedCardClock;->stop()V\n'
     text += '    const/4 v0, 0x0\n    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/MenuBackgroundView;->resumed(Z)V\n'
     text += '    invoke-super {p0}, Landroid/app/Activity;->onPause()V\n    return-void\n.end method\n'
@@ -456,6 +459,17 @@ def patch(decoded):
     invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/FeaturedCardTiming;->setting(Landroid/content/SharedPreferences;)Ljava/lang/Integer;
     move-result-object v0
     iget-object v1, p0, LQ3/T3;->featuredRotation:LN/g0;
+    invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
+    return-void
+.end method
+'''
+    text += '''
+.method public final refreshLauncherLayout()V
+    .locals 2
+    iget-object v0, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
+    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/LauncherLayout;->columns(Landroid/content/SharedPreferences;)Ljava/lang/Integer;
+    move-result-object v0
+    iget-object v1, p0, LQ3/T3;->i:LN/g0;
     invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
     return-void
 .end method
