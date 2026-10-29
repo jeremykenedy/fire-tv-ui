@@ -52,6 +52,8 @@ In LTvLauncher, long press an app, choose **Set Custom Banner**, and select the 
 
 [The catalog](../icons/catalog.json) records each source URL and source SHA-256. [The notice](../icons/NOTICE.txt) credits logo sources and their owners. Product names and logos belong to their respective owners.
 
+`source_sha256` identifies the exact bundled SVG bytes at `source`: the retained upstream file when `source_url` is present, or the original locally authored vector otherwise. Keep those source files unchanged. Rendering adjustments belong in the renderer, and the generated PNGs have separate hashes in the bundled icon manifest.
+
 To render the bundled vector sources again, install Pillow and librsvg's `rsvg-convert`, then run:
 
 ```bash
