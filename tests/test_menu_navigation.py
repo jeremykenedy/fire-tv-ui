@@ -53,7 +53,7 @@ class MenuNavigationChecks(unittest.TestCase):
             self.adb('shell', 'input', 'keyevent', str(key))
             self.assert_home()
         self.tap('Preferences')
-        self.tap('Theme Mode')
+        self.tap('Theme and wallpaper')
         self.adb('shell', 'input', 'keyevent', '4')
         self.assert_home()
         self.tap('Preferences')

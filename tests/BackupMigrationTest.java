@@ -134,7 +134,23 @@ public final class BackupMigrationTest {
         }
         Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).toString());
         BackupStore.restore(context, true);
-        for (Object invalid : new Object[] {-1, 6, 3600000, "5"}) {
+        for (int seconds : new int[] {0, 1, 5, 7, 8, 15, 30, 86400}) {
+            Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore)
+                    .put("featured_rotation_seconds", seconds).toString());
+            BackupStore.restore(context, true);
+            BackupStore.save(context);
+            String saved = Files.readString(BackupStore.file(false).toPath());
+            check(new JSONObject(saved).getInt("featured_rotation_seconds") == seconds);
+            context.prefs.values.put("featured_rotation_seconds", 15);
+            Files.writeString(BackupStore.file(true).toPath(), saved);
+            BackupStore.restore(context, true);
+            check(context.prefs.values.get("featured_rotation_seconds").equals(seconds));
+            check(FeaturedCardTiming.delay(context.prefs)
+                    == (seconds == 0 ? Long.MAX_VALUE : seconds * 1000L));
+        }
+        Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).toString());
+        BackupStore.restore(context, true);
+        for (Object invalid : new Object[] {-1, 86401, 3600000, "7", 7.5, true}) {
             Files.writeString(BackupStore.file(true).toPath(), new JSONObject()
                     .put("featured_rotation_seconds", invalid).toString());
             try { BackupStore.restore(context, true); throw new AssertionError("Invalid rotation accepted"); }

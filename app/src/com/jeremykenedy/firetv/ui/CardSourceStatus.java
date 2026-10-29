@@ -9,7 +9,7 @@ final class CardSourceStatus {
             return "Some card sources could not be read. Review the source results below; an unavailable source is not an empty source.";
         }
         if (hidden) {
-            return "Featured cards are hidden. Turn on Featured cards in Appearance > Cards > Featured card setup to show published cards.";
+            return "Featured cards are hidden. Turn on Featured cards in UI settings > Cards > Featured card setup to show published cards.";
         }
         if (preview == 0 && watchNext == 0) {
             return "Featured cards are enabled, but installed apps have not published any Android TV preview or Continue Watching cards. Enabling cards does not create recommendations. Open a compatible app and use its recommendations or recent channels, then refresh.";

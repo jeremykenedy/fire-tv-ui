@@ -11,14 +11,13 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ScrollView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,12 +27,12 @@ import java.util.Map;
 public final class ScreensaverActivity extends CardActivity {
     private TextView current;
     private TextView enabled;
-    private TextView previewCurrent;
     private LinearLayout rows;
     private List<Screensavers.Choice> choices = new ArrayList<>();
     private final Map<String, ServiceInfo> services = new HashMap<>();
     private final Map<String, View> focusTargets = new HashMap<>();
     private String focusKey = "toggle";
+    private int scrollPosition;
     private final BroadcastReceiver dreamStoppedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -65,42 +64,31 @@ public final class ScreensaverActivity extends CardActivity {
         current = text("", 18, MUTED);
         current.setPadding(0, 0, 0, dp(10));
         card.addView(current);
+        if (state != null) {
+            focusKey = state.getString("focus", "toggle");
+            scrollPosition = state.getInt("scroll", 0);
+        }
         LinearLayout first = toolbar();
-        previewCurrent = toolbarButton(first, "Preview screensaver", "preview-current", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Screensavers.Choice selected = selected();
-                if (selected != null) {
-                    preview(selected.component);
-                }
-            }
-        });
-        toolbarButton(first, "Screensaver settings", "options", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                options();
-            }
-        });
         toolbarButton(first, "System timers", "timers", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(ScreensaverActivity.this, TimersActivity.class));
             }
         });
-        LinearLayout second = toolbar();
-        toolbarButton(second, "Install screensavers", "install", new View.OnClickListener() {
+
+        toolbarButton(first, "Install screensavers", "install", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(ScreensaverActivity.this, CatalogActivity.class));
             }
         });
-        toolbarButton(second, "Memory usage", "memory", new View.OnClickListener() {
+        toolbarButton(first, "Memory usage", "memory", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(ScreensaverActivity.this, MemoryActivity.class));
             }
         });
-        enabled = toolbarButton(second, "", "toggle", new View.OnClickListener() {
+        enabled = toolbarButton(first, "", "toggle", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
@@ -116,7 +104,7 @@ public final class ScreensaverActivity extends CardActivity {
         heading.setPadding(0, dp(8), 0, dp(8));
         card.addView(heading);
         rows = scrollBody();
-        TextView hint = text("Select to make active. Preview controls opens the app; choose Preview or Show aquarium there. Back returns here. Your screensaver selection stays unchanged.", 13, MUTED);
+        TextView hint = text("Configure or preview any saver without changing the active selection. Only Set active changes it. Back returns to this list.", 14, MUTED);
         hint.setPadding(0, dp(8), 0, 0);
         card.addView(hint);
         IntentFilter filter = new IntentFilter(Intent.ACTION_DREAMING_STOPPED);
@@ -151,6 +139,7 @@ public final class ScreensaverActivity extends CardActivity {
             params.leftMargin = dp(6);
         }
         row.addView(button, params);
+        button.setTag(key);
         focusTargets.put(key, button);
         return button;
     }
@@ -159,6 +148,28 @@ public final class ScreensaverActivity extends CardActivity {
     protected void onResume() {
         super.onResume();
         load();
+    }
+
+    @Override
+    protected void onPause() {
+        rememberPosition();
+        super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        rememberPosition();
+        state.putString("focus", focusKey);
+        state.putInt("scroll", scrollPosition);
+        super.onSaveInstanceState(state);
+    }
+
+    private void rememberPosition() {
+        View focused = getCurrentFocus();
+        if (focused != null && focused.getTag() instanceof String) {
+            focusKey = (String) focused.getTag();
+        }
+        if (rows != null) scrollPosition = ((ScrollView) rows.getParent()).getScrollY();
     }
 
     @Override
@@ -198,16 +209,17 @@ public final class ScreensaverActivity extends CardActivity {
             addService(match.serviceInfo, pm, found);
         }
         choices = Screensavers.sorted(found);
+        if (rows.getChildCount() > 0) rememberPosition();
         rows.removeAllViews();
+        java.util.Iterator<String> keys = focusTargets.keySet().iterator();
+        while (keys.hasNext()) if (keys.next().contains(":")) keys.remove();
         String active = DeviceSettings.prefs(this).getBoolean(ScreensaverPreview.PENDING, false)
                 ? DeviceSettings.prefs(this).getString("fire_tv_ui_preview_previous", null)
                 : DeviceSettings.active(getContentResolver());
         int selected = Screensavers.indexOfActive(choices, active);
-        current.setText("Current screensaver: " + (selected < 0 ? "None selected" : choices.get(selected).label)
+        current.setText("Active screensaver: " + (selected < 0 ? "None selected" : choices.get(selected).label)
                 + (DeviceSettings.prefs(this).getBoolean(DeviceSettings.DREAM_UNLOCKED, false)
                     ? " (selection unlocked)" : ""));
-        previewCurrent.setText(selected < 0 ? "Preview screensaver"
-                : ScreensaverPreview.actionLabel(this, choices.get(selected).component, true));
         enabled.setText("Screensaver: " + (DeviceSettings.isEnabled(getContentResolver()) ? "On" : "Off"));
         for (int i = 0; i < choices.size(); i++) {
             row(choices.get(i), i == selected);
@@ -215,10 +227,15 @@ public final class ScreensaverActivity extends CardActivity {
         if (choices.isEmpty()) {
             rows.addView(text("No screensavers are installed. Open Install screensavers to add one.", 18, MUTED));
         }
-        View focus = focusTargets.get(focusKey);
-        if (focus != null) {
-            focus.requestFocus();
-        }
+        final View focus = focusTargets.get(focusKey);
+        final int savedScroll = scrollPosition;
+        rows.post(new Runnable() {
+            @Override public void run() {
+                if (focus != null) focus.requestFocus();
+                else enabled.requestFocus();
+                ((ScrollView) rows.getParent()).scrollTo(0, savedScroll);
+            }
+        });
     }
 
     private void addService(ServiceInfo service, PackageManager pm, List<Screensavers.Choice> found) {
@@ -231,23 +248,17 @@ public final class ScreensaverActivity extends CardActivity {
         found.add(new Screensavers.Choice(component, Screensavers.displayName(service.packageName, service.loadLabel(pm).toString())));
     }
 
-    private void row(final Screensavers.Choice choice, boolean checked) {
+    private void row(final Screensavers.Choice choice, final boolean checked) {
         LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(dp(12), dp(10), dp(12), dp(10));
         row.setBackground(background(Color.argb(24, 255, 255, 255), 8));
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
-        rowParams.bottomMargin = dp(6);
+        rowParams.bottomMargin = dp(10);
         rows.addView(row, rowParams);
-        final LinearLayout select = new LinearLayout(this);
-        select.setOrientation(LinearLayout.HORIZONTAL);
-        select.setGravity(Gravity.CENTER_VERTICAL);
-        select.setPadding(dp(12), dp(8), dp(12), dp(8));
-        select.setFocusable(true);
-        select.setFocusableInTouchMode(true);
-        select.setClickable(true);
-        select.setContentDescription("Select " + choice.label);
-        row.addView(select, new LinearLayout.LayoutParams(0, -2, 1));
+        LinearLayout details = new LinearLayout(this);
+        details.setGravity(Gravity.CENTER_VERTICAL);
+        row.addView(details);
         ScreensaverPreviews preview = ScreensaverPreviews.load(this, services.get(Screensavers.fullComponent(choice.component)), choice.component);
         ImageView image = new ImageView(this);
         image.setImageDrawable(preview.image);
@@ -255,81 +266,49 @@ public final class ScreensaverActivity extends CardActivity {
         image.setBackground(background(Color.rgb(33, 40, 51), 6));
         image.setClipToOutline(true);
         image.setContentDescription(preview.available ? "Screenshot of " + choice.label : "Screenshot unavailable");
-        select.addView(image, new LinearLayout.LayoutParams(dp(96), dp(54)));
+        details.addView(image, new LinearLayout.LayoutParams(dp(96), dp(54)));
         LinearLayout caption = new LinearLayout(this);
         caption.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams captionParams = new LinearLayout.LayoutParams(0, -2, 1);
         captionParams.leftMargin = dp(14);
-        select.addView(caption, captionParams);
-        final TextView name = text(choice.label, 20, INK);
+        details.addView(caption, captionParams);
+        TextView name = text(choice.label + (checked ? " (Active)" : ""), 20, INK);
         name.setTypeface(null, checked ? Typeface.BOLD : Typeface.NORMAL);
         caption.addView(name);
         String pkg = choice.component.substring(0, choice.component.indexOf('/'));
-        final TextView size = text(PackageStorage.summary(this, pkg), 12, MUTED);
-        caption.addView(size);
-        final FrameLayout indicator = new FrameLayout(this);
-        GradientDrawable outline = new GradientDrawable();
-        outline.setShape(GradientDrawable.OVAL);
-        outline.setStroke(dp(2), Color.WHITE);
-        outline.setColor(Color.TRANSPARENT);
-        indicator.setBackground(outline);
-        select.addView(indicator, new LinearLayout.LayoutParams(dp(24), dp(24)));
-        if (checked) {
-            View dot = new View(this);
-            GradientDrawable fill = new GradientDrawable();
-            fill.setShape(GradientDrawable.OVAL);
-            fill.setColor(Color.WHITE);
-            dot.setBackground(fill);
-            indicator.addView(dot, new FrameLayout.LayoutParams(dp(12), dp(12), Gravity.CENTER));
-        }
-        select.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean focused) {
-                select.setBackground(background(focused ? Color.WHITE : Color.TRANSPARENT, 8));
-                name.setTextColor(focused ? Color.rgb(35, 35, 35) : INK);
-                size.setTextColor(focused ? Color.rgb(55, 55, 55) : MUTED);
-                ((GradientDrawable) indicator.getBackground()).setStroke(dp(2), focused ? Color.rgb(35, 35, 35) : Color.WHITE);
-                if (indicator.getChildCount() > 0) {
-                    ((GradientDrawable) indicator.getChildAt(0).getBackground()).setColor(focused ? Color.rgb(35, 35, 35) : Color.WHITE);
-                }
-            }
-        });
-        select.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                focusKey = "select:" + choice.component;
-                try {
-                    ScreensaverPreview.restore(ScreensaverActivity.this);
-                    DeviceSettings.choose(ScreensaverActivity.this, choice.component);
-                    load();
-                } catch (Exception failed) {
-                    error(failed);
-                }
-            }
-        });
-        focusTargets.put("select:" + choice.component, select);
-        TextView tryIt = button(ScreensaverPreview.actionLabel(this, choice.component, false), new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                focusKey = "preview:" + choice.component;
-                preview(choice.component);
-            }
-        });
-        tryIt.setSingleLine(true);
-        tryIt.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(210), dp(42));
-        previewParams.setMargins(dp(6), dp(6), dp(8), dp(6));
-        row.addView(tryIt, previewParams);
-        focusTargets.put("preview:" + choice.component, tryIt);
-    }
-
-    private Screensavers.Choice selected() {
-        int index = Screensavers.indexOfActive(choices, DeviceSettings.active(getContentResolver()));
-        if (index < 0) {
-            error(new IllegalStateException("Select a screensaver first."));
-            return null;
-        }
-        return choices.get(index);
+        caption.addView(text(PackageStorage.summary(this, pkg), 13, MUTED));
+        LinearLayout actions = new LinearLayout(this);
+        actions.setPadding(0, dp(8), 0, 0);
+        row.addView(actions);
+        TextView configure = toolbarButton(actions, "Configure", "configure:" + choice.component,
+                new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        options(choice);
+                    }
+                });
+        configure.setContentDescription("Configure " + choice.label);
+        String previewLabel = ScreensaverPreview.actionLabel(this, choice.component, false);
+        TextView tryIt = toolbarButton(actions, "Preview it".equals(previewLabel) ? "Preview" : previewLabel,
+                "preview:" + choice.component, new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        preview(choice.component);
+                    }
+                });
+        tryIt.setContentDescription("Preview " + choice.label);
+        TextView activate = toolbarButton(actions, checked ? "Active" : "Set active", "select:" + choice.component,
+                new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        if (checked) return;
+                        try {
+                            ScreensaverPreview.restore(ScreensaverActivity.this);
+                            DeviceSettings.choose(ScreensaverActivity.this, choice.component);
+                            load();
+                        } catch (Exception failed) {
+                            error(failed);
+                        }
+                    }
+                });
+        activate.setContentDescription((checked ? "Active screensaver: " : "Set active: ") + choice.label);
     }
 
     private void preview(String component) {
@@ -340,11 +319,7 @@ public final class ScreensaverActivity extends CardActivity {
         }
     }
 
-    private void options() {
-        Screensavers.Choice choice = selected();
-        if (choice == null) {
-            return;
-        }
+    private void options(Screensavers.Choice choice) {
         try {
             Intent options = ScreensaverControls.resolve(this, choice.component);
             if (options == null) {

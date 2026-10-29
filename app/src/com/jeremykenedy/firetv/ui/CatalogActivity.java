@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.ScrollView;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,12 +24,14 @@ public final class CatalogActivity extends CardActivity {
     private ScreensaverCatalog.Entry pending;
     private File installing;
     private boolean downloading;
+    private String focusPackage;
+    private int scrollPosition;
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        title("Install screensavers");
-        status = text("Choose a screensaver. Downloads are verified before the TV asks you to install.", 16, MUTED);
+        title("Screensaver catalog");
+        status = text("Install a new screensaver or configure one already installed. Your TV asks you to confirm installs and removals.", 16, MUTED);
         status.setPadding(0, 0, 0, dp(8));
         card.addView(status);
         progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
@@ -49,6 +52,12 @@ public final class CatalogActivity extends CardActivity {
         load();
     }
 
+    @Override
+    protected void onPause() {
+        if (rows != null) scrollPosition = ((ScrollView) rows.getParent()).getScrollY();
+        super.onPause();
+    }
+
     private boolean installed(String pkg) {
         try {
             getPackageManager().getPackageInfo(pkg, 0);
@@ -59,22 +68,33 @@ public final class CatalogActivity extends CardActivity {
     }
 
     private void load() {
+        if (rows.getChildCount() > 0) scrollPosition = ((ScrollView) rows.getParent()).getScrollY();
         rows.removeAllViews();
+        View returnFocus = null;
         try {
             for (final ScreensaverCatalog.Entry entry : ScreensaverCatalog.load(this)) {
                 boolean installed = installed(entry.pkg);
-                TextView label = text(entry.name + "  |  " + (installed ? "Installed" : entry.tag), 21, INK);
+                String version = installed ? getPackageManager().getPackageInfo(entry.pkg, 0).versionName : entry.tag;
+                TextView label = text(entry.name, 21, INK);
                 label.setPadding(0, dp(12), 0, dp(4));
                 rows.addView(label);
+                rows.addView(text((installed ? "Installed: " : "Available: ") + version, 16, MUTED));
                 if (!entry.description.isEmpty()) rows.addView(text(entry.description, 14, MUTED));
                 rows.addView(text(installed ? PackageStorage.summary(this, entry.pkg)
                         : "Download " + PackageStorage.size(entry.bytes), 14, MUTED));
-                TextView action = button(installed ? "Uninstall " + entry.name : "Install " + entry.name,
+                TextView action = button(installed ? "Configure " + entry.name : "Install " + entry.name,
                         new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                focusPackage = entry.pkg;
                                 if (installed(entry.pkg)) {
-                                    uninstall(entry);
+                                    try {
+                                        Intent controls = ScreensaverControls.resolve(CatalogActivity.this, entry.dream);
+                                        if (controls == null) throw new IllegalStateException("This screensaver does not provide accessible settings.");
+                                        startActivity(controls);
+                                    } catch (RuntimeException unavailable) {
+                                        error(unavailable);
+                                    }
                                 } else {
                                     install(entry);
                                 }
@@ -82,7 +102,27 @@ public final class CatalogActivity extends CardActivity {
                         });
                 addButton(rows, action);
                 action.setEnabled(!downloading);
+                if (entry.pkg.equals(focusPackage)) returnFocus = action;
+                if (installed) {
+                    TextView remove = button("Uninstall " + entry.name, new View.OnClickListener() {
+                        @Override public void onClick(View view) {
+                            focusPackage = entry.pkg + ":uninstall";
+                            uninstall(entry);
+                        }
+                    });
+                    addButton(rows, remove);
+                    remove.setEnabled(!downloading);
+                    if ((entry.pkg + ":uninstall").equals(focusPackage)) returnFocus = remove;
+                }
             }
+            final View focus = returnFocus;
+            final int position = scrollPosition;
+            rows.post(new Runnable() {
+                @Override public void run() {
+                    if (focus != null) focus.requestFocus();
+                    ((ScrollView) rows.getParent()).scrollTo(0, position);
+                }
+            });
         } catch (Exception failed) {
             error(failed);
         }
@@ -127,7 +167,6 @@ public final class CatalogActivity extends CardActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            downloading = false;
                             if (isFinishing() || isDestroyed()) {
                                 apk.delete();
                                 return;
@@ -145,6 +184,8 @@ public final class CatalogActivity extends CardActivity {
                             } catch (RuntimeException unavailable) {
                                 apk.delete();
                                 installing = null;
+                                downloading = false;
+                                status.setText("Installer could not open. Select the screensaver to retry.");
                                 load();
                                 error(unavailable);
                             }
@@ -186,13 +227,15 @@ public final class CatalogActivity extends CardActivity {
         super.onActivityResult(request, result, data);
         if (request == 20 && pending != null && getPackageManager().canRequestPackageInstalls()) {
             install(pending);
+        } else if (request == 20) {
+            status.setText("Installation permission was not granted. Select the screensaver to try again.");
         } else if (request == 21 || request == 22) {
+            downloading = false;
             if (installing != null) {
                 installing.delete();
                 installing = null;
             }
             status.setText(result == RESULT_OK ? "The TV completed the change." : "No change was completed.");
-            load();
         }
     }
 

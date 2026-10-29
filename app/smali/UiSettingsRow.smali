@@ -1,4 +1,4 @@
-.class public final Lcom/jeremykenedy/firetv/ui/ScreensaverSettingsRow;
+.class public final Lcom/jeremykenedy/firetv/ui/UiSettingsRow;
 .super Ljava/lang/Object;
 
 .method public static draw(Ljava/util/Map;LN/p;Ln4/a;)V
@@ -15,12 +15,12 @@
     invoke-virtual {p1, v0}, LN/p;->k(LN/m0;)Ljava/lang/Object;
     move-result-object v0
     check-cast v0, Landroid/content/Context;
-    new-instance v5, Lcom/jeremykenedy/firetv/ui/ScreensaverAction;
-    invoke-direct {v5, v0}, Lcom/jeremykenedy/firetv/ui/ScreensaverAction;-><init>(Landroid/content/Context;)V
+    new-instance v5, Lcom/jeremykenedy/firetv/ui/UiSettingsAction;
+    invoke-direct {v5, v0}, Lcom/jeremykenedy/firetv/ui/UiSettingsAction;-><init>(Landroid/content/Context;)V
     new-instance v7, Lcom/jeremykenedy/firetv/ui/CardFocusAction;
     const-string v0, "Appearance_Favorites"
     invoke-direct {v7, p0, v0}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V
-    const-string v0, "Screensavers"
+    const-string v0, "Layout and focus"
     const/4 v1, 0x0
     const/4 v2, 0x0
     const/4 v3, 0x0

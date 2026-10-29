@@ -26,6 +26,9 @@ public final class DeviceBootReceiver extends BroadcastReceiver {
                 // The controls page reports permission and read-back state.
             }
         }
+        if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) {
+            BundledIcons.afterUpdate(this, context);
+        }
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())
                 && HomeControl.wanted(context)) {
             Intent launch = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());

@@ -1,0 +1,35 @@
+{
+  "version": "1.13.0",
+  "version_code": 74,
+  "source": "ddec181",
+  "apk_sha256": "0592d60d545b05cacecaa3ef49f1f5cfc5d148d279cc307d5d23835537992dc1",
+  "platform": "Android TV API 34 emulator",
+  "images": {
+    "settings-ui113-code74-api34.png": {
+      "sha256": "91d79c25e26bdcdf38e9f4b1493e8b193e8f95b628c5c0301714b80055351869",
+      "width": 1920,
+      "height": 1080
+    },
+    "screensavers-ui113-code74-api34.png": {
+      "sha256": "2c0e23948acde3d14920b75547de77c316c53c80b069f27792cb8e976bd4f76a",
+      "width": 1920,
+      "height": 1080
+    },
+    "cards-ui113-code74-api34.png": {
+      "sha256": "25394fc912c679dfb1529e94ea228557e67a7ccc7d473000be5f8372505682dd",
+      "width": 1920,
+      "height": 1080
+    },
+    "updates-ui113-code74-api34.png": {
+      "sha256": "7161c471b766806fe2433f508871bae1f7aea9a50c872f3a85d5eb2db22364d4",
+      "width": 1920,
+      "height": 1080
+    },
+    "layout-focus-ui113-code74-api34.png": {
+      "sha256": "ec076ef78d138052b8b0e8f8f81e0a6cdf7ff6bec19418382692a88cfecdba3d",
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "scope": "Actual native settings, saver administration, card controls and update UI. No published card feeds were available, so these captures do not prove live title rotation or a provider integration. Historical app thumbnails are not visual acceptance of screensaver graphics. Layout/focus controls were captured after restoring default choices. Real transparent-pack hot switching, border-only and custom fill were verified separately."
+}

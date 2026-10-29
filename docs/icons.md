@@ -18,7 +18,7 @@ python3 scripts/install_icons.py --serial YOUR_TV_IP:5555
 
 Images are copied to `/sdcard/Pictures/Icons`. The installer scans them and clears Android's pending-media flag so app image pickers can see them. Close and reopen an already-open picker after installation.
 
-Each release also includes `fire-tv-ui-icons-VERSION.zip`. Extract its `Icons` directory into the TV's shared Pictures folder. Merely installing the APK does not copy this separate image pack. Use the script above to index files copied with ADB.
+Each release also includes `fire-tv-ui-icons-VERSION.zip`. Extract its `Icons` directory into the TV's shared Pictures folder. The APK also bundles these images. Open Settings > Updates to grant icon storage access if needed and add missing files. Package replacement performs the same missing-only recovery when access already exists. Existing files are never overwritten by this native recovery. Use the script above to index files copied manually with ADB.
 
 ## Choose an icon
 

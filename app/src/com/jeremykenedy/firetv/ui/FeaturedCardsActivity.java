@@ -174,15 +174,16 @@ public final class FeaturedCardsActivity extends CardActivity {
     }
 
     private void rotationOptions() {
-        String[] labels = new String[FeaturedCardTiming.OPTIONS.length];
-        int selected = 0;
+        String[] labels = new String[FeaturedCardTiming.OPTIONS.length + 1];
+        int selected = labels.length - 1;
         int current =
                 FeaturedCardTiming.seconds(
                         DeviceSettings.prefs(this).getInt(FeaturedCardTiming.SETTING, 8));
-        for (int i = 0; i < labels.length; i++) {
+        for (int i = 0; i < FeaturedCardTiming.OPTIONS.length; i++) {
             labels[i] = FeaturedCardTiming.label(FeaturedCardTiming.OPTIONS[i]);
             if (FeaturedCardTiming.OPTIONS[i] == current) selected = i;
         }
+        labels[labels.length - 1] = "Custom interval (seconds)";
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Titles inside each card")
                 .setSingleChoiceItems(
@@ -191,6 +192,11 @@ public final class FeaturedCardsActivity extends CardActivity {
                         new android.content.DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(android.content.DialogInterface dialog, int which) {
+                                if (which == FeaturedCardTiming.OPTIONS.length) {
+                                    dialog.dismiss();
+                                    customRotation();
+                                    return;
+                                }
                                 if (DeviceSettings.prefs(FeaturedCardsActivity.this)
                                         .edit()
                                         .putInt(
@@ -204,6 +210,51 @@ public final class FeaturedCardsActivity extends CardActivity {
                         })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void customRotation() {
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        input.setSingleLine(true);
+        input.setHint("Seconds (1 to 86400)");
+        input.setContentDescription("Card rotation interval in seconds");
+        int current = FeaturedCardTiming.seconds(DeviceSettings.prefs(this)
+                .getInt(FeaturedCardTiming.SETTING, 8));
+        if (current > 0) input.setText(String.valueOf(current));
+        input.selectAll();
+        final android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setTitle("Custom card interval")
+                .setMessage("Seconds between title changes inside each card (1 to 86400).")
+                .setView(input).setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", null).create();
+        dialog.setOnShowListener(new android.content.DialogInterface.OnShowListener() {
+            @Override public void onShow(android.content.DialogInterface ignored) {
+                dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener(
+                        new android.view.View.OnClickListener() {
+                    @Override public void onClick(android.view.View view) {
+                        int seconds;
+                        try {
+                            seconds = Integer.parseInt(input.getText().toString().trim());
+                            if (seconds < FeaturedCardTiming.MIN_CUSTOM_SECONDS
+                                    || seconds > FeaturedCardTiming.MAX_CUSTOM_SECONDS) {
+                                throw new NumberFormatException();
+                            }
+                        } catch (NumberFormatException invalid) {
+                            input.setError("Enter whole seconds from 1 to 86400.");
+                            input.requestFocus();
+                            return;
+                        }
+                        if (DeviceSettings.prefs(FeaturedCardsActivity.this).edit()
+                                .putInt(FeaturedCardTiming.SETTING, seconds).commit()) {
+                            labels();
+                            dialog.dismiss();
+                            rotation.requestFocus();
+                        } else input.setError("Could not save. Try again.");
+                    }
+                });
+            }
+        });
+        dialog.show();
     }
 
     private void readSources() {

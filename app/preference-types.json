@@ -82,5 +82,8 @@
   "menu_animation": "String",
   "menu_animation_speed": "Int",
   "menu_animation_intensity": "Int",
-  "menu_animation_brightness": "Int"
+  "menu_animation_brightness": "Int",
+  "icon_focus_style": "String",
+  "icon_focus_background": "Int",
+  "icon_focus_border": "Int"
 }

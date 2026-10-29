@@ -1,6 +1,6 @@
 # Featured cards
 
-Open Preferences > Appearance > Cards > Featured card setup. Existing card and appearance controls remain available below it.
+Open Preferences > UI settings > Cards > Featured card setup. Existing card and appearance controls remain available below it.
 
 ## Choose cards
 
@@ -10,7 +10,7 @@ Focus a card on Home and press the remote Menu button. Card options can hide tha
 
 Channel Manager offers Manage cards under each channel. Right or Menu on a channel also opens its individual cards. Hide or restore one card without disabling the channel. Move up or Move down changes the item order within that feed, and Home rotates the visible items in your saved order within that feed's fixed card. Newly published items follow your saved items; removed items are ignored. Restore all affects only that channel. The separate Hidden cards screen restores individual cards or all hidden cards. Hidden choices are included in portable launcher backups; publisher rows and watch history remain unchanged.
 
-Each app or logical channel keeps one fixed card on Home. Its visible titles rotate internally at the saved 5, 8, 15 or 30 second interval; Manual stops automatic changes. The whole strip no longer advances automatically. The selected child remains in place across refresh when it is still available. Opening its menu or details holds that exact child so actions do not target a later title. Next title and Previous title change only that feed.
+Each app or logical channel keeps one fixed card on Home. Its visible titles rotate internally at the saved 5, 8, 15 or 30 second interval, or a custom whole-second interval from 1 to 86400; Manual stops automatic changes. The whole strip no longer advances automatically. The selected child remains in place across refresh when it is still available. Opening its menu or details holds that exact child so actions do not target a later title. Next title and Previous title change only that feed.
 
 The same saved interval also controls Big picture artwork. Changing it applies when you return from settings. The focused card supplies its current child artwork when that wallpaper mode is selected. Existing item visibility, item order, feed order and source choices are preserved.
 
