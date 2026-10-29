@@ -25,6 +25,12 @@ public final class BuiltInIconPacks {
         return CLEAN_LINE.equals(pack) || MUTED_SOLID.equals(pack);
     }
 
+    public static String caption(String pack) {
+        String label = CLEAN_LINE.equals(pack) ? "Clean line"
+                : MUTED_SOLID.equals(pack) ? "Muted solid" : pack;
+        return "(" + label + ")";
+    }
+
     public static LinkedHashMap<String, String> mappings(Context context, String pack) {
         if (!supports(pack)) return null;
         LinkedHashMap<String, String> result = new LinkedHashMap<>();

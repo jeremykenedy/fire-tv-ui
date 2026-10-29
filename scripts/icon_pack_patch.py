@@ -60,9 +60,12 @@ def patch_builtin_icon_packs(class_paths):
     pending[loader] = text
 
     loader = class_paths['Landroid/support/v4/media/session/b;']
-    pending[loader] = patch_method(loader.read_text(),
+    text = patch_method(loader.read_text(),
         '.method public static final N(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;II)Lg0/h;',
         lambda m: bitmap_hook(m, 4, delegate=True))
+    pending[loader] = replace_once(text,
+        '    invoke-static {v0, v13, v5}, LA/p;->i(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;',
+        '    invoke-static {v13}, Lcom/jeremykenedy/firetv/ui/BuiltInIconPacks;->caption(Ljava/lang/String;)Ljava/lang/String;')
 
     # Cold loading normally redraws a resource and saves it. Built-ins already
     # supply the bitmap; preserve the native cache and exception-path registers.

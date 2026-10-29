@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import shutil
 import subprocess
 import sys
@@ -56,6 +57,34 @@ class BuiltInIconPackPatchChecks(unittest.TestCase):
                 for operation in ('queryIntentActivities', 'getResourcesForApplication',
                                   'getXml', 'setTint', 'Bitmap;->compress'):
                     self.assertEqual(before.count(operation), after.count(operation), (name, operation))
+
+    def test_builtin_identity_and_external_fallback_contract(self):
+        sdk = Path(os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT')
+                   or Path.home() / 'Library/Android/sdk')
+        android = sdk / 'platforms/android-36/android.jar'
+        if not android.is_file():
+            self.skipTest('Install Android SDK platform 36 first.')
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'PackValuesTest.java'
+            source.write_text('''import com.jeremykenedy.firetv.ui.BuiltInIconPacks;
+public class PackValuesTest {
+ public static void main(String[] args) {
+  String clean=BuiltInIconPacks.CLEAN_LINE, muted=BuiltInIconPacks.MUTED_SOLID;
+  if(!BuiltInIconPacks.supports(clean)||!BuiltInIconPacks.supports(muted))throw new AssertionError("Built-in choices unavailable");
+  for(String external:new String[]{null,"","transparent_mode","example.external.pack","builtin:unknown"}) {
+   if(BuiltInIconPacks.supports(external))throw new AssertionError("External identity intercepted");
+   if(BuiltInIconPacks.mappings(null,external)!=null)throw new AssertionError("External mapping replaced");
+   if(BuiltInIconPacks.render(null,external,"test",320,180)!=null)throw new AssertionError("External rendering replaced");
+  }
+  if(!BuiltInIconPacks.caption(clean).equals("(Clean line)"))throw new AssertionError("Internal ID exposed");
+  if(!BuiltInIconPacks.caption(muted).equals("(Muted solid)"))throw new AssertionError("Internal ID exposed");
+  if(!BuiltInIconPacks.caption("example.external.pack").equals("(example.external.pack)"))throw new AssertionError("External caption changed");
+  if(BuiltInIconPacks.render(null,clean,"test",0,180)!=null || BuiltInIconPacks.render(null,muted,"test",320,4096)!=null)throw new AssertionError("Invalid canvas accepted");
+ }
+}''')
+            subprocess.run(['javac', '-cp', str(android), '-d', folder, str(source),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/BuiltInIconPacks.java')], check=True)
+            subprocess.run(['java', '-cp', folder + os.pathsep + str(android), 'PackValuesTest'], check=True)
 
     def test_changed_vendor_seam_fails_without_partial_file_changes(self):
         with tempfile.TemporaryDirectory() as folder:
