@@ -139,15 +139,6 @@ def patch_launcher_grid(paths):
                  '    :legacy_favorites_scroll\n'
                  '    new-instance v0, LQ3/I5;')
     paths['LQ3/F5;'].write_text(focus)
-    page = paths['LQ3/T5;'].read_text()
-    spacer = '    invoke-static {v3, v0}, Landroidx/compose/foundation/layout/d;->g(LZ/o;F)LZ/o;'
-    if page.count(spacer) != 4:
-        raise ValueError('Expected four legacy Home spacer branches')
-    page = page.replace(spacer,
-                        '    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/LauncherLayout;->homeSpacer(F)F\n'
-                        '    move-result v0\n' + spacer)
-    paths['LQ3/T5;'].write_text(page)
-
     home = paths['La/a;'].read_text()
     first = method(home, 'a')
     first = once(first,

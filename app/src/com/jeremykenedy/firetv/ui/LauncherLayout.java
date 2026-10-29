@@ -65,10 +65,6 @@ public final class LauncherLayout {
         return expandHomeApps() && maximumRows(current) > 1;
     }
 
-    public static float homeSpacer(float height) {
-        return multipleHomeRows() ? 0f : height;
-    }
-
     static int maximumRows(SharedPreferences preferences) {
         int rows = preferences.getInt(MAX_ROWS, 0);
         return rows >= 1 && rows <= 6 ? rows : 1;
