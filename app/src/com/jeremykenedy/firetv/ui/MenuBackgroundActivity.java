@@ -18,9 +18,9 @@ public final class MenuBackgroundActivity extends CardActivity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        title("Animated menu backgrounds");
+        title("Menu backgrounds");
         LinearLayout body = scrollBody();
-        body.addView(text("Choose an animation to preview it here and on Home. The same background follows your Fire TV UI panels. Off restores your wallpaper.", 18, MUTED));
+        body.addView(text("Choose a moving or still background for Home and your Fire TV UI panels. Preview it here. Off restores your wallpaper.", 18, MUTED));
         preview = new MenuBackgroundView(this, false);
         LinearLayout.LayoutParams previewSize = new LinearLayout.LayoutParams(dp(320), dp(180));
         previewSize.topMargin = dp(12);
@@ -48,7 +48,11 @@ public final class MenuBackgroundActivity extends CardActivity {
         preview.setVisibility(MenuBackgroundView.enabled(this) ? View.VISIBLE : View.GONE);
         preview.refresh();
         android.content.SharedPreferences prefs = DeviceSettings.prefs(this);
-        style.setText("Background: " + MenuBackgroundOptions.LABELS[MenuBackgroundOptions.style(prefs.getString(MenuBackgroundOptions.STYLE, "off"))]);
+        int selected = MenuBackgroundOptions.style(prefs.getString(MenuBackgroundOptions.STYLE, "off"));
+        style.setText("Background: " + MenuBackgroundOptions.LABELS[selected]);
+        speed.setVisibility(MenuBackgroundOptions.animated(selected) ? View.VISIBLE : View.GONE);
+        intensity.setVisibility(selected == 0 ? View.GONE : View.VISIBLE);
+        brightness.setVisibility(selected == 0 ? View.GONE : View.VISIBLE);
         speed.setText("Speed: " + MenuBackgroundOptions.speed(prefs.getInt(MenuBackgroundOptions.SPEED, 50)) + "%");
         intensity.setText("Intensity: " + MenuBackgroundOptions.level(prefs.getInt(MenuBackgroundOptions.INTENSITY, 50)) + "%");
         brightness.setText("Brightness: " + MenuBackgroundOptions.level(prefs.getInt(MenuBackgroundOptions.BRIGHTNESS, 50)) + "%");
@@ -85,7 +89,7 @@ public final class MenuBackgroundActivity extends CardActivity {
         new AlertDialog.Builder(this).setTitle(title).setSingleChoiceItems(labels, selected, new android.content.DialogInterface.OnClickListener() {
             @Override public void onClick(android.content.DialogInterface dialog, int which) {
                 if (!DeviceSettings.prefs(MenuBackgroundActivity.this).edit().putInt(setting, choices[which]).commit()) {
-                    error(new IllegalStateException("The animation setting could not be saved."));
+                    error(new IllegalStateException("The background setting could not be saved."));
                     return;
                 }
                 dialog.dismiss(); refresh();

@@ -69,7 +69,7 @@ class BuildChecks(unittest.TestCase):
         row = theme.split('const-string v4, "Theme Mode_Screensaver"', 1)[1]
         row = row.split('invoke-static/range {v15 .. v27}, LA3/a;->A', 1)[0]
         self.assertIn('MenuBackgroundAction;-><init>', row)
-        self.assertIn('const-string v15, "Animated backgrounds"', row)
+        self.assertIn('const-string v15, "Menu backgrounds"', row)
         for callback in ('v21', 'v22', 'v23'):
             self.assertIn('check-cast ' + callback + ', Ln4/a;', row)
 
@@ -412,7 +412,7 @@ class BuildChecks(unittest.TestCase):
             'pipeworks-dream': (
                 'Pipeworks Dream', 'com.jeremykenedy.pipeworksdream',
                 'com.jeremykenedy.pipeworksdream/.PipeworksDreamService', 'jeremykenedy/pipeworks-dream',
-                'a9642a20efe37fd3b39974d04f59b17eb4940935dbaca60c4b6cbf655eef03d0', 62276),
+                '62a038159d8db3b04346e23b0ae68707781fa48299ae37a6f77626f9ae646082', 62276),
             'aqua-surface': (
                 'Aqua Surface Drift', 'com.jeremykenedy.aquasurfacedrift',
                 'com.jeremykenedy.aquasurfacedrift/.AquaSurfaceDreamService', 'jeremykenedy/aqua-surface-drift',
@@ -449,7 +449,7 @@ class BuildChecks(unittest.TestCase):
                 'Contour Flow', 'com.jeremykenedy.contourflow',
                 'com.jeremykenedy.contourflow/.ContourFlowDreamService',
                 'jeremykenedy/contour-flow',
-                'b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447', 29368),
+                '6b4302ee3220c25df5b40c3e7ff6d72d6c859b4403203f0577a01a9b7cc2ebf6', 66572),
             'skyburst-nocturne': (
                 'Skyburst Nocturne', 'com.jeremykenedy.skyburstnocturne',
                 'com.jeremykenedy.skyburstnocturne/.FireworksDreamService',
@@ -470,7 +470,7 @@ class BuildChecks(unittest.TestCase):
             self.assertEqual(entry['package'], package)
             self.assertEqual(entry['dream'], dream)
             self.assertEqual(entry['repo'], repo)
-            release_tag = 'v2.0.0' if identifier == 'cloud-drift-clock' else 'v1.0.1' if identifier == 'blue-meridian' else {name: 'v1.1.0' for name in ('cloud-drift-clock', 'pipeworks-dream', 'nebula-drift', 'aqua-surface', 'split-flap-drift', 'canopy-drift')}.get(identifier, 'v1.0.0')
+            release_tag = 'v1.1.1' if identifier == 'pipeworks-dream' else 'v1.1.0' if identifier == 'contour-flow' else 'v2.0.0' if identifier == 'cloud-drift-clock' else 'v1.0.1' if identifier == 'blue-meridian' else {name: 'v1.1.0' for name in ('cloud-drift-clock', 'pipeworks-dream', 'nebula-drift', 'aqua-surface', 'split-flap-drift', 'canopy-drift')}.get(identifier, 'v1.0.0')
             self.assertEqual(entry['tag'], release_tag)
             asset = 'aqua-surface-drift.apk' if identifier == 'aqua-surface' else f'{identifier}.apk'
             self.assertEqual(entry['url'],

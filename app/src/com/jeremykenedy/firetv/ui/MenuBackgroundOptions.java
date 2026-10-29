@@ -7,10 +7,12 @@ public final class MenuBackgroundOptions {
     static final String INTENSITY = "menu_animation_intensity";
     static final String BRIGHTNESS = "menu_animation_brightness";
     static final String[] STYLES = {"off", "particles", "aurora", "constellation", "prism",
-            "silk", "bokeh", "stars", "embers", "waves", "rain", "orbits", "rays"};
+            "silk", "bokeh", "stars", "embers", "waves", "rain", "orbits", "rays",
+            "still_midnight", "still_graphite", "still_forest", "still_plum"};
     static final String[] LABELS = {"Off: use my wallpaper", "Quiet particles", "Aurora ribbons",
             "Connected lights", "Prism light", "Flowing silk", "Soft bokeh", "Drifting stars",
-            "Warm embers", "Ocean ribbons", "Gentle rain", "Orbital arcs", "Light rays"};
+            "Warm embers", "Ocean ribbons", "Gentle rain", "Orbital arcs", "Light rays",
+            "Still: Midnight blue", "Still: Warm graphite", "Still: Forest dusk", "Still: Plum velvet"};
     static final int[] SPEEDS = {25, 50, 100};
     static final int[] LEVELS = {25, 50, 75, 100};
 
@@ -19,6 +21,10 @@ public final class MenuBackgroundOptions {
     static int style(String value) {
         for (int i = 0; i < STYLES.length; i++) if (STYLES[i].equals(value)) return i;
         return 0;
+    }
+
+    static boolean animated(int style) {
+        return style > 0 && style < 13;
     }
 
     static int level(int value) {

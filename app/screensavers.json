@@ -181,10 +181,10 @@
     "package": "com.jeremykenedy.pipeworksdream",
     "dream": "com.jeremykenedy.pipeworksdream/.PipeworksDreamService",
     "repo": "jeremykenedy/pipeworks-dream",
-    "tag": "v1.1.0",
-    "url": "https://github.com/jeremykenedy/pipeworks-dream/releases/download/v1.1.0/pipeworks-dream.apk",
+    "tag": "v1.1.1",
+    "url": "https://github.com/jeremykenedy/pipeworks-dream/releases/download/v1.1.1/pipeworks-dream.apk",
     "bytes": 62276,
-    "sha256": "a9642a20efe37fd3b39974d04f59b17eb4940935dbaca60c4b6cbf655eef03d0",
+    "sha256": "62a038159d8db3b04346e23b0ae68707781fa48299ae37a6f77626f9ae646082",
     "preview": "com.jeremykenedy.pipeworksdream/.PreviewActivity"
   },
   {
@@ -266,10 +266,10 @@
     "package": "com.jeremykenedy.contourflow",
     "dream": "com.jeremykenedy.contourflow/.ContourFlowDreamService",
     "repo": "jeremykenedy/contour-flow",
-    "tag": "v1.0.0",
-    "url": "https://github.com/jeremykenedy/contour-flow/releases/download/v1.0.0/contour-flow.apk",
-    "bytes": 29368,
-    "sha256": "b6b2e05780b95a9e3b7ceb10bbe02a9701ba1bd6ca8172f47b972dd0c7416447",
+    "tag": "v1.1.0",
+    "url": "https://github.com/jeremykenedy/contour-flow/releases/download/v1.1.0/contour-flow.apk",
+    "bytes": 66572,
+    "sha256": "6b4302ee3220c25df5b40c3e7ff6d72d6c859b4403203f0577a01a9b7cc2ebf6",
     "previewControls": "com.jeremykenedy.contourflow/.ContourFlowActivity"
   },
   {
