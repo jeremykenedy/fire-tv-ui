@@ -48,7 +48,12 @@ public class HomePresentationTest {
             path = Path(temp)
             prefs = path / 'android/content/SharedPreferences.java'
             prefs.parent.mkdir(parents=True)
-            prefs.write_text('package android.content; public class SharedPreferences { public int value; public int getInt(String key,int fallback){return value;} }')
+            prefs.write_text('package android.content; public class SharedPreferences { public int value=5, rows; public boolean allApps; public boolean getBoolean(String key,boolean fallback){return allApps;} public String direction="vertical"; public int getInt(String key,int fallback){return key.equals("apps_per_row")?value:rows;} public String getString(String key,String fallback){return direction;} }')
+            activity = path / 'android/app/Activity.java'
+            activity.parent.mkdir(parents=True)
+            activity.write_text('package android.app; public class Activity { public int recreates; public void recreate(){recreates++;} }')
+            settings = path / 'DeviceSettings.java'
+            settings.write_text('package com.jeremykenedy.firetv.ui; public class DeviceSettings { public static android.content.SharedPreferences prefs=new android.content.SharedPreferences(); public static android.content.SharedPreferences prefs(android.app.Activity activity){return prefs;} }')
             check = path / 'LauncherLayoutTest.java'
             check.write_text('''package com.jeremykenedy.firetv.ui;
 import android.content.SharedPreferences;
@@ -61,7 +66,39 @@ public class LauncherLayoutTest {
   if(LauncherLayout.columns(prefs)!=6) throw new AssertionError("Existing choice changed");
   prefs.value=16;if(LauncherLayout.columns(prefs)!=16)throw new AssertionError("Legacy choice removed");
   prefs.value=0;if(LauncherLayout.columns(prefs)!=5)throw new AssertionError("Invalid grid fallback");
+  for(int apps=0;apps<=300;apps++) for(int columns=3;columns<=12;columns++) for(int rows=1;rows<=6;rows++) {
+    int width=LauncherLayout.horizontalColumns(apps,columns,rows);
+    if(width<columns || (apps+width-1)/width>rows) throw new AssertionError("Grid exceeds row limit");
+    boolean[] seen=new boolean[apps];
+    for(int row=0;row<(apps+width-1)/width;row++) for(int column=0;column<width;column++) {
+      int index=row*width+column;
+      if(index<apps){if(seen[index])throw new AssertionError("Duplicate app");seen[index]=true;}
+    }
+    for(boolean reachable:seen)if(!reachable)throw new AssertionError("Hidden app");
+  }
+  if(LauncherLayout.horizontalColumns(11,5,2)!=6)throw new AssertionError("Incomplete last row");
+  if(LauncherLayout.horizontalColumns(2,5,6)!=5)throw new AssertionError("Small list changed tile size");
+  android.app.Activity home=new android.app.Activity();
+  DeviceSettings.prefs=prefs; prefs.value=5;
+  LauncherLayout.created(home);
+  if(LauncherLayout.horizontal() || LauncherLayout.gridColumns(31,5)!=5)throw new AssertionError("Default layout changed");
+  for(int i=0;i<10;i++)LauncherLayout.resumed(home);
+  if(home.recreates!=0)throw new AssertionError("Ordinary Home rebuilt");
+  prefs.direction="horizontal";LauncherLayout.resumed(home);
+  if(home.recreates!=1 || LauncherLayout.gridColumns(31,5)!=31)throw new AssertionError("Horizontal default not applied");
+  LauncherLayout.resumed(home);if(home.recreates!=1)throw new AssertionError("Repeated rebuild");
+  if(!LauncherLayout.expandHomeApps())throw new AssertionError("Horizontal apps not expanded");
+  prefs.allApps=true;if(LauncherLayout.expandHomeApps())throw new AssertionError("All apps button choice ignored");
+  prefs.allApps=false;
+  prefs.rows=2;LauncherLayout.resumed(home);
+  if(home.recreates!=2 || LauncherLayout.gridColumns(31,5)!=16)throw new AssertionError("Row limit not applied");
+  prefs.value=8;LauncherLayout.resumed(home);if(home.recreates!=2)throw new AssertionError("Column refresh changed");
+  prefs.direction="vertical";LauncherLayout.resumed(home);
+  if(home.recreates!=3 || prefs.rows!=2 || prefs.value!=8 || LauncherLayout.gridColumns(31,8)!=8)throw new AssertionError("Vertical restoration lost choices");
+  prefs.direction="invalid";if(LauncherLayout.horizontal(prefs))throw new AssertionError("Invalid direction enabled");
+  prefs.rows=-1;if(LauncherLayout.maximumRows(prefs)!=1)throw new AssertionError("Invalid row fallback");
+  prefs.rows=7;if(LauncherLayout.maximumRows(prefs)!=1)throw new AssertionError("Excess row fallback");
  }
 }''')
-            subprocess.run(['javac', '-d', temp, str(prefs), str(check), str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/LauncherLayout.java')], check=True)
+            subprocess.run(['javac', '-d', temp, str(prefs), str(activity), str(settings), str(check), str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/LauncherLayout.java')], check=True)
             subprocess.run(['java', '-cp', temp, 'com.jeremykenedy.firetv.ui.LauncherLayoutTest'], check=True)
