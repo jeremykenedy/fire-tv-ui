@@ -1,5 +1,10 @@
 # Verification
 
+## Fire TV UI 1.14.0, version code 75
+
+The signed APK `08ca77dd4c8a5bea084872dff62b6fd8bea813da70eea085958ad024c4a4e05e` supplied the four current native background captures on Android TV API34 at1920x1080. Four still choices, static-frame stability, Intensity/Brightness, a native backup round trip, animated-style resume and Off controls were checked. The original14 portable UI preferences,19 system values, external files/directories, UID/grants/app-op modes, users, accessibility and stopped state were preserved. No physical TV interaction was performed for this background feature. Native appearance does not establish universal TV gradient quality or owner acceptance.
+
+
 ## Fire TV UI 1.13.0, version code 74
 
 Final signed APK `0592d60d545b05cacecaa3ef49f1f5cfc5d148d279cc307d5d23835537992dc1` was checked on an Android TV API 34 emulator.

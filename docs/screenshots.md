@@ -1,5 +1,19 @@
 # Screenshots
 
+## Fire TV UI 1.14.0, code 75
+
+Native Android TV API 34 settings at 1920x1080 from the final signed APK `08ca77dd`. The four still palettes use the same Home and menu background layer as the existing animations. Speed is hidden for still styles; Intensity and Brightness remain available. All captures use 50% controls.
+
+<table><tr>
+<td><img src="../art/screenshots/background-midnight-ui114-code75-api34.png" alt="Fire TV UI 1.14 Midnight blue still background"><br>Midnight blue</td>
+<td><img src="../art/screenshots/background-graphite-ui114-code75-api34.png" alt="Fire TV UI 1.14 Warm graphite still background"><br>Warm graphite</td>
+<td><img src="../art/screenshots/background-forest-ui114-code75-api34.png" alt="Fire TV UI 1.14 Forest dusk still background"><br>Forest dusk</td>
+</tr><tr>
+<td><img src="../art/screenshots/background-plum-ui114-code75-api34.png" alt="Fire TV UI 1.14 Plum velvet still background"><br>Plum velvet</td>
+</tr></table>
+
+[Capture provenance](../art/screenshots/ui114-code75-provenance.json) records the exact APK and unmodified PNG hashes. Native controls, still-frame stability and backup round trips were checked. Physical TV appearance remains device dependent. Earlier release screens remain below under their original versions.
+
 ## Fire TV UI 1.13.0, code 74
 
 Native Android TV API 34 captures at 1920x1080 from the exact signed APK `0592d60d`. The dedicated Screensavers area keeps Configure, Preview and Set active beside each saver. UI settings groups layout and card controls, and Updates keeps version details and recovery actions visible. Installed saver names and thumbnails depend on the device; their presence does not establish visual acceptance of those savers.
