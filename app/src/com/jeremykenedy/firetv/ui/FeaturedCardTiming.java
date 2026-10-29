@@ -4,13 +4,14 @@ import android.content.SharedPreferences;
 
 public final class FeaturedCardTiming {
     static final String SETTING = "featured_rotation_seconds";
+    static final int MIN_CUSTOM_SECONDS = 1;
+    static final int MAX_CUSTOM_SECONDS = 86400;
     static final int[] OPTIONS = {0, 5, 8, 15, 30};
 
     private FeaturedCardTiming() {}
 
     static int seconds(int value) {
-        for (int option : OPTIONS) if (value == option) return value;
-        return 8;
+        return value >= 0 && value <= MAX_CUSTOM_SECONDS ? value : 8;
     }
 
     public static long delay(SharedPreferences preferences) {

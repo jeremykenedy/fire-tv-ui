@@ -11,6 +11,8 @@ import android.provider.Settings;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.app.AlertDialog;
 import java.io.File;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -29,6 +31,8 @@ public final class UpdatesActivity extends CardActivity {
     private LinearLayout rows;
     private TextView status;
     private TextView check;
+    private ProgressBar progress;
+    private String focusPackage;
     private boolean busy;
     private Row pending;
     private File installing;
@@ -46,6 +50,11 @@ public final class UpdatesActivity extends CardActivity {
         boolean apkVersioned;
         Long publishedCode;
         String publishedAppVersion;
+        boolean checked;
+        TextView heading;
+        TextView detail;
+        TextView action;
+        TextView verification;
 
         Row(String name, String pkg, ScreensaverCatalog.Entry bundled) {
             this.name = name;
@@ -55,12 +64,15 @@ public final class UpdatesActivity extends CardActivity {
         }
     }
 
+    public static void open(android.content.Context context) {
+        context.startActivity(new Intent(context, UpdatesActivity.class));
+    }
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         title("Updates");
-        status = text("Check published stable releases for Fire TV UI and installed catalog apps. "
-                + "Your selections, timers and app settings are preserved during updates.", 16, MUTED);
+        status = text("Check for updates, then choose an app to install. Your TV asks you to confirm each update. Settings are preserved.", 16, MUTED);
         card.addView(status);
         check = button("Check for updates", new View.OnClickListener() {
             @Override
@@ -69,6 +81,9 @@ public final class UpdatesActivity extends CardActivity {
             }
         });
         addButton(card, check);
+        progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progress.setVisibility(View.INVISIBLE);
+        card.addView(progress, new LinearLayout.LayoutParams(-1, dp(8)));
         rows = scrollBody();
         Row self = new Row("Fire TV UI", getPackageName(), null);
         self.sourceRepo = "jeremykenedy/fire-tv-ui";
@@ -124,55 +139,115 @@ public final class UpdatesActivity extends CardActivity {
     }
 
     private void render() {
-        rows.removeAllViews();
         check.setEnabled(!busy);
         for (final Row app : apps) {
+            if (app.heading == null) {
+                app.heading = text(app.name, 21, INK);
+                app.heading.setPadding(0, dp(12), 0, dp(4));
+                rows.addView(app.heading);
+                app.detail = text("", 15, MUTED);
+                app.detail.setMinLines(3);
+                rows.addView(app.detail);
+                app.action = button("", new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        focusPackage = app.pkg;
+                        if (app.published == null) checkUpdates(app);
+                        else install(app);
+                    }
+                });
+                addButton(rows, app.action);
+                app.verification = button("Release details", new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        new AlertDialog.Builder(UpdatesActivity.this)
+                                .setTitle(app.name + " release details")
+                                .setMessage(app.message + "\n\nSource: " + app.sourceRepo
+                                        + "\n\nSHA-256: " + app.published.sha256
+                                        + "\n\nPackage, checksum, signing certificate and version are verified before installation.")
+                                .setPositiveButton("Close", null).show();
+                    }
+                });
+                addButton(rows, app.verification);
+            }
             try {
                 PackageInfo installed = getPackageManager().getPackageInfo(app.pkg, 0);
-                TextView heading = text(app.name + "  |  Installed " + installed.versionName, 21, INK);
-                heading.setPadding(0, dp(12), 0, dp(4));
-                rows.addView(heading);
-                if (app.publishedCode != null) {
-                    rows.addView(text("Verified Android app " + app.publishedAppVersion
-                            + " (code " + app.publishedCode + ")", 15, MUTED));
-                }
-                rows.addView(text(app.message, 15, MUTED));
-                if (app.published != null) {
-                    rows.addView(text("SHA-256: " + app.published.sha256, 12, MUTED));
-                    Integer order = UpdateVersions.compare(app.published.tag, installed.versionName,
-                            app.publishedCode, versionCode(installed));
-                    String publishedName = app.publishedAppVersion == null
-                            ? app.published.tag : app.publishedAppVersion;
-                    String label = order == null ? "Verify and install published release"
-                            : order > 0 ? "Install update " + publishedName
-                            : order == 0 ? "Matches checked release" : "Installed version is newer";
-                    TextView install = button(label, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            install(app);
-                        }
-                    });
-                    install.setEnabled(!busy && (order == null || order > 0));
-                    addButton(rows, install);
-                }
+                String available = app.published == null ? "Not checked"
+                        : app.publishedAppVersion == null ? app.published.tag : app.publishedAppVersion;
+                if (app.checked && app.published == null) available = "Check unavailable";
+                app.detail.setText("Installed: " + installed.versionName + "   Available: " + available
+                        + "\n" + app.message);
+                Integer order = app.published == null ? null
+                        : UpdateVersions.compare(app.published.tag, installed.versionName,
+                                app.publishedCode, versionCode(installed));
+                String label = app.published == null ? (app.checked ? "Retry check" : "Check this app")
+                        : order == null ? "Verify and install release " + available
+                        : order > 0 ? "Install update " + available
+                        : order == 0 ? "Matches checked release" : "Installed version is newer";
+                if (app.sourceRepo == null) label = "No update source available";
+                app.action.setText(label);
+                app.action.setEnabled(!busy && app.sourceRepo != null
+                        && (app.published == null || order == null || order > 0));
+                app.action.setContentDescription(label + ": " + app.name);
+                app.verification.setVisibility(app.published == null ? View.INVISIBLE : View.VISIBLE);
             } catch (PackageManager.NameNotFoundException removed) {
-                rows.addView(text(app.name + " is no longer installed.", 16, MUTED));
+                app.detail.setText("This app is no longer installed.");
+                app.action.setEnabled(false);
+                app.verification.setVisibility(View.INVISIBLE);
             }
         }
     }
 
+    private void restoreFocus() {
+        for (Row app : apps) {
+            if (app.pkg.equals(focusPackage)) {
+                if (app.action.isEnabled()) app.action.requestFocus();
+                else if (app.verification.getVisibility() == View.VISIBLE) app.verification.requestFocus();
+                else check.requestFocus();
+                return;
+            }
+        }
+        check.requestFocus();
+    }
+
+    private String checkSummary() {
+        int updates = 0, unavailable = 0;
+        for (Row app : apps) {
+            if (!app.checked) continue;
+            if (app.published == null) {
+                unavailable++;
+                continue;
+            }
+            try {
+                PackageInfo installed = getPackageManager().getPackageInfo(app.pkg, 0);
+                Integer order = UpdateVersions.compare(app.published.tag, installed.versionName,
+                        app.publishedCode, versionCode(installed));
+                if (order == null || order > 0) updates++;
+            } catch (PackageManager.NameNotFoundException ignored) { }
+        }
+        return "Check finished. " + updates + " update(s) to review, " + unavailable
+                + " unavailable check(s). Select an app below. Release checks are reused for six hours; Retry check checks that app again.";
+    }
+
     private void checkUpdates() {
+        focusPackage = null;
+        checkUpdates(null);
+    }
+
+    private void checkUpdates(final Row retry) {
         if (busy) {
             return;
         }
         busy = true;
-        status.setText("Checking published releases on GitHub...");
+        status.setText(retry == null ? "Checking installed apps..." : "Checking " + retry.name + "...");
+        progress.setIndeterminate(true);
+        progress.setVisibility(View.VISIBLE);
         render();
         worker.submit(new Runnable() {
             @Override
             public void run() {
                 boolean rateLimited = false;
+                int checkedCount = 0;
                 for (final Row app : apps) {
+                    if (retry != null && retry != app) continue;
                     if (Thread.currentThread().isInterrupted()) {
                         return;
                     }
@@ -186,7 +261,7 @@ public final class UpdatesActivity extends CardActivity {
                             throw new IllegalStateException("No reviewed release source. Use the app publisher or TV system updates.");
                         }
                         try {
-                            JSONObject cached = cached(app);
+                            JSONObject cached = retry == app ? null : cached(app);
                             if (cached != null) {
                                 found = new ScreensaverCatalog.Entry(cached.getJSONObject("release"));
                                 message = checkedMessage(found, cached.getLong("checked_at"), app.apkVersioned) + " (cached)";
@@ -235,10 +310,13 @@ public final class UpdatesActivity extends CardActivity {
                     final boolean staged = local;
                     final ScreensaverCatalog.Entry release = found;
                     final String result = message;
+                    final int completed = ++checkedCount;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             if (!isFinishing() && !isDestroyed()) {
+                                app.checked = true;
+                                status.setText("Checked " + completed + " of " + (retry == null ? apps.size() : 1) + " apps: " + app.name);
                                 app.published = release;
                                 app.publishedCode = release == null ? null : checkedCode;
                                 app.publishedAppVersion = release == null ? null : checkedName;
@@ -254,10 +332,10 @@ public final class UpdatesActivity extends CardActivity {
                     public void run() {
                         if (!isFinishing() && !isDestroyed()) {
                             busy = false;
-                            status.setText("Check finished: " + DateFormat.getDateTimeInstance().format(new Date())
-                                    + ". Verified checks are reused for six hours. Each row shows its check time; unavailable rows are not current-version claims.");
+                            progress.setVisibility(View.INVISIBLE);
+                            status.setText(checkSummary());
                             render();
-                            check.requestFocus();
+                            restoreFocus();
                         }
                     }
                 });
@@ -313,6 +391,9 @@ public final class UpdatesActivity extends CardActivity {
         }
         busy = true;
         status.setText("Downloading and verifying " + app.name + "...");
+        progress.setIndeterminate(false);
+        progress.setProgress(0);
+        progress.setVisibility(View.VISIBLE);
         render();
         worker.submit(new Runnable() {
             @Override
@@ -324,6 +405,8 @@ public final class UpdatesActivity extends CardActivity {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
+                                            if (isFinishing() || isDestroyed()) return;
+                                            UpdatesActivity.this.progress.setProgress(percent);
                                             status.setText("Downloading " + app.name + ": " + percent + "%");
                                         }
                                     });
@@ -344,7 +427,8 @@ public final class UpdatesActivity extends CardActivity {
                                 installing = apk;
                                 Uri uri = new Uri.Builder().scheme("content").authority(getPackageName() + ".install")
                                         .appendPath(apk.getName()).build();
-                                status.setText("Package, checksum and signing certificate verified. Confirm the update on your TV.");
+                                UpdatesActivity.this.progress.setVisibility(View.INVISIBLE);
+                                status.setText("Ready to install " + app.name + ". Confirm the update on your TV.");
                                 startActivityForResult(new Intent(Intent.ACTION_INSTALL_PACKAGE, uri)
                                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                         .putExtra(Intent.EXTRA_RETURN_RESULT, true), 31);
@@ -352,7 +436,10 @@ public final class UpdatesActivity extends CardActivity {
                                 apk.delete();
                                 installing = null;
                                 busy = false;
+                                UpdatesActivity.this.progress.setVisibility(View.INVISIBLE);
+                                status.setText("Installer could not open. Select the app to retry.");
                                 render();
+                                restoreFocus();
                                 error(failed);
                             }
                         }
@@ -363,8 +450,10 @@ public final class UpdatesActivity extends CardActivity {
                         public void run() {
                             if (!isFinishing() && !isDestroyed()) {
                                 busy = false;
-                                status.setText("The update was not installed. Your existing app was preserved.");
+                                UpdatesActivity.this.progress.setVisibility(View.INVISIBLE);
+                                status.setText("Update not installed. Select " + app.name + " to retry. Your existing app was preserved.");
                                 render();
+                                restoreFocus();
                                 error(failed);
                             }
                         }
@@ -379,6 +468,9 @@ public final class UpdatesActivity extends CardActivity {
         super.onActivityResult(request, result, data);
         if (request == 30 && pending != null && getPackageManager().canRequestPackageInstalls()) {
             install(pending);
+        } else if (request == 30) {
+            status.setText("Installation permission was not granted. Select the app to try again.");
+            restoreFocus();
         } else if (request == 31) {
             busy = false;
             boolean updated = false;
@@ -387,13 +479,14 @@ public final class UpdatesActivity extends CardActivity {
             } catch (PackageManager.NameNotFoundException absent) {
                 // Keep the result truthful if another process removed the app.
             }
-            status.setText(updated ? "Update installed and version verified." : "No update was completed.");
+            status.setText(updated ? pending.name + " updated. Installed version verified."
+                    : "No update was installed. Select the app to retry.");
             if (installing != null) {
                 installing.delete();
                 installing = null;
             }
             render();
-            check.requestFocus();
+            restoreFocus();
         }
     }
 

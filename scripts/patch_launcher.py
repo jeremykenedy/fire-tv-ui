@@ -494,7 +494,7 @@ def patch(decoded):
     text = replace_once(text, '    filled-new-array/range {v49 .. v55}, [Ljava/lang/String;',
         '    const-string v56, "Startup and protection"\n\n'
         '    const-string v57, \"Advanced\"\n\n'
-        '    const-string v58, "Animated backgrounds"\n\n'
+        '    const-string v58, "Updates"\n\n'
         '    filled-new-array/range {v49 .. v58}, [Ljava/lang/String;')
     text = replace_method(text, '.method public static final H(ZLn4/a;Ljava/util/Map;LN/p;I)V',
         '.method public static final H(ZLn4/a;Ljava/util/Map;LN/p;I)V\n    .locals 0\n    return-void\n.end method')
@@ -529,7 +529,7 @@ def patch(decoded):
         '    invoke-direct {v9, v11}, Lcom/jeremykenedy/firetv/ui/ScreensaverAction;-><init>(Landroid/content/Context;)V\n\n'
         '    goto :native_settings_action_done\n\n'
         '    :normal_settings_action\n'
-        '    const-string v11, "Animated backgrounds"\n'
+        '    const-string v11, "Updates"\n'
         '    invoke-virtual {v11, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n'
         '    move-result v11\n'
         '    if-eqz v11, :startup_settings_action\n'
@@ -537,8 +537,8 @@ def patch(decoded):
         '    invoke-virtual {v10, v11}, LN/p;->k(LN/m0;)Ljava/lang/Object;\n'
         '    move-result-object v11\n'
         '    check-cast v11, Landroid/content/Context;\n'
-        '    new-instance v9, Lcom/jeremykenedy/firetv/ui/MenuBackgroundAction;\n'
-        '    invoke-direct {v9, v11}, Lcom/jeremykenedy/firetv/ui/MenuBackgroundAction;-><init>(Landroid/content/Context;)V\n'
+        '    new-instance v9, Lcom/jeremykenedy/firetv/ui/UpdatesAction;\n'
+        '    invoke-direct {v9, v11}, Lcom/jeremykenedy/firetv/ui/UpdatesAction;-><init>(Landroid/content/Context;)V\n'
         '    goto :native_settings_action_done\n'
         '    :startup_settings_action\n'
         '    const-string v11, "Startup and protection"\n\n'
@@ -555,12 +555,29 @@ def patch(decoded):
         '    const/4 v11, 0x0\n\n'
         '    invoke-static/range {v4 .. v11}, LQ3/M7;->I')
     text = replace_method(text, menu_signature, menu)
+    label_signature = '.method public static final I(Ljava/lang/String;IZLe0/p;Ln4/c;Ln4/a;LN/p;I)V'
+    label_method = re.search(r'^' + re.escape(label_signature) + r'\n.*?^\.end method', text, re.M | re.S).group(0)
+    label_method = replace_once(label_method, '    move-object/from16 v1, p0\n\n    invoke-virtual {v10, v1}, LN/p;->f(Ljava/lang/Object;)Z',
+        '    move-object/from16 v1, p0\n'
+        '    invoke-static {v1}, Lcom/jeremykenedy/firetv/ui/UiMenuLabels;->display(Ljava/lang/String;)Ljava/lang/String;\n'
+        '    move-result-object v1\n\n    invoke-virtual {v10, v1}, LN/p;->f(Ljava/lang/Object;)Z')
+    text = replace_method(text, label_signature, label_method)
+    controls_signature = '.method public static final l(IZZZZZZLandroid/content/Context;Ln4/a;Ln4/a;Ljava/util/Map;Ln4/c;Ln4/c;Ln4/c;Ln4/c;Ln4/c;Ln4/c;LN/p;II)V'
+    controls = re.search(r'^' + re.escape(controls_signature) + r'\n.*?^\.end method', text, re.M | re.S).group(0)
+    controls = replace_once(controls,
+        '    filled-new-array {v2, v3, v4}, [Ljava/lang/Integer;\n\n    move-result-object v2',
+        '    const/4 v2, 0x0\n    new-array v2, v2, [Ljava/lang/Integer;')
+    heading = controls.index('    const-string v16, "Apps per row"')
+    heading_end = controls.index('    invoke-static/range {v16 .. v37}, LK/L0;->b', heading)
+    line_end = controls.index('\n', heading_end)
+    controls = controls[:heading_end] + controls[line_end:]
+    text = replace_method(text, controls_signature, controls)
     text = replace_once(text,
         '    move/from16 v1, p15\n\n'
         '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V',
         '    move/from16 v1, p15\n\n'
         '    move-object/from16 v0, p1\n'
-        '    invoke-static {v13, v10, v0}, Lcom/jeremykenedy/firetv/ui/ScreensaverSettingsRow;->draw(Ljava/util/Map;LN/p;Ln4/a;)V')
+        '    invoke-static {v13, v10, v0}, Lcom/jeremykenedy/firetv/ui/UiSettingsRow;->draw(Ljava/util/Map;LN/p;Ln4/a;)V')
 
     text = replace_once(text,
         '    const-string v0, "Cards_PosterMode"\n\n    move-object/from16 v13, p29',
@@ -634,16 +651,18 @@ def patch(decoded):
     help_text = help_text.replace(r'\nLICENSES & CREDITS',
         r'\nTV SCREENSAVER\n\nOpen Settings > TV screensaver. '
         r'Select an installed screensaver to make it active, or turn the TV screensaver on or off. '
-        r'Appearance opens these same controls. The selected delay is shared by launcher and system idle handling. '
+        r'Configure and Preview are available beside each saver without making it active. The selected delay is shared by launcher and system idle handling. '
         r'If setup is needed, follow the on-screen instructions from your computer. '
         r'The selected screensaver and enabled state are read back from the TV.\n\nLICENSES & CREDITS')
     help_text = help_text.replace('Select an installed screensaver to make it active,',
         'Each row includes a small sample preview. Select an installed screensaver to make it active,')
+    help_text = help_text.replace('Theme Mode & Wallpapers', 'Theme and wallpaper').replace('Appearance settings', 'UI settings')
+    help_text = help_text.replace(r'\u2022 Apps per Row\n\u2022 Appearance', r'\u2022 UI settings (Layout and focus, apps, icons, widgets, cards, status bar and favorites)')
     text = text[:match.start(2)] + help_text + text[match.end(2):]
     settings.write_text(text)
 
     focus = class_paths['LQ3/k7;']
-    text = focus.read_text()
+    text = focus.read_text().replace('Controls_AppsRow_0', 'Controls_AccessibilityBtn')
     new_hash = java_hash('Screensavers')
     hash_literal = f'-0x{-new_hash:x}' if new_hash < 0 else f'0x{new_hash:x}'
     text = replace_once(text, '        0x503d6637 -> :sswitch_0',
@@ -654,6 +673,24 @@ def patch(decoded):
         return '    .sparse-switch\n' + '\n'.join(rows) + '\n    .end sparse-switch'
     text = re.sub(r'    \.sparse-switch\n(.*?)\n    \.end sparse-switch', order_switch, text, flags=re.S)
     focus.write_text(text)
+
+    remote_focus = class_paths['LQ3/E1;']
+    remote_focus.write_text(replace_once(remote_focus.read_text(),
+        'Controls_AppsRow_2', 'Controls_AccessibilityBtn'))
+    theme = class_paths['Landroid/support/v4/media/session/b;']
+    theme_text = theme.read_text()
+    theme_start = theme_text.index('    const-string v4, "Theme Mode_Screensaver"')
+    theme_row = theme_text.index('    invoke-static/range {v15 .. v27}, LA3/a;->A', theme_start)
+    theme_text = theme_text[:theme_row] + (
+        '    move-object/from16 v0, p13\n'
+        '    new-instance v15, Lcom/jeremykenedy/firetv/ui/MenuBackgroundAction;\n'
+        '    invoke-direct {v15, v0}, Lcom/jeremykenedy/firetv/ui/MenuBackgroundAction;-><init>(Landroid/content/Context;)V\n'
+        '    move-object/from16 v20, v15\n'
+        '    move-object/from16 v0, p6\n'
+        '    const-string v15, "Animated backgrounds"\n'
+        '    const/16 v17, 0x0\n'
+    ) + theme_text[theme_row:]
+    theme.write_text(theme_text)
 
     project = class_paths['LQ3/F2;']
     text = project.read_text()
@@ -720,7 +757,9 @@ def patch(decoded):
     destination = decoded / 'smali/com/jeremykenedy/firetv/ui'
     destination.mkdir(parents=True, exist_ok=True)
     shutil.copy(ROOT / 'app/smali/ScreensaverAction.smali', destination)
-    shutil.copy(ROOT / 'app/smali/ScreensaverSettingsRow.smali', destination)
+    shutil.copy(ROOT / 'app/smali/UiSettingsRow.smali', destination)
+    shutil.copy(ROOT / 'app/smali/UiSettingsAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/UpdatesAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/BackupAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/SystemControlsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/AdvancedAction.smali', destination)
@@ -829,7 +868,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'PreviewCreditsActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'PlexHomeActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity', 'MenuBackgroundActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'PreviewCreditsActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'PlexHomeActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity', 'MenuBackgroundActivity', 'UiSettingsActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

@@ -23,6 +23,20 @@ public final class FeaturedCardTimingTest {
         check(
                 FeaturedCardTiming.delay(values) == 8000,
                 "Invalid legacy intervals must use the safe existing default.");
+        for (int custom : new int[] {1, 7, 47, 3600, 86400}) {
+            values.value = custom;
+            check(FeaturedCardTiming.delay(values) == custom * 1000L,
+                    "Custom seconds must reach the live card clock unchanged.");
+            check(FeaturedCardTiming.setting(values).intValue() == custom,
+                    "The Compose restart key must preserve a custom interval.");
+            check(FeaturedCardTiming.label(custom).equals("Every " + custom + " seconds"),
+                    "The saved custom value must be visible with its unit.");
+        }
+        for (int invalid : new int[] {-1, 86401, Integer.MAX_VALUE, Integer.MIN_VALUE}) {
+            values.value = invalid;
+            check(FeaturedCardTiming.delay(values) == 8000,
+                    "Invalid stored intervals must retain the existing fallback.");
+        }
         check(
                 FeaturedCardTiming.label(0).equals("Manual only"),
                 "Manual mode must have honest product wording.");

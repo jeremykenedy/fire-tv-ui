@@ -29,7 +29,7 @@ class BuildChecks(unittest.TestCase):
         self.assertIn('iget-object v9, v0, LQ3/T3;->featuredRotation:LN/g0;', wallpaper)
         self.assertIn('filled-new-array {v2, v3, v4, v7, v9}, [Ljava/lang/Object;', wallpaper)
 
-    def test_appearance_screensaver_row_opens_the_dedicated_controls(self):
+    def test_ui_settings_layout_row_replaces_the_duplicate_saver_route(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():
             self.skipTest('Build the launcher to check the actual Appearance route.')
@@ -38,14 +38,40 @@ class BuildChecks(unittest.TestCase):
         start = launcher.index('const-string v0, "Appearance_Screensaver"')
         end = launcher.index(':goto_19e', start)
         row = launcher[start:end]
-        self.assertIn('ScreensaverSettingsRow;->draw', row)
+        self.assertIn('UiSettingsRow;->draw', row)
         self.assertNotIn('LA3/a;->A(', row,
                          'The legacy toggle must not remain rendered alongside its replacement.')
-        shortcut = built['Lcom/jeremykenedy/firetv/ui/ScreensaverSettingsRow;'].read_text()
-        self.assertIn('ScreensaverAction;-><init>', shortcut)
+        shortcut = built['Lcom/jeremykenedy/firetv/ui/UiSettingsRow;'].read_text()
+        self.assertIn('UiSettingsAction;-><init>', shortcut)
+        self.assertIn('Layout and focus', shortcut)
+        self.assertNotIn('ScreensaverAction;-><init>', shortcut)
         self.assertIn('move-object v6, p2', shortcut)
         self.assertIn('Appearance_Favorites', shortcut)
         self.assertNotIn('SharedPreferences', shortcut)
+
+    def test_menu_moves_grid_settings_without_breaking_remote_focus(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the launcher before checking the menu integration.')
+        built = classes(decoded)
+        launcher = built['LQ3/M7;'].read_text()
+        self.assertIn('UiMenuLabels;->display', launcher)
+        self.assertIn('UpdatesAction;-><init>', launcher)
+        controls = launcher.split('.method public static final l(', 1)[1].split('.end method', 1)[0]
+        self.assertIn('new-array v2, v2, [Ljava/lang/Integer;', controls)
+        heading = controls.split('const-string v16, "Apps per row"', 1)[1].split('move/from16 v29, v4', 1)[0]
+        self.assertNotIn('LK/L0;->b', heading)
+        focus = built['LQ3/k7;'].read_text()
+        self.assertNotIn('Controls_AppsRow_0', focus)
+        self.assertIn('Controls_AccessibilityBtn', focus)
+        self.assertNotIn('Controls_AppsRow_2', built['LQ3/E1;'].read_text())
+        theme = built['Landroid/support/v4/media/session/b;'].read_text()
+        row = theme.split('const-string v4, "Theme Mode_Screensaver"', 1)[1]
+        row = row.split('invoke-static/range {v15 .. v27}, LA3/a;->A', 1)[0]
+        self.assertIn('MenuBackgroundAction;-><init>', row)
+        self.assertIn('const-string v15, "Animated backgrounds"', row)
+        for callback in ('v21', 'v22', 'v23'):
+            self.assertIn('check-cast ' + callback + ', Ln4/a;', row)
 
     def test_grouped_cards_keep_positions_and_backgrounds_keep_main_lifecycle_hooks(self):
         decoded = ROOT / '.build/decoded'

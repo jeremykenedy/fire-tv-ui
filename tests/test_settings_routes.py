@@ -75,8 +75,6 @@ class SettingsRouteChecks(unittest.TestCase):
         self.assertIn('result=0, data="ok"', result, result)
 
     def launch_picker(self):
-        for _, package, _ in SCREENSAVERS:
-            self.shell('am', 'force-stop', package)
         self.shell('am', 'force-stop', UI_PACKAGE)
         self.shell('am', 'start', '-W', '-n', UI_PACKAGE + '/.ScreensaverActivity')
         time.sleep(0.5)
@@ -85,11 +83,13 @@ class SettingsRouteChecks(unittest.TestCase):
         self.shell('uiautomator', 'dump', path)
         return ET.fromstring(self.shell('cat', path))
 
-    def test_each_new_app_opens_its_declared_settings_activity(self):
+    def test_configure_any_saver_preserves_active_selection_timer_and_focus(self):
         self.assertEqual(self.shell('getprop', 'ro.kernel.qemu'), '1',
                          'This test may only change settings on an emulator.')
         before_component = self.setting('screensaver_components')
         before_enabled = self.setting('screensaver_enabled')
+        before_timeout = self.shell('settings', 'get', 'system', 'screen_off_timeout')
+        before_sleep = self.setting('sleep_timeout')
         self.assertTrue(before_component, 'The emulator needs an existing screensaver selection.')
         self.assertNotIn(',', before_component, 'The test requires one selected screensaver component.')
 
@@ -105,21 +105,20 @@ class SettingsRouteChecks(unittest.TestCase):
                 with self.subTest(screensaver=label):
                     installed = self.shell('pm', 'path', package)
                     self.assertIn('package:', installed, package + ' is not installed on the emulator.')
-                    self.write_setting('screensaver_components', dream)
-                    self.assertEqual(self.setting('screensaver_components'), dream)
                     self.launch_picker()
-                    window = self.read_window(ORIGINAL_SETTINGS_ACTIVITY)
-                    current = [node.get('text', '') for node in window.iter()
-                               if node.get('text', '').startswith('Current screensaver: ')]
-                    self.assertEqual(current, ['Current screensaver: ' + label])
-
-                    self.shell('input', 'keyevent', 'DPAD_UP')
-                    self.shell('input', 'keyevent', 'DPAD_LEFT')
-                    window = self.read_window(ORIGINAL_SETTINGS_ACTIVITY)
-                    settings_button = [node for node in window.iter()
-                                       if node.get('text') == 'Screensaver settings']
-                    self.assertEqual(len(settings_button), 1)
-                    self.assertEqual(settings_button[0].get('focused'), 'true')
+                    target = 'Configure ' + label
+                    before_bounds = None
+                    for _ in range(100):
+                        self.shell('input', 'keyevent', 'DPAD_LEFT', 'DPAD_LEFT')
+                        window = self.read_window(ORIGINAL_SETTINGS_ACTIVITY)
+                        focused = [node for node in window.iter()
+                                   if node.get('focused') == 'true']
+                        if any(node.get('content-desc') == target for node in focused):
+                            before_bounds = next(node.get('bounds') for node in focused
+                                                 if node.get('content-desc') == target)
+                            break
+                        self.shell('input', 'keyevent', 'DPAD_DOWN')
+                    self.assertIsNotNone(before_bounds, 'Configure was not reachable: ' + label)
                     self.shell('input', 'keyevent', 'DPAD_CENTER')
 
                     expected_activity = package + '/.SettingsActivity'
@@ -136,6 +135,19 @@ class SettingsRouteChecks(unittest.TestCase):
                     window = self.read_window(ORIGINAL_SETTINGS_ACTIVITY)
                     titles = [node.get('text', '') for node in window.iter()]
                     self.assertIn(expected_title, titles)
+                    self.assertEqual(self.setting('screensaver_components'), before_component)
+                    self.assertEqual(self.setting('screensaver_enabled'), before_enabled)
+                    self.assertEqual(self.shell('settings', 'get', 'system', 'screen_off_timeout'), before_timeout)
+                    self.assertEqual(self.setting('sleep_timeout'), before_sleep)
+                    self.shell('input', 'keyevent', 'BACK')
+                    time.sleep(0.5)
+                    returned = self.read_window(ORIGINAL_SETTINGS_ACTIVITY)
+                    focused = [node for node in returned.iter()
+                               if node.get('focused') == 'true']
+                    self.assertTrue(any(node.get('content-desc') == target for node in focused),
+                                    'Configure focus was not restored for ' + label)
+                    self.assertEqual(next(node.get('bounds') for node in focused
+                                          if node.get('content-desc') == target), before_bounds)
 
         finally:
             self.write_setting('screensaver_components', before_component)
