@@ -7,7 +7,7 @@ adb connect YOUR_TV_IP:5555
 python3 scripts/install.py --serial YOUR_TV_IP:5555
 ```
 
-The installer grants WRITE_SECURE_SETTINGS and the storage, usage and package-install access supported by the TV's Android version. It copies the shared icons, rebinds an already enabled Home service and opens Fire TV UI. Pass `--apk /path/to/fire-tv-ui-1.12.0.apk` to install a downloaded signed release instead of the locally built APK. Verify the release checksum first.
+The installer grants WRITE_SECURE_SETTINGS and the storage, usage and package-install access supported by the TV's Android version. It copies the shared icons, rebinds an already enabled Home service and opens Fire TV UI. Pass `--apk /path/to/fire-tv-ui-1.13.0.apk` to install a downloaded signed release instead of the locally built APK. Verify the release checksum first.
 
 Select **Settings > Screensavers**. Each row includes a sample image to help identify the screensaver. Selecting an app makes it the active TV screensaver and enables it. The On/Off control preserves the selected app while changing the enabled state.
 
@@ -39,4 +39,4 @@ After a successful preference restore, the existing Home controls are notified t
 
 ## Shared icon pack
 
-The repository installer also copies the [HD icon pack](icons.md) to shared `Pictures/Icons` storage and publishes it to image pickers. APK-only installations need the separate icon ZIP or `python3 scripts/install_icons.py --serial YOUR_TV_IP:5555`. Long press an app or input tile and choose **Change Icon**.
+The repository installer also copies the [HD icon pack](icons.md) to shared `Pictures/Icons` storage and publishes it to image pickers. APK-only installations can recover missing bundled icons through Settings > Updates after storage access is granted. The separate icon ZIP and `python3 scripts/install_icons.py --serial YOUR_TV_IP:5555` remain available. Long press an app or input tile and choose **Change Icon**.

@@ -46,9 +46,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.12.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.13.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.12.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.13.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -63,7 +63,7 @@ Open **Fire TV UI**, accept the accessibility disclosure if you want remote shor
 
 Press **Back** or **Menu** to dismiss the Settings panel. **Home** returns to the launcher with the panel closed when Home routing is enabled.
 
-Choose **Settings > Screensavers** to select an installed screensaver. Each row has a sample image, installed storage usage, a circular selector, and a live preview action. **Preview it** opens the app preview; **Preview controls** opens its own controls, where you choose Preview or Show aquarium. The top controls open the current screensaver's options, system timers, installation catalog, and memory usage. App previews leave your screensaver selection unchanged.
+Choose **Settings > Screensavers** to select an installed screensaver. Each saver has its own **Configure**, **Preview** and **Set active** actions. Configure and Preview leave the selected saver unchanged; returning restores your position in the list. Timers, the installation catalog and memory usage remain available.
 
 Choose **Startup and protection** in Settings to enable or disable Fire TV UI as the startup and Home app, protect selected settings from reversion, or block Amazon update traffic locally. Streaming, weather, CDNs, and screensaver downloads remain available. No analytics, tracking, rating, or project prompts are included.
 
@@ -71,7 +71,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 
 | Feature | What it does | Guide |
 | --- | --- | --- |
-| Home layout | Arrange apps, folders, favorites, channels and custom icons. | [Configuration](docs/configuration.md) |
+| Home layout | Arrange apps and channels; choose custom columns and readable focus styles. | [Configuration](docs/configuration.md) |
 | Featured cards | Keep feeds fixed while their titles rotate; order or hide items and add authorized Plex profiles. | [Featured cards](docs/featured-cards.md) |
 | Animated backgrounds | Twelve optional animations behind Home and supported menu panels. | [Animated backgrounds](docs/animated-backgrounds.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
@@ -88,7 +88,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 
 The [32 HD icons](docs/icons.md) cover consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The repository installer copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
 
-APK-only updates do not copy the separate shared icon pack. Use the release icon ZIP or the repository icon installer; see the [icon guide](docs/icons.md).
+The APK also recovers missing shared icons when storage access is available. Open **Settings > Updates** for access status and retry; existing custom files are preserved. The release icon ZIP and repository installer remain available; see the [icon guide](docs/icons.md).
 
 Long press the app or input tile, choose **Change Icon**, then select an image. For LTvLauncher, use **Set Custom Banner** on an app. See the [icon guide](docs/icons.md) for the full catalog and standalone installation.
 
@@ -133,7 +133,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
 - [Animated menu backgrounds](docs/animated-backgrounds.md)
-- [Fire TV UI 1.12.0 release notes and upgrade guide](docs/releases/v1.12.0.md)
+- [Fire TV UI 1.13.0 release notes and upgrade guide](docs/releases/v1.13.0.md)
 - [Fire TV UI 1.11.1 release notes and upgrade guide](docs/releases/v1.11.1.md)
 - [Fire TV UI 1.11.0 release notes and upgrade guide](docs/releases/v1.11.0.md)
 - [Fire TV UI 1.10.1 release notes and upgrade guide](docs/releases/v1.10.1.md)

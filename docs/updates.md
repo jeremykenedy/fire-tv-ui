@@ -1,14 +1,14 @@
 # Published app updates
 
-Open **Settings > Advanced > Updates**, or **Screensavers > Install screensavers > Check installed-app updates**. Select **Check for updates** to request stable published releases. The screen includes Fire TV UI and installed catalog screensavers, launchers and IPTV apps. Other discovered DreamServices show an unavailable publisher source rather than an invented update status.
+Open **Settings > Updates** (also available through Advanced), or **Screensavers > Install screensavers > Check installed-app updates**. Select **Check for updates** to request stable published releases. The screen includes Fire TV UI and installed catalog screensavers, launchers and IPTV apps. Other discovered DreamServices show an unavailable publisher source rather than an invented update status.
 
-Each successful check shows the installed version, published tag, check time, download size and SHA-256. Verified metadata is reused for six hours to limit GitHub requests. A cached check is labelled with its original time. Network errors, missing published checksums, inaccessible repositories and rate limits remain unavailable. Matching a checked release is a version comparison, not a guarantee that a newer release has not appeared since that check.
+Rows keep their position while checks run, show progress and offer a per-app retry after failure. Each successful check shows the installed version, published tag, check time, download size and SHA-256. Verified metadata is reused for six hours to limit GitHub requests. A cached check is labelled with its original time. Network errors, missing published checksums, inaccessible repositories and rate limits remain unavailable. Matching a checked release is a version comparison, not a guarantee that a newer release has not appeared since that check.
 
 OwnTV releases use the exact TV artifact name `OwnTV-{tag}.apk`, with the checked numeric release tag substituted. Mobile APKs, a lone APK for an older tag and ambiguous alternatives are rejected. Cached metadata must match that exact filename too.
 
 Choose **Install update** to download and verify the APK. Fire TV UI checks its byte count, SHA-256, expected package, installed signing certificate and higher Android version code before opening the normal Android installation confirmation. Replacement installs retain the existing app's data. A cancelled or rejected install does not remove the current app. The TV may require you to allow installation from Fire TV UI through its normal settings screen.
 
-The shared 32-image icon pack is separate from the APK. A native UI replacement does not copy it. Use the matching release icon ZIP or repository icon installer; Fire TV Toolkit also offers the paired APK-and-icons path. See [icons](icons.md).
+The APK bundles the 32 shared icon images. The Updates screen reports icon access and missing files, and offers Add missing icon files. After storage access is granted, installation and retry copy only missing files and index them for image pickers. Existing files, including custom replacements, are preserved. The release ZIP and repository installer remain available; see [icons](icons.md).
 
 ## Home Redirect releases
 
