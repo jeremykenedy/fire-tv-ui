@@ -15,7 +15,7 @@
 
 ## Layout and focus
 
-Open **UI settings > Layout and focus**. Apps per row offers presets and a custom whole number from 2 to 12. Auto/default uses five columns. Existing saved values remain unchanged until you choose a new value. Changing columns preserves app order. Horizontal scrolling and a maximum row count are not included in this release.
+Open **UI settings > Layout and focus**. Apps per row offers presets and a custom whole number from 3 to 12. Auto/default uses five columns. Existing saved values remain unchanged until you choose a new value. Changing columns preserves app order. Horizontal scrolling and a maximum row count are not included in this release.
 
 Focus style offers Default, Border only, and Color and border. Choose a preset color or enter a six-digit RGB hex color for the fill and border. Default preserves the existing focus behavior while correcting a low-contrast focused background behind transparent icon-pack artwork. The artwork itself is not recolored. Border only leaves the resting tile background visible.
 

@@ -26,8 +26,14 @@ public class HomePresentationTest {
   HomePresentation.closeTransientWindow(home);
   if(home.resets!=0) throw new AssertionError("App return rebuilt launcher");
   HomePresentation.resumed(home);
+  HomePresentation.paused(home);
   HomePresentation.closeTransientWindow(home);
   if(home.resets!=1) throw new AssertionError("Focused popup no longer dismisses");
+  HomePresentation.closeTransientWindow(home);
+  if(home.resets!=1) throw new AssertionError("Popup reset was repeated");
+  home.focused=true; HomePresentation.resumed(home);
+  HomePresentation.paused(home); HomePresentation.closeTransientWindow(home);
+  if(home.resets!=1) throw new AssertionError("Ordinary paused Home rebuilt launcher");
   Activity replacement=new Activity(); HomePresentation.resumed(replacement);
   HomePresentation.paused(home);
   replacement.focused=false; HomePresentation.closeTransientWindow(replacement);
@@ -48,8 +54,8 @@ public class HomePresentationTest {
 import android.content.SharedPreferences;
 public class LauncherLayoutTest {
  public static void main(String[] args) {
-  for(int i=2;i<=12;i++) if(LauncherLayout.parseColumns(" "+i+" ")!=i) throw new AssertionError();
-  String[] invalid={"", "0", "1", "13", "-3", "2.5", "abc", "999999999999999"};
+  for(int i=3;i<=12;i++) if(LauncherLayout.parseColumns(" "+i+" ")!=i) throw new AssertionError();
+  String[] invalid={"", "0", "1", "2", "13", "-3", "2.5", "abc", "999999999999999"};
   for(String value:invalid){try{LauncherLayout.parseColumns(value);throw new AssertionError(value);}catch(IllegalArgumentException expected){}}
   SharedPreferences prefs=new SharedPreferences(); prefs.value=6;
   if(LauncherLayout.columns(prefs)!=6) throw new AssertionError("Existing choice changed");

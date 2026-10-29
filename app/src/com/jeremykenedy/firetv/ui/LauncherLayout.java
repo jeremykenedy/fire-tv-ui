@@ -14,10 +14,10 @@ public final class LauncherLayout {
         try {
             columns = Integer.parseInt(value.trim());
         } catch (RuntimeException invalid) {
-            throw new IllegalArgumentException("Enter a whole number from 2 to 12.");
+            throw new IllegalArgumentException("Enter a whole number from 3 to 12.");
         }
-        if (columns < 2 || columns > 12) {
-            throw new IllegalArgumentException("Choose between 2 and 12 apps per row.");
+        if (columns < 3 || columns > 12) {
+            throw new IllegalArgumentException("Choose between 3 and 12 apps per row.");
         }
         return columns;
     }

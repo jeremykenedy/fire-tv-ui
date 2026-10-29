@@ -74,11 +74,11 @@ public final class UiSettingsActivity extends CardActivity {
         labels[labels.length - 1] = "Custom...";
         new AlertDialog.Builder(this).setTitle("Apps per row").setItems(labels, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int index) {
-            if (index == labels.length - 1) {
-                customColumns();
-            } else {
-                saveColumns(index == 0 ? null : LauncherLayout.PRESETS[index - 1]);
-            }
+                if (index == labels.length - 1) {
+                    customColumns();
+                } else {
+                    saveColumns(index == 0 ? null : LauncherLayout.PRESETS[index - 1]);
+                }
             }
         }).setNegativeButton("Cancel", null).show();
     }
@@ -90,19 +90,19 @@ public final class UiSettingsActivity extends CardActivity {
         input.setText(LauncherLayout.columns(DeviceSettings.prefs(this)).toString());
         input.selectAll();
         final AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Custom apps per row")
-                .setMessage("Enter a whole number from 2 to 12.").setView(input)
+                .setMessage("Enter a whole number from 3 to 12.").setView(input)
                 .setPositiveButton("Save", null).setNegativeButton("Cancel", null).create();
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override public void onShow(DialogInterface shown) {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
-            try {
-                int value = LauncherLayout.parseColumns(input.getText().toString());
-                if (saveColumns(value)) dialog.dismiss();
-            } catch (IllegalArgumentException invalid) {
-                input.setError(invalid.getMessage());
-                input.requestFocus();
-            }
+                        try {
+                            int value = LauncherLayout.parseColumns(input.getText().toString());
+                            if (saveColumns(value)) dialog.dismiss();
+                        } catch (IllegalArgumentException invalid) {
+                            input.setError(invalid.getMessage());
+                            input.requestFocus();
+                        }
                     }
                 });
             }
