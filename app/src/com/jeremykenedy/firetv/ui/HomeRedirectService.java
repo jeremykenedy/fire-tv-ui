@@ -118,18 +118,24 @@ public class HomeRedirectService extends AccessibilityService {
     }
 
     private void openTargetLauncher() {
-        Intent launch =
-                getPackageManager().getLaunchIntentForPackage(TARGET_LAUNCHER);
-        if (launch == null) {
-            Log.w(TAG, TARGET_LAUNCHER
-                    + " is not installed, leaving the Amazon home screen up");
-            return;
+        Log.i(TAG, "Window Home dispatch");
+        try {
+            Intent launch =
+                    getPackageManager().getLaunchIntentForPackage(TARGET_LAUNCHER);
+            if (launch == null) {
+                Log.w(TAG, "Window Home unavailable");
+                return;
+            }
+            launch.addCategory(Intent.CATEGORY_HOME);
+            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                    | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(launch);
+            Log.i(TAG, "Window Home launched");
+        } catch (RuntimeException failed) {
+            // Leave system Home available and the accessibility callback alive.
+            Log.w(TAG, "Window Home launch failed");
         }
-        launch.addCategory(Intent.CATEGORY_HOME);
-        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(launch);
     }
 
     @Override

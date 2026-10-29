@@ -16,7 +16,7 @@ import android.widget.TextView;
 import java.util.Locale;
 
 public final class UiSettingsActivity extends CardActivity {
-    private TextView columns, focusStyle, focusBackground, focusBorder;
+    private TextView columns, direction, maximumRows, transitions, focusStyle, focusBackground, focusBorder;
     private static final int[] FOCUS_COLORS = {
             0xffffffff, 0xff9ebcfa, 0xffbcacff, 0xffffcd78, 0xffffa9a2, 0xff263a5c
     };
@@ -32,12 +32,32 @@ public final class UiSettingsActivity extends CardActivity {
         super.onCreate(state);
         title("Layout and focus");
         LinearLayout body = scrollBody();
-        body.addView(text("Arrange the apps on Home. Changes keep your app order and existing choices.", 18, MUTED));
+        body.addView(text("Arrange the apps on Home. Horizontal scrolls sideways; the visible app count controls tile size. Your app order and All apps button choice are preserved.", 18, MUTED));
         columns = button("", new View.OnClickListener() {
             @Override public void onClick(View view) { chooseColumns(); }
         });
         addButton(body, columns);
+        direction = button("", new View.OnClickListener() {
+            @Override public void onClick(View view) { chooseDirection(); }
+        });
+        maximumRows = button("", new View.OnClickListener() {
+            @Override public void onClick(View view) { chooseMaximumRows(); }
+        });
+        addButton(body, direction);
+        addButton(body, maximumRows);
         refreshColumns();
+        body.addView(text("Choose how settings pages open and close. Default keeps the current behavior.", 16, MUTED));
+        transitions = button("Settings transitions: " + MenuMotion.label(this), new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                MenuMotion.choose(UiSettingsActivity.this, new Runnable() {
+                    @Override public void run() {
+                        transitions.setText("Settings transitions: " + MenuMotion.label(UiSettingsActivity.this));
+                        transitions.requestFocus();
+                    }
+                });
+            }
+        });
+        addButton(body, transitions);
         body.addView(text("Default keeps your existing highlight. Border only leaves the icon background unchanged. Color and border adds a fill behind the artwork.", 16, MUTED));
         focusStyle = button("", new View.OnClickListener() {
             @Override public void onClick(View view) { chooseFocusStyle(); }
@@ -61,8 +81,58 @@ public final class UiSettingsActivity extends CardActivity {
 
     private void refreshColumns() {
         SharedPreferences prefs = DeviceSettings.prefs(this);
-        columns.setText("Apps per row: " + LauncherLayout.columns(prefs)
+        boolean horizontal = LauncherLayout.horizontal(prefs);
+        columns.setText((horizontal ? "Visible apps per row: " : "Apps per row: ") + LauncherLayout.columns(prefs)
                 + (prefs.contains(LauncherLayout.COLUMNS) ? "" : " (Auto / default)"));
+        direction.setText("App scrolling: " + (horizontal ? "Horizontal" : "Vertical (Default)"));
+        int rows = prefs.getInt(LauncherLayout.MAX_ROWS, 0);
+        maximumRows.setText("Maximum rows (horizontal): "
+                + (rows == 0 ? "Auto / default (1)" : LauncherLayout.maximumRows(prefs)));
+        maximumRows.setVisibility(horizontal ? View.VISIBLE : View.GONE);
+    }
+
+    private void chooseDirection() {
+        final String[] labels = {"Vertical (Default)", "Horizontal"};
+        new AlertDialog.Builder(this).setTitle("App scrolling")
+                .setSingleChoiceItems(labels, LauncherLayout.horizontal(DeviceSettings.prefs(this)) ? 1 : 0,
+                        new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        SharedPreferences.Editor edit = DeviceSettings.prefs(UiSettingsActivity.this).edit();
+                        if (which == 0) edit.remove(LauncherLayout.DIRECTION);
+                        else edit.putString(LauncherLayout.DIRECTION, "horizontal");
+                        if (saveLayout(edit)) {
+                            dialog.dismiss();
+                            direction.requestFocus();
+                        }
+                    }
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void chooseMaximumRows() {
+        String[] labels = {"Auto / default (1)", "1", "2", "3", "4", "5", "6"};
+        int selected = DeviceSettings.prefs(this).getInt(LauncherLayout.MAX_ROWS, 0);
+        if (selected < 0 || selected > 6) selected = 0;
+        new AlertDialog.Builder(this).setTitle("Maximum rows")
+                .setSingleChoiceItems(labels, selected, new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        SharedPreferences.Editor edit = DeviceSettings.prefs(UiSettingsActivity.this).edit();
+                        if (which == 0) edit.remove(LauncherLayout.MAX_ROWS);
+                        else edit.putInt(LauncherLayout.MAX_ROWS, which);
+                        if (saveLayout(edit)) {
+                            dialog.dismiss();
+                            maximumRows.requestFocus();
+                        }
+                    }
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private boolean saveLayout(SharedPreferences.Editor edit) {
+        if (!edit.commit()) {
+            error(new IllegalStateException("The layout could not be saved. Please try again."));
+            return false;
+        }
+        refreshColumns();
+        return true;
     }
 
     private void chooseColumns() {
@@ -72,7 +142,8 @@ public final class UiSettingsActivity extends CardActivity {
             labels[i + 1] = Integer.toString(LauncherLayout.PRESETS[i]);
         }
         labels[labels.length - 1] = "Custom...";
-        new AlertDialog.Builder(this).setTitle("Apps per row").setItems(labels, new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(this).setTitle(LauncherLayout.horizontal(DeviceSettings.prefs(this))
+                ? "Visible apps per row" : "Apps per row").setItems(labels, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int index) {
                 if (index == labels.length - 1) {
                     customColumns();

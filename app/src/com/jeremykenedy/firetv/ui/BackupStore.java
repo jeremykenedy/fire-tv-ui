@@ -184,6 +184,17 @@ public final class BackupStore {
                             || FeaturedCardTiming.seconds((Integer) value) != (Integer) value)) {
                 throw new JSONException("Invalid featured artwork rotation time.");
             }
+            if (MenuMotionOptions.SETTING.equals(key) && !MenuMotionOptions.valid(value)) {
+                throw new JSONException("Invalid settings transition style.");
+            }
+            if ("app_scroll_direction".equals(key)
+                    && !("vertical".equals(value) || "horizontal".equals(value))) {
+                throw new JSONException("Invalid app scroll direction.");
+            }
+            if ("app_max_rows".equals(key)
+                    && (!(value instanceof Integer) || (Integer) value < 0 || (Integer) value > 6)) {
+                throw new JSONException("Invalid maximum app rows.");
+            }
             if (MenuBackgroundOptions.STYLE.equals(key)
                     && (!(value instanceof String) || !java.util.Arrays.asList(MenuBackgroundOptions.STYLES).contains(value))) {
                 throw new JSONException("Invalid animated menu background.");

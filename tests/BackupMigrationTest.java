@@ -157,6 +157,26 @@ public final class BackupMigrationTest {
             try { BackupStore.restore(context, true); throw new AssertionError("Invalid rotation accepted"); }
             catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
         }
+        for (String key : new String[] {"menu_transition_style", "app_scroll_direction", "app_max_rows"}) {
+            Object[] good = key.equals("menu_transition_style") ? new Object[] {"default", "none", "fade", "slide"}
+                    : key.equals("app_scroll_direction") ? new Object[] {"vertical", "horizontal"}
+                    : new Object[] {0, 1, 2, 3, 4, 5, 6};
+            for (Object value : good) {
+                Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).put(key, value).toString());
+                BackupStore.restore(context, true);
+                check(context.prefs.values.get(key).equals(value));
+                BackupStore.save(context);
+                check(new JSONObject(Files.readString(BackupStore.file(false).toPath())).get(key).equals(value));
+            }
+            Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).toString());
+            BackupStore.restore(context, true);
+            for (Object bad : new Object[] {"unknown", "1", -1, 7, 1.5, true}) {
+                Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore)
+                        .put("theme", "must-not-be-committed").put(key, bad).toString());
+                try { BackupStore.restore(context, true); throw new AssertionError("Invalid layout/motion accepted"); }
+                catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
+            }
+        }
         System.out.println("Device-local backup migration checks passed.");
     }
 }

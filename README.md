@@ -46,9 +46,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.14.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.15.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.14.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.15.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -71,10 +71,12 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 
 | Feature | What it does | Guide |
 | --- | --- | --- |
-| Home layout | Arrange apps and channels; choose custom columns and readable focus styles. | [Configuration](docs/configuration.md) |
+| Home layout | Choose custom columns, optional horizontal rows and readable focus styles. | [Configuration](docs/configuration.md) |
 | Featured cards | Keep feeds fixed while their titles rotate; order or hide items and add authorized Plex profiles. | [Featured cards](docs/featured-cards.md) |
 | Menu backgrounds | Twelve animations and four still palettes, with saved wallpaper preserved. | [Menu backgrounds](docs/animated-backgrounds.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
+| Icon styles | Choose built-in Clean line or Muted solid artwork treatments, or keep an existing pack. | [Icon styles](docs/configuration.md#icon-styles) |
+| Settings motion | Choose Default, None, Fade or Short slide for native settings pages. | [Settings transitions](docs/configuration.md#settings-transitions) |
 | Screensavers | Select, preview, configure and install reviewed screensaver releases. | [Screensavers](docs/device-controls.md#screensavers) |
 | Launcher idle | Follow the selected TV screensaver when the launcher is idle. | [Platform limits](docs/device-controls.md#launcher-idle-activation) |
 | Timers and Home routing | Manage TV timers and the startup and Home app. | [Device controls](docs/device-controls.md) |
@@ -158,9 +160,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.14.0/code 75 on the Android TV API 34 emulator. Menu backgrounds offers four still palettes alongside twelve animations, without changing your saved wallpaper. The [full gallery](docs/screenshots.md) includes the other palettes and version-labeled settings, cards and update screens.
+Fire TV UI 1.15.0/code 76 on the Android TV API 34 emulator. Layout and focus groups optional horizontal rows, custom visible app counts and native settings transitions. The [full gallery](docs/screenshots.md) includes horizontal boundary captures and version-labeled settings, backgrounds, cards and updates.
 
-<p align="center"><img src="art/screenshots/background-midnight-ui114-code75-api34.png" alt="Fire TV UI 1.14 native Midnight blue still background with intensity and brightness controls" width="900"></p>
+<p align="center"><img src="art/screenshots/layout-ui115-code76-api34.png" alt="Fire TV UI 1.15 native layout, focus and settings transition controls" width="900"></p>
 
 ## License
 

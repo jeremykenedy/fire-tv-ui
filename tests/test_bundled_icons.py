@@ -26,9 +26,11 @@ class BundledIconChecks(unittest.TestCase):
 
     def test_signed_payload_contains_the_same_32_canonical_source_images(self):
         config = json.loads((ROOT / 'build.json').read_text())
-        apk = ROOT / 'dist' / ('fire-tv-ui-' + config['version'] + '-unsigned.apk')
+        apk = ROOT / 'dist' / ('fire-tv-ui-' + config['version'] + '.apk')
         if not apk.exists():
-            self.skipTest('Build the unsigned native APK first.')
+            apk = ROOT / 'dist' / ('fire-tv-ui-' + config['version'] + '-unsigned.apk')
+        if not apk.exists():
+            self.skipTest('Build the native APK first.')
         with ZipFile(apk) as archive:
             manifest = json.loads(archive.read('assets/input-icons/manifest.json'))
             self.assertEqual(len(manifest), 32)

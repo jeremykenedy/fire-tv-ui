@@ -10,6 +10,9 @@ import shutil
 import xml.etree.ElementTree as ET
 
 from icon_focus_patch import patch_icon_focus
+from icon_pack_patch import patch_builtin_icon_packs
+from launcher_grid_patch import patch_launcher_grid
+from menu_motion_patch import patch_menu_motion
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / "build.json").read_text())
@@ -52,6 +55,8 @@ def replace_method(text, signature, replacement):
 def patch(decoded):
     class_paths = classes(decoded)
     patch_icon_focus(class_paths)
+    patch_builtin_icon_packs(class_paths)
+    patch_launcher_grid(class_paths)
     main = class_paths["Lcom/overdevs/at4k/MainActivity;"]
     text = main.read_text()
     text = replace_once(text,
@@ -99,7 +104,8 @@ def patch(decoded):
     text = replace_once(text,
         '    invoke-super {p0, p1}, Lc/k;->onCreate(Landroid/os/Bundle;)V',
         '    invoke-super {p0, p1}, Lc/k;->onCreate(Landroid/os/Bundle;)V\n\n'
-        '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/DeviceSettings;->initialize(Landroid/content/Context;)V')
+        '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/DeviceSettings;->initialize(Landroid/content/Context;)V\n'
+        '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/LauncherLayout;->created(Landroid/app/Activity;)V')
     home_signature = '.method public final onNewIntent(Landroid/content/Intent;)V'
     home_pattern = re.compile(r'^' + re.escape(home_signature) + r'\n.*?^\.end method', re.M | re.S)
     home = home_pattern.search(text).group(0)
@@ -121,6 +127,7 @@ def patch(decoded):
         '    invoke-super {p0}, Landroid/app/Activity;->onResume()V',
         '    invoke-super {p0}, Landroid/app/Activity;->onResume()V\n'
         '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/HomePresentation;->resumed(Landroid/app/Activity;)V\n'
+        '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/LauncherLayout;->resumed(Landroid/app/Activity;)V\n'
         '    iget-object v0, p0, Lcom/overdevs/at4k/MainActivity;->A:LQ3/T3;\n'
         '    if-eqz v0, :resume_idle_reset_done\n'
         '    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J\n'
@@ -782,6 +789,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/ChannelCardsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelManageRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelCardsKeyAction.smali', destination)
+    patch_menu_motion(decoded)
     patch_manifest(decoded)
 
     manifest = ET.parse(decoded / 'AndroidManifest.xml')

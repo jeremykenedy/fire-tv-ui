@@ -37,6 +37,12 @@ public abstract class CardActivity extends Activity {
         root.addView(page, new FrameLayout.LayoutParams(-1, -1));
         setContentView(root);
         refreshMenuBackground();
+        MenuMotion.apply(this, true);
+    }
+
+    @Override public void finish() {
+        super.finish();
+        MenuMotion.apply(this, false);
     }
 
     @Override protected void onResume() {
