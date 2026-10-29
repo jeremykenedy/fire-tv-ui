@@ -7,6 +7,8 @@ import re
 import shutil
 import xml.etree.ElementTree as ET
 
+from icon_focus_patch import patch_icon_focus
+
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / "build.json").read_text())
 ANDROID = "{http://schemas.android.com/apk/res/android}"
@@ -47,6 +49,7 @@ def replace_method(text, signature, replacement):
 
 def patch(decoded):
     class_paths = classes(decoded)
+    patch_icon_focus(class_paths)
     main = class_paths["Lcom/overdevs/at4k/MainActivity;"]
     text = main.read_text()
     text = replace_once(text,
