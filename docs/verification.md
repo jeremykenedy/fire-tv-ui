@@ -1,5 +1,20 @@
 # Verification
 
+## Fire TV UI 1.13.0, version code 74
+
+Final signed APK `0592d60d545b05cacecaa3ef49f1f5cfc5d148d279cc307d5d23835537992dc1` was checked on an Android TV API 34 emulator.
+
+- Menu routes preserve existing controls while grouping layout under UI settings.
+- Inactive Alloy and Contour Configure actions preserve the selected saver and timers, and return to the exact action/scroll position. Contour's no-write preview fallback opens its controls and actual PreviewActivity; inaccessible controls report unavailable without changing settings.
+- Custom seven-second timing validates, persists and survives a native backup round trip. Invalid values are rejected. The emulator has no published feeds, so this does not prove actual provider title cadence.
+- Three and twelve app columns render correctly, Default restores five, and the final custom input rejects two. Legacy saved values are not silently replaced.
+- Ordinary Home intents and a return from system Settings retain the client activity. A real context popup dismisses on Home. These injected intents do not establish physical remote routing or universal flash-free behavior.
+- A real resource-only transparent-icon fixture was selected without restarting Main. Its white glyph remained visible; Default, border-only and custom fill were inspected. The fixture was removed afterward.
+- Existing UI preferences and protected emulator settings were restored. No physical TV was changed in this validation lane.
+
+See [current native captures](screenshots.md#fire-tv-ui-1130-code-74). Receiver/Alexa behavior, hardware Home and broad screensaver visual acceptance remain separate.
+
+
 ## Fire TV UI 1.12.0, version code 72
 
 The exact final signed APK `930660debcf64483ae3b2b55b7933dabb7ee54e0da578ef2ab70e45da1462785` supplied the current API 34 native settings captures at 1920x1080. Flowing silk, Soft bokeh and Light rays show native 50% controls, with Brightness below the scroll fold. Private Home cards and library history are excluded from the public gallery. A separate initial code 71 physical Fire TV API 30 gate selected all 12 styles and read back their saved values; speed, intensity and brightness 100 were checked separately.

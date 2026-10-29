@@ -24,7 +24,12 @@
       "sha256": "7161c471b766806fe2433f508871bae1f7aea9a50c872f3a85d5eb2db22364d4",
       "width": 1920,
       "height": 1080
+    },
+    "layout-focus-ui113-code74-api34.png": {
+      "sha256": "ec076ef78d138052b8b0e8f8f81e0a6cdf7ff6bec19418382692a88cfecdba3d",
+      "width": 1920,
+      "height": 1080
     }
   },
-  "scope": "Actual native settings, saver administration, card controls and update UI. No published card feeds were available, so these captures do not prove live title rotation or a provider integration. Historical app thumbnails are not visual acceptance of screensaver graphics."
+  "scope": "Actual native settings, saver administration, card controls and update UI. No published card feeds were available, so these captures do not prove live title rotation or a provider integration. Historical app thumbnails are not visual acceptance of screensaver graphics. Layout/focus controls were captured after restoring default choices. Real transparent-pack hot switching, border-only and custom fill were verified separately."
 }

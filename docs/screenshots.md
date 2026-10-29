@@ -10,6 +10,7 @@ Native Android TV API 34 captures at 1920x1080 from the exact signed APK `0592d6
 <td><img src="../art/screenshots/cards-ui113-code74-api34.png" alt="Fire TV UI 1.13 featured card controls with saved default eight-second interval"><br>Featured cards</td>
 </tr><tr>
 <td><img src="../art/screenshots/updates-ui113-code74-api34.png" alt="Fire TV UI 1.13 update screen with installed and available versions and missing icon access action"><br>Updates</td>
+<td><img src="../art/screenshots/layout-focus-ui113-code74-api34.png" alt="Fire TV UI 1.13 native custom layout and icon focus settings restored to defaults"><br>Layout and focus</td>
 </tr></table>
 
 [Capture provenance](../art/screenshots/ui113-code74-provenance.json) records the unchanged PNG hashes. Native tests verified inactive-saver configuration and preview fallback with selection/timer preservation and exact focus/scroll return. Custom seven-second timing was saved and restored through a native backup round trip; no published feeds were available to verify live title cadence. These captures do not establish physical remote Home routing, Alexa, receiver behavior or screenshots of newer screensaver visuals. Earlier release evidence remains labeled below.
