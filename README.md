@@ -160,9 +160,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.14.0/code 75 on the Android TV API 34 emulator. Menu backgrounds offers four still palettes alongside twelve animations, without changing your saved wallpaper. The [full gallery](docs/screenshots.md) includes the other palettes and version-labeled settings, cards and update screens.
+Fire TV UI 1.15.0/code 76 on the Android TV API 34 emulator. Layout and focus groups optional horizontal rows, custom visible app counts and native settings transitions. The [full gallery](docs/screenshots.md) includes horizontal boundary captures and version-labeled settings, backgrounds, cards and updates.
 
-<p align="center"><img src="art/screenshots/background-midnight-ui114-code75-api34.png" alt="Fire TV UI 1.14 native Midnight blue still background with intensity and brightness controls" width="900"></p>
+<p align="center"><img src="art/screenshots/layout-ui115-code76-api34.png" alt="Fire TV UI 1.15 native layout, focus and settings transition controls" width="900"></p>
 
 ## License
 

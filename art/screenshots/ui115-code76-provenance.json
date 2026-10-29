@@ -1,0 +1,49 @@
+{
+  "version": "1.15.0",
+  "versionCode": 76,
+  "apkSha256": "f8a7ac4dd7c40a08e408c517d89a703f0f602af0076a982ec10449c787d6ef29",
+  "source": "ffc1fcb06af88f7f8d9b1f876d7a4bc186766058",
+  "device": "Android TV API34 emulator",
+  "resolution": [
+    1920,
+    1080
+  ],
+  "captures": [
+    {
+      "file": "layout-ui115-code76-api34.png",
+      "sha256": "6e855bb98b5328dd6142a2af4d03783a17ad92622c9d144e0f5b8aacdd4561ed",
+      "sourceCapture": "accepted-layout-settings.png"
+    },
+    {
+      "file": "horizontal-first-ui115-code76-api34.png",
+      "sha256": "14f5271e6f4de740015267cca7a6487765417c67453ed6529c14614be0557ca8",
+      "sourceCapture": "accepted-horizontal-three-first-focus.png"
+    },
+    {
+      "file": "horizontal-last-ui115-code76-api34.png",
+      "sha256": "fcba7c71f5e80df6dfe3a8ee4534c713d42e24920fddd81f9f822f9cf697a983",
+      "sourceCapture": "accepted-horizontal-three-last-focus.png"
+    },
+    {
+      "file": "horizontal-two-rows-ui115-code76-api34.png",
+      "sha256": "de822228992931ca3271e34cd6bfb5227c47838bc9a3e79908d2c2bdc6ac298a",
+      "sourceCapture": "accepted-horizontal-two-rows.png"
+    },
+    {
+      "file": "transitions-ui115-code76-api34.png",
+      "sha256": "46ded3abbe21e4b83b936d2d77794cba7e797246db13d12ab1327a9403673e61",
+      "sourceCapture": "accepted-transitions-chooser.png"
+    },
+    {
+      "file": "icon-packs-ui115-code76-api34.png",
+      "sha256": "36cea203172ca963cdd0dcc75e80e426ef653c58478bb20e6deff981e9d0450b",
+      "sourceCapture": "accepted-icon-pack-chooser.png"
+    },
+    {
+      "file": "clean-line-ui115-code76-api34.png",
+      "sha256": "be76ca909235aacc095362420e6a7ed9c34f2c3a3f538297cca408c8650b0075",
+      "sourceCapture": "accepted-icon-pack-clean-line-home.png"
+    }
+  ],
+  "scope": "Raw accepted-build native captures. Source images are unchanged; device checks and limitations are recorded in docs/verification.md."
+}

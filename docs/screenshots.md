@@ -1,5 +1,23 @@
 # Screenshots
 
+## Fire TV UI 1.15.0, code 76
+
+Native Android TV API 34 captures at 1920x1080 from the final signed APK `f8a7ac4d`. Horizontal scrolling, built-in icon styles and settings transitions are optional. Vertical layout and existing saved choices remain the defaults.
+
+<table><tr>
+<td><img src="../art/screenshots/layout-ui115-code76-api34.png" alt="Fire TV UI 1.15 native layout and focus"><br>Layout and focus</td>
+<td><img src="../art/screenshots/horizontal-first-ui115-code76-api34.png" alt="Fire TV UI 1.15 native first horizontal tile"><br>First horizontal tile</td>
+<td><img src="../art/screenshots/horizontal-last-ui115-code76-api34.png" alt="Fire TV UI 1.15 native last horizontal tile"><br>Last horizontal tile</td>
+</tr><tr>
+<td><img src="../art/screenshots/horizontal-two-rows-ui115-code76-api34.png" alt="Fire TV UI 1.15 native two horizontal rows"><br>Two horizontal rows</td>
+<td><img src="../art/screenshots/transitions-ui115-code76-api34.png" alt="Fire TV UI 1.15 native settings transitions"><br>Settings transitions</td>
+<td><img src="../art/screenshots/icon-packs-ui115-code76-api34.png" alt="Fire TV UI 1.15 native built-in icon choices"><br>Built-in icon choices</td>
+</tr><tr>
+<td><img src="../art/screenshots/clean-line-ui115-code76-api34.png" alt="Fire TV UI 1.15 native clean line artwork"><br>Clean line artwork</td>
+</tr></table>
+
+[Capture provenance](../art/screenshots/ui115-code76-provenance.json) records the exact APK and unchanged PNG hashes. Native row/focus navigation, saved transition choices and icon selection were checked. These captures do not establish physical remote Home, universal animation performance or owner acceptance of other screensaver visuals. Earlier captures remain labeled below.
+
 ## Fire TV UI 1.14.0, code 75
 
 Native Android TV API 34 settings at 1920x1080 from the final signed APK `08ca77dd`. The four still palettes use the same Home and menu background layer as the existing animations. Speed is hidden for still styles; Intensity and Brightness remain available. All captures use 50% controls.

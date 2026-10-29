@@ -1,5 +1,17 @@
 # Verification
 
+## Fire TV UI 1.15.0, version code 76
+
+The final signed APK `f8a7ac4dd7c40a08e408c517d89a703f0f602af0076a982ec10449c787d6ef29` was exercised on Android TV API 34 at 1920x1080.
+
+- Optional horizontal scrolling preserves the original vertical default and existing All apps behavior. Three-column first/last focus boundaries, two and six rows, incomplete rows and twelve visible columns were checked. Lower-row focus uses the existing parent scroller instead of the legacy first-row reset to the top. The existing DigitalClock remains reachable above the apps.
+- Default, None, Fade and Short slide were selected through the native settings control, saved, reopened and read back through a portable backup on the preceding code 76 candidate. The three relevant sources and all six compiled animation resources match the final APK; its chooser was recaptured. Default removes the override. These checks establish the native controls and page flow, not universal smoothness or an animation-frame-rate measurement.
+- Clean line and Muted solid were tested with actual installed artwork, cold loading, hot switching, focus fill/border options, custom artwork, external packs and individual icon selection. The relevant source, JVM classes and generated native loader/focus methods match the standalone native-tested pack implementation. Final-version captures identify the combined build.
+- A real Android ActivityNotFoundException escaped the old synthetic Home fallback callback; the fixed production service contained it and processed the next event, launching Main. The fixture was removed and its original emulator state restored. This is recovery-path proof, not actual remote Home delivery from Amazon Home.
+- Host checks cover layout bounds, one-time layout rebuilding, unchanged Home behavior when preferences do not change, transition choices, and atomic rejection of invalid imported layout/motion values. The 71-test suite passed; six existing opt-in device checks were skipped and are not claimed as passes.
+
+Final restoration passed for the original 14 typed preferences, 19 system values, external files/directories, UID/grants/appops, users/packages, accessibility, stopped state and three system animation scales. The accepted code 76 APK was intentionally retained on the emulator; Google Home was restored with no Dream or guard. Physical remote Home, Alexa, receiver power/input behavior, other widget/card combinations and broad screensaver visual acceptance remain separate. [Screenshots](screenshots.md#fire-tv-ui-1150-code-76) show actual native output.
+
 ## Fire TV UI 1.14.0, version code 75
 
 The signed APK `08ca77dd4c8a5bea084872dff62b6fd8bea813da70eea085958ad024c4a4e05e` supplied the four current native background captures on Android TV API34 at1920x1080. Four still choices, static-frame stability, Intensity/Brightness, a native backup round trip, animated-style resume and Off controls were checked. The original14 portable UI preferences,19 system values, external files/directories, UID/grants/app-op modes, users, accessibility and stopped state were preserved. No physical TV interaction was performed for this background feature. Native appearance does not establish universal TV gradient quality or owner acceptance.

@@ -15,7 +15,7 @@
 
 ## Layout and focus
 
-Open **UI settings > Layout and focus**. Apps per row offers presets and a custom whole number from 3 to 12. Auto/default uses five columns. Existing saved values remain unchanged until you choose a new value. Changing columns preserves app order. Vertical scrolling remains the default. Choose Horizontal to scroll apps sideways, then select Auto (one row) or a maximum of one to six rows. In horizontal mode, Visible apps per row controls tile size; additional apps remain reachable by scrolling. Changing direction or maximum rows rebuilds Home once when returning from settings. Your app order, favorites and existing All apps button choice are preserved.
+Open **UI settings > Layout and focus**. Apps per row offers presets and a custom whole number from 3 to 12. Auto/default uses five columns. Existing saved values remain unchanged until you choose a new value. Changing columns preserves app order. Vertical scrolling remains the default. Choose Horizontal to scroll apps sideways, then select Auto (one row) or a maximum of one to six rows. In horizontal mode, Visible apps per row controls tile size; additional apps remain reachable by scrolling. Large tiles can also require vertical scrolling; remote focus brings the selected app into view. Changing direction or maximum rows rebuilds Home once when returning from settings. Your app order, favorites and existing All apps button choice are preserved.
 
 Focus style offers Default, Border only, and Color and border. Choose a preset color or enter a six-digit RGB hex color for the fill and border. Default preserves the existing focus behavior while correcting a low-contrast focused background behind transparent icon-pack artwork. The artwork itself is not recolored. Border only leaves the resting tile background visible.
 
@@ -25,7 +25,7 @@ In **UI settings > Layout and focus**, Settings transitions offers Default, None
 
 ## Icon styles
 
-Open **Theme and wallpaper > Icon pack** to select Clean line or Muted solid. Both use installed apps' recognizable original artwork: Clean line adds a thin frame, while Muted solid adds a subdued plate and lowers saturation. These built-in choices need no additional app or download. Original, Transparent and installed external packs remain available. Explicit custom artwork is preserved when switching packs. Focus fill and border controls remain independent.
+Open **Theme and wallpaper > Icon pack** to select Clean line or Muted solid. Both use installed apps' recognizable original artwork: Clean line adds a thin frame, while Muted solid adds a subdued plate and lowers saturation. These built-in choices need no additional app or download. None (original artwork), Transparent and installed external packs remain available. Explicit custom artwork is preserved when switching packs. Focus fill and border controls remain independent.
 
 ## Screensavers
 

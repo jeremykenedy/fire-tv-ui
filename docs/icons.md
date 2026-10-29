@@ -28,7 +28,7 @@ In LTvLauncher, long press an app, choose **Set Custom Banner**, and select the 
 
 ## Optional built-in styles
 
-Theme and wallpaper > Icon pack also offers Clean line and Muted solid. These use installed app artwork with an optional frame or subdued plate, independent of the 32 downloadable input images. Original and external packs remain available, and existing custom artwork stays selected. See [configuration](configuration.md#icon-styles).
+Theme and wallpaper > Icon pack also offers Clean line and Muted solid. These use installed app artwork with an optional frame or subdued plate, independent of the 32 downloadable input images. None (original artwork) and external packs remain available, and existing custom artwork stays selected. See [configuration](configuration.md#icon-styles).
 
 ## On-TV pickers
 
