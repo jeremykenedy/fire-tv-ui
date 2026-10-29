@@ -81,12 +81,14 @@ public class LauncherLayoutTest {
   android.app.Activity home=new android.app.Activity();
   DeviceSettings.prefs=prefs; prefs.value=5;
   LauncherLayout.created(home);
+  if(LauncherLayout.gridWidth(852f)!=852f)throw new AssertionError("Default width changed");
   if(LauncherLayout.horizontal() || LauncherLayout.gridColumns(31,5)!=5)throw new AssertionError("Default layout changed");
   for(int i=0;i<10;i++)LauncherLayout.resumed(home);
   if(home.recreates!=0)throw new AssertionError("Ordinary Home rebuilt");
   prefs.direction="horizontal";LauncherLayout.resumed(home);
   if(home.recreates!=1 || LauncherLayout.gridColumns(31,5)!=31)throw new AssertionError("Horizontal default not applied");
   LauncherLayout.resumed(home);if(home.recreates!=1)throw new AssertionError("Repeated rebuild");
+  if(LauncherLayout.gridWidth(852f)!=788f)throw new AssertionError("Focus boundary padding missing");
   if(!LauncherLayout.expandHomeApps())throw new AssertionError("Horizontal apps not expanded");
   prefs.allApps=true;if(LauncherLayout.expandHomeApps())throw new AssertionError("All apps button choice ignored");
   prefs.allApps=false;

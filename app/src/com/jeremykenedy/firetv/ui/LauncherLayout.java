@@ -71,6 +71,10 @@ public final class LauncherLayout {
         return horizontalColumns(apps, visibleColumns, maximumRows(current));
     }
 
+    public static float gridWidth(float width) {
+        return horizontal() ? Math.max(1f, width - 64f) : width;
+    }
+
     static int horizontalColumns(int apps, int visibleColumns, int rows) {
         if (apps < 0 || visibleColumns < 1 || rows < 1 || rows > 6) {
             throw new IllegalArgumentException("Invalid app grid dimensions.");

@@ -73,7 +73,13 @@ def patch_launcher_grid(paths):
     add-float v2, p2, p3
     mul-float/2addr v1, v2
     sub-float/2addr v1, p3
+    const/high16 v2, 0x42800000    # 64dp for focused artwork at both ends
+    add-float/2addr v1, v2
     invoke-static {v0, v1}, Landroidx/compose/foundation/layout/d;->n(LZ/o;F)LZ/o;
+    move-result-object v0
+    const/high16 v1, 0x42000000    # 32dp at each scroll boundary
+    const/4 v2, 0x0
+    invoke-static {v0, v1, v2}, Landroidx/compose/foundation/layout/a;->j(LZ/o;FF)LZ/o;
     move-result-object v0
     return-object v0
 .end method
@@ -81,6 +87,11 @@ def patch_launcher_grid(paths):
     (destination / 'LauncherGridScroll.smali').write_text(bridge)
 
     grid = paths['LQ3/Z4;'].read_text().replace('LQ3/Z4;', 'Lcom/jeremykenedy/firetv/ui/LauncherAppGrid;')
+    grid = once(grid, '    :cond_9\n    add-int/lit8 v15, v13, -0x1',
+                '    :cond_9\n'
+                '    invoke-static {v4}, Lcom/jeremykenedy/firetv/ui/LauncherLayout;->gridWidth(F)F\n'
+                '    move-result v4\n'
+                '    add-int/lit8 v15, v13, -0x1')
     grid = once(grid, '    :goto_9\n    invoke-interface {v14}, Ljava/util/List;->size()I',
                 '    :goto_9\n'
                 '    invoke-interface {v14}, Ljava/util/List;->size()I\n'
