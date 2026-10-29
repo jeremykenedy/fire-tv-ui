@@ -20,7 +20,7 @@ def bitmap_hook(method, locals_count, delegate=False):
             '    invoke-static {p0, p1, p2, p3, p4}, Lcom/jeremykenedy/firetv/ui/BuiltInIconPacks;->render('
             'Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;II)Landroid/graphics/Bitmap;\n'
             '    move-result-object v0\n'
-            '    if-nez v0, :builtin_bitmap\n    return-object v0\n'
+            '    if-nez v0, :builtin_bitmap\n    const/4 v0, 0x0\n    return-object v0\n'
             '    :builtin_bitmap\n    new-instance v1, Lg0/h;\n'
             '    invoke-direct {v1, v0}, Lg0/h;-><init>(Landroid/graphics/Bitmap;)V\n'
             '    return-object v1\n')
@@ -64,6 +64,8 @@ def patch_builtin_icon_packs(class_paths):
         '.method public static final N(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;II)Lg0/h;',
         lambda m: bitmap_hook(m, 4, delegate=True))
 
+    # Cold loading normally redraws a resource and saves it. Built-ins already
+    # supply the bitmap; preserve the native cache and exception-path registers.
     startup = class_paths['LQ3/A7;']
     text = startup.read_text()
     anchor = ('    if-eqz v29, :cond_1a\n\n'
@@ -71,12 +73,13 @@ def patch_builtin_icon_packs(class_paths):
     pending[startup] = replace_once(text, anchor,
         '    if-eqz v29, :cond_1a\n\n'
         '    invoke-static {v13}, Lcom/jeremykenedy/firetv/ui/BuiltInIconPacks;->supports(Ljava/lang/String;)Z\n'
-        '    move-result v0\n    if-eqz v0, :installed_pack_artwork\n'
+        '    move-result v38\n    if-eqz v38, :installed_pack_artwork\n'
         '    move-object v0, v11\n'
         '    move-object/from16 v11, v29\n'
         '    iget-object v11, v11, Lg0/h;->a:Landroid/graphics/Bitmap;\n'
         '    move-object/from16 v29, v0\n'
         '    move/from16 v31, v4\n    move/from16 v37, v5\n'
+        '    move-object/from16 v35, v3\n'
         '    move-object/from16 v36, v10\n'
         '    goto/16 :try_start_29\n\n'
         '    :installed_pack_artwork\n'
