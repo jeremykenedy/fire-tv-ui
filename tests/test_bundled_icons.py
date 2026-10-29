@@ -10,6 +10,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class BundledIconChecks(unittest.TestCase):
+    def test_catalog_source_hashes_match_bundled_vector_bytes(self):
+        catalog = json.loads((ROOT / 'icons/catalog.json').read_text())
+        for entry in catalog:
+            with self.subTest(icon=entry['id']):
+                source = (ROOT / entry['source']).read_bytes()
+                self.assertEqual(hashlib.sha256(source).hexdigest(), entry['source_sha256'])
+
     def test_filesystem_preserves_custom_and_racing_files_and_retries_indexing(self):
         with tempfile.TemporaryDirectory() as temp:
             subprocess.run(['javac', '-d', temp,
