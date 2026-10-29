@@ -29,16 +29,13 @@ public final class ScreensaverPreview {
             }
         }
         ComponentName starter = new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator");
-        if (!ScreensaverControls.canLaunch(context, starter)) {
+        if (!DeviceSettings.canWrite(context) || !ScreensaverControls.canLaunch(context, starter)) {
             Intent controls = ScreensaverControls.resolvePreview(context, component);
             if (controls == null) {
                 throw new IllegalStateException("This screensaver does not expose a preview or accessible preview controls on this TV.");
             }
             context.startActivity(controls);
             return;
-        }
-        if (!DeviceSettings.canWrite(context)) {
-            throw new IllegalStateException("System screensaver previews require the existing screensaver settings access.");
         }
         SharedPreferences prefs = DeviceSettings.prefs(context);
         if (!prefs.edit().putString("fire_tv_ui_preview_previous", DeviceSettings.active(context.getContentResolver()))
@@ -57,8 +54,9 @@ public final class ScreensaverPreview {
     }
 
     public static String actionLabel(Context context, String component, boolean toolbar) {
-        boolean direct = appPreview(context, component) != null || ScreensaverControls.canLaunch(context,
-                new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator"));
+        boolean direct = appPreview(context, component) != null || (DeviceSettings.canWrite(context)
+                && ScreensaverControls.canLaunch(context,
+                        new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator")));
         if (direct) {
             return toolbar ? "Preview screensaver" : "Preview it";
         }

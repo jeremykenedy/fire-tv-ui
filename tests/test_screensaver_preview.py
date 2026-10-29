@@ -46,7 +46,13 @@ public class PreviewTest {
   ScreensaverCatalog.entry.preview="other/.Preview";fails(c);ScreensaverCatalog.entry.preview="app/.Preview";
   c.fail=true;fails(c);ok(DeviceSettings.writes==0,"Failed direct launch changed selection");c.fail=false;
   app.exported=false;c.pm.activities.put("com.android.systemui/com.android.systemui.Somnambulator",new ActivityInfo());
-  DeviceSettings.writable=false;fails(c);ok(DeviceSettings.writes==0,"Unprivileged fallback changed settings");DeviceSettings.writable=true;
+  DeviceSettings.writable=false;fails(c);ok(DeviceSettings.writes==0,"Unprivileged fallback changed settings");
+  ok(ScreensaverPreview.actionLabel(c,"app/.Dream",false).equals("Preview unavailable"),"Unprivileged system route must not promise direct preview");
+  c.pm.service.settings=".Settings";settings.exported=true;c.launched=null;
+  ok(ScreensaverPreview.actionLabel(c,"app/.Dream",false).equals("Preview controls"),"Unprivileged system route must offer accessible app controls");
+  ScreensaverPreview.start(c,"app/.Dream");ok(c.launched.component.cls.equals("app.Settings"),"Unprivileged system route blocked usable settings preview controls");
+  ok(DeviceSettings.writes==0&&DeviceSettings.selection.equals("old/.Dream")&&!DeviceSettings.enabled&&DeviceSettings.prefs.values.isEmpty(),"App fallback changed active, enabled or pending settings");
+  c.pm.service.settings=null;DeviceSettings.writable=true;
   DeviceSettings.prefs.commit=false;fails(c);ok(DeviceSettings.writes==0,"Failed save changed selection");DeviceSettings.prefs.commit=true;
   ScreensaverPreview.start(c,"app/.Dream");ok(DeviceSettings.selection.equals("app/.Dream")&&DeviceSettings.enabled,"Fallback did not select temporarily");ok(DeviceSettings.prefs.getBoolean(ScreensaverPreview.PENDING,false),"Pending missing");
   ScreensaverPreview.restore(c);ok(DeviceSettings.selection.equals("old/.Dream")&&!DeviceSettings.enabled,"Restoration lost original disabled setting");ok(DeviceSettings.prefs.values.isEmpty(),"Pending not cleared");
