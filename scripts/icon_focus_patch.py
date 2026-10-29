@@ -17,14 +17,17 @@ def patch_icon_focus(class_paths):
         '    check-cast v5, Landroid/content/Context;',
         '    check-cast v5, Landroid/content/Context;\n\n'
         '    invoke-static {v5}, Lcom/jeremykenedy/firetv/ui/IconFocus;->configure(Landroid/content/Context;)V')
+    # Compose remembers the draw lambda across pack changes. Its artwork model
+    # must follow the currently rendered tile, including a reused lambda.
     method = replace_once(method,
-        '    invoke-direct/range {p20 .. p25}, LQ3/C0;-><init>(Lr/c;JJ)V\n\n'
-        '    move-object/from16 v5, p20',
-        '    invoke-direct/range {p20 .. p25}, LQ3/C0;-><init>(Lr/c;JJ)V\n\n'
+        '    :cond_c0\n    check-cast v5, Ln4/c;',
+        '    :cond_c0\n'
+        '    move-object/from16 p20, v5\n'
         '    move-object/from16 p21, v8\n'
         '    move/from16 p22, v53\n'
+        '    check-cast p20, LQ3/C0;\n'
         '    invoke-virtual/range {p20 .. p22}, LQ3/C0;->setArtwork(LQ3/q;Z)V\n\n'
-        '    move-object/from16 v5, p20')
+        '    check-cast v5, Ln4/c;')
     renderer.write_text(text[:start] + method + text[end:])
 
     background = class_paths['LQ3/C0;']
