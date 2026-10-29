@@ -23,6 +23,7 @@ public final class MenuBackgroundView extends View {
     private final Path path = new Path();
     private final float[] x = new float[80], y = new float[80];
     private Shader base, ribbon, water, coolGlow, warmGlow;
+    private final Shader[] stillBase = new Shader[4], stillLight = new Shader[4];
     private final MenuBackgroundClock clock = new MenuBackgroundClock();
     private double phase;
     private int style, speed, intensity, brightness;
@@ -94,7 +95,7 @@ public final class MenuBackgroundView extends View {
         Choreographer.getInstance().removeFrameCallback(frame);
         boolean running = (mainLayer ? mainResumed : settingsResumed) && isAttachedToWindow()
                 && getWindowVisibility() == VISIBLE && getVisibility() == VISIBLE
-                && hasWindowFocus() && style != 0;
+                && hasWindowFocus() && MenuBackgroundOptions.animated(style);
         clock.resumed(running);
         if (running) Choreographer.getInstance().postFrameCallback(frame);
     }
@@ -116,6 +117,23 @@ public final class MenuBackgroundView extends View {
                 new float[]{0, .35f, 1}, Shader.TileMode.CLAMP);
         warmGlow = new RadialGradient(0, 0, 1, new int[]{0xffffd6a0, 0x88c37443, 0x005e3542},
                 new float[]{0, .25f, 1}, Shader.TileMode.CLAMP);
+        int[][] palettes = {
+            {0xff0b1421, 0xff203951, 0xff101a29, 0xff7498ad},
+            {0xff171719, 0xff35302e, 0xff17181c, 0xffae9382},
+            {0xff0b1a18, 0xff24443e, 0xff101b20, 0xff7eac9b},
+            {0xff171220, 0xff3a2b44, 0xff171a2b, 0xffa294b4}
+        };
+        for (int i = 0; i < palettes.length; i++) {
+            int[] palette = palettes[i];
+            stillBase[i] = new LinearGradient(0, h * .15f, w, h,
+                    new int[]{palette[0], palette[1], palette[2]},
+                    new float[]{0, .65f, 1}, Shader.TileMode.CLAMP);
+            // Keep the navigation edge dark; broad, soft light falls behind the artwork.
+            stillLight[i] = new RadialGradient(w * .78f, h * .28f,
+                    Math.max(w, h) * .72f,
+                    new int[]{palette[3], palette[3] & 0x00ffffff}, null,
+                    Shader.TileMode.CLAMP);
+        }
     }
 
     @Override protected void onDraw(Canvas canvas) {
@@ -124,6 +142,16 @@ public final class MenuBackgroundView extends View {
         float w = getWidth(), h = getHeight();
         paint.setStyle(Paint.Style.FILL);
         paint.setAlpha(255);
+        if (!MenuBackgroundOptions.animated(style)) {
+            int palette = style - 13;
+            paint.setShader(stillBase[palette]);
+            canvas.drawRect(0, 0, w, h, paint);
+            paint.setShader(stillLight[palette]);
+            paint.setAlpha(12 + intensity / 2);
+            canvas.drawRect(0, 0, w, h, paint);
+            shade(canvas, w, h);
+            return;
+        }
         paint.setShader(base);
         canvas.drawRect(0, 0, w, h, paint);
         paint.setShader(null);
@@ -138,6 +166,10 @@ public final class MenuBackgroundView extends View {
         else if (style == 11) drawOrbits(canvas, w, h);
         else if (style == 12) drawRays(canvas, w, h);
         else drawParticles(canvas, w, h);
+        shade(canvas, w, h);
+    }
+
+    private void shade(Canvas canvas, float w, float h) {
         paint.setShader(null);
         paint.setColor(Color.BLACK);
         paint.setAlpha(130 - brightness);

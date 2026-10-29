@@ -63,6 +63,15 @@ public final class MenuBackgroundMotionTest {
         check(MenuBackgroundOptions.style(null) == 0);
         check(MenuBackgroundOptions.style("unknown") == 0);
         check(MenuBackgroundOptions.STYLES.length == MenuBackgroundOptions.LABELS.length);
+        check(!MenuBackgroundOptions.animated(0));
+        for (String value : new String[]{"still_midnight", "still_graphite", "still_forest", "still_plum"}) {
+            int selected = MenuBackgroundOptions.style(value);
+            check(selected > 0 && !MenuBackgroundOptions.animated(selected));
+        }
+        for (String value : new String[]{"particles", "aurora", "constellation", "prism",
+                "silk", "bokeh", "stars", "embers", "waves", "rain", "orbits", "rays"}) {
+            check(MenuBackgroundOptions.animated(MenuBackgroundOptions.style(value)));
+        }
         for (int i = 0; i < MenuBackgroundOptions.STYLES.length; i++) {
             check(MenuBackgroundOptions.style(MenuBackgroundOptions.STYLES[i]) == i);
             check(!MenuBackgroundOptions.LABELS[i].isEmpty());

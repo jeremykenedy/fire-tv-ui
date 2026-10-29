@@ -694,7 +694,7 @@ def patch(decoded):
         '    invoke-direct {v15, v0}, Lcom/jeremykenedy/firetv/ui/MenuBackgroundAction;-><init>(Landroid/content/Context;)V\n'
         '    move-object/from16 v20, v15\n'
         '    move-object/from16 v0, p6\n'
-        '    const-string v15, "Animated backgrounds"\n'
+        '    const-string v15, "Menu backgrounds"\n'
         '    const/16 v17, 0x0\n'
     ) + theme_text[theme_row:]
     theme.write_text(theme_text)

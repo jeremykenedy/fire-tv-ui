@@ -123,7 +123,8 @@ public final class BackupMigrationTest {
         BackupStore.restore(context, true);
         check(context.prefs.values.get("menu_animation").equals("aurora"));
         check(context.prefs.values.get("menu_animation_speed").equals(25));
-        for (String value : new String[]{"silk", "bokeh", "stars", "embers", "waves", "rain", "orbits", "rays"}) {
+        for (String value : new String[]{"silk", "bokeh", "stars", "embers", "waves", "rain", "orbits", "rays",
+                "still_midnight", "still_graphite", "still_forest", "still_plum"}) {
             animation.put("menu_animation", value);
             Files.writeString(BackupStore.file(true).toPath(), animation.toString());
             BackupStore.restore(context, true);

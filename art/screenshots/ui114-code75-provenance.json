@@ -1,0 +1,35 @@
+{
+  "version": "1.14.0",
+  "versionCode": 75,
+  "platform": "Android TV API34 emulator",
+  "resolution": "1920x1080",
+  "apkSha256": "08ca77dd4c8a5bea084872dff62b6fd8bea813da70eea085958ad024c4a4e05e",
+  "capturedOn": "2026-10-29",
+  "controls": {
+    "intensity": 50,
+    "brightness": 50
+  },
+  "captures": [
+    {
+      "file": "art/screenshots/background-midnight-ui114-code75-api34.png",
+      "sha256": "1af7afe625b5ce7f33a38202e1c4bfdffb410df49d57a8cdf5d57bc19e426db9",
+      "source": "final-midnight.png"
+    },
+    {
+      "file": "art/screenshots/background-graphite-ui114-code75-api34.png",
+      "sha256": "358f1049ce66091b90db721c49790ac526c96ce15a5883541b81e85c2f733c09",
+      "source": "final-graphite.png"
+    },
+    {
+      "file": "art/screenshots/background-forest-ui114-code75-api34.png",
+      "sha256": "7f7023335b5dd3e9a554a631c2885877a6bca2f1a92089ab79a655c411a16ea0",
+      "source": "final-forest.png"
+    },
+    {
+      "file": "art/screenshots/background-plum-ui114-code75-api34.png",
+      "sha256": "7f8529f246649676334301ad6dbb29134c22f1acc3002c6ce7f2197c1b9d2590",
+      "source": "final-plum.png"
+    }
+  ],
+  "limits": "Native settings and still-image captures, not physical TV visual acceptance."
+}
