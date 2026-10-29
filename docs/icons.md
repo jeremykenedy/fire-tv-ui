@@ -26,6 +26,10 @@ In Fire TV UI, long press the app or input tile you want to change. Choose **Cha
 
 In LTvLauncher, long press an app, choose **Set Custom Banner**, and select the image through its gallery picker. The same shared images are available to both apps. LTvLauncher's built-in input panel does not offer the same custom-image control as its app banners.
 
+## Optional built-in styles
+
+Theme and wallpaper > Icon pack also offers Clean line and Muted solid. These use installed app artwork with an optional frame or subdued plate, independent of the 32 downloadable input images. Original and external packs remain available, and existing custom artwork stays selected. See [configuration](configuration.md#icon-styles).
+
 ## On-TV pickers
 
 <table>
