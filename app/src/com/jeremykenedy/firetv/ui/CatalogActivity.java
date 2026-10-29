@@ -236,7 +236,6 @@ public final class CatalogActivity extends CardActivity {
                 installing = null;
             }
             status.setText(result == RESULT_OK ? "The TV completed the change." : "No change was completed.");
-            load();
         }
     }
 
