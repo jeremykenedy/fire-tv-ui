@@ -127,6 +127,26 @@ def patch_launcher_grid(paths):
     callback = callback.replace('LQ3/M7;->d(', 'LQ3/M7;->appGrid(')
     (destination / 'LauncherAppGridRecompose.smali').write_text(callback)
 
+    # The legacy favorites focus callback always scrolls the whole page to the
+    # top. Expanded rows must let the existing parent scroll reveal focus.
+    focus = paths['LQ3/F5;'].read_text()
+    focus = once(focus, '    new-instance v0, LQ3/I5;',
+                 '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/LauncherLayout;->multipleHomeRows()Z\n'
+                 '    move-result v0\n'
+                 '    if-eqz v0, :legacy_favorites_scroll\n'
+                 '    sget-object v0, Lb4/n;->a:Lb4/n;\n'
+                 '    return-object v0\n'
+                 '    :legacy_favorites_scroll\n'
+                 '    new-instance v0, LQ3/I5;')
+    paths['LQ3/F5;'].write_text(focus)
+    page = paths['LQ3/T5;'].read_text()
+    page = once(page, '    :cond_38\n    invoke-static {v3, v0}, Landroidx/compose/foundation/layout/d;->g(LZ/o;F)LZ/o;',
+                '    :cond_38\n'
+                '    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/LauncherLayout;->homeSpacer(F)F\n'
+                '    move-result v0\n'
+                '    invoke-static {v3, v0}, Landroidx/compose/foundation/layout/d;->g(LZ/o;F)LZ/o;')
+    paths['LQ3/T5;'].write_text(page)
+
     home = paths['La/a;'].read_text()
     first = method(home, 'a')
     first = once(first,

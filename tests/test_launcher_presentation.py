@@ -92,11 +92,15 @@ public class LauncherLayoutTest {
   if(!LauncherLayout.expandHomeApps())throw new AssertionError("Horizontal apps not expanded");
   prefs.allApps=true;if(LauncherLayout.expandHomeApps())throw new AssertionError("All apps button choice ignored");
   prefs.allApps=false;
+  if(LauncherLayout.multipleHomeRows() || LauncherLayout.homeSpacer(288f)!=288f)throw new AssertionError("Single row placement changed");
   prefs.rows=2;LauncherLayout.resumed(home);
+  if(!LauncherLayout.multipleHomeRows() || LauncherLayout.homeSpacer(288f)!=0f)throw new AssertionError("Multiple rows reserve single-row spacer");
+  prefs.allApps=true;if(LauncherLayout.multipleHomeRows() || LauncherLayout.homeSpacer(288f)!=288f)throw new AssertionError("All apps placement changed");prefs.allApps=false;
   if(home.recreates!=2 || LauncherLayout.gridColumns(31,5)!=16)throw new AssertionError("Row limit not applied");
   prefs.value=8;LauncherLayout.resumed(home);if(home.recreates!=2)throw new AssertionError("Column refresh changed");
   prefs.direction="vertical";LauncherLayout.resumed(home);
   if(home.recreates!=3 || prefs.rows!=2 || prefs.value!=8 || LauncherLayout.gridColumns(31,8)!=8)throw new AssertionError("Vertical restoration lost choices");
+  if(LauncherLayout.multipleHomeRows() || LauncherLayout.homeSpacer(288f)!=288f)throw new AssertionError("Vertical placement changed");
   prefs.direction="invalid";if(LauncherLayout.horizontal(prefs))throw new AssertionError("Invalid direction enabled");
   prefs.rows=-1;if(LauncherLayout.maximumRows(prefs)!=1)throw new AssertionError("Invalid row fallback");
   prefs.rows=7;if(LauncherLayout.maximumRows(prefs)!=1)throw new AssertionError("Excess row fallback");
