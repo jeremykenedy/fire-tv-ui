@@ -1,5 +1,19 @@
 # Screenshots
 
+## Fire TV UI 1.13.0, code 74
+
+Native Android TV API 34 captures at 1920x1080 from the exact signed APK `0592d60d`. The dedicated Screensavers area keeps Configure, Preview and Set active beside each saver. UI settings groups layout and card controls, and Updates keeps version details and recovery actions visible. Installed saver names and thumbnails depend on the device; their presence does not establish visual acceptance of those savers.
+
+<table><tr>
+<td><img src="../art/screenshots/settings-ui113-code74-api34.png" alt="Fire TV UI 1.13 native UI settings panel"><br>UI settings</td>
+<td><img src="../art/screenshots/screensavers-ui113-code74-api34.png" alt="Fire TV UI 1.13 separate Configure Preview and Set active actions beside each installed saver"><br>Screensaver management</td>
+<td><img src="../art/screenshots/cards-ui113-code74-api34.png" alt="Fire TV UI 1.13 featured card controls with saved default eight-second interval"><br>Featured cards</td>
+</tr><tr>
+<td><img src="../art/screenshots/updates-ui113-code74-api34.png" alt="Fire TV UI 1.13 update screen with installed and available versions and missing icon access action"><br>Updates</td>
+</tr></table>
+
+[Capture provenance](../art/screenshots/ui113-code74-provenance.json) records the unchanged PNG hashes. Native tests verified inactive-saver configuration and preview fallback with selection/timer preservation and exact focus/scroll return. Custom seven-second timing was saved and restored through a native backup round trip; no published feeds were available to verify live title cadence. These captures do not establish physical remote Home routing, Alexa, receiver behavior or screenshots of newer screensaver visuals. Earlier release evidence remains labeled below.
+
 ## Fire TV UI 1.12.0, code 72
 
 Actual API 34 TV emulator settings from the exact final signed APK `930660de` at 1920x1080. Flowing silk, Soft bokeh and Light rays are three of twelve animated styles, plus Off. Each capture shows native 50% controls; Brightness is below the current scroll fold. The unchanged raw settings images contain no personal cards or library history.
