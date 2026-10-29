@@ -179,9 +179,9 @@ public final class BackupStore {
             if ("hidden_featured_cards".equals(key) && !(value instanceof JSONArray)) {
                 throw new JSONException("Wrong value type in setting: " + key);
             }
-            if ("featured_rotation_seconds".equals(key)
+            if (FeaturedCardTiming.SETTING.equals(key)
                     && (!(value instanceof Integer)
-                            || !java.util.Arrays.asList(0, 5, 8, 15, 30).contains(value))) {
+                            || FeaturedCardTiming.seconds((Integer) value) != (Integer) value)) {
                 throw new JSONException("Invalid featured artwork rotation time.");
             }
             if (MenuBackgroundOptions.STYLE.equals(key)

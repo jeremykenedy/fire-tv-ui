@@ -49,6 +49,7 @@ class BackupMigrationChecks(unittest.TestCase):
 import java.util.*;
 public interface SharedPreferences {
  Map<String,?> getAll(); String getString(String key,String fallback); Editor edit();
+ default int getInt(String key,int fallback){Object value=getAll().get(key);return value instanceof Integer?(Integer)value:fallback;}
  interface Editor { Editor clear(); Editor putBoolean(String k,boolean v); Editor putInt(String k,int v);
  Editor putLong(String k,long v); Editor putFloat(String k,float v); Editor putString(String k,String v);
  Editor putStringSet(String k,Set<String> v); boolean commit(); }
@@ -117,6 +118,7 @@ final class EquipmentControl { static final String REMOTE="fire_tv_ui_equipment_
             subprocess.run(['javac', '-cp', str(jar), '-d', temp, *files,
                             os.environ.get('BACKUP_STORE_SOURCE', str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/BackupStore.java')),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/CardOrderRules.java'),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardTiming.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/MenuBackgroundOptions.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java'),
                             str(ROOT / 'tests/BackupMigrationTest.java')], check=True)

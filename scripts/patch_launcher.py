@@ -496,6 +496,8 @@ def patch(decoded):
 
     settings = class_paths["LQ3/M7;"]
     text = settings.read_text()
+    text = replace_once(text, '    const-string v0, "Appearance"',
+        '    const-string v0, "UI settings"')
     text = replace_once(text, '    filled-new-array/range {v49 .. v55}, [Ljava/lang/String;',
         '    const-string v56, "Startup and protection"\n\n'
         '    const-string v57, \"Advanced\"\n\n'
