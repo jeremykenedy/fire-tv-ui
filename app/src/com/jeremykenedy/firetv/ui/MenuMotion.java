@@ -24,16 +24,16 @@ public final class MenuMotion {
                 .setSingleChoiceItems(MenuMotionOptions.LABELS,
                         MenuMotionOptions.index(style(activity)), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int index) {
-                    SharedPreferences.Editor editor = DeviceSettings.prefs(activity).edit();
-                    if (index == 0) editor.remove(MenuMotionOptions.SETTING);
-                    else editor.putString(MenuMotionOptions.SETTING, MenuMotionOptions.VALUES[index]);
-                    if (editor.commit()) {
-                        dialog.dismiss();
-                        refresh.run();
-                    } else {
-                        new AlertDialog.Builder(activity).setTitle("Could not save transitions")
-                                .setMessage("Please try again.").setPositiveButton("OK", null).show();
-                    }
+                        SharedPreferences.Editor editor = DeviceSettings.prefs(activity).edit();
+                        if (index == 0) editor.remove(MenuMotionOptions.SETTING);
+                        else editor.putString(MenuMotionOptions.SETTING, MenuMotionOptions.VALUES[index]);
+                        if (editor.commit()) {
+                            dialog.dismiss();
+                            refresh.run();
+                        } else {
+                            new AlertDialog.Builder(activity).setTitle("Could not save transitions")
+                                    .setMessage("Please try again.").setPositiveButton("OK", null).show();
+                        }
                     }
                 }).setNegativeButton("Cancel", null).show();
     }
