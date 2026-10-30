@@ -119,7 +119,55 @@ public class SavedSetupsTest {
         Files.write(registry.toPath(),"{broken".getBytes("UTF-8"));
         rejects(()->store.apply(next,true),"corrupt registry fails before apply");
         check(c.prefs.values.equals(unchanged),"invalid snapshot leaves all preferences unchanged");
+        videoReferences(new File(args[0], "video-data"));
         System.out.println("Saved setups: "+checks+" checks passed");
+    }
+    private static void videoReferences(File directory) throws Exception {
+        Context c = new Context(directory);
+        SavedSetupStore store = new SavedSetupStore(c);
+        File video = new File(directory, "wallpaper.mp4");
+        Files.write(video.toPath(), new byte[]{1, 2, 3});
+        String uri = Uri.fromFile(video).toString();
+        c.prefs.values.put("mode", "customv");
+        c.prefs.values.put("custom_video_uri", uri);
+        c.prefs.values.put("apps_per_row", 7);
+        String id = store.save("Video wallpaper", null);
+        JSONObject values = store.list().get(0).getJSONObject("settings").getJSONObject("values");
+        check(values.getString("custom_video_uri").equals(uri), "video source saved without replacement");
+        check(new File(directory, "saved-setups").listFiles((dir, name) -> name.endsWith(".image")).length == 0,
+                "video is referenced instead of copied as an image");
+        c.prefs.values.put("mode", "custom");
+        c.prefs.values.put("custom_video_uri", "file:///different-video.mp4");
+        c.prefs.values.put("apps_per_row", 3);
+        store.apply(id, false);
+        check(c.prefs.values.get("mode").equals("customv") && c.prefs.values.get("custom_video_uri").equals(uri),
+                "video mode and original source round trip with icons excluded");
+        check(c.prefs.values.get("apps_per_row").equals(7), "video setup restores layout");
+        Files.delete(video.toPath());
+        c.prefs.values.put("mode", "custom");
+        c.prefs.values.put("apps_per_row", 3);
+        Map<String, Object> before = new LinkedHashMap<>(c.prefs.values);
+        File blur = new File(directory, "wallpaper_blur.jpg");
+        Files.write(blur.toPath(), new byte[]{4, 5, 6});
+        rejects(() -> store.apply(id, true), "missing video rejects apply");
+        check(c.prefs.values.equals(before) && Arrays.equals(Files.readAllBytes(blur.toPath()), new byte[]{4, 5, 6}),
+                "missing video preserves all current preferences and image cache");
+        String still = store.save("Still with inactive video reference", null);
+        c.prefs.values.put("apps_per_row", 9);
+        store.apply(still, true);
+        check(c.prefs.values.get("apps_per_row").equals(3) && c.prefs.values.get("mode").equals("custom"),
+                "inactive missing video does not block a different wallpaper mode");
+        c.prefs.values.put("mode", "customv");
+        c.prefs.values.remove("custom_video_uri");
+        String absent = store.save("Absent video source", null);
+        before = new LinkedHashMap<>(c.prefs.values);
+        rejects(() -> store.apply(absent, true), "absent video source rejects apply");
+        check(c.prefs.values.equals(before), "absent source does not mutate preferences");
+        Files.write(video.toPath(), new byte[0]);
+        rejects(() -> store.apply(id, true), "empty video source rejects apply");
+        Files.write(video.toPath(), new byte[]{7, 8});
+        store.apply(id, true);
+        check(c.prefs.values.get("custom_video_uri").equals(uri), "restored source becomes applicable again");
     }
     private static String repeat(char ch,int length){char[] values=new char[length];Arrays.fill(values,ch);return new String(values);}
 }

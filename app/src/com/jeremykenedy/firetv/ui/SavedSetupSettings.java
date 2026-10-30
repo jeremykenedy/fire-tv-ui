@@ -20,7 +20,7 @@ final class SavedSetupSettings {
     private static Map<String, String> types() {
         Map<String, String> result = new LinkedHashMap<>();
         add(result, "String", "app_order", "app_visibility", "channel_visibility", "custom_gradient",
-                "custom_wallpaper_uri", "display_order", "favorites_bg_mode", "folders",
+                "custom_wallpaper_uri", "custom_video_uri", "display_order", "favorites_bg_mode", "folders",
                 "icon_pack_package", "mode", "size", "status_bar_position", "status_bar_weather_loc",
                 "status_bar_weather_unit", "subreddit_wallpaper_name", "widgets_config",
                 "menu_animation", "menu_transition_style", "app_scroll_direction", "icon_focus_style",

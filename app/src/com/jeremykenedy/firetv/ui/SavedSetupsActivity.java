@@ -61,7 +61,7 @@ public final class SavedSetupsActivity extends CardActivity {
             addButton(body, row);
             if (id.equals(focusId)) focus = row;
         }
-        TextView scope = text("TV power, sleep, Home protection, account connections and settings inside other apps stay as they are. Custom wallpaper and icon images are copied to private TV storage. Installed icon packs must remain installed. Setups are removed when Fire TV UI app data is cleared or the app is uninstalled.", 14, MUTED);
+        TextView scope = text("TV power, sleep, Home protection, account connections and settings inside other apps stay as they are. Still wallpaper and icon images are copied to private TV storage. Video wallpapers keep their source reference, so the original video must remain accessible. Installed icon packs must remain installed. Setups are removed when Fire TV UI app data is cleared or the app is uninstalled.", 14, MUTED);
         scope.setPadding(0, dp(14), 0, 0);
         body.addView(scope);
         status.setText(items.size() + " of " + SavedSetupStore.MAX_SETUPS + " setups saved");

@@ -100,6 +100,7 @@ final class SavedSetupStore {
                     DeviceSettings.prefs(context).getAll(), icons);
             Map<String, Object> restoredImages = new LinkedHashMap<>(values);
             if (!icons) restoredImages.remove("app_visibility");
+            verifyVideo(values);
             verifyImages(restoredImages);
             Object previousWallpaper = DeviceSettings.prefs(context).getAll().get("custom_wallpaper_uri");
             if (values.containsKey("custom_wallpaper_uri") && !Objects.equals(previousWallpaper, values.get("custom_wallpaper_uri"))) {
@@ -221,6 +222,18 @@ final class SavedSetupStore {
             return input;
         } catch (IOException | RuntimeException unavailable) {
             throw new IOException("An image is unavailable. Choose it again before saving or applying this setup.", unavailable);
+        }
+    }
+
+    private void verifyVideo(Map<String, ?> values) throws IOException {
+        if (!"customv".equals(values.get("mode"))) return;
+        Object source = values.get("custom_video_uri");
+        String message = "The saved video is unavailable. Keep its original file accessible or choose it again before applying this setup.";
+        if (!(source instanceof String) || ((String) source).isEmpty()) throw new IOException(message);
+        try (InputStream input = context.getContentResolver().openInputStream(Uri.parse((String) source))) {
+            if (input == null || input.read() < 0) throw new IOException(message);
+        } catch (IOException | RuntimeException unavailable) {
+            throw new IOException(message, unavailable);
         }
     }
 
