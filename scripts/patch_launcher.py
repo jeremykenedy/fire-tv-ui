@@ -746,15 +746,17 @@ def patch(decoded):
     theme_text = theme.read_text()
     theme_start = theme_text.index('    const-string v4, "Theme Mode_Screensaver"')
     theme_row = theme_text.index('    invoke-static/range {v15 .. v27}, LA3/a;->A', theme_start)
-    theme_text = theme_text[:theme_row] + (
-        '    move-object/from16 v0, p13\n'
-        '    new-instance v15, Lcom/jeremykenedy/firetv/ui/MenuBackgroundAction;\n'
-        '    invoke-direct {v15, v0}, Lcom/jeremykenedy/firetv/ui/MenuBackgroundAction;-><init>(Landroid/content/Context;)V\n'
-        '    move-object/from16 v20, v15\n'
-        '    move-object/from16 v0, p6\n'
-        '    const-string v15, "Menu backgrounds"\n'
-        '    const/16 v17, 0x0\n'
-    ) + theme_text[theme_row:]
+    theme_call = '    invoke-static/range {v15 .. v27}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V'
+    if not theme_text[theme_row:].startswith(theme_call):
+        raise ValueError('Theme background row anchor changed')
+    theme_text = theme_text[:theme_row] + theme_text[theme_row:].replace(theme_call,
+        '    move-object/from16 v15, v19\n'
+        '    move-object/from16 v16, v21\n'
+        '    move-object/from16 v17, v22\n'
+        '    move-object/from16 v18, v23\n'
+        '    move-object/from16 v19, v25\n'
+        '    move-object/from16 v20, p7\n'
+        '    invoke-static/range {v15 .. v20}, Lcom/jeremykenedy/firetv/ui/SavedSetupsRow;->draw(Le0/p;Ln4/a;Ln4/a;Ln4/a;LN/p;Ljava/util/Map;)V', 1)
     theme.write_text(theme_text)
 
     project = class_paths['LQ3/F2;']
@@ -837,6 +839,8 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/MenuBackgroundLayer.smali', destination)
     shutil.copy(ROOT / 'app/smali/MenuOverlayLayer.smali', destination)
     shutil.copy(ROOT / 'app/smali/MenuBackgroundAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/SavedSetupsAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/SavedSetupsRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardTimersAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelCardsFocus.smali', destination)
@@ -943,7 +947,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'PreviewCreditsActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'CardTimersActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'PlexHomeActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity', 'MenuBackgroundActivity', 'UiSettingsActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'PreviewCreditsActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'CardTimersActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'PlexHomeActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity', 'MenuBackgroundActivity', 'SavedSetupsActivity', 'UiSettingsActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

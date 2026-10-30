@@ -67,9 +67,22 @@ class BuildChecks(unittest.TestCase):
         self.assertNotIn('Controls_AppsRow_2', built['LQ3/E1;'].read_text())
         theme = built['Landroid/support/v4/media/session/b;'].read_text()
         row = theme.split('const-string v4, "Theme Mode_Screensaver"', 1)[1]
-        row = row.split('invoke-static/range {v15 .. v27}, LA3/a;->A', 1)[0]
-        self.assertIn('MenuBackgroundAction;-><init>', row)
-        self.assertIn('const-string v15, "Menu backgrounds"', row)
+        row = row.split('SavedSetupsRow;->draw', 1)[0]
+        self.assertIn('SavedSetupsRow;->draw', theme)
+        setup_rows = built['Lcom/jeremykenedy/firetv/ui/SavedSetupsRow;'].read_text()
+        self.assertIn('MenuBackgroundAction;-><init>', setup_rows)
+        self.assertIn('SavedSetupsAction;-><init>', setup_rows)
+        self.assertIn('"Backgrounds and overlays"', setup_rows)
+        self.assertIn('"Saved setups"', setup_rows)
+        self.assertIn('"Theme Mode_SavedSetups"', setup_rows)
+        self.assertIn('"Theme Mode_Screensaver"', setup_rows)
+        self.assertIn('move-object/from16 v8, p3', setup_rows)
+        self.assertIn('move-object v6, p1', setup_rows)
+        manifest = ET.parse(decoded / 'AndroidManifest.xml').getroot()
+        android = '{http://schemas.android.com/apk/res/android}'
+        saved_activity = next(a for a in manifest.find('application').findall('activity')
+                              if a.get(android + 'name') == 'com.jeremykenedy.firetv.ui.SavedSetupsActivity')
+        self.assertEqual(saved_activity.get(android + 'exported'), 'false')
         for callback in ('v21', 'v22', 'v23'):
             self.assertIn('check-cast ' + callback + ', Ln4/a;', row)
 
