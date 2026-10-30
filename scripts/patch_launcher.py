@@ -412,6 +412,12 @@ def patch(decoded):
         '    move-result v14\n'
         '    if-nez v14, :goto_3\n'
         '    if-eqz v4, :cond_f'))
+    # Compose the transparent layer after the original wallpaper, before Home controls.
+    main_background.write_text(replace_once(main_background.read_text(),
+        '    :goto_8\n    invoke-virtual {v7, v8}, LN/p;->p(Z)V',
+        '    :goto_8\n    invoke-virtual {v7, v8}, LN/p;->p(Z)V\n'
+        '    iget-object v1, v0, LQ3/T5;->z:Landroid/content/Context;\n'
+        '    invoke-static {v1, v7}, Lcom/jeremykenedy/firetv/ui/MenuOverlayLayer;->draw(Landroid/content/Context;LN/p;)Z'))
 
     featured_image = class_paths["La/a;"]
     image_signature = '.method public static final n(LQ3/S8;IILC/d;LN2/k;LN/Z;Landroid/content/Context;LN/Z;LN/p;)V'
@@ -803,6 +809,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/FeaturedGroupBridge.smali', destination)
     shutil.copy(ROOT / 'app/smali/FeaturedProgramMapper.smali', destination)
     shutil.copy(ROOT / 'app/smali/MenuBackgroundLayer.smali', destination)
+    shutil.copy(ROOT / 'app/smali/MenuOverlayLayer.smali', destination)
     shutil.copy(ROOT / 'app/smali/MenuBackgroundAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardTimersAction.smali', destination)

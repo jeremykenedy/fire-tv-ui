@@ -22,13 +22,19 @@ public final class BuiltInIconPacks {
     private BuiltInIconPacks() {}
 
     public static boolean supports(String pack) {
-        return CLEAN_LINE.equals(pack) || MUTED_SOLID.equals(pack);
+        return CLEAN_LINE.equals(pack) || MUTED_SOLID.equals(pack) || holiday(pack) != null;
     }
 
     public static String caption(String pack) {
-        String label = CLEAN_LINE.equals(pack) ? "Clean line"
+        HolidayThemes.Theme holiday = holiday(pack);
+        String label = holiday != null ? holiday.name + " colors" : CLEAN_LINE.equals(pack) ? "Clean line"
                 : MUTED_SOLID.equals(pack) ? "Muted solid" : pack;
         return "(" + label + ")";
+    }
+
+    private static HolidayThemes.Theme holiday(String pack) {
+        return pack != null && pack.startsWith("builtin:holiday:")
+                ? HolidayThemes.find(pack.substring("builtin:holiday:".length())) : null;
     }
 
     public static LinkedHashMap<String, String> mappings(Context context, String pack) {
@@ -62,12 +68,20 @@ public final class BuiltInIconPacks {
         RectF plate = new RectF(inset, inset, width - inset, height - inset);
         float radius = Math.min(width, height) * 0.12f;
         boolean muted = MUTED_SOLID.equals(pack);
-        paint.setColor(muted ? 0xff29364b : 0xffa9bacb);
-        if (!muted) {
+        HolidayThemes.Theme holiday = holiday(pack);
+        paint.setColor(holiday != null ? holiday.dark : muted ? 0xff29364b : 0xffa9bacb);
+        if (!muted && holiday == null) {
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(Math.max(2f, height * 0.012f));
         }
         canvas.drawRoundRect(plate, radius, radius, paint);
+        if (holiday != null) {
+            paint.setColor(holiday.accent);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(2f, height * .012f));
+            canvas.drawRoundRect(plate, radius, radius, paint);
+            paint.setStyle(Paint.Style.FILL);
+        }
 
         int originalWidth = Math.max(1, artwork.getIntrinsicWidth());
         int originalHeight = Math.max(1, artwork.getIntrinsicHeight());

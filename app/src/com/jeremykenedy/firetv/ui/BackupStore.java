@@ -207,6 +207,26 @@ public final class BackupStore {
                     && (!(value instanceof Integer) || MenuBackgroundOptions.level((Integer) value) != (Integer) value)) {
                 throw new JSONException("Invalid menu animation level.");
             }
+            if (MenuBackgroundOptions.OVERLAY.equals(key)
+                    && (!(value instanceof String) || !java.util.Arrays.asList(MenuBackgroundOptions.STYLES).contains(value))) {
+                throw new JSONException("Invalid menu overlay.");
+            }
+            if ((MenuBackgroundOptions.FROZEN.equals(key) || MenuBackgroundOptions.OVERLAY_FROZEN.equals(key))
+                    && !(value instanceof Boolean)) {
+                throw new JSONException("Invalid background or overlay motion choice.");
+            }
+            if (MenuBackgroundOptions.OVERLAY_SPEED.equals(key)
+                    && (!(value instanceof Integer) || MenuBackgroundOptions.speed((Integer) value) != (Integer) value)) {
+                throw new JSONException("Invalid overlay speed.");
+            }
+            if ((MenuBackgroundOptions.OVERLAY_INTENSITY.equals(key) || MenuBackgroundOptions.OVERLAY_OPACITY.equals(key))
+                    && (!(value instanceof Integer) || MenuBackgroundOptions.level((Integer) value) != (Integer) value)) {
+                throw new JSONException("Invalid overlay level.");
+            }
+            if ((MenuBackgroundOptions.PALETTE.equals(key) || MenuBackgroundOptions.OVERLAY_PALETTE.equals(key))
+                    && (!(value instanceof String) || !((String) value).isEmpty() && HolidayThemes.find((String) value) == null)) {
+                throw new JSONException("Invalid background or overlay colors.");
+            }
             String expected = schema.optString(key, "");
             if ("Float".equals(expected) && value instanceof Number) {
                 value = ((Number) value).floatValue();

@@ -122,6 +122,7 @@ final class EquipmentControl { static final String REMOTE="fire_tv_ui_equipment_
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/CardOrderRules.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardTiming.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/MenuBackgroundOptions.java'),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/HolidayThemes.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/MenuMotionOptions.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java'),
                             str(ROOT / 'tests/BackupMigrationTest.java')], check=True)
