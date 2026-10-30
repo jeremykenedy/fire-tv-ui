@@ -3,6 +3,8 @@
 - [Configuration](configuration.md)
 - [Featured cards and personal Plex](featured-cards.md)
 - [Menu backgrounds](animated-backgrounds.md)
+- [Backgrounds, overlays and holiday themes](backgrounds-and-overlays.md)
+- [Saved UI setups](saved-setups.md)
 - [Installation and updates](installation.md)
 - [Published app update checks](updates.md)
 - [Factory UI tile](factory-home.md)
