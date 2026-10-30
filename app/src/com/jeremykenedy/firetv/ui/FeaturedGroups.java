@@ -70,6 +70,7 @@ public final class FeaturedGroups {
         feeds.putAll(stable);
         FeaturedGroups.feedKeys.clear();
         FeaturedGroups.feedKeys.putAll(pendingFeedKeys);
+        FeaturedCardClock.feedsChanged();
         return result;
     }
 
@@ -89,6 +90,19 @@ public final class FeaturedGroups {
 
     public static synchronized void advance() {
         for (Group group : feeds.values()) group.index = (group.index + 1) % group.cards.size();
+    }
+
+    static synchronized List<String> rotatingFeeds() {
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<String, Group> entry : feeds.entrySet())
+            if (entry.getValue().cards.size() > 1) result.add(entry.getKey());
+        return result;
+    }
+
+    static synchronized boolean advance(List<String> keys) {
+        boolean changed = false;
+        for (String key : keys) changed |= move(key, 1);
+        return changed;
     }
 
     static synchronized boolean move(String feed, int direction) {

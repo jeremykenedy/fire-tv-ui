@@ -1,5 +1,18 @@
 # Verification
 
+## Fire TV UI 1.16.0, version code 77
+
+The combined implementation passed signed Android builds and 73 host tests, with six opt-in native skips. Separate device runs covered the skipped workflows described below; this does not mean every optional native test was run.
+
+- Integrated Fire TV API 30 checks exercised all seven new motifs over a real custom wallpaper, static composition, Off preserving wallpaper, native control navigation, and lifecycle pause/resume. Controlled Home samples after eight seconds of warmup measured approximately 59.8 FPS for snowflakes and connected lights, with 1.0 to 1.4 percent reported jank. Main rendered no frames while paused behind the native Card timers page.
+- Real-provider cards used a seven-second global interval, a five-second channel override, and a Manual channel. Titles changed independently while feed positions stayed fixed. Native checks covered custom values, Use global, global Manual, Channel Cards Save/Cancel, repeated Back and focus restoration.
+- A second integrated Fire TV verified named setup save/apply/rename/update/delete, invalid names, copied wallpaper and icon images after the original files were removed, optional icon retention, global and per-channel timers, layout restoration, and Back/focus navigation. Original production APKs, preferences, protected settings, external files and device controls were restored after those tests. Regenerated wallpaper cache and an empty private setup index were explicitly retained where applicable.
+- Final version-code 77 checks on Android TV API 34 saved and applied two real video sources, verified the displayed wallpaper and restored URI, and rejected a deleted source without changing preferences. Release screenshots use an isolated emulator with sample setup names and no personal recommendations.
+
+The existing Compose Cards popup has higher latency with a moving overlay than Home or the native timer page. Its measured snowflake sample had a 38 ms 95th-percentile frame duration and 24 deadline misses in 584 frames. Still and Off remain available; these measurements do not establish universal smoothness or appearance on every panel.
+
+Navigation used native Android key events and controls, not a handheld remote. Physical remote Home from Amazon Home, Alexa receiver/soundbar power behavior, and broad screensaver visual acceptance remain separate open work. [Screenshots](screenshots.md) and [release notes](releases/v1.16.0.md) describe the shipped scope.
+
 ## Fire TV UI 1.15.0, version code 76
 
 The final signed APK `f8a7ac4dd7c40a08e408c517d89a703f0f602af0076a982ec10449c787d6ef29` was exercised on Android TV API 34 at 1920x1080.

@@ -11,6 +11,7 @@ class FeaturedGroupChecks(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             stubs = {
+                'com/jeremykenedy/firetv/ui/FeaturedCardClock.java': 'package com.jeremykenedy.firetv.ui; class FeaturedCardClock { static void feedsChanged(){} }',
                 'android/content/Context.java': 'package android.content; public class Context {}',
                 'android/net/Uri.java': 'package android.net; public class Uri { public String toString(){return "";} }',
                 'com/jeremykenedy/firetv/ui/FeedOrder.java': 'package com.jeremykenedy.firetv.ui; class FeedOrder { static String key(android.content.Context c,String s,long id){return s+id;} }',

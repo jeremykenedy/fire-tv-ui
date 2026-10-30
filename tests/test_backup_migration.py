@@ -48,9 +48,10 @@ class BackupMigrationChecks(unittest.TestCase):
             'android/content/SharedPreferences.java': '''package android.content;
 import java.util.*;
 public interface SharedPreferences {
+ default java.util.Set<String> getStringSet(String key,java.util.Set<String> fallback){Object v=getAll().get(key);return v==null?fallback:(java.util.Set<String>)v;}
  Map<String,?> getAll(); String getString(String key,String fallback); Editor edit();
  default int getInt(String key,int fallback){Object value=getAll().get(key);return value instanceof Integer?(Integer)value:fallback;}
- interface Editor { Editor clear(); Editor putBoolean(String k,boolean v); Editor putInt(String k,int v);
+ interface Editor { Editor remove(String key); Editor clear(); Editor putBoolean(String k,boolean v); Editor putInt(String k,int v);
  Editor putLong(String k,long v); Editor putFloat(String k,float v); Editor putString(String k,String v);
  Editor putStringSet(String k,Set<String> v); boolean commit(); }
 }''',
@@ -70,6 +71,7 @@ public class Context {
   public String getString(String k,String fallback) { return (String)values.getOrDefault(k,fallback); }
   public Editor edit() { return new Editor() {
    final Map<String,Object> pending=new HashMap<>(); boolean clear;
+   public Editor remove(String key){pending.put(key,null);return this;}
    public Editor clear(){clear=true;return this;}
    public Editor putBoolean(String k,boolean v){pending.put(k,v);return this;}
    public Editor putInt(String k,int v){pending.put(k,v);return this;}
@@ -120,6 +122,7 @@ final class EquipmentControl { static final String REMOTE="fire_tv_ui_equipment_
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/CardOrderRules.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardTiming.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/MenuBackgroundOptions.java'),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/HolidayThemes.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/MenuMotionOptions.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java'),
                             str(ROOT / 'tests/BackupMigrationTest.java')], check=True)

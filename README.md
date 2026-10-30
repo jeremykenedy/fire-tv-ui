@@ -46,9 +46,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.15.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.16.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.15.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.16.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -72,8 +72,9 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | Feature | What it does | Guide |
 | --- | --- | --- |
 | Home layout | Choose custom columns, optional horizontal rows and readable focus styles. | [Configuration](docs/configuration.md) |
-| Featured cards | Keep feeds fixed while their titles rotate; order or hide items and add authorized Plex profiles. | [Featured cards](docs/featured-cards.md) |
-| Menu backgrounds | Twelve animations and four still palettes, with saved wallpaper preserved. | [Menu backgrounds](docs/animated-backgrounds.md) |
+| Featured cards | Keep feeds fixed, set global or per-channel timers, and order or hide individual items. | [Featured cards](docs/featured-cards.md) |
+| Backgrounds and overlays | Add independent animation over your wallpaper, with still choices and holiday palettes. | [Backgrounds and overlays](docs/backgrounds-and-overlays.md) |
+| Saved setups | Save named appearances and layouts, then switch back with optional icon restoration. | [Saved setups](docs/saved-setups.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
 | Icon styles | Choose built-in Clean line or Muted solid artwork treatments, or keep an existing pack. | [Icon styles](docs/configuration.md#icon-styles) |
 | Settings motion | Choose Default, None, Fade or Short slide for native settings pages. | [Settings transitions](docs/configuration.md#settings-transitions) |
@@ -135,6 +136,9 @@ Device testing is described in [Verification](docs/verification.md).
 - [Device controls and backups](docs/device-controls.md)
 - [Featured cards and personal Plex](docs/featured-cards.md)
 - [Animated menu backgrounds](docs/animated-backgrounds.md)
+- [Backgrounds, overlays and holiday themes](docs/backgrounds-and-overlays.md)
+- [Saved UI setups](docs/saved-setups.md)
+- [Fire TV UI 1.16.0 release notes and upgrade guide](docs/releases/v1.16.0.md)
 - [Fire TV UI 1.13.0 release notes and upgrade guide](docs/releases/v1.13.0.md)
 - [Fire TV UI 1.11.1 release notes and upgrade guide](docs/releases/v1.11.1.md)
 - [Fire TV UI 1.11.0 release notes and upgrade guide](docs/releases/v1.11.0.md)
@@ -160,9 +164,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.15.0/code 76 on the Android TV API 34 emulator. Layout and focus groups optional horizontal rows, custom visible app counts and native settings transitions. The [full gallery](docs/screenshots.md) includes horizontal boundary captures and version-labeled settings, backgrounds, cards and updates.
+Fire TV UI 1.16.0/code 77 on the Android TV API 34 emulator. Named setups preserve presentation and layout choices. The [full gallery](docs/screenshots.md) shows backgrounds, overlays, holiday options and the reorganized card controls, with older captures labeled by version.
 
-<p align="center"><img src="art/screenshots/layout-ui115-code76-api34.png" alt="Fire TV UI 1.15 native layout, focus and settings transition controls" width="900"></p>
+<p align="center"><img src="art/screenshots/saved-setups-ui116-code77-api34.png" alt="Fire TV UI 1.16 native named saved setups" width="900"></p>
 
 ## License
 

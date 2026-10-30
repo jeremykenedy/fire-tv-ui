@@ -176,7 +176,7 @@ public final class BackupStore {
                     || ((JSONArray) value).length() > CardOrderRules.LIMIT)) {
                 throw new JSONException("Invalid featured card order.");
             }
-            if ("hidden_featured_cards".equals(key) && !(value instanceof JSONArray)) {
+            if (("hidden_featured_cards".equals(key) || FeaturedCardTiming.OVERRIDES.equals(key)) && !(value instanceof JSONArray)) {
                 throw new JSONException("Wrong value type in setting: " + key);
             }
             if (FeaturedCardTiming.SETTING.equals(key)
@@ -206,6 +206,26 @@ public final class BackupStore {
             if ((MenuBackgroundOptions.INTENSITY.equals(key) || MenuBackgroundOptions.BRIGHTNESS.equals(key))
                     && (!(value instanceof Integer) || MenuBackgroundOptions.level((Integer) value) != (Integer) value)) {
                 throw new JSONException("Invalid menu animation level.");
+            }
+            if (MenuBackgroundOptions.OVERLAY.equals(key)
+                    && (!(value instanceof String) || !java.util.Arrays.asList(MenuBackgroundOptions.STYLES).contains(value))) {
+                throw new JSONException("Invalid menu overlay.");
+            }
+            if ((MenuBackgroundOptions.FROZEN.equals(key) || MenuBackgroundOptions.OVERLAY_FROZEN.equals(key))
+                    && !(value instanceof Boolean)) {
+                throw new JSONException("Invalid background or overlay motion choice.");
+            }
+            if (MenuBackgroundOptions.OVERLAY_SPEED.equals(key)
+                    && (!(value instanceof Integer) || MenuBackgroundOptions.speed((Integer) value) != (Integer) value)) {
+                throw new JSONException("Invalid overlay speed.");
+            }
+            if ((MenuBackgroundOptions.OVERLAY_INTENSITY.equals(key) || MenuBackgroundOptions.OVERLAY_OPACITY.equals(key))
+                    && (!(value instanceof Integer) || MenuBackgroundOptions.level((Integer) value) != (Integer) value)) {
+                throw new JSONException("Invalid overlay level.");
+            }
+            if ((MenuBackgroundOptions.PALETTE.equals(key) || MenuBackgroundOptions.OVERLAY_PALETTE.equals(key))
+                    && (!(value instanceof String) || !((String) value).isEmpty() && HolidayThemes.find((String) value) == null)) {
+                throw new JSONException("Invalid background or overlay colors.");
             }
             String expected = schema.optString(key, "");
             if ("Float".equals(expected) && value instanceof Number) {
@@ -259,6 +279,10 @@ public final class BackupStore {
                             && !CardOrderRules.valid(array.getString(i)))
                         throw new JSONException("Invalid featured card position.");
                     strings.add(array.getString(i));
+                }
+                if (FeaturedCardTiming.OVERRIDES.equals(key)
+                        && (strings.size() != array.length() || !FeaturedCardTiming.validOverrides(strings))) {
+                    throw new JSONException("Invalid channel card timers.");
                 }
                 editor.putStringSet(key, strings);
             } else {

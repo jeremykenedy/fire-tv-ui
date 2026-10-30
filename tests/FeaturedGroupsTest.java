@@ -16,6 +16,10 @@ public final class FeaturedGroupsTest {
         check(FeaturedGroups.current(slots.get(1)).equals("Show C"), "Single-item feed stays put");
         check(FeaturedGroups.current(slots.get(2)).equals("News B"), "Other feed rotates independently");
         check(slots.equals(Arrays.asList("Movie A", "Show C", "News A")), "Tick never reorders the strip");
+        check(FeaturedGroups.rotatingFeeds().equals(Arrays.asList("plex", "iptv")), "Only multi-item feeds require deadlines");
+        FeaturedGroups.advance(Arrays.asList("plex"));
+        check(FeaturedGroups.current(slots.get(0)).equals("Movie A") && FeaturedGroups.current(slots.get(2)).equals("News B"),"A due deadline advances only its feed");
+        FeaturedGroups.advance(Arrays.asList("plex"));
         Object copiedSlot = new Object();
         check(FeaturedGroups.current(copiedSlot, "plex").equals("Movie B"), "A copied slot resolves its stable logical feed");
         check(FeaturedGroups.current(copiedSlot, "plex-tv").equals("Show C"), "Same app's other logical channel stays distinct");

@@ -1,5 +1,29 @@
 # Screenshots
 
+## Fire TV UI 1.16.0, code 77
+
+Native Android TV API 34 captures at 1920x1080 from the final signed release candidate `1df13d6b`. Saved setups restore appearance, layout and card presentation. Cards contains Channel Cards and global/per-channel timers. Backgrounds and overlays can be configured separately, with 41 holiday and seasonal palettes. Existing settings remain the defaults.
+
+<table>
+<tr>
+<td><img src="../art/screenshots/saved-setups-ui116-code77-api34.png" alt="Fire TV UI 1.16 native saved setups"><br>Saved setups</td>
+<td><img src="../art/screenshots/cards-menu-ui116-code77-api34.png" alt="Fire TV UI 1.16 native cards menu"><br>Cards menu</td>
+<td><img src="../art/screenshots/card-timers-ui116-code77-api34.png" alt="Fire TV UI 1.16 native card timers"><br>Card timers</td>
+</tr>
+<tr>
+<td><img src="../art/screenshots/card-timer-options-ui116-code77-api34.png" alt="Fire TV UI 1.16 native global timer options"><br>Global timer options</td>
+<td><img src="../art/screenshots/backgrounds-overlays-ui116-code77-api34.png" alt="Fire TV UI 1.16 native backgrounds and overlays"><br>Backgrounds and overlays</td>
+<td><img src="../art/screenshots/overlay-controls-ui116-code77-api34.png" alt="Fire TV UI 1.16 native overlay controls"><br>Overlay controls</td>
+</tr>
+<tr>
+<td><img src="../art/screenshots/holiday-themes-ui116-code77-api34.png" alt="Fire TV UI 1.16 native holiday themes"><br>Holiday themes</td>
+<td><img src="../art/screenshots/holiday-options-ui116-code77-api34.png" alt="Fire TV UI 1.16 native holiday appearance options"><br>Holiday appearance options</td>
+<td><img src="../art/screenshots/about-ui116-code77-api34.png" alt="Fire TV UI 1.16 native release version"><br>Release version</td>
+</tr>
+</table>
+
+[Capture provenance](../art/screenshots/ui116-code77-provenance.json) records the exact APK and unchanged image hashes. These captures contain no personal accounts or library history. Native physical tests separately covered independent card timing, transparent overlays and saved setup restore. Video setups were checked on the TV emulator, including safe failure when a source is missing. See [verification](verification.md#fire-tv-ui-1160-version-code-77) for performance measurements and remaining limits. Earlier captures retain their original version labels below.
+
 ## Fire TV UI 1.15.0, code 76
 
 Native Android TV API 34 captures at 1920x1080 from the final signed APK `f8a7ac4d`. Horizontal scrolling, built-in icon styles and settings transitions are optional. Vertical layout and existing saved choices remain the defaults.

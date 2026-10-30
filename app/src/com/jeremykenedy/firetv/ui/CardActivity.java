@@ -16,7 +16,7 @@ import android.widget.TextView;
 /** Shared TV card, focus treatment, and error presentation. */
 public abstract class CardActivity extends Activity {
     protected LinearLayout card;
-    private MenuBackgroundView menuBackground;
+    private MenuBackgroundView menuBackground, menuOverlay;
     protected static final int INK = Color.WHITE;
     protected static final int MUTED = Color.rgb(207, 207, 207);
 
@@ -28,6 +28,8 @@ public abstract class CardActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         menuBackground = new MenuBackgroundView(this, false);
         root.addView(menuBackground, new FrameLayout.LayoutParams(-1, -1));
+        menuOverlay = new MenuBackgroundView(this, false, true);
+        root.addView(menuOverlay, new FrameLayout.LayoutParams(-1, -1));
         FrameLayout page = new FrameLayout(this);
         page.setPadding(dp(32), dp(24), dp(32), dp(24));
         card = new LinearLayout(this);
@@ -48,16 +50,19 @@ public abstract class CardActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         menuBackground.menuResumed(true);
+        menuOverlay.menuResumed(true);
         refreshMenuBackground();
     }
 
     @Override protected void onPause() {
         menuBackground.menuResumed(false);
+        menuOverlay.menuResumed(false);
         super.onPause();
     }
 
     protected void refreshMenuBackground() {
         menuBackground.refresh();
+        menuOverlay.refresh();
         card.setBackground(background(MenuBackgroundView.enabled(this)
                 ? Color.argb(220, 28, 31, 42) : Color.rgb(59, 59, 59), 16));
     }

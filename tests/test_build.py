@@ -67,9 +67,22 @@ class BuildChecks(unittest.TestCase):
         self.assertNotIn('Controls_AppsRow_2', built['LQ3/E1;'].read_text())
         theme = built['Landroid/support/v4/media/session/b;'].read_text()
         row = theme.split('const-string v4, "Theme Mode_Screensaver"', 1)[1]
-        row = row.split('invoke-static/range {v15 .. v27}, LA3/a;->A', 1)[0]
-        self.assertIn('MenuBackgroundAction;-><init>', row)
-        self.assertIn('const-string v15, "Menu backgrounds"', row)
+        row = row.split('SavedSetupsRow;->draw', 1)[0]
+        self.assertIn('SavedSetupsRow;->draw', theme)
+        setup_rows = built['Lcom/jeremykenedy/firetv/ui/SavedSetupsRow;'].read_text()
+        self.assertIn('MenuBackgroundAction;-><init>', setup_rows)
+        self.assertIn('SavedSetupsAction;-><init>', setup_rows)
+        self.assertIn('"Backgrounds and overlays"', setup_rows)
+        self.assertIn('"Saved setups"', setup_rows)
+        self.assertIn('"Theme Mode_SavedSetups"', setup_rows)
+        self.assertIn('"Theme Mode_Screensaver"', setup_rows)
+        self.assertIn('move-object/from16 v8, p3', setup_rows)
+        self.assertIn('move-object v6, p1', setup_rows)
+        manifest = ET.parse(decoded / 'AndroidManifest.xml').getroot()
+        android = '{http://schemas.android.com/apk/res/android}'
+        saved_activity = next(a for a in manifest.find('application').findall('activity')
+                              if a.get(android + 'name') == 'com.jeremykenedy.firetv.ui.SavedSetupsActivity')
+        self.assertEqual(saved_activity.get(android + 'exported'), 'false')
         for callback in ('v21', 'v22', 'v23'):
             self.assertIn('check-cast ' + callback + ', Ln4/a;', row)
 
@@ -119,8 +132,38 @@ class BuildChecks(unittest.TestCase):
             self.assertNotIn('const/4 v6, 0x0', row)
             self.assertNotIn('const/4 v4, 0x0', row, 'The focus requester is required too.')
         launcher = built['LQ3/M7;'].read_text()
-        setup_call = 'invoke-static {v13, v10, v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw'
+        setup_call = 'invoke-static {v13, v10, v6, v12}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw'
         self.assertIn(setup_call, launcher)
+        self.assertIn('move-object/from16 v12, p50', launcher)
+        self.assertIn('"Cards_Sources"', built['LQ3/b5;'].read_text(),
+                      'Entering Cards should focus the first control, not skip the new rows.')
+        self.assertIn('move-object/from16 v5, p3', setup,
+                      'Channel Cards must keep the original manager callback.')
+        for label in ('Channel Cards', 'Card timers', 'Cards_Channels', 'Cards_Timers'):
+            self.assertIn(label, setup)
+        old_row = launcher.split('const-string v0, "Appearance_ChannelManager"', 1)[1]
+        old_row = old_row.split('const-string v0, "Appearance_Icons"', 1)[0]
+        self.assertNotIn('LA3/a;->A(', old_row, 'Only the Cards entry should render.')
+        self.assertNotIn('"Channel Manager"', launcher)
+        self.assertIn('"Channel Cards"', launcher)
+        self.assertNotIn('Appearance_ChannelManager', built['LQ3/A3;'].read_text())
+        self.assertNotIn('Appearance_ChannelManager', built['LQ3/A4;'].read_text())
+        self.assertIn('CardTimersActivity', (decoded / 'AndroidManifest.xml').read_text())
+        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
+        dispatch = main.split('.method public final dispatchKeyEvent(', 1)[1].split('.end method', 1)[0]
+        modal = dispatch.index('LQ3/T3;->K0:LN/g0;')
+        settings = dispatch.index('LQ3/T3;->m0:LN/g0;')
+        self.assertLess(modal, settings,
+                        'The manager must receive Back before the underlying settings handler.')
+        modal_handler = dispatch[modal:settings]
+        self.assertIn('if-ne v2, v1, :settings_key_consumed', modal_handler,
+                      'Consume key-down without dismissing so key-up cannot close settings too.')
+        self.assertIn('LQ3/S3;->a()Ljava/lang/Object;', modal_handler)
+        self.assertIn('goto :settings_key_consumed', modal_handler)
+        dismiss = built['LQ3/S3;'].read_text()
+        self.assertIn('ChannelCardsFocus;->restore()V', dismiss,
+                      'Save and Back share the existing dismiss callback and return focus.')
+        self.assertIn('ChannelCardsFocus;->remember(Le0/p;)V', setup)
         self.assertIn('move-object/from16 v73, p4', launcher,
                       'Manage cards must navigate left using the existing onDismiss callback.')
 

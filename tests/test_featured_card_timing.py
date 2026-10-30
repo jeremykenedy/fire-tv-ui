@@ -2,6 +2,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from timing_preferences import PREFERENCES
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -12,7 +13,7 @@ class FeaturedCardTimingChecks(unittest.TestCase):
             folder = Path(temp)
             stub = folder / 'android/content/SharedPreferences.java'
             stub.parent.mkdir(parents=True)
-            stub.write_text('package android.content; public class SharedPreferences { public int value=8; public int getInt(String key,int fallback){return value;} }')
+            stub.write_text(PREFERENCES)
             subprocess.run(['javac', '-d', temp, str(stub),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardTiming.java'),
                             str(ROOT / 'tests/FeaturedCardTimingTest.java')], check=True)

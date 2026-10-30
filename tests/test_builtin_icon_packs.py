@@ -83,6 +83,7 @@ public class PackValuesTest {
  }
 }''')
             subprocess.run(['javac', '-cp', str(android), '-d', folder, str(source),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/HolidayThemes.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/BuiltInIconPacks.java')], check=True)
             subprocess.run(['java', '-cp', folder + os.pathsep + str(android), 'PackValuesTest'], check=True)
 

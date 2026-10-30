@@ -1,0 +1,51 @@
+{
+  "apkSha256": "1df13d6b8f87a8a04ab42df04d38c456a8aa489053646502d70dcbde0907d4aa",
+  "version": "1.16.0",
+  "versionCode": 77,
+  "serial": "emulator-5582",
+  "sdk": 34,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "accountData": "None, disposable fresh AVD",
+  "capturedAfterVideoPatchAndFinalCatalog": true,
+  "screenshots": [
+    {
+      "name": "saved-setups-ui116-code77-api34.png",
+      "sha256": "dbe755b1610f8951f6d52c16b43c2fce8f803e954ae0506ff75d87cc996b34df"
+    },
+    {
+      "name": "cards-menu-ui116-code77-api34.png",
+      "sha256": "6b9ea32f17a823b6d94e11d3d2f546ad5c34214c1f1edc9e611e87e60802ad87"
+    },
+    {
+      "name": "card-timers-ui116-code77-api34.png",
+      "sha256": "75980069395956d6b99174f6cfb6a8ab7656eb0c8f8df6add2fa1975ccbd4922"
+    },
+    {
+      "name": "card-timer-options-ui116-code77-api34.png",
+      "sha256": "2c7841121081c7529340f605f318139edc12a973639335ed1cb5d8cff0b3290c"
+    },
+    {
+      "name": "backgrounds-overlays-ui116-code77-api34.png",
+      "sha256": "5001803719ee38207cd48dc986438e4083b266fc6abe375baa5135a8d71ee11f"
+    },
+    {
+      "name": "overlay-controls-ui116-code77-api34.png",
+      "sha256": "e2f6fd66d1d241386928a6e314f5e4d14f6f5c3b3426a5dc60f3cb22395850e7"
+    },
+    {
+      "name": "holiday-themes-ui116-code77-api34.png",
+      "sha256": "db0bcd81292ea0638954158e9ae57ecc82712b502e068b6190ba9fadfbd84506"
+    },
+    {
+      "name": "holiday-options-ui116-code77-api34.png",
+      "sha256": "882bea65836007b91d586a447b87cf28ff271c2dcdab8fd83dd420334fe3e938"
+    },
+    {
+      "name": "about-ui116-code77-api34.png",
+      "sha256": "c1b558938a617dcd10415bf8f9757e0a82a27fced6d35869e92e1198efbcaa4e"
+    }
+  ]
+}

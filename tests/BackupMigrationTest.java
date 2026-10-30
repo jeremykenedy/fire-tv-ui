@@ -116,6 +116,23 @@ public final class BackupMigrationTest {
             try { BackupStore.restore(context, true); throw new AssertionError("Invalid animation accepted"); }
             catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
         }
+        for (String key : new String[]{"menu_overlay", "menu_overlay_speed", "menu_overlay_intensity",
+                "menu_overlay_opacity", "menu_animation_frozen", "menu_overlay_frozen",
+                "menu_background_palette", "menu_overlay_palette"}) {
+            Object invalid = key.endsWith("palette") || key.equals("menu_overlay") ? "unknown" : 6;
+            Files.writeString(BackupStore.file(true).toPath(), new JSONObject().put(key, invalid).toString());
+            try { BackupStore.restore(context, true); throw new AssertionError("Invalid overlay accepted"); }
+            catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
+        }
+        JSONObject layers = new JSONObject().put("menu_animation", "aurora")
+                .put("menu_overlay", "hearts_floating").put("menu_overlay_speed", 25)
+                .put("menu_overlay_intensity", 75).put("menu_overlay_opacity", 50)
+                .put("menu_animation_frozen", false).put("menu_overlay_frozen", true)
+                .put("menu_background_palette", "").put("menu_overlay_palette", "valentine");
+        Files.writeString(BackupStore.file(true).toPath(), layers.toString());
+        BackupStore.restore(context, true); BackupStore.save(context);
+        JSONObject restoredLayers = new JSONObject(Files.readString(BackupStore.file(false).toPath()));
+        for (String key : layers.keySet()) check(layers.get(key).equals(restoredLayers.get(key)));
         JSONObject animation = new JSONObject().put("menu_animation", "aurora")
                 .put("menu_animation_speed", 25).put("menu_animation_intensity", 75)
                 .put("menu_animation_brightness", 50);
@@ -175,6 +192,31 @@ public final class BackupMigrationTest {
                         .put("theme", "must-not-be-committed").put(key, bad).toString());
                 try { BackupStore.restore(context, true); throw new AssertionError("Invalid layout/motion accepted"); }
                 catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
+            }
+        }
+        String feed = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        org.json.JSONArray customTimers = new org.json.JSONArray().put(feed + ":7");
+        Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore)
+                .put(FeaturedCardTiming.OVERRIDES, customTimers).toString());
+        BackupStore.restore(context, true);
+        BackupStore.save(context);
+        check(FeaturedCardTiming.seconds(context.prefs, feed) == 7);
+        check(new JSONObject(Files.readString(BackupStore.file(false).toPath()))
+                .getJSONArray(FeaturedCardTiming.OVERRIDES).getString(0).equals(feed + ":7"));
+        Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).toString());
+        BackupStore.restore(context, true);
+        for (Object bad : new Object[]{"wrong",
+                new org.json.JSONArray().put(feed + ":7").put(feed + ":8"),
+                new org.json.JSONArray().put(feed + ":7").put(feed + ":7"),
+                new org.json.JSONArray().put(feed + ":86401"),
+                new org.json.JSONArray().put(7), new org.json.JSONArray().put("bad:7")}) {
+            Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore)
+                    .put("theme", "should-not-commit").put(FeaturedCardTiming.OVERRIDES, bad).toString());
+            try {
+                BackupStore.restore(context, true);
+                throw new AssertionError("Invalid channel timer accepted");
+            } catch (org.json.JSONException expected) {
+                check(hiddenBefore.equals(context.prefs.values));
             }
         }
         System.out.println("Device-local backup migration checks passed.");
