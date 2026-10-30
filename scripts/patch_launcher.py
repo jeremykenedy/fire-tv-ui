@@ -611,6 +611,9 @@ def patch(decoded):
         '    const/16 v12, 0x41c\n\n'
         '    invoke-static/range {v0 .. v12}, LA3/a;->A')
     text = text[:poster_start] + poster_row + text[poster_end:]
+    cards_entry = class_paths['LQ3/b5;']
+    cards_entry.write_text(replace_once(cards_entry.read_text(),
+        '    const-string p1, "Cards_PosterMode"', '    const-string p1, "Cards_Sources"'))
     # Keep the existing manager callback, but place its only visible entry in Cards.
     channel_start = text.index('    const-string v0, "Appearance_ChannelManager"')
     channel_end = text.index('    const-string v0, "Appearance_Icons"', channel_start)

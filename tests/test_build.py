@@ -122,6 +122,8 @@ class BuildChecks(unittest.TestCase):
         setup_call = 'invoke-static {v13, v10, v6, v12}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw'
         self.assertIn(setup_call, launcher)
         self.assertIn('move-object/from16 v12, p50', launcher)
+        self.assertIn('"Cards_Sources"', built['LQ3/b5;'].read_text(),
+                      'Entering Cards should focus the first control, not skip the new rows.')
         self.assertIn('move-object/from16 v5, p3', setup,
                       'Channel Cards must keep the original manager callback.')
         for label in ('Channel Cards', 'Card timers', 'Cards_Channels', 'Cards_Timers'):
