@@ -136,6 +136,13 @@ class BuildChecks(unittest.TestCase):
         self.assertNotIn('Appearance_ChannelManager', built['LQ3/A3;'].read_text())
         self.assertNotIn('Appearance_ChannelManager', built['LQ3/A4;'].read_text())
         self.assertIn('CardTimersActivity', (decoded / 'AndroidManifest.xml').read_text())
+        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
+        dispatch = main.split('.method public final dispatchKeyEvent(', 1)[1].split('.end method', 1)[0]
+        modal = dispatch.index('LQ3/T3;->K0:LN/g0;')
+        settings = dispatch.index('LQ3/T3;->m0:LN/g0;')
+        self.assertLess(modal, settings,
+                        'The manager must receive Back before the underlying settings handler.')
+        self.assertIn('if-nez v2, :settings_key_done', dispatch[modal:settings])
         self.assertIn('move-object/from16 v73, p4', launcher,
                       'Manage cards must navigate left using the existing onDismiss callback.')
 
