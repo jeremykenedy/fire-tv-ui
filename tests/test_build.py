@@ -119,8 +119,21 @@ class BuildChecks(unittest.TestCase):
             self.assertNotIn('const/4 v6, 0x0', row)
             self.assertNotIn('const/4 v4, 0x0', row, 'The focus requester is required too.')
         launcher = built['LQ3/M7;'].read_text()
-        setup_call = 'invoke-static {v13, v10, v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw'
+        setup_call = 'invoke-static {v13, v10, v6, v12}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw'
         self.assertIn(setup_call, launcher)
+        self.assertIn('move-object/from16 v12, p50', launcher)
+        self.assertIn('move-object/from16 v5, p3', setup,
+                      'Channel Cards must keep the original manager callback.')
+        for label in ('Channel Cards', 'Card timers', 'Cards_Channels', 'Cards_Timers'):
+            self.assertIn(label, setup)
+        old_row = launcher.split('const-string v0, "Appearance_ChannelManager"', 1)[1]
+        old_row = old_row.split('const-string v0, "Appearance_Icons"', 1)[0]
+        self.assertNotIn('LA3/a;->A(', old_row, 'Only the Cards entry should render.')
+        self.assertNotIn('"Channel Manager"', launcher)
+        self.assertIn('"Channel Cards"', launcher)
+        self.assertNotIn('Appearance_ChannelManager', built['LQ3/A3;'].read_text())
+        self.assertNotIn('Appearance_ChannelManager', built['LQ3/A4;'].read_text())
+        self.assertIn('CardTimersActivity', (decoded / 'AndroidManifest.xml').read_text())
         self.assertIn('move-object/from16 v73, p4', launcher,
                       'Manage cards must navigate left using the existing onDismiss callback.')
 

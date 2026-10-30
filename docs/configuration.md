@@ -27,6 +27,10 @@ In **UI settings > Layout and focus**, Settings transitions offers Default, None
 
 Open **Theme and wallpaper > Icon pack** to select Clean line or Muted solid. Both use installed apps' recognizable original artwork: Clean line adds a thin frame, while Muted solid adds a subdued plate and lowers saturation. These built-in choices need no additional app or download. None (original artwork), Transparent and installed external packs remain available. Explicit custom artwork is preserved when switching packs. Focus fill and border controls remain independent.
 
+## Cards
+
+Open **UI settings > Cards**. **Channel Cards** manages channel visibility and individual items. **Card timers** sets the global title interval and optional individual channel timers, including Manual and custom whole seconds. Each channel can return to the global timer independently.
+
 ## Screensavers
 
 Use the dedicated Screensavers section. Configure and Preview belong to each installed saver and do not select it as active. Set active is a separate action; the active saver is labeled. Returning from a saver restores the list position and remote focus. The TV's selected screensaver, enabled state and configured delay remain authoritative. There is no second launcher mode or fixed 90-second option.

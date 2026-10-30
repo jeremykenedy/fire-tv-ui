@@ -602,13 +602,28 @@ def patch(decoded):
     poster_row = text[poster_start:poster_end]
     poster_row = replace_once(poster_row, '    const/4 v7, 0x0',
         '    new-instance v7, Lcom/jeremykenedy/firetv/ui/CardFocusAction;\n'
-        '    const-string v12, "Cards_Sources"\n'
+        '    const-string v12, "Cards_Timers"\n'
         '    invoke-direct {v7, v13, v12}, Lcom/jeremykenedy/firetv/ui/CardFocusAction;-><init>(Ljava/util/Map;Ljava/lang/String;)V')
     poster_row = replace_once(poster_row,
         '    invoke-static/range {v0 .. v12}, LA3/a;->A',
-        '    invoke-static {v13, v10, v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw(Ljava/util/Map;LN/p;Ln4/a;)V\n\n'
+        '    move-object/from16 v12, p50\n'
+        '    invoke-static {v13, v10, v6, v12}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw(Ljava/util/Map;LN/p;Ln4/a;Ln4/a;)V\n'
+        '    const/16 v12, 0x41c\n\n'
         '    invoke-static/range {v0 .. v12}, LA3/a;->A')
     text = text[:poster_start] + poster_row + text[poster_end:]
+    # Keep the existing manager callback, but place its only visible entry in Cards.
+    channel_start = text.index('    const-string v0, "Appearance_ChannelManager"')
+    channel_end = text.index('    const-string v0, "Appearance_Icons"', channel_start)
+    old_channel_row = text[channel_start:channel_end]
+    old_channel_row = replace_once(old_channel_row,
+        '    invoke-static/range {v0 .. v12}, LA3/a;->A(Ljava/lang/String;ZZZLe0/p;Ln4/a;Ln4/a;Ln4/a;Ln4/a;Ln4/c;LN/p;II)V', '')
+    text = text[:channel_start] + old_channel_row + text[channel_end:]
+    text = replace_once(text, '    const-string v6, "Channel Manager"', '    const-string v6, "Channel Cards"')
+    for class_name, target in [('LQ3/A3;', 'Appearance_Icons'), ('LQ3/A4;', 'Appearance_AppManager')]:
+        focus_path = class_paths[class_name]
+        focus_path.write_text(replace_once(focus_path.read_text(),
+            '    const-string v0, "Appearance_ChannelManager"',
+            '    const-string v0, "' + target + '"'))
     channel_signature = '.method public static final j(Ljava/util/List;Ljava/util/Map;Ln4/a;Ln4/c;Ln4/a;LN/p;I)V'
     channel_pattern = re.compile(r'^' + re.escape(channel_signature) + r'\n.*?^\.end method', re.M | re.S)
     channel_manager = channel_pattern.search(text).group(0)
@@ -670,6 +685,7 @@ def patch(decoded):
         r'The selected screensaver and enabled state are read back from the TV.\n\nLICENSES & CREDITS')
     help_text = help_text.replace('Select an installed screensaver to make it active,',
         'Each row includes a small sample preview. Select an installed screensaver to make it active,')
+    help_text = help_text.replace('App Manager & Channel Manager', 'Apps and Cards > Channel Cards')
     help_text = help_text.replace('Theme Mode & Wallpapers', 'Theme and wallpaper').replace('Appearance settings', 'UI settings')
     help_text = help_text.replace(r'\u2022 Apps per Row\n\u2022 Appearance', r'\u2022 UI settings (Layout and focus, apps, icons, widgets, cards, status bar and favorites)')
     text = text[:match.start(2)] + help_text + text[match.end(2):]
@@ -786,6 +802,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/MenuBackgroundLayer.smali', destination)
     shutil.copy(ROOT / 'app/smali/MenuBackgroundAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
+    shutil.copy(ROOT / 'app/smali/CardTimersAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelCardsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelManageRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelCardsKeyAction.smali', destination)
@@ -889,7 +906,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'PreviewCreditsActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'PlexHomeActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity', 'MenuBackgroundActivity', 'UiSettingsActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'PreviewCreditsActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'CardTimersActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'PlexHomeActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity', 'MenuBackgroundActivity', 'UiSettingsActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

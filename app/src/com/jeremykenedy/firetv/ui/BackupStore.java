@@ -176,7 +176,7 @@ public final class BackupStore {
                     || ((JSONArray) value).length() > CardOrderRules.LIMIT)) {
                 throw new JSONException("Invalid featured card order.");
             }
-            if ("hidden_featured_cards".equals(key) && !(value instanceof JSONArray)) {
+            if (("hidden_featured_cards".equals(key) || FeaturedCardTiming.OVERRIDES.equals(key)) && !(value instanceof JSONArray)) {
                 throw new JSONException("Wrong value type in setting: " + key);
             }
             if (FeaturedCardTiming.SETTING.equals(key)
@@ -259,6 +259,10 @@ public final class BackupStore {
                             && !CardOrderRules.valid(array.getString(i)))
                         throw new JSONException("Invalid featured card position.");
                     strings.add(array.getString(i));
+                }
+                if (FeaturedCardTiming.OVERRIDES.equals(key)
+                        && (strings.size() != array.length() || !FeaturedCardTiming.validOverrides(strings))) {
+                    throw new JSONException("Invalid channel card timers.");
                 }
                 editor.putStringSet(key, strings);
             } else {
