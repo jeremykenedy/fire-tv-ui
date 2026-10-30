@@ -39,6 +39,7 @@
     move-result-object v4
     :ready_1
     check-cast v4, Le0/p;
+    invoke-static {v4}, Lcom/jeremykenedy/firetv/ui/ChannelCardsFocus;->remember(Le0/p;)V
     move-object/from16 v5, p3
     new-instance v7, Lcom/jeremykenedy/firetv/ui/CardFocusAction;
     const-string v0, "Cards_Sources"

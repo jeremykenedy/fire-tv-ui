@@ -57,6 +57,13 @@ def patch(decoded):
     patch_icon_focus(class_paths)
     patch_builtin_icon_packs(class_paths)
     patch_launcher_grid(class_paths)
+    dismiss = class_paths['LQ3/S3;']
+    dismiss_text = dismiss.read_text()
+    dismiss_anchor = ('    sget-object v2, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;\n\n'
+        '    iget-object v1, v1, LQ3/T3;->K0:LN/g0;\n\n'
+        '    invoke-virtual {v1, v2}, LN/g0;->setValue(Ljava/lang/Object;)V')
+    dismiss.write_text(replace_once(dismiss_text, dismiss_anchor, dismiss_anchor +
+        '\n    invoke-static {}, Lcom/jeremykenedy/firetv/ui/ChannelCardsFocus;->restore()V'))
     main = class_paths["Lcom/overdevs/at4k/MainActivity;"]
     text = main.read_text()
     text = replace_once(text,
@@ -81,7 +88,16 @@ def patch(decoded):
         '    check-cast v2, Ljava/lang/Boolean;\n'
         '    invoke-virtual {v2}, Ljava/lang/Boolean;->booleanValue()Z\n'
         '    move-result v2\n'
-        '    if-nez v2, :settings_key_done\n'
+        '    if-eqz v2, :settings_modal_checked\n'
+        '    invoke-virtual {p1}, Landroid/view/KeyEvent;->getAction()I\n'
+        '    move-result v2\n'
+        '    const/4 v1, 0x1\n'
+        '    if-ne v2, v1, :settings_key_consumed\n'
+        '    new-instance v2, LQ3/S3;\n'
+        '    const/4 v1, 0x7\n'
+        '    invoke-direct {v2, v0, v1}, LQ3/S3;-><init>(LQ3/T3;I)V\n'
+        '    invoke-virtual {v2}, LQ3/S3;->a()Ljava/lang/Object;\n'
+        '    goto :settings_key_consumed\n'
         '    :settings_modal_checked\n'
         '    iget-object v2, v0, LQ3/T3;->m0:LN/g0;\n'
         '    invoke-virtual {v2}, LN/g0;->getValue()Ljava/lang/Object;\n'
@@ -823,6 +839,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/MenuBackgroundAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/FeaturedCardSetupRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardTimersAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/ChannelCardsFocus.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelCardsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelManageRow.smali', destination)
     shutil.copy(ROOT / 'app/smali/ChannelCardsKeyAction.smali', destination)

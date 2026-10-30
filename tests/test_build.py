@@ -142,7 +142,15 @@ class BuildChecks(unittest.TestCase):
         settings = dispatch.index('LQ3/T3;->m0:LN/g0;')
         self.assertLess(modal, settings,
                         'The manager must receive Back before the underlying settings handler.')
-        self.assertIn('if-nez v2, :settings_key_done', dispatch[modal:settings])
+        modal_handler = dispatch[modal:settings]
+        self.assertIn('if-ne v2, v1, :settings_key_consumed', modal_handler,
+                      'Consume key-down without dismissing so key-up cannot close settings too.')
+        self.assertIn('LQ3/S3;->a()Ljava/lang/Object;', modal_handler)
+        self.assertIn('goto :settings_key_consumed', modal_handler)
+        dismiss = built['LQ3/S3;'].read_text()
+        self.assertIn('ChannelCardsFocus;->restore()V', dismiss,
+                      'Save and Back share the existing dismiss callback and return focus.')
+        self.assertIn('ChannelCardsFocus;->remember(Le0/p;)V', setup)
         self.assertIn('move-object/from16 v73, p4', launcher,
                       'Manage cards must navigate left using the existing onDismiss callback.')
 
