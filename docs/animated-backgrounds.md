@@ -1,6 +1,6 @@
 # Menu backgrounds
 
-Open **Settings > Theme and wallpaper > Menu backgrounds**. Choose a moving or still style to see it in the preview and behind Home. The same background follows supported Fire TV UI menu panels, including this settings screen.
+Open **Settings > Theme and wallpaper > Backgrounds and overlays**. Choose a moving or still style to see it in the preview and behind Home. The same background follows supported Fire TV UI menu panels, including this settings screen.
 
 | Style | Appearance |
 | --- | --- |

@@ -1,6 +1,6 @@
 # Backgrounds and overlays
 
-Open **Theme and wallpaper > Menu backgrounds**. The page separates the full background from a transparent overlay. Setting the background to **Off: use my wallpaper** preserves the launcher wallpaper. The overlay is drawn above that wallpaper and below Home's cards and controls. Removing an overlay does not change the wallpaper.
+Open **Theme and wallpaper > Backgrounds and overlays**. The page separates the full background from a transparent overlay. Setting the background to **Off: use my wallpaper** preserves the launcher wallpaper. The overlay is drawn above that wallpaper and below Home's cards and controls. Removing an overlay does not change the wallpaper.
 
 Each layer has its own choice of effect, still or animated mode, speed, density and colors. The full background has a brightness control; the transparent overlay has opacity. Still mode keeps a fixed composition without a frame callback. Paused, hidden and detached layers stop their animation clock and resume without jumping forward.
 

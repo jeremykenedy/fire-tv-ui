@@ -4,7 +4,7 @@
 | --- | --- |
 | Screensavers | Configure or preview any installed saver, choose the active saver, and manage timers and installations. |
 | UI settings | Configure layout and focus, widgets, status bar, favorites and cards. |
-| Theme and wallpaper | Choose wallpapers, gradients, icon packs, text contrast and animated backgrounds. |
+| Theme and wallpaper | Choose wallpapers, backgrounds, transparent overlays, holiday palettes and icon packs, or save and restore a named UI setup. |
 | Remote controls | Configure remote actions and accessibility. |
 | Updates | Check installed apps, compare versions, install verified updates and recover missing shared icons. |
 | Advanced | Open diagnostics, updates and preview media credits. |
@@ -30,6 +30,12 @@ Open **Theme and wallpaper > Icon pack** to select Clean line or Muted solid. Bo
 ## Cards
 
 Open **UI settings > Cards**. **Channel Cards** manages channel visibility and individual items. **Card timers** sets the global title interval and optional individual channel timers, including Manual and custom whole seconds. Each channel can return to the global timer independently.
+
+## Backgrounds and saved setups
+
+Open **Theme and wallpaper > Backgrounds and overlays** to select a full background, a transparent overlay, or a holiday palette. Each layer has its own motion and intensity controls; still and off modes are available. See [backgrounds and overlays](backgrounds-and-overlays.md).
+
+Open **Theme and wallpaper > Saved setups** to save the current presentation and layout under a name, then switch between saved setups. Applying a setup can keep the current icons. TV power controls and account connections remain unchanged. See [saved setups](saved-setups.md) for included settings and local storage limits.
 
 ## Screensavers
 
