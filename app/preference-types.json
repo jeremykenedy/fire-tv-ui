@@ -94,5 +94,7 @@
   "menu_overlay_speed": "Int",
   "menu_overlay_intensity": "Int",
   "menu_overlay_opacity": "Int",
-  "menu_overlay_palette": "String"
+  "menu_overlay_palette": "String",
+  "input_names": "String",
+  "factory_icon_packages": "StringSet"
 }

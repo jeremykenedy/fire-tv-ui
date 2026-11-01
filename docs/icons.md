@@ -1,6 +1,6 @@
 # HD app and input icons
 
-The `icons/` folder contains 32 PNG images at 1920x1080. Logos are centered, keep their proportions, and have no additional text captions. Dark backgrounds keep the artwork legible inside wide launcher tiles.
+The `icons/` folder contains 48 PNG images at 1920x1080. Logos are centered, keep their proportions, and have no additional text captions. Dark backgrounds keep the artwork legible inside wide launcher tiles.
 
 ## Install on the TV
 
@@ -24,17 +24,25 @@ Each release also includes `fire-tv-ui-icons-VERSION.zip`. Extract its `Icons` d
 
 In Fire TV UI, long press the app or input tile you want to change. Choose **Change Icon**, then choose the logo in **Select Image**. The selected image belongs to that tile; replacing the source file does not replace an image the launcher has already copied. Select the updated image again to update an existing tile.
 
+Long press a tile and choose **Use factory icon** to remove its custom image and show its original artwork. This affects only that tile, even when an icon pack is enabled. **Use theme icon** removes the individual override and follows the selected icon pack again. **Change Icon** still lets you choose another image. The image picker also offers **Use factory icon**.
+
 In LTvLauncher, long press an app, choose **Set Custom Banner**, and select the image through its gallery picker. The same shared images are available to both apps. LTvLauncher's built-in input panel does not offer the same custom-image control as its app banners.
+
+## Rename an input
+
+Long press an HDMI or other TV input tile and choose **Rename input**. Enter a name such as Sony Receiver or Game Console and choose **Save**. Choose **Use factory name** in the same menu to restore its original label.
+
+Names change only in Fire TV UI. The input connection, icon, position and visibility stay attached to the original input. Name and icon resets are separate. Custom input names and factory icon choices are included in portable backups and saved setups; applying a saved setup without icons preserves the current icon choices.
 
 ## Optional built-in styles
 
-Theme and wallpaper > Icon pack also offers Clean line and Muted solid. These use installed app artwork with an optional frame or subdued plate, independent of the 32 downloadable input images. None (original artwork) and external packs remain available, and existing custom artwork stays selected. See [configuration](configuration.md#icon-styles).
+Theme and wallpaper > Icon pack also offers Clean line and Muted solid. These use installed app artwork with an optional frame or subdued plate, independent of the 48 downloadable input images. None (original artwork) and external packs remain available, and existing custom artwork stays selected. See [configuration](configuration.md#icon-styles).
 
 ## On-TV pickers
 
 <table>
   <tr>
-    <td><img src="../art/screenshots/icon-picker-tv-1920.png" alt="Fire TV UI image picker displaying the installed icon pack"><br>Fire TV UI</td>
+    <td><img src="../art/screenshots/audio-brand-picker-ui117-code78-api34.png" alt="Fire TV UI 1.17 image picker displaying audio brand icons"><br>Fire TV UI 1.17</td>
     <td><img src="../art/screenshots/input-icon-tv-1920.png" alt="Centered Xbox One and Wii U logos on HDMI tiles"><br>Input tiles</td>
     <td><img src="../art/screenshots/ltv-icon-picker-tv-1920.png" alt="LTvLauncher custom-banner picker displaying the same shared images"><br>LTvLauncher picker</td>
   </tr>
@@ -51,12 +59,13 @@ Theme and wallpaper > Icon pack also offers Clean line and Muted solid. These us
 | Media | DVD, VCR, Blu-ray, LaserDisc, Stereo Receiver |
 | VR | Meta VR, Meta Quest |
 | Computers | MacBook, Laptop, PC |
+| Audio brands | Sony, Kenwood, Insignia, Denon, Yamaha, Onkyo, Pioneer, Marantz, Bose, JBL, Sonos, Samsung, LG, Vizio, Harman Kardon, Klipsch |
 
 ## Sources and regeneration
 
 [The catalog](../icons/catalog.json) records each source URL and source SHA-256. [The notice](../icons/NOTICE.txt) credits logo sources and their owners. Product names and logos belong to their respective owners.
 
-`source_sha256` identifies the exact bundled SVG bytes at `source`: the retained upstream file when `source_url` is present, or the original locally authored vector otherwise. Keep those source files unchanged. Rendering adjustments belong in the renderer, and the generated PNGs have separate hashes in the bundled icon manifest.
+`source_sha256` identifies the exact bundled SVG bytes at `source`: the retained upstream file when `source_url` is present, or the original locally authored vector otherwise. Vizio retains the unmodified inline SVG from its official navigation; its catalog entry identifies this extraction. Keep those source files unchanged. Rendering adjustments belong in the renderer, and the generated PNGs have separate hashes in the bundled icon manifest.
 
 To render the bundled vector sources again, install Pillow and librsvg's `rsvg-convert`, then run:
 

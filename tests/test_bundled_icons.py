@@ -17,6 +17,23 @@ class BundledIconChecks(unittest.TestCase):
                 source = (ROOT / entry['source']).read_bytes()
                 self.assertEqual(hashlib.sha256(source).hexdigest(), entry['source_sha256'])
 
+    def test_audio_brands_have_distinct_bundled_artwork(self):
+        catalog = json.loads((ROOT / 'icons/catalog.json').read_text())
+        by_id = {entry['id']: entry for entry in catalog}
+        brands = {'sony', 'kenwood', 'insignia', 'denon', 'yamaha', 'onkyo',
+                  'pioneer', 'marantz', 'bose', 'jbl', 'sonos', 'samsung',
+                  'lg', 'vizio', 'harman-kardon', 'klipsch'}
+        self.assertTrue(brands.issubset(by_id))
+        hashes = set()
+        for brand in brands:
+            entry = by_id[brand]
+            image = (ROOT / 'icons' / entry['file']).read_bytes()
+            self.assertEqual(image[:8], b'\x89PNG\r\n\x1a\n')
+            self.assertEqual(int.from_bytes(image[16:20], 'big'), 1920)
+            self.assertEqual(int.from_bytes(image[20:24], 'big'), 1080)
+            hashes.add(hashlib.sha256(image).hexdigest())
+        self.assertEqual(len(hashes), len(brands))
+
     def test_filesystem_preserves_custom_and_racing_files_and_retries_indexing(self):
         with tempfile.TemporaryDirectory() as temp:
             subprocess.run(['javac', '-d', temp,
@@ -24,7 +41,7 @@ class BundledIconChecks(unittest.TestCase):
                             str(ROOT / 'tests/IconFilesTest.java')], check=True)
             subprocess.run(['java', '-cp', temp, 'com.jeremykenedy.firetv.ui.IconFilesTest', temp], check=True)
 
-    def test_signed_payload_contains_the_same_32_canonical_source_images(self):
+    def test_signed_payload_contains_the_complete_canonical_icon_catalog(self):
         config = json.loads((ROOT / 'build.json').read_text())
         apk = ROOT / 'dist' / ('fire-tv-ui-' + config['version'] + '.apk')
         if not apk.exists():
@@ -33,10 +50,11 @@ class BundledIconChecks(unittest.TestCase):
             self.skipTest('Build the native APK first.')
         with ZipFile(apk) as archive:
             manifest = json.loads(archive.read('assets/input-icons/manifest.json'))
-            self.assertEqual(len(manifest), 32)
-            self.assertEqual(len({row['file'] for row in manifest}), 32)
+            catalog = json.loads((ROOT / 'icons/catalog.json').read_text())
+            self.assertEqual(len(manifest), len(catalog))
+            self.assertEqual(len({row['file'] for row in manifest}), len(catalog))
             self.assertEqual({row['file'] for row in manifest},
-                             {row['file'] for row in json.loads((ROOT / 'icons/catalog.json').read_text())})
+                             {row['file'] for row in catalog})
             for row in manifest:
                 data = archive.read('assets/input-icons/' + row['file'])
                 self.assertEqual(data, (ROOT / 'icons' / row['file']).read_bytes())

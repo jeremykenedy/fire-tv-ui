@@ -46,9 +46,9 @@ Install the signed APK from [published releases](https://github.com/jeremykenedy
 Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
 
 ```bash
-shasum -a 256 -c fire-tv-ui-1.16.0.apk.sha256
+shasum -a 256 -c fire-tv-ui-1.17.0.apk.sha256
 adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.16.0.apk
+python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.17.0.apk
 ```
 
 The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
@@ -89,7 +89,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 
 ## Input icons
 
-The [32 HD icons](docs/icons.md) cover consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The repository installer copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
+The [48 HD icons](docs/icons.md) cover audio brands, consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The repository installer copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
 
 The APK also recovers missing shared icons when storage access is available. Open **Settings > Updates** for access status and retry; existing custom files are preserved. The release icon ZIP and repository installer remain available; see the [icon guide](docs/icons.md).
 
@@ -138,7 +138,7 @@ Device testing is described in [Verification](docs/verification.md).
 - [Animated menu backgrounds](docs/animated-backgrounds.md)
 - [Backgrounds, overlays and holiday themes](docs/backgrounds-and-overlays.md)
 - [Saved UI setups](docs/saved-setups.md)
-- [Fire TV UI 1.16.0 release notes and upgrade guide](docs/releases/v1.16.0.md)
+- [Fire TV UI 1.17.0 release notes and upgrade guide](docs/releases/v1.17.0.md)
 - [Fire TV UI 1.13.0 release notes and upgrade guide](docs/releases/v1.13.0.md)
 - [Fire TV UI 1.11.1 release notes and upgrade guide](docs/releases/v1.11.1.md)
 - [Fire TV UI 1.11.0 release notes and upgrade guide](docs/releases/v1.11.0.md)
@@ -164,9 +164,9 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.16.0/code 77 on the Android TV API 34 emulator. Named setups preserve presentation and layout choices. The [full gallery](docs/screenshots.md) shows backgrounds, overlays, holiday options and the reorganized card controls, with older captures labeled by version.
+Fire TV UI 1.17.0/code 78 on Android TV API 34. Audio brand artwork and individual factory resets are available from each tile. The [full gallery](docs/screenshots.md) includes input naming and earlier features labeled by version.
 
-<p align="center"><img src="art/screenshots/saved-setups-ui116-code77-api34.png" alt="Fire TV UI 1.16 native named saved setups" width="900"></p>
+<p align="center"><img src="art/screenshots/audio-brand-picker-ui117-code78-api34.png" alt="Fire TV UI 1.17 native audio brand icon picker" width="900"></p>
 
 ## License
 

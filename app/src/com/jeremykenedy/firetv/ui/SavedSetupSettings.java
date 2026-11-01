@@ -24,7 +24,7 @@ final class SavedSetupSettings {
                 "icon_pack_package", "mode", "size", "status_bar_position", "status_bar_weather_loc",
                 "status_bar_weather_unit", "subreddit_wallpaper_name", "widgets_config",
                 "menu_animation", "menu_transition_style", "app_scroll_direction", "icon_focus_style",
-                "menu_background_palette", "menu_overlay", "menu_overlay_palette");
+                "menu_background_palette", "menu_overlay", "menu_overlay_palette", "input_names");
         add(result, "Boolean", "blur_favorites_background", "blur_on_scroll", "enable_widgets",
                 "featured_artwork_fit", "hide_favorites_background", "hide_status_bar_unless_focused",
                 "hide_watch_next", "hide_watch_next_titles", "icon_shadow", "keep_dock_bottom",
@@ -36,7 +36,7 @@ final class SavedSetupSettings {
                 "icon_focus_background", "icon_focus_border", "menu_overlay_speed",
                 "menu_overlay_intensity", "menu_overlay_opacity");
         add(result, "StringSet", "featured_card_order", "featured_feed_order", "hidden_featured_cards",
-                "featured_feed_rotation_seconds");
+                "featured_feed_rotation_seconds", "factory_icon_packages");
         return result;
     }
 
@@ -110,6 +110,7 @@ final class SavedSetupSettings {
             if (!FeaturedCardTiming.validOverrides((Set<?>) value)) throw invalid();
         }
         if ("app_visibility".equals(key)) new JSONObject((String) value);
+        if ("input_names".equals(key)) InputNameValues.parse((String) value);
         return value;
     }
 
@@ -118,6 +119,7 @@ final class SavedSetupSettings {
         for (String key : current.keySet()) if (isColor(key) && !result.containsKey(key)) result.put(key, null);
         if (!icons) {
             result.remove("icon_pack_package");
+            result.remove("factory_icon_packages");
             if (result.containsKey("app_visibility")) {
                 Object saved = result.get("app_visibility");
                 Object present = current.get("app_visibility");

@@ -320,5 +320,166 @@
     "source_url": null,
     "file": "pc.png",
     "source_sha256": "1b9e2de1e7a80039e792499f7615b717d6e358f6d2af0e322a11ad587a9d9b5f"
+  },
+  {
+    "id": "sony",
+    "name": "Sony",
+    "brand": "Sony",
+    "accent": "#6b82a7",
+    "source": "icons/sources/sony.svg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg",
+    "source_sha256": "f6191bc69f8df259c86a13dc9582ba9ed2e0101d4452ba3f1d33ec8e907ddda0",
+    "file": "sony.png"
+  },
+  {
+    "id": "kenwood",
+    "name": "Kenwood",
+    "brand": "Kenwood",
+    "accent": "#c3414f",
+    "source": "icons/sources/kenwood.svg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/0/07/Kenwood_Logo.svg",
+    "source_sha256": "31374ee5683d5e1c2b0163645330c988bcc706ec5e9e31cc2ffe32d53e5ffbc2",
+    "file": "kenwood.png"
+  },
+  {
+    "id": "insignia",
+    "name": "Insignia",
+    "brand": "Insignia",
+    "accent": "#5484af",
+    "source": "icons/sources/insignia.svg",
+    "source_url": "https://iconape.com/wp-content/files/ar/350641/svg/350641.svg",
+    "source_sha256": "b642b644584858a5254d759ee5d58ca1adb8998473ed3e687feb00903e4d6c21",
+    "file": "insignia.png"
+  },
+  {
+    "id": "denon",
+    "name": "Denon",
+    "brand": "Denon",
+    "accent": "#ae704a",
+    "source": "icons/sources/denon.svg",
+    "source_url": "https://www.denon.com/on/demandware.static/Sites-denon_us-Site/-/default/dw05076c1b/images/logo.svg",
+    "source_sha256": "16af880fe3be9dae1604419a58e1263f5c276b35d3c806510924155e37f5adcb",
+    "file": "denon.png"
+  },
+  {
+    "id": "yamaha",
+    "name": "Yamaha",
+    "brand": "Yamaha",
+    "accent": "#9258bd",
+    "source": "icons/sources/yamaha.svg",
+    "source_url": "https://usa.yamaha.com/common/images/yamaha_purple.svg",
+    "source_sha256": "398a59f581ded8eadadafda6b9c382ad26a9bc16f50a7074f9817bb039c0eacd",
+    "file": "yamaha.png"
+  },
+  {
+    "id": "onkyo",
+    "name": "Onkyo",
+    "brand": "Onkyo",
+    "accent": "#446da7",
+    "source": "icons/sources/onkyo.svg",
+    "source_url": "https://onkyo.com/images/Logo%20-%20Onkyo%20Med%20Wht.svg",
+    "source_sha256": "f93b354a0cf7b9d13ecb3fc6ed5a7f9aa46fc079d10ce8f30f3bafd2ffbacdf8",
+    "file": "onkyo.png"
+  },
+  {
+    "id": "pioneer",
+    "name": "Pioneer",
+    "brand": "Pioneer",
+    "accent": "#ba3d4d",
+    "source": "icons/sources/pioneer.svg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Pioneer_logo.svg",
+    "source_sha256": "68c9dad63540d8d6165c132f57a4a8167ed01f02d604da4bb1d95951b3e2b5a6",
+    "file": "pioneer.png"
+  },
+  {
+    "id": "marantz",
+    "name": "Marantz",
+    "brand": "Marantz",
+    "accent": "#a48a53",
+    "source": "icons/sources/marantz.svg",
+    "source_url": "https://www.marantz.com/on/demandware.static/Sites-marantz_us-Site/-/default/dw42a9e490/images/logo.svg",
+    "source_sha256": "2ef3a4e3d5f7ed7db9c2681c7800f446a469ff835a5cdb740bb82e081b0f7c14",
+    "file": "marantz.png"
+  },
+  {
+    "id": "bose",
+    "name": "Bose",
+    "brand": "Bose",
+    "accent": "#738799",
+    "source": "icons/sources/bose.svg",
+    "source_url": "https://www.bose.com/on/demandware.static/Sites-Bose_US-Site/-/default/dw6b1f14d5/images/logo.svg",
+    "source_sha256": "4ca6f6f90b17df3258b9afe99d7081df3660f132945c1d20471dad894269cf8d",
+    "file": "bose.png"
+  },
+  {
+    "id": "jbl",
+    "name": "JBL",
+    "brand": "JBL",
+    "accent": "#c75b35",
+    "source": "icons/sources/jbl.svg",
+    "source_url": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/jbl.svg",
+    "source_sha256": "d2921f06af09593f48fdd6e2bb82dcf1e2445e9d6beddf07812ea45c847238ef",
+    "file": "jbl.png"
+  },
+  {
+    "id": "sonos",
+    "name": "Sonos",
+    "brand": "Sonos",
+    "accent": "#738b89",
+    "source": "icons/sources/sonos.svg",
+    "source_url": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/sonos.svg",
+    "source_sha256": "fa5d24d5d38fbe891fee746e53e9d8c239947be07cee7ec8549bf589bc6fc486",
+    "file": "sonos.png"
+  },
+  {
+    "id": "samsung",
+    "name": "Samsung",
+    "brand": "Samsung",
+    "accent": "#4775c4",
+    "source": "icons/sources/samsung.svg",
+    "source_url": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/samsung.svg",
+    "source_sha256": "4a241ca8ebab6e71883b172acb9fb454efa69f308e4f2c31ec80668aeb6627d9",
+    "file": "samsung.png"
+  },
+  {
+    "id": "lg",
+    "name": "LG",
+    "brand": "LG",
+    "accent": "#b54365",
+    "source": "icons/sources/lg.svg",
+    "source_url": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/lg.svg",
+    "source_sha256": "bde201887c0e190b0b1bbc15c71a0996ed818050d8db5764adb310f0a4043020",
+    "file": "lg.png"
+  },
+  {
+    "id": "vizio",
+    "name": "Vizio",
+    "brand": "Vizio",
+    "accent": "#bc743d",
+    "source": "icons/sources/vizio.svg",
+    "source_url": "https://www.vizio.com/",
+    "source_sha256": "d238bde55b35f9fb28228d8ce795ab7bc4be3107af3e2d5189b6a5cbc6467949",
+    "file": "vizio.png",
+    "source_note": "Unmodified inline SVG from the official site navigation logo."
+  },
+  {
+    "id": "harman-kardon",
+    "name": "Harman Kardon",
+    "brand": "Harman Kardon",
+    "accent": "#5c8cb2",
+    "source": "icons/sources/harman-kardon.svg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/40/Harman_Kardon_logo.svg",
+    "source_sha256": "a59d7186155cd35ea7e75e87352f6ba0ee64789ebcbd4738203f229b8e85518d",
+    "file": "harman-kardon.png"
+  },
+  {
+    "id": "klipsch",
+    "name": "Klipsch",
+    "brand": "Klipsch",
+    "accent": "#98754b",
+    "source": "icons/sources/klipsch.svg",
+    "source_url": "https://klipsch.imgix.net/general/brand-logos/Klipsch_script_logo_black2.svg",
+    "source_sha256": "6fa4b8cceced1367748072026e493b90fef4effd78b16fcd7c819e524cc973c4",
+    "file": "klipsch.png"
   }
 ]

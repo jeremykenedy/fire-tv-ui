@@ -1,5 +1,11 @@
 # Verification
 
+## Fire TV UI 1.17.0, version code 78
+
+The signed candidate passed 77 host tests, with six opt-in native tests skipped. Focused checks cover input-name validation and isolation, unchanged input identity, individual factory/theme artwork, saved setup retention and portable backups.
+
+Android TV API 34 native checks selected audio brand artwork, restored a tile's original artwork while a global icon pack remained active, returned the tile to that pack, and inspected the full-width logo picker. Physical Fire TV checks are in progress for input renaming and factory-name restoration. These results do not establish physical remote Home routing or Alexa equipment control.
+
 ## Fire TV UI 1.16.0, version code 77
 
 The combined implementation passed signed Android builds and 73 host tests, with six opt-in native skips. Separate device runs covered the skipped workflows described below; this does not mean every optional native test was run.

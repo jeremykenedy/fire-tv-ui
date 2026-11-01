@@ -13,6 +13,7 @@ from icon_focus_patch import patch_icon_focus
 from icon_pack_patch import patch_builtin_icon_packs
 from launcher_grid_patch import patch_launcher_grid
 from menu_motion_patch import patch_menu_motion
+from tile_appearance_patch import patch_tile_appearance
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / "build.json").read_text())
@@ -57,6 +58,7 @@ def patch(decoded):
     patch_icon_focus(class_paths)
     patch_builtin_icon_packs(class_paths)
     patch_launcher_grid(class_paths)
+    patch_tile_appearance(class_paths)
     dismiss = class_paths['LQ3/S3;']
     dismiss_text = dismiss.read_text()
     dismiss_anchor = ('    sget-object v2, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;\n\n'
@@ -204,8 +206,8 @@ def patch(decoded):
     artwork = class_paths["LQ3/A7;"]
     text = artwork.read_text()
     text = replace_once(text,
-        '    :goto_6\n    const-string v0, "_"',
-        '    :goto_6\n'
+        '    move-result-object v13\n    const-string v0, "_"',
+        '    move-result-object v13\n'
         '    invoke-static {v4, v11, v7}, Lcom/jeremykenedy/firetv/ui/NativeTileArtwork;->uri(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;\n'
         '    move-result-object v7\n\n'
         '    const-string v0, "_"')

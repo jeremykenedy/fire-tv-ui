@@ -1,4 +1,4 @@
-Console, media, and computer tile artwork
+Console, media, computer, and audio brand tile artwork
 
 Original logos and trademarks belong to their respective brand owners. These
 images identify the devices and formats; they do not imply endorsement.
@@ -17,3 +17,16 @@ SHA-256 values are recorded in catalog.json.
 
 The VCR, stereo receiver, MacBook, laptop, and PC pictograms and the shared tile
 layout are original project artwork covered by the repository's MIT license.
+
+Denon, Yamaha, Onkyo, Marantz, Bose, and Klipsch vectors are from their official
+websites. Vizio is the unmodified inline vector from its official website.
+Sony, Kenwood, Pioneer, and Harman Kardon vectors are from Wikimedia Commons.
+Insignia is from Iconape. JBL, Sonos, Samsung, and LG vectors are from the
+Simple Icons project (CC0), pinned to revision:
+90646e4bf7f3b89df6c37e65baf3e7bc759a517c
+https://github.com/simple-icons/simple-icons
+
+Exact source URLs and SHA-256 values for every audio brand are in catalog.json.
+The shared renderer applies a monochrome treatment without changing source files.
+Third-party brand marks remain the property of their respective owners; the
+project's MIT license applies to the tile layout, not to those trademarks.
