@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.preview">
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <queries><intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent></queries>
+    <application android:label="Fire TV UI Source Preview" android:theme="@style/AppTheme" android:icon="@drawable/icon" android:banner="@drawable/banner" android:allowBackup="false" android:supportsRtl="true">
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.MainActivity" android:exported="true" android:launchMode="singleTop">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent-filter>
+        </activity>
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.SettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.HelpActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.focus.FocusSettingsActivity" android:exported="false" />
+    </application>
+</manifest>
