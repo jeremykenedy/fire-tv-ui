@@ -62,7 +62,7 @@ def main():
             '--ks-key-alias', 'preview', '--v4-signing-enabled', 'false', '--out', output, unsigned)
         run(tools / 'apksigner', 'verify', output)
     run(tools / 'zipalign', '-c', '-P', '16', '4', output)
-    inputs = sorted((ROOT / 'src').rglob('*.java')) + sorted((ROOT / 'res').rglob('*.xml'))
+    inputs = sorted((ROOT / 'src').rglob('*.java')) + sorted(p for p in (ROOT / 'res').rglob('*') if p.is_file())
     inputs += [ROOT / 'AndroidManifest.xml', Path(__file__).resolve()]
     manifest = {'applicationId': 'com.jeremykenedy.firetv.ui.preview',
                 'version': '0.1.0-preview', 'productionReplacement': False,

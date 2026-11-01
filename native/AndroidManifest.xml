@@ -9,5 +9,8 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.SettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.HelpActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.focus.FocusSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.icons.IconPickerActivity" android:exported="false" />
     </application>
 </manifest>

@@ -1,157 +1,193 @@
 package com.jeremykenedy.firetv.ui.nativeapp;
 
 import android.app.Activity;
-import android.content.ComponentName;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ResolveInfo;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppInventory;
+import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
+import com.jeremykenedy.firetv.ui.nativeapp.icons.IconPickerActivity;
+import com.jeremykenedy.firetv.ui.nativeapp.icons.IconSelectionStore;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.ClockWidgetView;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 /** Independent review shell. It neither selects Home nor imports production settings. */
 public final class MainActivity extends Activity {
-    private final List<FocusTileView> tiles = new ArrayList<>();
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
+    private final List<FocusTileView> tiles = new ArrayList<>();
+    private LinearLayout appArea;
+    private Button settings;
+    private LinearLayout homeSlots;
+    private List<AppInventory.App> apps = new ArrayList<>();
+    private String focusedApp;
+    private int generation;
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if (saved != null) focusedApp = saved.getString("focused_app");
         LinearLayout body = Pages.page(this);
         body.addView(Pages.text(this, "Fire TV UI", 30));
-        body.addView(Pages.text(this, "Source preview · Apps and focus controls", 16));
+        body.addView(Pages.text(this, "Internal source preview", 16));
         LinearLayout actions = new LinearLayout(this);
-        Button appearance = Pages.button(this, "Settings", new View.OnClickListener() {
-            @Override public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
-            }
+        settings = Pages.button(this, "Settings", new View.OnClickListener() {
+            @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, SettingsActivity.class)); }
         });
-        actions.addView(appearance);
-        actions.addView(Pages.button(this, "Help", new View.OnClickListener() {
-            @Override public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, HelpActivity.class));
-            }
-        }));
-        body.addView(actions);
-        ScrollView scroll = new ScrollView(this);
-        scroll.setClipChildren(false);
-        scroll.setClipToPadding(false);
-        GridLayout grid = new GridLayout(this);
-        grid.setColumnCount(5);
-        grid.setClipChildren(false);
-        grid.setClipToPadding(false);
-        grid.setPadding(Pages.dp(this, 12), Pages.dp(this, 12), Pages.dp(this, 12), Pages.dp(this, 12));
-        scroll.addView(grid);
-        body.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
-        grid.addView(Pages.text(this, "Loading apps…", 18));
-        loadApps(grid);
-        appearance.requestFocus();
+        settings.setId(0x1001);
+        actions.addView(settings);
+        Button help = Pages.button(this, "Help", new View.OnClickListener() {
+            @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, HelpActivity.class)); }
+        });
+        help.setId(0x1002); actions.addView(help); body.addView(actions);
+        homeSlots = new LinearLayout(this); body.addView(homeSlots);
+        appArea = new LinearLayout(this); appArea.setOrientation(LinearLayout.VERTICAL);
+        body.addView(appArea, new LinearLayout.LayoutParams(-1, 0, 1));
+        appArea.addView(Pages.text(this, "Loading apps…", 18));
+        settings.requestFocus();
     }
 
-    private void loadApps(final GridLayout grid) {
-        final PackageManager packages = getApplicationContext().getPackageManager();
-        final String ownPackage = getPackageName();
+    private void loadApps() {
+        final int request = ++generation;
         loader.execute(new Runnable() {
             @Override public void run() {
-                final List<App> apps = new ArrayList<>();
                 try {
-                    Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER);
-                    for (ResolveInfo info : packages.queryIntentActivities(query, 0)) {
-                        if (Thread.currentThread().isInterrupted()) return;
-                        if (ownPackage.equals(info.activityInfo.packageName)) continue;
-                        try {
-                            apps.add(new App(info.loadLabel(packages).toString(), info.loadIcon(packages),
-                                    new ComponentName(info.activityInfo.packageName, info.activityInfo.name)));
-                        } catch (RuntimeException removed) {
-                            // An app may disappear while its metadata is being loaded.
-                        }
+                    final List<AppInventory.App> loaded = AppInventory.load(getApplicationContext());
+                    final Map<String, Drawable> artwork = new HashMap<>();
+                    for (AppInventory.App app : loaded) {
+                        artwork.put(app.key(), IconSelectionStore.resolve(MainActivity.this, app.key(), app.artwork, null));
                     }
-                    Collections.sort(apps, new Comparator<App>() {
-                        @Override public int compare(App left, App right) {
-                            int label = left.label.compareToIgnoreCase(right.label);
-                            return label == 0 ? left.component.flattenToString()
-                                    .compareTo(right.component.flattenToString()) : label;
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            if (isDestroyed() || request != generation) return;
+                            apps = loaded;
+                            AppGridPreferences.save(MainActivity.this, AppGridPreferences.load(MainActivity.this).discover(AppInventory.keys(apps)));
+                            showApps(artwork);
                         }
                     });
                 } catch (RuntimeException unavailable) {
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
-                            if (isDestroyed()) return;
-                            grid.removeAllViews();
-                            grid.addView(Pages.text(MainActivity.this, "Installed apps could not be read.", 18));
+                            if (isDestroyed() || request != generation) return;
+                            appArea.removeAllViews();
+                            appArea.addView(Pages.text(MainActivity.this, "Installed apps could not be read. Reopen Home to try again.", 18));
                         }
                     });
-                    return;
                 }
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        if (!isDestroyed()) showApps(grid, apps);
-                    }
-                });
             }
         });
     }
 
-    private void showApps(GridLayout grid, List<App> apps) {
-        grid.removeAllViews();
-        int width = getResources().getDisplayMetrics().widthPixels;
-        int tileWidth = Math.max(Pages.dp(this, 80), (width - Pages.dp(this, 88)) / 5 - Pages.dp(this, 20));
-        for (App app : apps) {
-            FocusTileView tile = new FocusTileView(this);
-            tile.setTitle(app.label);
-            tile.setIcon(app.icon);
-            final ComponentName component = app.component;
-            tile.setTag(component.flattenToString());
+    private void showApps(Map<String, Drawable> artwork) {
+        View oldFocus = getCurrentFocus();
+        boolean restoreTile = oldFocus instanceof FocusTileView || focusedApp != null;
+        if (oldFocus instanceof FocusTileView) focusedApp = String.valueOf(oldFocus.getTag());
+        appArea.removeAllViews(); tiles.clear();
+        AppGridOptions options = AppGridPreferences.load(this);
+        GridLayout grid = new GridLayout(this);
+        grid.setClipChildren(false); grid.setClipToPadding(false);
+        int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 64);
+        int tileWidth = Math.max(Pages.dp(this, 48), width / options.columns);
+        int tileHeight = Math.max(Pages.dp(this, 96), Math.round(tileWidth * 9f / 16f) + Pages.dp(this, 46));
+        if (options.horizontal) {
+            int availableHeight = Math.max(tileHeight, appArea.getHeight());
+            int rows = options.rows == 0 ? Math.max(1, availableHeight / tileHeight) : options.rows;
+            grid.setOrientation(GridLayout.VERTICAL); grid.setRowCount(rows);
+            HorizontalScrollView scroll = new HorizontalScrollView(this);
+            scroll.setClipChildren(false); scroll.setClipToPadding(false);
+            scroll.addView(grid);
+            if (rows * tileHeight > availableHeight) {
+                ScrollView vertical = new ScrollView(this); vertical.addView(scroll); appArea.addView(vertical);
+            } else appArea.addView(scroll);
+        } else {
+            grid.setColumnCount(options.columns);
+            ScrollView scroll = new ScrollView(this); scroll.setClipChildren(false); scroll.setClipToPadding(false);
+            scroll.addView(grid); appArea.addView(scroll);
+        }
+        Map<String, AppInventory.App> byKey = new HashMap<>();
+        for (AppInventory.App app : apps) byKey.put(app.key(), app);
+        FocusTileView restore = null;
+        for (String key : options.visible(AppInventory.keys(apps))) {
+            final AppInventory.App app = byKey.get(key);
+            final FocusTileView tile = new FocusTileView(this);
+            tile.setTitle(app.label); tile.setIcon(artwork.get(key)); tile.setTag(key);
             tile.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
+                    focusedApp = app.key();
                     try {
                         startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
-                                .setComponent(component).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                                .setComponent(app.component).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                     } catch (RuntimeException unavailable) {
                         Toast.makeText(MainActivity.this, "This app is currently unavailable.", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
+            tile.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override public boolean onLongClick(View view) { focusedApp = app.key(); appActions(app); return true; }
+            });
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = tileWidth;
-            params.height = Pages.dp(this, 120);
-            int margin = Pages.dp(this, 10);
-            params.setMargins(margin, margin, margin, margin);
-            grid.addView(tile, params);
-            tiles.add(tile);
+            params.width = tileWidth; params.height = tileHeight;
+            grid.addView(tile, params); tiles.add(tile);
+            if (key.equals(focusedApp)) restore = tile;
         }
-        if (tiles.isEmpty()) grid.addView(Pages.text(this, "No TV apps are installed on this review device.", 18));
-    }
-
-    private static final class App {
-        final String label;
-        final Drawable icon;
-        final ComponentName component;
-        App(String label, Drawable icon, ComponentName component) {
-            this.label = label;
-            this.icon = icon;
-            this.component = component;
+        if (tiles.isEmpty()) grid.addView(Pages.text(this, "No visible apps. Show apps in Settings → Home layout → Apps grid.", 18));
+        if (restoreTile) {
+            if (restore != null) restore.requestFocus();
+            else if (!tiles.isEmpty()) { tiles.get(0).requestFocus(); focusedApp = String.valueOf(tiles.get(0).getTag()); }
+            else { settings.requestFocus(); focusedApp = null; }
         }
     }
 
-    @Override protected void onDestroy() {
-        loader.shutdownNow();
-        super.onDestroy();
+    private void appActions(final AppInventory.App app) {
+        final AppGridOptions options = AppGridPreferences.load(this);
+        AlertDialog actions = new AlertDialog.Builder(this).setTitle(app.label).setItems(new String[] {
+            "Change icon", options.favorites.contains(app.key()) ? "Remove favorite" : "Add favorite",
+            "Move earlier", "Move later", "Hide from Home"
+        }, new DialogInterface.OnClickListener() {
+            @Override public void onClick(DialogInterface dialog, int which) {
+                if (which == 0) { IconPickerActivity.open(MainActivity.this, app.key(), app.label); return; }
+                AppGridOptions current = AppGridPreferences.load(MainActivity.this);
+                if (which == 1) current = current.toggleFavorite(app.key());
+                else if (which == 4) current = current.toggleHidden(app.key());
+                else current = current.move(app.key(), which == 2 ? -1 : 1, AppInventory.keys(apps));
+                AppGridPreferences.save(MainActivity.this, current); loadApps();
+            }
+        }).setNegativeButton("Cancel", null).show();
+        actions.getListView().requestFocus();
+        actions.getListView().setSelection(0);
     }
 
+    @Override protected void onSaveInstanceState(Bundle state) {
+        View focus = getCurrentFocus();
+        if (focus instanceof FocusTileView) state.putString("focused_app", String.valueOf(focus.getTag()));
+        super.onSaveInstanceState(state);
+    }
+    @Override protected void onDestroy() { loader.shutdownNow(); super.onDestroy(); }
     @Override protected void onResume() {
         super.onResume();
-        for (FocusTileView tile : tiles) tile.refreshPreferences();
+        View focus = getCurrentFocus();
+        if (!(focus instanceof FocusTileView) && focus != null && (focus.getId() == 0x1001 || focus.getId() == 0x1002)) focusedApp = null;
+        homeSlots.removeAllViews();
+        for (LayoutItem item : LayoutPreferences.load(this, HomeSlots.defaults()).discover(HomeSlots.available()).visible(HomeSlots.available())) {
+            if (item.equals(HomeSlots.CLOCK)) homeSlots.addView(new ClockWidgetView(this), new LinearLayout.LayoutParams(Pages.dp(this, 320), Pages.dp(this, 160)));
+        }
+        loadApps();
     }
 }

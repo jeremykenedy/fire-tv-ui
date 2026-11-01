@@ -16,7 +16,7 @@ public final class HelpActivity extends Activity {
         {"Getting started", "This isolated source preview opens installed TV apps and demonstrates native focus controls. It does not replace your normal Home screen or copy your production settings."},
         {"Remote navigation", "Use the direction buttons to move between apps and actions. Select opens the focused item. Back returns from Help or focus settings. App movement and visual animation are independent."},
         {"Focus and movement", "Choose movement speed, focus growth, and an optional border with color and opacity. None removes growth; Instant removes the visual transition. Existing preferences belong only to this review app."},
-        {"Migration status", "Cards, widgets, screensavers, themes, device controls, backups and production Home handling have not yet been integrated into this review shell. The released Fire TV UI continues to provide those functions. This preview is not ready to replace it."},
+        {"Migration status", "This preview includes app organization, icon choices and a local clock. Full channel cards, the broader widget catalog, screensaver administration, themes, device controls, backups and production Home handling are not integrated. The released Fire TV UI continues to provide those functions. This preview is not ready to replace it."},
         {"Licenses and credits", "This native review shell is maintained in the Fire TV UI repository under its MIT license. It builds from Java and Android resources without a supplied launcher APK. Android platform components retain their respective notices. Installed application names and artwork identify their respective owners."}
     };
     private int topic;
