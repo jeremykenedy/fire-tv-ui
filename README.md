@@ -84,6 +84,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | Local protection | Preserve saved choices and optionally block known Amazon updater traffic. | [Protection](docs/device-controls.md#startup-and-protection) |
 | App updates | Check stable releases and confirm verified replacement installs. | [Updates](docs/updates.md) |
 | Native TV tiles | Open Amazon Home or the built-in Live TV guide on supported Fire TVs. | [Native tiles](docs/factory-home.md) |
+| Network and IP | View local connection details and open the TV's IP configuration. | [Network settings](docs/device-controls.md#network-and-ip) |
 | Advanced diagnostics | Inspect device status and save a local report with explicit measurement limits. | [Diagnostics](docs/device-controls.md#advanced-diagnostics) |
 | Persistent backups | Save launcher preferences on the TV or transfer a backup from the CLI. | [Backups](docs/device-controls.md#persistent-tv-backups) |
 

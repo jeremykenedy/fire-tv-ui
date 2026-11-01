@@ -10,6 +10,9 @@ Native Android TV API 34 and Fire TV captures from version code 78. The picker f
     <td><img src="../art/screenshots/tile-icon-reset-ui117-code78-api34.png" alt="Native tile menu with Use factory icon and Use theme icon"><br>Individual icon reset</td>
     <td><img src="../art/screenshots/input-name-reset-ui117-code78-firetv.png" alt="Fire TV input menu with Rename input and Use factory name visible"><br>Input name and factory reset</td>
   </tr>
+  <tr>
+    <td><img src="../art/screenshots/network-ip-ui117-code78-api34.png" alt="Network and IP page showing actual emulator connection details and native configuration action"><br>Network and IP</td>
+  </tr>
 </table>
 
 
