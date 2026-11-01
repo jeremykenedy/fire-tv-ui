@@ -1,0 +1,78 @@
+{
+  "verified": "2026-11-01",
+  "assets": [
+    {
+      "id": "vcr",
+      "name": "VCR",
+      "resource": "icon_vcr.png",
+      "source": "Original project vector icons/sources/vcr.svg",
+      "sourceSha256": "605a870875b16736e6132702d2f1bf1c4db6e0aeec488d9c0dce5b77100f2bba",
+      "imageSha256": "176b63b90fe9c0203f856d4378bd257119a8f36f200b6e57ea52a3fef18ceb28",
+      "license": "MIT original project artwork"
+    },
+    {
+      "id": "stereo-receiver",
+      "name": "Stereo Receiver",
+      "resource": "icon_stereo_receiver.png",
+      "source": "Original project vector icons/sources/stereo-receiver.svg",
+      "sourceSha256": "5d38532986c2b65de8fb930951ad9a44a6ce1bb4f483fc00cc45fa29201b2d58",
+      "imageSha256": "3a6e8a2fe6d852cd6d6db5ef2cb9493748ac20ec46e6ff8b6532d0b6110e1985",
+      "license": "MIT original project artwork"
+    },
+    {
+      "id": "laptop",
+      "name": "Laptop",
+      "resource": "icon_laptop.png",
+      "source": "Original project vector icons/sources/laptop.svg",
+      "sourceSha256": "75274b3255e7d2edd0a492b3db0b9dd6dd3db5bd24ed63acca959040e7a962cc",
+      "imageSha256": "e6684196a67de5cf0557900c87637072279950cea887c75ef11166ea9ff39892",
+      "license": "MIT original project artwork"
+    },
+    {
+      "id": "pc",
+      "name": "PC",
+      "resource": "icon_pc.png",
+      "source": "Original project vector icons/sources/pc.svg",
+      "sourceSha256": "1b9e2de1e7a80039e792499f7615b717d6e358f6d2af0e322a11ad587a9d9b5f",
+      "imageSha256": "fcef5024b699936d2a3bd18ed615d57ccb78d29db2e6ba0df8f52883ae591ed4",
+      "license": "MIT original project artwork"
+    },
+    {
+      "id": "jbl",
+      "name": "JBL",
+      "resource": "icon_jbl.png",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/jbl.svg",
+      "sourceSha256": "d2921f06af09593f48fdd6e2bb82dcf1e2445e9d6beddf07812ea45c847238ef",
+      "imageSha256": "921027a25511c30cd01d8aa56c58453025dfe4f03bcd4125dbb7b9aaf053455b",
+      "license": "CC0-1.0 artwork; MIT project tile layout"
+    },
+    {
+      "id": "sonos",
+      "name": "Sonos",
+      "resource": "icon_sonos.png",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/sonos.svg",
+      "sourceSha256": "fa5d24d5d38fbe891fee746e53e9d8c239947be07cee7ec8549bf589bc6fc486",
+      "imageSha256": "a73431e42a37c1a5cc9327a7c0e85d9a4fd6888386f2ae182417ba19b8246176",
+      "license": "CC0-1.0 artwork; MIT project tile layout"
+    },
+    {
+      "id": "samsung",
+      "name": "Samsung",
+      "resource": "icon_samsung.png",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/samsung.svg",
+      "sourceSha256": "4a241ca8ebab6e71883b172acb9fb454efa69f308e4f2c31ec80668aeb6627d9",
+      "imageSha256": "db80ec0d2908aa608a39cf893c4160af6bbab67ffa527981aa8843377cac1cc0",
+      "license": "CC0-1.0 artwork; MIT project tile layout"
+    },
+    {
+      "id": "lg",
+      "name": "LG",
+      "resource": "icon_lg.png",
+      "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/lg.svg",
+      "sourceSha256": "bde201887c0e190b0b1bbc15c71a0996ed818050d8db5764adb310f0a4043020",
+      "imageSha256": "792581d418a47bb28b564d1770b76ae487f024bffae1fa09e90f23078646a857",
+      "license": "CC0-1.0 artwork; MIT project tile layout"
+    }
+  ],
+  "upstreamLicense": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/LICENSE.md"
+}

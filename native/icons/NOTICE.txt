@@ -1,0 +1,6 @@
+This source preview includes eight curated icons, not the complete production catalog.
+VCR, Stereo Receiver, Laptop and PC are original project pictograms under MIT.
+JBL, Sonos, Samsung and LG artwork comes from the pinned Simple Icons CC0 release.
+Exact upstream sources and source/image hashes are recorded in provenance.json.
+The original project tile backgrounds/layout are MIT. Brand trademarks remain with their owners.
+The other production-catalog assets are not included pending individual provenance review.
