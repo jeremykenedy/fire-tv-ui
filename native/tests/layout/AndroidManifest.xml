@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.layoutproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Focus verification" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>
