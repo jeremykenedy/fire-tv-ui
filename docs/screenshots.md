@@ -1,5 +1,21 @@
 # Screenshots
 
+## Fire TV UI 1.17.0, code 78
+
+Native Android TV API 34 and Fire TV captures from version code 78. The picker fits the complete wide logo, and each tile offers an individual factory reset. Input menus scroll so Rename input and Use factory name remain reachable with the remote.
+
+<table>
+  <tr>
+    <td><img src="../art/screenshots/audio-brand-picker-ui117-code78-api34.png" alt="Native image picker displaying complete audio brand logos"><br>Audio brand icons</td>
+    <td><img src="../art/screenshots/tile-icon-reset-ui117-code78-api34.png" alt="Native tile menu with Use factory icon and Use theme icon"><br>Individual icon reset</td>
+    <td><img src="../art/screenshots/input-name-reset-ui117-code78-firetv.png" alt="Fire TV input menu with Rename input and Use factory name visible"><br>Input name and factory reset</td>
+  </tr>
+  <tr>
+    <td><img src="../art/screenshots/network-ip-ui117-code78-api34.png" alt="Network and IP page showing actual emulator connection details and native configuration action"><br>Network and IP</td>
+  </tr>
+</table>
+
+
 ## Fire TV UI 1.16.0, code 77
 
 Native Android TV API 34 captures at 1920x1080 from the final signed release candidate `1df13d6b`. Saved setups restore appearance, layout and card presentation. Cards contains Channel Cards and global/per-channel timers. Backgrounds and overlays can be configured separately, with 41 holiday and seasonal palettes. Existing settings remain the defaults.

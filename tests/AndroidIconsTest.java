@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.json.JSONArray;
 
 public final class AndroidIconsTest {
     private static void check(boolean value,String message){if(!value)throw new AssertionError(message);}
@@ -17,6 +18,8 @@ public final class AndroidIconsTest {
     interface Run{void run()throws Exception;}
     public static void main(String[] args)throws Exception{
         AssetManager.root=new File(args[0]);
+        int iconCount=new JSONArray(Files.readString(AssetManager.root.toPath().resolve("input-icons/catalog.json"))).length();
+        check(iconCount>0,"Catalog contains icons");
         Context context=new Context();
         for(int api:new int[]{28,30}){
             Build.VERSION.SDK_INT=api;context.allowed=false;Environment.allowed=false;
@@ -28,14 +31,14 @@ public final class AndroidIconsTest {
             Environment.root=new File(args[1],"normal-"+api);
             ContentResolver.pending.clear();ContentResolver.updates=0;
             IconFiles.Result result=BundledIcons.install(context,5000);
-            check(result.copied==32&&result.indexed==32,"All32 bundled canonical files published");
-            check(ContentResolver.updates==(api==28?0:32),"Pending publication only where supported");
+            check(result.copied==iconCount&&result.indexed==iconCount,"All bundled canonical files published");
+            check(ContentResolver.updates==(api==28?0:iconCount),"Pending publication only where supported");
             Path icons=Environment.root.toPath().resolve("Pictures/Icons");
-            check(Files.list(icons).count()==32,"Only canonical files added");
+            check(Files.list(icons).count()==iconCount,"Only canonical files added");
             Files.writeString(icons.resolve("pc.png"),"owner-custom");
             MediaScannerConnection.paths.clear();
             result=BundledIcons.install(context,5000);
-            check(result.copied==0&&result.preserved==32&&result.indexed==31,"Keep custom and reindex exact existing");
+            check(result.copied==0&&result.preserved==iconCount&&result.indexed==iconCount-1,"Keep custom and reindex exact existing");
             check(Files.readString(icons.resolve("pc.png")).equals("owner-custom"),"Custom file unchanged");
             for(String path:MediaScannerConnection.paths)check(!path.endsWith("/pc.png"),"Custom owner row not published");
         }
@@ -44,11 +47,11 @@ public final class AndroidIconsTest {
         fail(()->BundledIcons.install(context,5000));
         ContentResolver.wrongPath=false;
         IconFiles.Result retry=BundledIcons.install(context,5000);
-        check(retry.copied==0&&retry.indexed==32,"Wrong provider row never accepted; safe retry indexes existing copies");
+        check(retry.copied==0&&retry.indexed==iconCount,"Wrong provider row never accepted; safe retry indexes existing copies");
         MediaScannerConnection.noCallbacks=true;
         fail(()->BundledIcons.install(context,40));
         MediaScannerConnection.noCallbacks=false;
-        check(BundledIcons.install(context,5000).indexed==32,"Timeout does not destroy data or prevent retry");
+        check(BundledIcons.install(context,5000).indexed==iconCount,"Timeout does not destroy data or prevent retry");
         System.out.println("Android28/30 existing permissions, MediaStore columns/publication, identity and retry passed");
     }
 }

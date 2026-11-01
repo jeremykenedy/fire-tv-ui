@@ -172,6 +172,10 @@ public final class BackupStore {
                 continue;
             }
             Object value = data.get(key);
+            if (InputNameValues.SETTING.equals(key)) {
+                if (!(value instanceof String)) throw new JSONException("Invalid input names.");
+                InputNameValues.parse((String) value);
+            }
             if ((CardOrderRules.SETTING.equals(key) || FeedOrder.SETTING.equals(key)) && (!(value instanceof JSONArray)
                     || ((JSONArray) value).length() > CardOrderRules.LIMIT)) {
                 throw new JSONException("Invalid featured card order.");

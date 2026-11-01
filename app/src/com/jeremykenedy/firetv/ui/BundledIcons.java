@@ -81,7 +81,7 @@ public final class BundledIcons {
                 index = data.toByteArray();
             }
             JSONArray manifest = new JSONArray(new String(index, StandardCharsets.UTF_8));
-            if (manifest.length() != 32) throw new IOException("The bundled icon pack is incomplete.");
+            if (manifest.length() < 1 || manifest.length() > 128) throw new IOException("Invalid bundled icon count.");
             for (int i = 0; i < manifest.length(); i++) {
                 JSONObject row = manifest.getJSONObject(i);
                 entries.add(new IconFiles.Entry(row.getString("file"), row.getInt("bytes"), row.getString("sha256")));

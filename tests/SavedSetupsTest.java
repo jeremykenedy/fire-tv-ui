@@ -19,6 +19,8 @@ public class SavedSetupsTest {
     public static void main(String[] args) throws Exception {
         Context c = new Context(new File(args[0], "data"));
         c.prefs.values.put("apps_per_row", 7);
+        c.prefs.values.put("input_names", "{\"tvinput_name:HDMI 1\":\"Sony Receiver\"}");
+        c.prefs.values.put("factory_icon_packages", new LinkedHashSet<>(Arrays.asList("app.one")));
         c.prefs.values.put("menu_overlay", "snow");
         c.prefs.values.put("menu_overlay_frozen", false);
         c.prefs.values.put("color_widget_bg_color_argb", 123);
@@ -30,6 +32,8 @@ public class SavedSetupsTest {
         JSONObject capture = SavedSetupSettings.capture(c.prefs.getAll());
         Map<String,Object> saved = SavedSetupSettings.validate(capture);
         check(saved.get("apps_per_row").equals(7), "typed integer");
+        check(((String)saved.get("input_names")).contains("Sony Receiver"), "input names saved");
+        check(((Set<?>)saved.get("factory_icon_packages")).contains("app.one"), "factory icon choice saved");
         check(saved.get("menu_overlay_frozen").equals(false), "typed boolean");
         check(saved.get("featured_feed_rotation_seconds") instanceof Set, "typed set");
         check(saved.containsKey("menu_animation") && saved.get("menu_animation")==null, "absent settings recorded");
@@ -70,9 +74,11 @@ public class SavedSetupsTest {
         check(c.prefs.values.get("apps_per_row").equals(7),"apply restores layout");
         check(c.prefs.values.get("custom_wallpaper_uri").equals(Uri.fromFile(copy).toString()),"apply survives original image deletion");
         c.prefs.values.put("icon_pack_package","other-pack");
+        c.prefs.values.put("factory_icon_packages", new LinkedHashSet<>(Arrays.asList("app.two")));
         c.prefs.values.put("app_visibility",new JSONObject().put("app.one",new JSONObject().put("hidden",false).put("customIconUri","asset:local.png")).toString());
         store.apply(id,false);
         check(c.prefs.values.get("icon_pack_package").equals("other-pack"),"optional icons preserves pack");
+        check(((Set<?>)c.prefs.values.get("factory_icon_packages")).contains("app.two"),"optional icons preserves factory choices");
         JSONObject app=new JSONObject((String)c.prefs.values.get("app_visibility")).getJSONObject("app.one");
         check(app.getBoolean("hidden") && app.getString("customIconUri").equals("asset:local.png"),"optional icons preserves custom icon but restores visibility");
         c.prefs.values.put("app_visibility",new JSONObject().put("app.one",new JSONObject().put("customIconUri",Uri.fromFile(new File(args[0],"stale-icon.png")).toString())).toString());

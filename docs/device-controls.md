@@ -46,6 +46,12 @@ The UI content dimensions describe this app's laid-out card. They do not measure
 
 Save report on TV writes a new timestamped `fire-tv-ui-diagnostics-*.txt` file in TV Downloads. It uses the platform's local storage APIs and reports an unavailable destination without changing access permissions. Nothing is uploaded or sent to another app. Reports contain package/version and device-status details; review a saved report before choosing to share it yourself.
 
+## Network and IP
+
+Settings > Network and IP shows the connected Wi-Fi and Ethernet addresses with their prefix lengths, default gateways and DNS servers. Refresh reads the current values again. If a VPN is active, the page identifies it and lists the physical connections separately, so the VPN address is not mistaken for the TV's local address. Missing fields are labeled Not reported.
+
+Configure IP in TV settings opens an available native network settings screen. Use its Static option when supported, or Automatic/DHCP to return to automatic assignment. Fire TV UI cannot change the assignment mode itself. A router DHCP reservation is another way to keep the TV at a fixed address; it is configured on the router. The page does not infer Static versus DHCP from an address, request additional permissions or save network credentials.
+
 ## Persistent TV backups
 
 Open Settings > Backup/Restore > Manage TV backups. Save writes `/sdcard/Download/fire-tv-ui-backup.txt` atomically. Restore validates every value before replacing preferences. This Downloads file survives uninstall/reinstall. External wallpaper images and videos must remain accessible separately.

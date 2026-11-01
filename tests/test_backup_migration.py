@@ -121,6 +121,7 @@ final class EquipmentControl { static final String REMOTE="fire_tv_ui_equipment_
                             os.environ.get('BACKUP_STORE_SOURCE', str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/BackupStore.java')),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/CardOrderRules.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardTiming.java'),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/InputNameValues.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/MenuBackgroundOptions.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/HolidayThemes.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/MenuMotionOptions.java'),

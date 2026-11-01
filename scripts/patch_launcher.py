@@ -13,6 +13,7 @@ from icon_focus_patch import patch_icon_focus
 from icon_pack_patch import patch_builtin_icon_packs
 from launcher_grid_patch import patch_launcher_grid
 from menu_motion_patch import patch_menu_motion
+from tile_appearance_patch import patch_tile_appearance
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / "build.json").read_text())
@@ -57,6 +58,7 @@ def patch(decoded):
     patch_icon_focus(class_paths)
     patch_builtin_icon_packs(class_paths)
     patch_launcher_grid(class_paths)
+    patch_tile_appearance(class_paths)
     dismiss = class_paths['LQ3/S3;']
     dismiss_text = dismiss.read_text()
     dismiss_anchor = ('    sget-object v2, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;\n\n'
@@ -204,8 +206,8 @@ def patch(decoded):
     artwork = class_paths["LQ3/A7;"]
     text = artwork.read_text()
     text = replace_once(text,
-        '    :goto_6\n    const-string v0, "_"',
-        '    :goto_6\n'
+        '    move-result-object v13\n    const-string v0, "_"',
+        '    move-result-object v13\n'
         '    invoke-static {v4, v11, v7}, Lcom/jeremykenedy/firetv/ui/NativeTileArtwork;->uri(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;\n'
         '    move-result-object v7\n\n'
         '    const-string v0, "_"')
@@ -541,7 +543,8 @@ def patch(decoded):
         '    const-string v56, "Startup and protection"\n\n'
         '    const-string v57, \"Advanced\"\n\n'
         '    const-string v58, "Updates"\n\n'
-        '    filled-new-array/range {v49 .. v58}, [Ljava/lang/String;')
+        '    const-string v59, "Network and IP"\n\n'
+        '    filled-new-array/range {v49 .. v59}, [Ljava/lang/String;')
     text = replace_method(text, '.method public static final H(ZLn4/a;Ljava/util/Map;LN/p;I)V',
         '.method public static final H(ZLn4/a;Ljava/util/Map;LN/p;I)V\n    .locals 0\n    return-void\n.end method')
     menu_signature = '.method public static final G(Ljava/util/List;ILjava/util/List;Ljava/util/Map;Ln4/c;Ln4/a;LN/p;I)V'
@@ -551,6 +554,18 @@ def patch(decoded):
         '    const/16 v4, 0x6\n\n    int-to-float v4, v4')
     menu = replace_once(menu, '    const/4 v11, 0x0\n\n'
         '    invoke-static/range {v4 .. v11}, LQ3/M7;->I',
+        '    const-string v11, "Network and IP"\n\n'
+        '    invoke-virtual {v11, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n'
+        '    move-result v11\n'
+        '    if-eqz v11, :network_settings_action_next\n'
+        '    sget-object v11, Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;->b:LN/S0;\n'
+        '    invoke-virtual {v10, v11}, LN/p;->k(LN/m0;)Ljava/lang/Object;\n'
+        '    move-result-object v11\n'
+        '    check-cast v11, Landroid/content/Context;\n'
+        '    new-instance v9, Lcom/jeremykenedy/firetv/ui/NetworkSettingsAction;\n'
+        '    invoke-direct {v9, v11}, Lcom/jeremykenedy/firetv/ui/NetworkSettingsAction;-><init>(Landroid/content/Context;)V\n'
+        '    goto :native_settings_action_done\n'
+        '    :network_settings_action_next\n'
         '    const-string v11, "Advanced"\n\n'
         '    invoke-virtual {v11, v4}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n\n'
         '    move-result v11\n\n'
@@ -830,6 +845,7 @@ def patch(decoded):
     shutil.copy(ROOT / 'app/smali/BackupAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/SystemControlsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/AdvancedAction.smali', destination)
+    shutil.copy(ROOT / 'app/smali/NetworkSettingsAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardSourcesAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardFocusAction.smali', destination)
     shutil.copy(ROOT / 'app/smali/CardKeyAction.smali', destination)
@@ -921,6 +937,10 @@ def patch_manifest(decoded):
     ET.SubElement(queries, 'package', {ANDROID + 'name': 'com.amazon.tv.settings.v2'})
     query = ET.SubElement(queries, 'intent')
     ET.SubElement(query, 'action', {ANDROID + 'name': 'android.service.dreams.DreamService'})
+    for action in ('android.settings.WIFI_IP_SETTINGS', 'android.settings.WIFI_SETTINGS',
+                   'android.settings.WIRELESS_SETTINGS', 'android.settings.ETHERNET_SETTINGS'):
+        query = ET.SubElement(queries, 'intent')
+        ET.SubElement(query, 'action', {ANDROID + 'name': action})
     for query in list(queries):
         action = query.find('action')
         if action is not None and 'billing' in action.get(ANDROID + 'name', '').lower():
@@ -947,7 +967,7 @@ def patch_manifest(decoded):
         ANDROID + 'screenOrientation': 'landscape',
         ANDROID + 'theme': '@android:style/Theme.Translucent.NoTitleBar',
     })
-    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'PreviewCreditsActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'CardTimersActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'PlexHomeActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity', 'MenuBackgroundActivity', 'SavedSetupsActivity', 'UiSettingsActivity'):
+    for name in ('TimersActivity', 'MemoryActivity', 'CatalogActivity', 'SystemControlsActivity', 'AdvancedActivity', 'PreviewCreditsActivity', 'DiagnosticsActivity', 'UpdatesActivity', 'CardSourcesActivity', 'PlexCardsActivity', 'PlexItemActivity', 'FeaturedCardsActivity', 'CardTimersActivity', 'HiddenCardsActivity', 'ChannelCardsActivity', 'PlexFeedSettingsActivity', 'PlexHomeActivity', 'RecommendationCardsActivity', 'RecommendationItemActivity', 'FeedOrderActivity', 'MenuBackgroundActivity', 'SavedSetupsActivity', 'UiSettingsActivity', 'NetworkSettingsActivity'):
         ET.SubElement(app, 'activity', {
             ANDROID + 'name': CONFIG['package'] + '.' + name,
             ANDROID + 'exported': 'false',

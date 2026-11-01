@@ -65,6 +65,7 @@ final class DeviceSettings {static android.content.SharedPreferences prefs(andro
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/SavedSetupSettings.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/SavedSetupStore.java'),
                             str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardTiming.java'),
+                            str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/InputNameValues.java'),
                             str(ROOT / 'tests/SavedSetupsTest.java')], check=True)
             subprocess.run(['java', '-cp', temp + os.pathsep + str(jar),
                             'com.jeremykenedy.firetv.ui.SavedSetupsTest', temp], check=True)

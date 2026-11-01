@@ -1,5 +1,11 @@
 # Verification
 
+## Fire TV UI 1.17.0, version code 78
+
+The signed combined candidate `11efb84cb8f794a7681b976b8a8ffbe7e10a2c7b315b5a16209d3570ffe89144` passed 78 host tests, with six opt-in native tests skipped. Focused checks cover input-name validation and isolation, unchanged input identity, individual factory/theme artwork, saved setup retention and portable backups.
+
+Android TV API 34 native checks selected audio brand artwork, restored a tile's original artwork while a global icon pack remained active, returned the tile to that pack, and inspected the full-width logo picker. Physical Fire TV checks renamed HDMI 3 to Sony Receiver, restored HDMI 3, and verified remote focus scrolling to both naming actions. The original visibility, artwork and other settings were restored. The combined build's Network and IP page showed real Ethernet addresses, prefix lengths, gateway and DNS on Android TV API 34; Refresh, native network-settings handoff and Back passed without changing network settings. The physical Fire TV also displayed its actual Wi-Fi address, prefix, gateway and DNS. Native network-settings handoff and Back were exercised on the emulator; the physical follow-through was stopped before changing any network configuration. These results do not establish physical remote Home routing or Alexa equipment control.
+
 ## Fire TV UI 1.16.0, version code 77
 
 The combined implementation passed signed Android builds and 73 host tests, with six opt-in native skips. Separate device runs covered the skipped workflows described below; this does not mean every optional native test was run.
