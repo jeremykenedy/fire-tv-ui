@@ -34,8 +34,10 @@ public final class PermissionInstrumentation extends Instrumentation {
             Activity settings = route(main, "Settings", ROOT + "SettingsActivity");
             select(settings, "Cards");
             Activity cards = route(settings, "Channel cards and timers", ROOT + "cards.CardsSettingsActivity");
-            editor = route(cards, "Channel Cards", ROOT + "layout.LayoutSettingsActivity");
+            select(cards, "Channel Cards");
+            editor = route(cards, "Card size, channel order and visibility", ROOT + "layout.LayoutSettingsActivity");
             waitForDiscovery();
+            final LayoutOptions retained = LayoutPreferences.load(getTargetContext(), HomeSlots.defaults());
             check(status().equals("Allow TV listings access to show cards shared by your apps."),
                     "Revoked access must show the permission-required state.");
             select(editor, "Allow TV listings access");
@@ -46,6 +48,7 @@ public final class PermissionInstrumentation extends Instrumentation {
             check(getTargetContext().checkSelfPermission(TvRecommendations.PERMISSION) != PackageManager.PERMISSION_GRANTED,
                     "Don't allow must leave listings access revoked.");
             check(status().contains("access was denied"), "Denial must have an explicit editor state.");
+            checkRetainedSlots(retained);
             result.putBoolean("denied_state", true);
             select(editor, "Allow TV listings access");
             waitForPermissionWindow();
@@ -57,6 +60,7 @@ public final class PermissionInstrumentation extends Instrumentation {
             check(recommendations.status != TvRecommendations.Status.PERMISSION_REQUIRED,
                     "Granted access must reach the actual provider read.");
             check(status().equals(recommendations.message()), "Editor must show the actual provider read state after granting access.");
+            checkRetainedSlots(retained);
             onMain(new Runnable() {
                 @Override public void run() {
                     for (TvRecommendations.Feed feed : recommendations.feeds) {
@@ -67,6 +71,8 @@ public final class PermissionInstrumentation extends Instrumentation {
             });
             result.putBoolean("actual_settings_route", true);
             result.putBoolean("granted_state", true);
+            result.putBoolean("retained_saved_slots", true);
+            result.putBoolean("provider_empty", recommendations.status == TvRecommendations.Status.EMPTY);
             result.putString("provider_status", recommendations.status.name());
             result.putInt("published_feed_slots", recommendations.feeds.size());
             result.putString("status", "PASS");
@@ -76,6 +82,12 @@ public final class PermissionInstrumentation extends Instrumentation {
             result.putString("reason", failure.toString());
         }
         finish(0, result);
+    }
+
+    private void checkRetainedSlots(LayoutOptions retained) {
+        LayoutOptions saved = LayoutPreferences.load(getTargetContext(), HomeSlots.defaults());
+        check(saved.order.equals(retained.order) && saved.hidden.equals(retained.hidden),
+                "Permission changes must retain saved slot order and visibility.");
     }
 
     private Activity route(Activity activity, String label, String destination) {

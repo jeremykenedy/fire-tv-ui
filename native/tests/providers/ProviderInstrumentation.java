@@ -26,15 +26,23 @@ import java.util.concurrent.TimeUnit;
 public final class ProviderInstrumentation extends Instrumentation {
     private static final String PRODUCER = "com.jeremykenedy.firetv.ui.providerfixture";
     private boolean cleanupOnly;
+    private boolean diagnosticsOnly;
     private Activity main;
     @Override public void onCreate(Bundle args) {
         super.onCreate(args);
+        diagnosticsOnly = args != null && "diagnostics".equals(args.getString("operation"));
         cleanupOnly = args != null && "cleanup".equals(args.getString("operation"));
         start();
     }
 
     @Override public void onStart() {
         Bundle result = new Bundle();
+        if (diagnosticsOnly) {
+            try { result.putAll(fixture("diagnostics")); }
+            catch (Throwable failure) { result.putString("status", "FAIL"); result.putString("reason", failure.toString()); }
+            finish(0, result);
+            return;
+        }
         if (cleanupOnly) {
             try {
                 cleanupFixture(result);
@@ -57,7 +65,16 @@ public final class ProviderInstrumentation extends Instrumentation {
                     "Permission denial must remain explicit on the platform.");
             cleanupFixture(result);
             check(fixtureFeeds(TvRecommendations.read(target)) == 0, "Fixture cleanup must remove fixture feeds only.");
-            fixture("publish");
+            Bundle published = fixture("publish");
+            check(published.containsKey("series_column_exists") && published.containsKey("series_supported")
+                    && published.containsKey("preview_rows") && published.containsKey("preview_series_rows"),
+                    "Producer must report measured series capability.");
+            boolean seriesSupported = published.getBoolean("series_supported");
+            if (published.getBoolean("series_column_exists"))
+                check(seriesSupported && published.getInt("preview_rows") == 2 && published.getInt("preview_series_rows") == 2,
+                        "A declared series column must retain both explicit published series values.");
+            else check(!seriesSupported && published.getInt("preview_series_rows") == 0,
+                    "An absent series column cannot invent a producer identity.");
             TvRecommendations.Result feeds = TvRecommendations.read(target);
             check(feeds.status == TvRecommendations.Status.READY || feeds.status == TvRecommendations.Status.PARTIAL,
                     "Cross-app provider query failed: " + feeds.status);
@@ -74,7 +91,7 @@ public final class ProviderInstrumentation extends Instrumentation {
                 for (TvRecommendations.Program program : feed.programs)
                     check(PRODUCER.equals(program.source), "Program publisher must be retained.");
             }
-            if (android.os.Build.VERSION.SDK_INT >= 29) {
+            if (seriesSupported) {
                 String seriesKey = null;
                 for (TvRecommendations.Feed feed : feeds.feeds) if (PRODUCER.equals(feed.source) && "Fixture channel".equals(feed.title))
                     for (TvRecommendations.Program program : feed.programs) {
@@ -83,6 +100,10 @@ public final class ProviderInstrumentation extends Instrumentation {
                         check(seriesKey.equals(program.seriesKey), "Same publisher series remains stable across episodes.");
                     }
             }
+            if (!seriesSupported) for (TvRecommendations.Feed feed : feeds.feeds) if (PRODUCER.equals(feed.source))
+                for (TvRecommendations.Program program : feed.programs)
+                    check(program.seriesKey == null, "Unsupported preview schema must retain item-only identity without title inference.");
+            result.putBoolean("tv_series_supported", seriesSupported);
             verifyLoaderLifecycle();
             check(programs == 3 && selected != null, "Cross-app rows must retain published grouping and source.");
             RecommendationActions.Availability available = RecommendationActions.inspect(target, selected);
@@ -130,10 +151,10 @@ public final class ProviderInstrumentation extends Instrumentation {
             result.putBoolean("cross_app_tvprovider_reads", true);
             result.putBoolean("publisher_scoped_title_and_separate_app_handoff", true);
             result.putBoolean("unsafe_intent_rejection", true);
-            result.putBoolean("explicit_series_metadata", true);
+            result.putBoolean("explicit_series_metadata", seriesSupported);
             result.putBoolean("cancellable_loader_lifecycle", true);
             result.putBoolean("explicit_action_capabilities", true);
-            result.putString("limits", "Fixture handoff receipt is verified; no real service playback or physical TV behavior is established. Empty/partial/missing provider states also have host coverage.");
+            result.putString("limits", "Fixture handoff receipt is verified; TV series support is measured separately and never inferred. No real service playback or physical TV behavior is established. Empty/partial/missing provider states also have host coverage.");
         } catch (Throwable failure) {
             result.putString("status", "FAIL");
             result.putString("reason", failure.toString());

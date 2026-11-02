@@ -2,13 +2,17 @@ package com.jeremykenedy.firetv.ui.nativeapp.widget.breathing;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.app.UiAutomation;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.View;
+import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences;
 import java.util.Collections;
@@ -26,6 +30,9 @@ public final class BreathingInstrumentation extends Instrumentation {
         Map<String, ?> before = prefs.getAll();
         Map<String, ?> layoutBefore = layout.getAll();
         try {
+            AccessibilityServiceInfo info = automation().getServiceInfo();
+            info.flags |= AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+            automation().setServiceInfo(info);
             check(prefs.edit().clear().commit(), "Temporary exercise fixture.");
             LayoutPreferences.save(getTargetContext(), new LayoutOptions(320, 180,
                     Collections.singletonList("widget:breathing-break"), Collections.<String>emptyList(), LayoutOptions.Mode.WIDGETS_ONLY));
@@ -79,20 +86,61 @@ public final class BreathingInstrumentation extends Instrumentation {
         } }); settle();
     }
     private void click(String text) {
-        AccessibilityNodeInfo node = find(getUiAutomation().getRootInActiveWindow(), text);
-        check(node != null, "Native action: " + text);
+        if (text.equals("Reduced motion: still circle and phase text") || text.equals("Save")) {
+            dismissKeyboardIfVisible();
+            awaitNode("Reduced motion: still circle and phase text", false);
+        }
+        AccessibilityNodeInfo node = awaitNode(text, false);
+        node.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.getId());
+        settle();
+        node = awaitNode(text, true);
         while (node != null && !node.isClickable()) node = node.getParent();
         check(node != null && node.performAction(AccessibilityNodeInfo.ACTION_CLICK), "Native action clicks: " + text);
         settle();
     }
-    private AccessibilityNodeInfo find(AccessibilityNodeInfo node, String text) {
+    private AccessibilityNodeInfo find(AccessibilityNodeInfo node, String text, boolean visible) {
         if (node == null) return null;
-        if (node.getText() != null && text.contentEquals(node.getText())) return node;
+        if ((!visible || node.isVisibleToUser()) && node.getText() != null && text.equalsIgnoreCase(node.getText().toString())) return node;
         for (int i = 0; i < node.getChildCount(); i++) {
-            AccessibilityNodeInfo found = find(node.getChild(i), text);
+            AccessibilityNodeInfo found = find(node.getChild(i), text, visible);
             if (found != null) return found;
         }
         return null;
+    }
+    private AccessibilityNodeInfo awaitNode(String text, boolean visible) {
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        do {
+            for (AccessibilityWindowInfo window : automation().getWindows()) {
+                AccessibilityNodeInfo root = window.getRoot();
+                if (root != null && window.getType() == AccessibilityWindowInfo.TYPE_APPLICATION
+                        && getTargetContext().getPackageName().equals(String.valueOf(root.getPackageName()))) {
+                    AccessibilityNodeInfo found = find(root, text, visible);
+                    if (found != null) return found;
+                }
+            }
+            AccessibilityNodeInfo root = automation().getRootInActiveWindow();
+            if (root != null && getTargetContext().getPackageName().equals(String.valueOf(root.getPackageName()))) {
+                AccessibilityNodeInfo found = find(root, text, visible);
+                if (found != null) return found;
+            }
+            SystemClock.sleep(100);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("Native target-package dialog action: " + text);
+    }
+    private UiAutomation automation() { return getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES); }
+    private boolean keyboardVisible() {
+        for (AccessibilityWindowInfo window : automation().getWindows()) {
+            AccessibilityNodeInfo root = window.getRoot();
+            if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD && root != null && root.isVisibleToUser()) return true;
+        }
+        return false;
+    }
+    private void dismissKeyboardIfVisible() {
+        if (!keyboardVisible()) return;
+        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+        long deadline = SystemClock.uptimeMillis() + 3000;
+        while (keyboardVisible() && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(100);
+        check(!keyboardVisible(), "Back dismisses only the visible native keyboard in the cadence dialog.");
     }
     private void onMain(final Runnable action) {
         final Throwable[] error = new Throwable[1];

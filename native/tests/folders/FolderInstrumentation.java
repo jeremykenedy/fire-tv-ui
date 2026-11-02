@@ -1,6 +1,7 @@
 package com.jeremykenedy.firetv.ui.nativeapp.folders;
 
 import android.app.Activity;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Instrumentation;
 import android.app.UiAutomation;
 import android.content.Context;
@@ -12,12 +13,15 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import android.widget.Button;
 import java.util.Map;
 import java.util.Set;
 
 public final class FolderInstrumentation extends Instrumentation {
     private Activity activity;
+    private UiAutomation automation;
+    private String pendingName;
     @Override public void onCreate(Bundle args) { super.onCreate(args); start(); }
     @Override public void onStart() {
         Bundle result = new Bundle();
@@ -134,29 +138,90 @@ public final class FolderInstrumentation extends Instrumentation {
     }
     private void typeName(String value) {
         AccessibilityNodeInfo input = awaitNode(null, true);
-        check(input.performAction(AccessibilityNodeInfo.ACTION_FOCUS), "Native name input accepts keyboard focus");
+        for (int attempt = 0; !input.isFocused() && attempt < 30; attempt++) {
+            input.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+            SystemClock.sleep(100); waitForIdleSync();
+            input = awaitNode(null, true);
+        }
+        check(input.isFocused(), "Native name input has keyboard focus");
+        long selectTime = SystemClock.uptimeMillis();
+        sendKeySync(new KeyEvent(selectTime, selectTime, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_A, 0, KeyEvent.META_CTRL_ON));
+        sendKeySync(new KeyEvent(selectTime, SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, KeyEvent.KEYCODE_A, 0, KeyEvent.META_CTRL_ON));
         sendStringSync(value); waitForIdleSync();
-        input = awaitNode(null, true);
-        check(value.equals(String.valueOf(input.getText())), "Keyboard text reaches the native folder name input");
+        boolean entered = false;
+        for (int attempt = 0; !entered && attempt < 40; attempt++) {
+            input = awaitNode(null, true);
+            if (input.refresh()) entered = value.equals(String.valueOf(input.getText()));
+            if (!entered) SystemClock.sleep(100);
+        }
+        check(entered, "Keyboard text reaches the native folder name input (expected length=" + value.length()
+                + ", observed length=" + (input.getText() == null ? 0 : input.getText().length())
+                + ", focused=" + input.isFocused() + ")");
+        pendingName = value;
     }
     private void clickDialogButton(String text) {
-        AccessibilityNodeInfo button = awaitNode(text, false);
-        check(button.performAction(AccessibilityNodeInfo.ACTION_CLICK), "Native dialog button accepts Select: " + text);
+        if (keyboardVisible()) {
+            sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+            for (int attempt = 0; keyboardVisible() && attempt < 30; attempt++) SystemClock.sleep(100);
+            check(!keyboardVisible(), "Back dismisses only the visible keyboard");
+        }
+        if ("Save".equalsIgnoreCase(text)) {
+            AccessibilityNodeInfo input = awaitNode(null, true);
+            check(input.refresh(), "Native name dialog remains readable after keyboard dismissal");
+            check(pendingName != null && pendingName.equals(String.valueOf(input.getText())),
+                    "Native name dialog remains open and keeps typed text after keyboard dismissal");
+        }
+        boolean clicked = false;
+        for (int attempt = 0; !clicked && attempt < 20; attempt++) {
+            AccessibilityNodeInfo button = awaitNode(text, false);
+            if (button.isEnabled()) clicked = button.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            if (!clicked) SystemClock.sleep(100);
+        }
+        check(clicked, "Native dialog button accepts Select: " + text);
         SystemClock.sleep(250); waitForIdleSync();
+        if ("Save".equalsIgnoreCase(text)) pendingName = null;
+    }
+    private UiAutomation automation() {
+        if (automation == null) {
+            automation = getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
+            AccessibilityServiceInfo info = automation.getServiceInfo();
+            info.flags |= AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+            automation.setServiceInfo(info);
+        }
+        return automation;
+    }
+    private boolean keyboardVisible() {
+        for (AccessibilityWindowInfo window : automation().getWindows()) {
+            AccessibilityNodeInfo root = window.getRoot();
+            if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD
+                    && root != null && root.isVisibleToUser()) return true;
+        }
+        return false;
     }
     private AccessibilityNodeInfo awaitNode(String text, boolean editable) {
         for (int attempt = 0; attempt < 50; attempt++) {
-            AccessibilityNodeInfo node = findNode(getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
-                    .getRootInActiveWindow(), text, editable);
+            AccessibilityNodeInfo node = findTargetNode(automation().getRootInActiveWindow(), text, editable);
             if (node != null) return node;
+            for (AccessibilityWindowInfo window : automation().getWindows()) {
+                node = findTargetNode(window.getRoot(), text, editable);
+                if (node != null) return node;
+            }
             SystemClock.sleep(100);
         }
         throw new AssertionError("Expected native dialog control: " + (editable ? "name input" : text));
     }
+    private AccessibilityNodeInfo findTargetNode(AccessibilityNodeInfo root, String text, boolean editable) {
+        if (root == null || !root.refresh()
+                || !getTargetContext().getPackageName().equals(String.valueOf(root.getPackageName()))) return null;
+        return findNode(root, text, editable);
+    }
     private AccessibilityNodeInfo findNode(AccessibilityNodeInfo node, String text, boolean editable) {
         if (node == null) return null;
         if (node.isVisibleToUser() && (editable ? node.isEditable()
-                : "android.widget.Button".contentEquals(node.getClassName()) && text.equals(String.valueOf(node.getText())))) return node;
+                : "android.widget.Button".equals(String.valueOf(node.getClassName()))
+                        && text.equalsIgnoreCase(String.valueOf(node.getText())))) {
+            return node.refresh() && node.isVisibleToUser() ? node : null;
+        }
         for (int i = 0; i < node.getChildCount(); i++) {
             AccessibilityNodeInfo found = findNode(node.getChild(i), text, editable);
             if (found != null) return found;

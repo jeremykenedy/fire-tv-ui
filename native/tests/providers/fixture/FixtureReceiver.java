@@ -39,6 +39,7 @@ public final class FixtureReceiver extends BroadcastReceiver {
                 for (int i = 1; i <= 2; i++) {
                     ContentValues program = program("Fixture title " + i, "preview-" + i, "fixture://title/" + i);
                     program.put("channel_id", id);
+                    program.put("type", TvContract.PreviewPrograms.TYPE_TV_EPISODE);
                     if (android.os.Build.VERSION.SDK_INT >= 29) program.put("series_id", "fixture-series-1");
                     resolver.insert(TvContract.PreviewPrograms.CONTENT_URI, program);
                 }
@@ -62,6 +63,7 @@ public final class FixtureReceiver extends BroadcastReceiver {
                 if (channel <= 0) throw new IllegalStateException("Publish fixture before adding an episode");
                 ContentValues episode = program("Fixture title 3", "preview-3", "fixture://title/3");
                 episode.put("channel_id", channel);
+                episode.put("type", TvContract.PreviewPrograms.TYPE_TV_EPISODE);
                 if (android.os.Build.VERSION.SDK_INT >= 29) episode.put("series_id", "fixture-series-1");
                 resolver.insert(TvContract.PreviewPrograms.CONTENT_URI, episode);
             }
@@ -90,6 +92,25 @@ public final class FixtureReceiver extends BroadcastReceiver {
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.cancel(42);
             }
+            if ("publish".equals(action) || "diagnostics".equals(action)) tvDiagnostics(context, result);
+            if ("notification-diagnostics".equals(action)) {
+                NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                result.putBoolean("notifications_enabled", manager.areNotificationsEnabled());
+                NotificationChannel channel = manager.getNotificationChannel("fixture");
+                result.putInt("channel_importance", channel == null ? -1 : channel.getImportance());
+                android.service.notification.StatusBarNotification[] posted = manager.getActiveNotifications();
+                int count = 0;
+                for (android.service.notification.StatusBarNotification entry : posted) if (entry.getId() == 42) {
+                    count++;
+                    Notification notification = entry.getNotification();
+                    result.putString("notification_category", notification.category);
+                    PendingIntent pending = notification.contentIntent;
+                    result.putString("action_creator", pending == null ? "none" : pending.getCreatorPackage());
+                    result.putBoolean("creator_uid_matches", pending != null && pending.getCreatorUid() == android.os.Process.myUid());
+                    result.putBoolean("activity_action", pending != null && android.os.Build.VERSION.SDK_INT >= 31 && pending.isActivity());
+                }
+                result.putInt("fixture_active_notifications", count);
+            }
             result.putString("opened", context.getSharedPreferences("fixture", Context.MODE_PRIVATE).getString("opened", ""));
             result.putString("status", "OK");
         } catch (RuntimeException failure) {
@@ -98,6 +119,26 @@ public final class FixtureReceiver extends BroadcastReceiver {
         }
         setResultExtras(result);
         setResultCode(-1);
+    }
+
+    private void tvDiagnostics(Context context, Bundle result) {
+        int count = 0, series = 0;
+        boolean column = false;
+        try (Cursor rows = context.getContentResolver().query(TvContract.PreviewPrograms.CONTENT_URI, null, null, null, null)) {
+            if (rows == null) throw new IllegalStateException("Fixture diagnostics unavailable");
+            result.putString("preview_columns", String.join(",", rows.getColumnNames()));
+            int seriesIndex = rows.getColumnIndex("series_id");
+            column = seriesIndex >= 0;
+            while (rows.moveToNext()) if (context.getPackageName().equals(rows.getString(rows.getColumnIndexOrThrow("package_name")))) {
+                count++;
+                if (column && "fixture-series-1".equals(rows.getString(seriesIndex))) series++;
+            }
+        }
+        result.putInt("preview_rows", count);
+        result.putInt("preview_series_rows", series);
+        result.putBoolean("series_column_exists", column);
+        result.putBoolean("series_supported", column && count >= 2 && series == count);
+        result.putInt("platform_api", android.os.Build.VERSION.SDK_INT);
     }
 
     private void clearOwned(Context context, Uri table) {

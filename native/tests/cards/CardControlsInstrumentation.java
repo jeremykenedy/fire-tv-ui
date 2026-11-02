@@ -53,7 +53,21 @@ public class CardControlsInstrumentation extends Instrumentation {
             }
             check(fixture != null, "Publish the two-title provider fixture and grant TV listings access before this suite.");
             final TvRecommendations.Feed feed = fixture;
-            check(feed.programs.get(0).seriesKey != null && feed.programs.get(0).seriesKey.equals(feed.programs.get(1).seriesKey), "Fixture episodes must supply the same trusted series identity.");
+            step = "measured TV-provider series capability";
+            Bundle capabilities = fixture("diagnostics");
+            check(capabilities.containsKey("series_column_exists") && capabilities.containsKey("preview_series_rows") && capabilities.containsKey("preview_rows") && capabilities.containsKey("series_supported"), "Fixture must report measured provider series capability.");
+            boolean seriesColumn = capabilities.getBoolean("series_column_exists");
+            int published = capabilities.getInt("preview_rows", -1), retained = capabilities.getInt("preview_series_rows", -1);
+            check(published == 2, "Fixture diagnostics must cover both published preview episodes.");
+            check(seriesColumn || retained == 0, "Provider without a series column cannot report retained series identities.");
+            check(!seriesColumn || retained == published, "Provider advertises a series column but dropped explicit published identities.");
+            final boolean tvSeriesSupported = capabilities.getBoolean("series_supported");
+            check(tvSeriesSupported == seriesColumn, "Measured provider capability must match retained explicit identities.");
+            if (tvSeriesSupported) check(feed.programs.get(0).seriesKey != null && feed.programs.get(0).seriesKey.equals(feed.programs.get(1).seriesKey), "Supported provider must retain the same trusted series identity across episodes.");
+            else for (TvRecommendations.Program program : feed.programs) check(program.seriesKey == null, "Provider without a series column must remain item-only without inferred identity.");
+            result.putBoolean("tv_series_supported", tvSeriesSupported);
+            result.putString("tv_series_limit", tvSeriesSupported ? "Explicit provider series IDs retained."
+                    : "This platform TV-provider schema has no series_id column. TV feeds support item hiding only; Plex series proof is separate.");
             check(itemOnly != null && itemOnly.programs.get(0).seriesKey == null, "Watch Next fixture must retain explicit item-only support.");
             CardPreferences.save(getTargetContext(), CardOptions.defaults().withGlobalSeconds(0));
             LayoutPreferences.save(getTargetContext(), LayoutPreferences.load(getTargetContext(), HomeSlots.defaults())
@@ -101,46 +115,56 @@ public class CardControlsInstrumentation extends Instrumentation {
             clickTag("reset-order");
             check(CardPreferences.orderedPrograms(CardPreferences.load(getTargetContext()), feed).get(0).key.equals(feed.programs.get(0).key), "Title order reset restores source order.");
             clickTag(feed.programs.get(0).key + ":item");
-            clickTag(feed.programs.get(1).key + ":series");
-            check(CardPreferences.visiblePrograms(CardPreferences.load(getTargetContext()), feed).isEmpty(), "Settings hides the item and trusted series.");
-            addedEpisode = true; fixture("add-episode");
-            TvRecommendations.Feed updated = null;
-            for (TvRecommendations.Feed candidate : TvRecommendations.read(getTargetContext()).feeds)
-                if (candidate.item.id.equals(feed.item.id)) updated = candidate;
-            check(updated != null && updated.programs.size() == 3, "New episode must be published without replacing old records.");
-            check(CardPreferences.visiblePrograms(CardPreferences.load(getTargetContext()), updated).isEmpty(), "Persisted series rule hides a newly published episode.");
-            fixture("remove-added-episode"); addedEpisode = false;
+            if (tvSeriesSupported) {
+                clickTag(feed.programs.get(1).key + ":series");
+                check(CardPreferences.visiblePrograms(CardPreferences.load(getTargetContext()), feed).isEmpty(), "Settings hides the item and trusted series.");
+                addedEpisode = true; fixture("add-episode");
+                TvRecommendations.Feed updated = null;
+                for (TvRecommendations.Feed candidate : TvRecommendations.read(getTargetContext()).feeds)
+                    if (candidate.item.id.equals(feed.item.id)) updated = candidate;
+                check(updated != null && updated.programs.size() == 3, "New episode must be published without replacing old records.");
+                check(CardPreferences.visiblePrograms(CardPreferences.load(getTargetContext()), updated).isEmpty(), "Persisted series rule hides a newly published episode.");
+                fixture("remove-added-episode"); addedEpisode = false;
+            } else {
+                assertItemOnly(feed.programs.get(1).key);
+                check(CardPreferences.visiblePrograms(CardPreferences.load(getTargetContext()), feed).size() == 1, "Hiding one unsupported-series item preserves the other episode.");
+            }
             press(KeyEvent.KEYCODE_BACK); awaitFocusedTag(feed.item.id);
             clickTag(itemOnly.item.id);
-            final String itemOnlyKey = itemOnly.programs.get(0).key;
-            final boolean[] unsupported = new boolean[1];
-            onMain(new Runnable() { @Override public void run() {
-                unsupported[0] = cards.getWindow().getDecorView().findViewWithTag(itemOnlyKey + ":series") == null
-                        && containsText(cards.getWindow().getDecorView(), "Series hiding is unavailable");
-            } });
-            check(unsupported[0], "Unsupported series identity must show item-only explanation and no series action.");
+            assertItemOnly(itemOnly.programs.get(0).key);
             press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitFocusedTag("channels");
             clickTag("hidden");
-            clickTag("series:" + PRODUCER + ":" + feed.programs.get(0).seriesKey);
-            check(!CardPreferences.load(getTargetContext()).isSeriesHidden(PRODUCER, feed.programs.get(0).seriesKey)
-                    && CardPreferences.load(getTargetContext()).isHidden(PRODUCER, feed.programs.get(0).key), "Restoring series retains separately hidden episode.");
+            if (tvSeriesSupported) {
+                clickTag("series:" + PRODUCER + ":" + feed.programs.get(0).seriesKey);
+                check(!CardPreferences.load(getTargetContext()).isSeriesHidden(PRODUCER, feed.programs.get(0).seriesKey)
+                        && CardPreferences.load(getTargetContext()).isHidden(PRODUCER, feed.programs.get(0).key), "Restoring series retains separately hidden episode.");
+            }
             clickTag(PRODUCER + ":" + feed.programs.get(0).key);
             press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(settings);
             press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
             ChannelCardView card = awaitCard(feed.item.id);
-            step = "Main Select Hide series and recover";
-            focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Hide series");
-            check(CardPreferences.load(getTargetContext()).isSeriesHidden(PRODUCER, feed.programs.get(0).seriesKey), "Main Select series action persists rule.");
-            awaitWindow(main); card = awaitCard(feed.item.id);
-            focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER);
-            ActivityMonitor seriesMonitor = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
-            clickText("Card settings");
-            cards = waitForMonitorWithTimeout(seriesMonitor, 3000); removeMonitor(seriesMonitor);
-            check(cards != null, "Series-hidden card settings recovery opens.");
-            awaitWindow(cards); clickTag("hidden");
-            clickTag("series:" + PRODUCER + ":" + feed.programs.get(0).seriesKey);
-            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
-            card = awaitCard(feed.item.id);
+            if (tvSeriesSupported) {
+                step = "Main Select Hide series and recover";
+                focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Hide series");
+                check(CardPreferences.load(getTargetContext()).isSeriesHidden(PRODUCER, feed.programs.get(0).seriesKey), "Main Select series action persists rule.");
+                awaitWindow(main); card = awaitCard(feed.item.id);
+                focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER);
+                ActivityMonitor seriesMonitor = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
+                clickText("Card settings");
+                cards = waitForMonitorWithTimeout(seriesMonitor, 3000); removeMonitor(seriesMonitor);
+                check(cards != null, "Series-hidden card settings recovery opens.");
+                awaitWindow(cards); clickTag("hidden");
+                clickTag("series:" + PRODUCER + ":" + feed.programs.get(0).seriesKey);
+                press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
+                card = awaitCard(feed.item.id);
+            } else {
+                step = "Main unsupported-series item-only menu";
+                focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER);
+                awaitDialogText("Hide this item");
+                check(node(getUiAutomation().getRootInActiveWindow(), "Hide series", false) == null, "Unsupported provider must not offer a series action.");
+                check(node(getUiAutomation().getRootInActiveWindow(), "Hide this item", false) != null, "Unsupported provider retains the exact item hide action.");
+                press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
+            }
             step = "Select hide two titles";
             for (int i = 0; i < 2; i++) {
                 card = awaitCard(feed.item.id);
@@ -180,10 +204,10 @@ public class CardControlsInstrumentation extends Instrumentation {
             result.putBoolean("custom_manual_override_reset", true);
             result.putBoolean("select_hide_all_hidden_recovery_restore", true);
             result.putBoolean("channel_title_order_reset", true);
-            result.putBoolean("trusted_series_future_episode_and_independent_restore", true);
-            result.putBoolean("main_select_series_hide_restore", true);
+            result.putBoolean("trusted_series_future_episode_and_independent_restore", tvSeriesSupported);
+            result.putBoolean("main_select_series_hide_restore", tvSeriesSupported);
             result.putBoolean("unsupported_series_item_only", true);
-            result.putString("limits", "Emulator fixture only; no physical TV or production migration proof. Trusted series behavior is proven with explicit fixture IDs only.");
+            result.putString("limits", "Emulator fixture only; no physical TV or production migration proof. TV series proof applies only when the measured provider schema retains explicit IDs; Plex series proof is separate.");
         } catch (Throwable failure) {
             result.putString("status", "FAIL"); result.putString("reason", failure.toString()); result.putString("step", step);
             StringBuilder visible = new StringBuilder();
@@ -200,6 +224,14 @@ public class CardControlsInstrumentation extends Instrumentation {
         finish(0, result);
     }
 
+    private void assertItemOnly(final String key) {
+        final boolean[] unsupported = new boolean[1];
+        onMain(new Runnable() { @Override public void run() {
+            unsupported[0] = cards.getWindow().getDecorView().findViewWithTag(key + ":series") == null
+                    && containsText(cards.getWindow().getDecorView(), "Series hiding is unavailable");
+        } });
+        check(unsupported[0], "Unsupported series identity must show item-only explanation and no series action.");
+    }
     private Bundle fixture(String operation) throws Exception {
         final CountDownLatch received = new CountDownLatch(1);
         final Bundle[] response = new Bundle[1];
@@ -330,6 +362,14 @@ public class CardControlsInstrumentation extends Instrumentation {
             AccessibilityNodeInfo found = node(root.getChild(i), text, editable); if (found != null) return found;
         }
         return null;
+    }
+    private void awaitDialogText(String text) {
+        long end = SystemClock.uptimeMillis() + 3000;
+        while (SystemClock.uptimeMillis() < end) {
+            if (node(getUiAutomation().getRootInActiveWindow(), text, false) != null) return;
+            SystemClock.sleep(50);
+        }
+        throw new AssertionError("Expected visible dialog text: " + text);
     }
     protected void clickText(String text) {
         long end = SystemClock.uptimeMillis() + 3000;

@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.view.accessibility.AccessibilityNodeInfo;
-import java.util.List;
 
 /** Routed Home-only opt-in and cancellation checks; never changes a system sleep setting. */
 public final class ProtectionInstrumentation extends Instrumentation {
@@ -26,11 +25,12 @@ public final class ProtectionInstrumentation extends Instrumentation {
         final boolean before = prefs.getBoolean("keep_launcher_awake", false);
         String sleepBefore = Settings.Secure.getString(getTargetContext().getContentResolver(), "sleep_timeout");
         try {
+            getUiAutomation();
             check(prefs.edit().remove("keep_launcher_awake").commit(), "Fixture preference must save");
             home = startActivitySync(new Intent().setClassName(getTargetContext(), ROOT + "MainActivity")
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             settle();
-            check(!home.getWindow().getDecorView().getKeepScreenOn(), "Default must follow system behavior");
+            check(!hasKeepScreenOn(home.getWindow().getDecorView()), "Default must follow system behavior");
             openSettings();
             openProtection();
             check(!prefs.contains("keep_launcher_awake"), "Opening protection must preserve absent choice");
@@ -43,19 +43,18 @@ public final class ProtectionInstrumentation extends Instrumentation {
             focus(protection, "protection:awake");
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
             settle();
-            AccessibilityNodeInfo dialog = getUiAutomation().getRootInActiveWindow();
-            check(dialog != null, "Confirmation dialog must be visible");
-            List<AccessibilityNodeInfo> buttons = dialog.findAccessibilityNodeInfosByText("Enable on Home");
-            check(!buttons.isEmpty() && buttons.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK), "Explicit confirmation must be clickable");
+            AccessibilityNodeInfo confirm = awaitConfirmation();
+            check(confirm.performAction(AccessibilityNodeInfo.ACTION_CLICK), "Explicit confirmation must be clickable");
+            confirm.recycle();
             settle();
             check(prefs.getBoolean("keep_launcher_awake", false), "Explicit enable must persist");
             sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
             settle();
             sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
             settle();
-            check(home.getWindow().getDecorView().getKeepScreenOn(), "Visible Home must request keep-screen-on after opt-in");
+            check(hasKeepScreenOn(home.getWindow().getDecorView()), "Visible Home must request keep-screen-on after opt-in");
             openSettings();
-            check(!home.getWindow().getDecorView().getKeepScreenOn(), "Leaving Home must release its request");
+            check(!hasKeepScreenOn(home.getWindow().getDecorView()), "Leaving Home must release its request");
             openProtection();
             focus(protection, "protection:awake");
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
@@ -81,6 +80,32 @@ public final class ProtectionInstrumentation extends Instrumentation {
             if (home != null) main(new Runnable() { @Override public void run() { home.recreate(); } });
         }
         finish(0, result);
+    }
+    private AccessibilityNodeInfo awaitConfirmation() {
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        do {
+            AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
+            if (root != null) {
+                AccessibilityNodeInfo found = confirmation(root);
+                root.recycle();
+                if (found != null) return found;
+            }
+            SystemClock.sleep(100);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("Visible confirmation button unavailable after waiting for accessibility window");
+    }
+    private AccessibilityNodeInfo confirmation(AccessibilityNodeInfo node) {
+        CharSequence text = node.getText();
+        if (text != null && "Enable on Home".equalsIgnoreCase(text.toString()) && node.isClickable())
+            return AccessibilityNodeInfo.obtain(node);
+        for (int i = 0; i < node.getChildCount(); i++) {
+            AccessibilityNodeInfo child = node.getChild(i);
+            if (child == null) continue;
+            AccessibilityNodeInfo result = confirmation(child);
+            child.recycle();
+            if (result != null) return result;
+        }
+        return null;
     }
     private void openSettings() {
         ActivityMonitor monitor = addMonitor(ROOT + "SettingsActivity", null, false);
@@ -117,6 +142,15 @@ public final class ProtectionInstrumentation extends Instrumentation {
         if (error[0] != null) throw new AssertionError(error[0]);
     }
     private void settle() { waitForIdleSync(); SystemClock.sleep(120); waitForIdleSync(); }
+    private static boolean hasKeepScreenOn(View view) {
+        if (view.getKeepScreenOn()) return true;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++)
+                if (hasKeepScreenOn(group.getChildAt(i))) return true;
+        }
+        return false;
+    }
     private static Button button(View view, String label) {
         if (view instanceof Button && label.contentEquals(((Button)view).getText())) return (Button)view;
         if (view instanceof ViewGroup) {

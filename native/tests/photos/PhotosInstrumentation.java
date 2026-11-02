@@ -17,6 +17,7 @@ import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.WidgetProvider;
@@ -35,6 +36,10 @@ public final class PhotosInstrumentation extends Instrumentation {
     @Override public void onCreate(Bundle args) { super.onCreate(args); start(); }
     @Override public void onStart() {
         Bundle result = new Bundle(); final Context context = getTargetContext();
+        android.app.UiAutomation automation = getUiAutomation(android.app.UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
+        android.accessibilityservice.AccessibilityServiceInfo service = automation.getServiceInfo();
+        service.flags |= android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+        automation.setServiceInfo(service);
         SharedPreferences prefs = context.getSharedPreferences(PhotoPreferences.STORE, 0); Map<String, ?> before = prefs.getAll();
         Set<Uri> grants = new HashSet<>();
         for (UriPermission grant : context.getContentResolver().getPersistedUriPermissions()) grants.add(grant.getUri());
@@ -132,11 +137,33 @@ public final class PhotosInstrumentation extends Instrumentation {
         } }); waitForIdleSync();
     }
     private void clickText(String text) {
-        AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow(); AccessibilityNodeInfo target = null;
-        if (root != null) for (AccessibilityNodeInfo node : root.findAccessibilityNodeInfosByText(text)) if (text.contentEquals(node.getText())) { target = node; break; }
+        AccessibilityNodeInfo target = null;
+        for (int attempt = 0; attempt < 80 && target == null; attempt++) {
+            android.app.UiAutomation automation = getUiAutomation(android.app.UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
+            for (AccessibilityWindowInfo window : automation.getWindows()) {
+                AccessibilityNodeInfo root = window.getRoot();
+                if (root != null && getTargetContext().getPackageName().equals(String.valueOf(root.getPackageName()))) {
+                    target = matching(root, text);
+                    if (target != null) break;
+                }
+            }
+            if (target == null) {
+                AccessibilityNodeInfo root = automation.getRootInActiveWindow();
+                if (root != null && getTargetContext().getPackageName().equals(String.valueOf(root.getPackageName()))) target = matching(root, text);
+            }
+            if (target == null) SystemClock.sleep(100);
+        }
         check(target != null, "Missing dialog control " + text);
         while (!target.isClickable() && target.getParent() != null) target = target.getParent();
         check(target.performAction(AccessibilityNodeInfo.ACTION_CLICK), "Activate dialog control"); waitForIdleSync();
+    }
+    private static AccessibilityNodeInfo matching(AccessibilityNodeInfo node, String text) {
+        if (node == null) return null;
+        if (node.isVisibleToUser() && !node.isPassword() && text.equalsIgnoreCase(String.valueOf(node.getText()))) return node;
+        for (int i = 0; i < node.getChildCount(); i++) {
+            AccessibilityNodeInfo found = matching(node.getChild(i), text); if (found != null) return found;
+        }
+        return null;
     }
     private void awaitCount(int count) {
         for (int i = 0; i < 60; i++) { if (PhotoPreferences.load(getTargetContext()).photos.size() == count) { waitForIdleSync(); return; } SystemClock.sleep(100); }

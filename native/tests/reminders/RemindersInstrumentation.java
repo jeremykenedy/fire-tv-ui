@@ -1,14 +1,18 @@
 package com.jeremykenedy.firetv.ui.nativeapp.widget.reminders;
 
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
+import android.app.UiAutomation;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import android.widget.TextView;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.WidgetProvider;
 import java.time.LocalDate;
@@ -19,12 +23,16 @@ import java.util.Set;
 
 public final class RemindersInstrumentation extends Instrumentation {
     private Activity activity;
+    private String pendingLabel;
     @Override public void onCreate(Bundle args) { super.onCreate(args); start(); }
     @Override public void onStart() {
         Bundle result = new Bundle();
         SharedPreferences prefs = getTargetContext().getSharedPreferences(RemindersPreferences.STORE, Context.MODE_PRIVATE);
         Map<String, ?> before = prefs.getAll();
         try {
+            AccessibilityServiceInfo info = automation().getServiceInfo();
+            info.flags |= AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+            automation().setServiceInfo(info);
             check(prefs.edit().clear().commit(), "Clear fixture");
             RemindersWidgetProvider provider = new RemindersWidgetProvider();
             check(!provider.defaultVisible(), "Reminder widget starts hidden");
@@ -101,14 +109,26 @@ public final class RemindersInstrumentation extends Instrumentation {
         } }); waitForIdleSync();
     }
     private void enter(int index, String value) {
-        AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
-        java.util.List<AccessibilityNodeInfo> inputs = new java.util.ArrayList<>(); collect(root, "android.widget.EditText", inputs);
-        check(inputs.size() > index, "Native text input exists"); Bundle args = new Bundle();
+        java.util.List<AccessibilityNodeInfo> inputs = new java.util.ArrayList<>();
+        for (int attempt = 0; attempt < 40 && inputs.size() <= index; attempt++) {
+            inputs.clear();
+            for (AccessibilityNodeInfo root : appWindows()) collect(root, "android.widget.EditText", inputs);
+            if (inputs.size() <= index) SystemClock.sleep(50);
+        }
+        check(inputs.size() > index, "Native text input exists in the target app"); Bundle args = new Bundle();
         args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value);
-        check(inputs.get(index).performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args), "Enter native text"); waitForIdleSync();
+        AccessibilityNodeInfo input = inputs.get(index);
+        check(input.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args), "Enter native text"); waitForIdleSync();
+        check(input.refresh() && value.contentEquals(input.getText()), "Native editor contains the entered text");
+        if (index == 0) pendingLabel = value;
     }
     private boolean hasClass(String name) {
-        java.util.List<AccessibilityNodeInfo> found = new java.util.ArrayList<>(); collect(getUiAutomation().getRootInActiveWindow(), name, found); return !found.isEmpty();
+        java.util.List<AccessibilityNodeInfo> found = new java.util.ArrayList<>();
+        for (int attempt = 0; attempt < 40 && found.isEmpty(); attempt++) {
+            for (AccessibilityNodeInfo root : appWindows()) collect(root, name, found);
+            if (found.isEmpty()) SystemClock.sleep(50);
+        }
+        return !found.isEmpty();
     }
     private void collect(AccessibilityNodeInfo node, String name, java.util.List<AccessibilityNodeInfo> found) {
         if (node == null) return; if (name.contentEquals(node.getClassName())) found.add(node);
@@ -117,18 +137,63 @@ public final class RemindersInstrumentation extends Instrumentation {
     private void clickText(String text) { clickText(text, false); }
     private void clickTextPrefix(String text) { clickText(text, true); }
     private void clickText(String text, boolean prefix) {
+        boolean saving = !prefix && "Save".equalsIgnoreCase(text);
+        if (saving) prepareSave();
         AccessibilityNodeInfo found = null;
-        for (int attempt = 0; attempt < 20 && found == null; attempt++) {
-            AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
-            if (root != null) for (AccessibilityNodeInfo node : root.findAccessibilityNodeInfosByText(text)) {
-                CharSequence label = node.getText();
-                if (label != null && (prefix ? label.toString().startsWith(text) : text.contentEquals(label))) { found = node; break; }
+        for (int attempt = 0; attempt < 40 && found == null; attempt++) {
+            for (AccessibilityNodeInfo root : appWindows()) {
+                found = matching(root, text, prefix); if (found != null) break;
             }
             if (found == null) SystemClock.sleep(50);
         }
         check(found != null, "Missing native dialog action " + text);
         while (!found.isClickable() && found.getParent() != null) found = found.getParent();
         check(found.performAction(AccessibilityNodeInfo.ACTION_CLICK), "Activate native dialog action " + text); waitForIdleSync();
+        if (saving) pendingLabel = null;
+    }
+    private void prepareSave() {
+        if (keyboardVisible()) {
+            sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+            for (int attempt = 0; keyboardVisible() && attempt < 40; attempt++) SystemClock.sleep(50);
+            check(!keyboardVisible(), "Back dismisses the visible keyboard before Save");
+            waitForIdleSync();
+        }
+        java.util.List<AccessibilityNodeInfo> inputs = new java.util.ArrayList<>();
+        for (int attempt = 0; inputs.isEmpty() && attempt < 40; attempt++) {
+            for (AccessibilityNodeInfo root : appWindows()) collect(root, "android.widget.EditText", inputs);
+            if (inputs.isEmpty()) SystemClock.sleep(50);
+        }
+        check(!inputs.isEmpty() && pendingLabel != null && pendingLabel.contentEquals(inputs.get(0).getText()),
+                "Native schedule dialog stays open and keeps entered label before Save");
+    }
+    private boolean keyboardVisible() {
+        for (AccessibilityWindowInfo window : automation().getWindows()) {
+            AccessibilityNodeInfo root = window.getRoot();
+            if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD && root != null && root.isVisibleToUser()) return true;
+        }
+        return false;
+    }
+    private AccessibilityNodeInfo matching(AccessibilityNodeInfo node, String text, boolean prefix) {
+        if (node == null) return null;
+        String label = String.valueOf(node.getText());
+        if (node.isVisibleToUser() && (prefix ? label.regionMatches(true, 0, text, 0, text.length()) : text.equalsIgnoreCase(label))) return node;
+        for (int i = 0; i < node.getChildCount(); i++) {
+            AccessibilityNodeInfo found = matching(node.getChild(i), text, prefix); if (found != null) return found;
+        }
+        return null;
+    }
+    private UiAutomation automation() { return getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES); }
+    private java.util.List<AccessibilityNodeInfo> appWindows() {
+        java.util.List<AccessibilityNodeInfo> roots = new java.util.ArrayList<>();
+        for (AccessibilityWindowInfo window : automation().getWindows()) {
+            AccessibilityNodeInfo root = window.getRoot();
+            if (root != null && getTargetContext().getPackageName().equals(String.valueOf(root.getPackageName()))) roots.add(root);
+        }
+        if (roots.isEmpty()) {
+            AccessibilityNodeInfo root = automation().getRootInActiveWindow();
+            if (root != null && getTargetContext().getPackageName().equals(String.valueOf(root.getPackageName()))) roots.add(root);
+        }
+        return roots;
     }
     private static void check(boolean condition, String message) { if (!condition) throw new AssertionError(message); }
 }

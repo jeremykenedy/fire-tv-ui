@@ -28,18 +28,14 @@ public final class NotificationInstrumentation extends Instrumentation {
             check(NotificationRecommendations.read(context, null).status.state == TvRecommendations.SourceStatus.State.DISABLED,
                     "Opted-out notifications must remain disabled even when Android access exists.");
             check(NotificationRecommendations.accessGranted(context), "Grant emulator listener access explicitly before this suite.");
+            foregroundSources();
             NotificationRecommendations.setEnabled(context, true);
+            awaitListener();
             fixture("notification-publish", null);
             TvRecommendations.Program program = awaitProgram(true);
             check(program != null && program.notificationKey != null && program.seriesKey == null,
                     "Real notification cards retain source identity without inventing series.");
-            foreground = startActivitySync(new Intent().setClassName(context,
-                    "com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationSourcesActivity")
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-            waitForIdleSync();
-            long deadline = SystemClock.uptimeMillis() + 5000;
-            while (!foreground.hasWindowFocus() && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(50);
-            check(foreground.hasWindowFocus(), "User handoff needs foreground source screen.");
+            long deadline;
             check(RecommendationActions.inspect(context, program).title, "Source-owned notification action must be available.");
             check(RecommendationActions.launchTitle(foreground, program) == RecommendationActions.Outcome.OPENED,
                     "Current source-owned PendingIntent must be accepted.");
@@ -80,16 +76,44 @@ public final class NotificationInstrumentation extends Instrumentation {
         }
         finish(0, result);
     }
-    private TvRecommendations.Program awaitProgram(boolean expected) {
+    private void foregroundSources() {
+        foreground = startActivitySync(new Intent().setClassName(getTargetContext(),
+                "com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationSourcesActivity")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+        waitForIdleSync();
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        while (!foreground.hasWindowFocus() && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(50);
+        check(foreground.hasWindowFocus(), "Notification opt-in must run from its foreground source screen.");
+    }
+    private void awaitListener() {
+        long deadline = SystemClock.uptimeMillis() + 15000;
+        NotificationRecommendations.Result last = null;
+        while (SystemClock.uptimeMillis() < deadline) {
+            last = NotificationRecommendations.read(getTargetContext(), null);
+            if (last.status.state == TvRecommendations.SourceStatus.State.READY
+                    || last.status.state == TvRecommendations.SourceStatus.State.EMPTY) return;
+            SystemClock.sleep(100);
+        }
+        throw new AssertionError("Notification listener did not become ready after foreground opt-in; state="
+                + (last == null ? "none" : last.status.state) + "; message=" + (last == null ? "none" : last.status.message));
+    }
+    private TvRecommendations.Program awaitProgram(boolean expected) throws Exception {
+        NotificationRecommendations.Result last = null;
         long deadline = SystemClock.uptimeMillis() + 5000;
         while (SystemClock.uptimeMillis() < deadline) {
             TvRecommendations.Program found = null;
-            for (TvRecommendations.Feed feed : NotificationRecommendations.read(getTargetContext(), null).feeds)
+            last = NotificationRecommendations.read(getTargetContext(), null);
+            for (TvRecommendations.Feed feed : last.feeds)
                 if (PRODUCER.equals(feed.source) && !feed.programs.isEmpty()) found = feed.programs.get(0);
             if ((found != null) == expected) return found;
             SystemClock.sleep(50);
         }
-        throw new AssertionError("Notification snapshot did not reach expected fixture state.");
+        throw new AssertionError("Notification snapshot did not reach expected fixture state; expected_present=" + expected
+                + "; state=" + (last == null ? "none" : last.status.state)
+                + "; message=" + (last == null ? "none" : last.status.message)
+                + "; access=" + NotificationRecommendations.accessGranted(getTargetContext())
+                + "; tv_app_visible=" + (getTargetContext().getPackageManager().getLeanbackLaunchIntentForPackage(PRODUCER) != null)
+                + "; fixture=" + fixture("notification-diagnostics", null));
     }
     private Bundle fixture(String operation, PendingIntent foreign) throws Exception {
         final CountDownLatch done = new CountDownLatch(1);
