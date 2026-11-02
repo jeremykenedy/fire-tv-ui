@@ -2,11 +2,11 @@
 
 The harness targets a verified installed preview, never builds or replaces the main APK. Acquire the emulator/device lease before running. It rejects a foreground other than preview Main, an unexpected installed APK hash, a source commit that differs from the matching local build manifest, or an existing performance proof package.
 
-Build only this test APK against the coordinator's compiled preview classes:
+Build only this test APK against the coordinator's compiled preview classes. Set `TARGET_SERIAL`, `EXPECTED_APK_SHA256`, `SOURCE_REF` and `PRIVATE_EVIDENCE_DIRECTORY` from the reviewed disposable-target qualification record; do not reuse the historical target by default:
 
 ```sh
 python3 native/tests/performance/build_native_test.py
-python3 native/tests/performance/run.py --serial emulator-5582 --expected-apk-sha256 <verified-sha256> --source-ref <matching-commit> --output <private-evidence-directory>
+python3 native/tests/performance/run.py --serial "$TARGET_SERIAL" --expected-apk-sha256 "$EXPECTED_APK_SHA256" --source-ref "$SOURCE_REF" --output "$PRIVATE_EVIDENCE_DIRECTORY"
 ```
 
 The test package has the preview signer and can inspect its target's preferences. No `run-as`, root, permission grant, provider row or app preference mutation is needed. The runner hashes preferences before and after, uninstalls its temporary test package and restores preview Main. It launches Android Settings solely to measure returning to the existing warm task; Settings values remain unchanged. Snapshot-only instrumentation exits the target process, so the runner resumes Main before capturing initial memory and screenshots.
@@ -43,7 +43,7 @@ API semantics were checked against Android's official FrameMetrics reference and
 Only after the coordinator supplies the exact new APK hash and shared classes readiness may the operator run:
 
 ```sh
-python3 native/tests/performance/regression_queue.py --output <private-path>/queue.json --build-tests --shared-classes-ready --artifact-sha256 <exact-new-apk-hash> --stage initial
+python3 native/tests/performance/regression_queue.py --output "$PRIVATE_EVIDENCE_DIRECTORY/queue.json" --build-tests --shared-classes-ready --artifact-sha256 "$EXPECTED_APK_SHA256" --stage initial
 ```
 
 Use `--stage later` or `all` deliberately for later test builds. The script validates the local artifact and manifest hash, builds only isolated test outputs and records each build log. It never installs or runs anything, and execution authorization remains false in its JSON. Runtime suites remain serial and require an exact installed-artifact check, per-suite state snapshot/restoration readback, fixture cleanup, permission/listener restoration and foreground restoration. The plan records unusual success protocols and fresh-store refusal constraints rather than treating every instrumentation exit code as equivalent.

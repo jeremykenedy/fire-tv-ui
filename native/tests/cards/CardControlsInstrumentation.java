@@ -1,6 +1,7 @@
 package com.jeremykenedy.firetv.ui.nativeapp.cards;
 
 import android.app.Activity;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.BroadcastReceiver;
@@ -13,6 +14,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import android.widget.Button;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots;
@@ -98,6 +100,10 @@ public class CardControlsInstrumentation extends Instrumentation {
             check(CardPreferences.load(getTargetContext()).globalSeconds == 0, "Out-of-bounds custom seconds must not save.");
             setNumber("17"); clickText("Save"); awaitWindow(cards);
             check(CardPreferences.load(getTargetContext()).globalSeconds == 17, "Custom whole seconds persist.");
+            step = "D-pad custom timer Save";
+            clickTag("global"); clickText("Custom interval (seconds)"); setNumber("19"); saveCustomWithDpad();
+            check(CardPreferences.load(getTargetContext()).globalSeconds == 19, "D-pad Save must persist the valid custom timer after measured input obstruction dismissal.");
+            step = "timer controls";
             clickTag("global"); clickText("Manual only"); awaitWindow(cards);
             check(CardPreferences.load(getTargetContext()).globalSeconds == 0, "Global Manual persists.");
             awaitTag(feed.item.id);
@@ -202,6 +208,7 @@ public class CardControlsInstrumentation extends Instrumentation {
             result.putString("status", "PASS");
             result.putBoolean("dpad_settings_cards_route", true);
             result.putBoolean("custom_manual_override_reset", true);
+            result.putBoolean("emulator_dpad_custom_save", true);
             result.putBoolean("select_hide_all_hidden_recovery_restore", true);
             result.putBoolean("channel_title_order_reset", true);
             result.putBoolean("trusted_series_future_episode_and_independent_restore", tvSeriesSupported);
@@ -322,7 +329,8 @@ public class CardControlsInstrumentation extends Instrumentation {
             if (active[0]) { waitForIdleSync(); return; }
             SystemClock.sleep(50);
         }
-        throw new AssertionError("Expected foreground window: " + activity.getClass().getSimpleName());
+        throw new AssertionError("Expected foreground window: " + activity.getClass().getSimpleName()
+                + "; persisted global timer=" + CardPreferences.load(getTargetContext()).globalSeconds);
     }
     protected ChannelCardView awaitCard(final String id) {
         awaitWindow(main);
@@ -363,6 +371,46 @@ public class CardControlsInstrumentation extends Instrumentation {
         }
         return null;
     }
+    private void saveCustomWithDpad() {
+        AccessibilityServiceInfo info = getUiAutomation().getServiceInfo();
+        info.flags |= AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+        getUiAutomation().setServiceInfo(info);
+        boolean ime = false;
+        for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
+            if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) ime = true;
+        if (ime) {
+            press(KeyEvent.KEYCODE_BACK);
+            awaitDialogText("Save");
+            long dismissed = SystemClock.uptimeMillis() + 3000;
+            do {
+                ime = false;
+                for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
+                    if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) ime = true;
+                if (!ime) break;
+                SystemClock.sleep(50);
+            } while (SystemClock.uptimeMillis() < dismissed);
+            check(!ime, "Visible input-method window must close before D-pad Save.");
+        }
+        AccessibilityNodeInfo save = node(getUiAutomation().getRootInActiveWindow(), "Save", false);
+        check(save != null && "android.widget.Button".equals(String.valueOf(save.getClassName()))
+                && getTargetContext().getPackageName().equals(String.valueOf(save.getPackageName()))
+                && save.isEnabled(), "D-pad Save target must be the native preview dialog button.");
+        check(save.isFocused() || save.performAction(AccessibilityNodeInfo.ACTION_FOCUS), "Native Save button must accept input focus.");
+        boolean focused = false; long stableSince = 0; long end = SystemClock.uptimeMillis() + 3000;
+        while (SystemClock.uptimeMillis() < end) {
+            save = node(getUiAutomation().getRootInActiveWindow(), "Save", false);
+            boolean windowFocused = false;
+            if (save != null) for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
+                if (window.getId() == save.getWindowId() && window.isFocused()) windowFocused = true;
+            if (save != null && save.isFocused() && windowFocused) {
+                if (stableSince == 0) stableSince = SystemClock.uptimeMillis();
+                if (SystemClock.uptimeMillis() - stableSince >= 300) { focused = true; break; }
+            } else stableSince = 0;
+            SystemClock.sleep(30);
+        }
+        check(focused, "Native Save button must hold actual input focus before D-pad Select.");
+        press(KeyEvent.KEYCODE_DPAD_CENTER); awaitWindow(cards);
+    }
     private void awaitDialogText(String text) {
         long end = SystemClock.uptimeMillis() + 3000;
         while (SystemClock.uptimeMillis() < end) {
@@ -388,9 +436,11 @@ public class CardControlsInstrumentation extends Instrumentation {
                     for (int i = 0; i < target; i++) press(KeyEvent.KEYCODE_DPAD_DOWN);
                     press(KeyEvent.KEYCODE_DPAD_CENTER);
                 } else {
-                    while (found != null && !found.isFocusable()) found = found.getParent();
-                    check(found != null && (found.isFocused() || found.performAction(AccessibilityNodeInfo.ACTION_FOCUS)), "Dialog button must accept remote focus: " + text);
-                    press(KeyEvent.KEYCODE_DPAD_CENTER);
+                    check("android.widget.Button".equals(String.valueOf(found.getClassName()))
+                            && getTargetContext().getPackageName().equals(String.valueOf(found.getPackageName()))
+                            && found.isEnabled() && found.isClickable(), "Target must be an enabled native dialog button in the preview package: " + text);
+                    check(found.performAction(AccessibilityNodeInfo.ACTION_CLICK), "Native dialog button must invoke its click handler: " + text);
+                    waitForIdleSync();
                 }
                 return;
             }

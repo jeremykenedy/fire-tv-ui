@@ -23,9 +23,9 @@
 | Version | Use it for | Start here |
 | --- | --- | --- |
 | Stable 1.17.0 | The existing Fire TV UI installation and supported 1.x updates. | [Stable download](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.17.0) |
-| Source Preview 2.0.0-alpha.1 | Testing the new native interface in a separate app. Release preparation is in progress. | [Source preview guide](docs/source-preview.md) |
+| Source Preview 2.0.0-alpha.1 | Testing the new native interface in a separate alpha app. | [Source preview guide](docs/source-preview.md) |
 
-Stable 1.17.0 remains the latest stable release. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. Final alpha artifacts, screenshots and qualification results are pending.
+Stable 1.17.0 remains the latest stable release. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. The alpha is an early preview with the scope and limits described below. See the [source preview guide](docs/source-preview.md) for scope and limits.
 
 The installation, feature guides and screenshots below describe stable 1.17 unless explicitly labeled as source preview.
 
@@ -51,6 +51,10 @@ The installation, feature guides and screenshots below describe stable 1.17 unle
 The separately installed alpha provides a native Home interface, app organization, cards/widgets, appearance controls and local presentation setups. It keeps production Home routing and production migration outside the preview contract. Provider content and system actions depend on platform support and explicit permissions.
 
 Use the [source preview guide](docs/source-preview.md) for installation, included features, data boundaries and known limits. Optional work beyond the frozen first cut is excluded.
+
+<p align="center"><a href="docs/source-preview.md#screenshots"><img src="art/screenshots/source-alpha-home-api34.png" alt="Fire TV UI Source Preview 2.0.0-alpha.1 Home on an API 34 TV emulator, showing the default clock, stock apps and TV listings access state" width="900"></a></p>
+
+Source Preview 2.0.0-alpha.1/code 2, captured from the verified signed alpha interface on an API 34 TV emulator. See the [preview gallery](docs/source-preview.md#screenshots) for Settings and Focus and motion. Physical-TV acceptance remains separate.
 
 ## Requirements
 
@@ -185,7 +189,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Stable Fire TV UI 1.17.0/code 78 on Android TV API 34. This image is not a source-preview capture; final alpha screenshots are pending. Audio brand artwork and individual factory resets are available from each tile. The [full gallery](docs/screenshots.md) includes input naming and earlier features labeled by version.
+Stable Fire TV UI 1.17.0/code 78 on Android TV API 34. This historical stable image is separate from the [source-preview gallery](docs/source-preview.md#screenshots). Audio brand artwork and individual factory resets are available from each tile. The [full gallery](docs/screenshots.md) includes input naming and earlier features labeled by version.
 
 <p align="center"><img src="art/screenshots/audio-brand-picker-ui117-code78-api34.png" alt="Fire TV UI 1.17 native audio brand icon picker" width="900"></p>
 
