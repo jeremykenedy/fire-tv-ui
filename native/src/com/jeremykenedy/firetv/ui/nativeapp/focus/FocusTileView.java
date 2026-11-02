@@ -138,6 +138,7 @@ public final class FocusTileView extends FrameLayout {
         boolean legacy = legacyArtworkWidth > 0 && FocusPreferences.legacyDefaultAppMode(getContext());
         if (legacy == legacyPresentation) return;
         legacyPresentation = legacy;
+        surface.setClipToOutline(legacy);
         if (legacy) updateLegacyContrast(icon.getDrawable());
         background.setCornerRadius(dp(legacy ? 16 : 14));
         if (legacy) {
@@ -167,7 +168,7 @@ public final class FocusTileView extends FrameLayout {
         options = FocusPreferences.load(getContext());
         updatePresentation();
         cancelAnimation();
-        progress = isFocused() || preview ? 1f : 0f;
+        progress = isFocused() && hasWindowFocus() || preview ? 1f : 0f;
         updateVisual();
     }
 
@@ -186,6 +187,11 @@ public final class FocusTileView extends FrameLayout {
         if (surface != null) animateFocus();
     }
 
+    @Override public void onWindowFocusChanged(boolean focused) {
+        super.onWindowFocusChanged(focused);
+        if (surface != null) animateFocus();
+    }
+
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         refreshPreferences();
@@ -201,7 +207,7 @@ public final class FocusTileView extends FrameLayout {
         options = FocusPreferences.load(getContext());
         updatePresentation();
         cancelAnimation();
-        float target = isFocused() || preview ? 1f : 0f;
+        float target = isFocused() && hasWindowFocus() || preview ? 1f : 0f;
         if (options.durationMillis == 0 || !ValueAnimator.areAnimatorsEnabled()) {
             progress = target;
             updateVisual();

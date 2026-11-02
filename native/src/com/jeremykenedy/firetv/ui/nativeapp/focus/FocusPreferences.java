@@ -32,7 +32,7 @@ public final class FocusPreferences {
     public static boolean legacyDefaultAppMode(Context context) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
         com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertReadable(context);
         Map<String, ?> values = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getAll();
-        return Boolean.TRUE.equals(values.get(FocusOptions.LEGACY_APP_DEFAULT))
+        return !Boolean.FALSE.equals(values.get(FocusOptions.LEGACY_APP_DEFAULT))
                 && !FocusOptions.hasExplicitSettings(values);
     } }
 

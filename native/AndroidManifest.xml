@@ -69,7 +69,7 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.MainActivity" android:exported="true" android:launchMode="singleTop">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent-filter>
         </activity>
-        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.SettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.SettingsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.HelpActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.focus.FocusSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridSettingsActivity" android:exported="false" />

@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-setups-') as temporary:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(value)
         stubs.append(path)
-    dependencies = [SOURCE / 'accessibility/AccessibilityPreferences.java', SOURCE / 'holidays/HolidayScenes.java', SOURCE / 'migration/PreferenceSnapshot.java', SOURCE / 'migration/PrivateMediaReference.java',
+    dependencies = [SOURCE / 'backup/PortableBackup.java', SOURCE / 'accessibility/AccessibilityPreferences.java', SOURCE / 'holidays/HolidayScenes.java', SOURCE / 'migration/PreferenceSnapshot.java', SOURCE / 'migration/PrivateMediaReference.java',
                     SOURCE / 'inputs/InputEntry.java', SOURCE / 'inputs/InputOptions.java', SOURCE / 'migration/LegacyPresentationMapper.java',
                     SOURCE / 'migration/LegacyJson.java', SOURCE / 'migration/LegacyFolderMigration.java', SOURCE / 'migration/LegacyAppearanceMapper.java', SOURCE / 'migration/LauncherMigration.java', SOURCE / 'migration/PresentationMappingContext.java', SOURCE / 'appgrid/AppGridOptions.java', SOURCE / 'appgrid/HomeTileOrder.java',
                     SOURCE / 'focus/FocusOptions.java', SOURCE / 'cards/CardOptions.java',

@@ -43,7 +43,7 @@ public final class AppInventory {
         discover(context, Intent.CATEGORY_LEANBACK_LAUNCHER, found);
         if (includeOrdinary && !Thread.currentThread().isInterrupted()) discover(context, Intent.CATEGORY_LAUNCHER, found);
         List<App> apps = new ArrayList<>(found.values());
-        Collections.sort(apps, new Comparator<App>() {
+        if (includeOrdinary) Collections.sort(apps, new Comparator<App>() {
             @Override public int compare(App a, App b) {
                 int label = a.label.compareToIgnoreCase(b.label);
                 return label == 0 ? a.key().compareTo(b.key()) : label;

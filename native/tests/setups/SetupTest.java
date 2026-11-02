@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.AtomicFile;
 
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
+import com.jeremykenedy.firetv.ui.nativeapp.backup.PortableBackup;
 
 import org.json.*;
 
@@ -71,6 +72,36 @@ public final class SetupTest {
         Map<String, PreferenceSnapshot> invalidFocus = new LinkedHashMap<>(legacyMode);
         invalidFocus.put("native_focus", new PreferenceSnapshot(Collections.<String, Object>singletonMap("legacy_app_default", "true")));
         rejects(() -> PresentationState.validate(invalidFocus), "Malformed legacy marker is rejected.");
+        Context statusContext = new Context(new File(args[0], "status-mode"));
+        Context.Prefs statusPrefs = prefs(statusContext, "launcher_prefs");
+        statusPrefs.values.put("source_status_bar_off", true);
+        statusPrefs.values.put("minimal_status_bar", false);
+        SavedSetupManager statusManager = new SavedSetupManager(statusContext);
+        String offSetup = statusManager.save("Status off", null);
+        Map<String, PreferenceSnapshot> offState = PresentationState.capture(statusContext);
+        PortableBackup.Validator portable = state -> PresentationState.validatePortable(state);
+        Map<String, PreferenceSnapshot> backup = PortableBackup.decode(PortableBackup.encode(offState, portable), portable);
+        statusPrefs.values.remove("source_status_bar_off");
+        statusManager.apply(offSetup, true);
+        check(Boolean.TRUE.equals(statusPrefs.values.get("source_status_bar_off")), "Saved setup restores explicit status off.");
+        statusPrefs.values.remove("source_status_bar_off");
+        PresentationState.apply(statusContext, backup, true);
+        check(Boolean.TRUE.equals(statusPrefs.values.get("source_status_bar_off")), "Portable backup restores explicit status off.");
+        JSONObject sourceOnly = new JSONObject().put("keys", new JSONArray(Arrays.asList("source_status_bar_off")))
+                .put("values", new JSONObject().put("source_status_bar_off", true));
+        check(Boolean.TRUE.equals(statusManager.prepareLegacy(sourceOnly,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("launcher_prefs").values().get("source_status_bar_off")), "Source marker bypasses legacy mapper.");
+        JSONObject legacyFull = new JSONObject().put("keys", new JSONArray(Arrays.asList("minimal_status_bar")))
+                .put("values", new JSONObject().put("minimal_status_bar", false));
+        check(!statusManager.prepareLegacy(legacyFull,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("launcher_prefs").values().containsKey("source_status_bar_off"), "Imported legacy mode clears source off marker.");
+        JSONObject unrelated = new JSONObject().put("keys", new JSONArray(Arrays.asList("use_24h_clock")))
+                .put("values", new JSONObject().put("use_24h_clock", true));
+        check(Boolean.TRUE.equals(statusManager.prepareLegacy(unrelated,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("launcher_prefs").values().get("source_status_bar_off")), "Unrelated legacy setup keeps source off marker.");
         final Context context = new Context(new File(args[0], "fixtures"));
         prefs(context, "launcher_prefs").values.put("access_token", "private-fixture");
         prefs(context, "launcher_prefs").values.put("fire_tv_ui_sleep", 1234);

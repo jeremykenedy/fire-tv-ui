@@ -73,8 +73,8 @@ public final class LayoutTest {
         check(HomeSlots.widget(HomeSlots.CLOCK.key()) != null && HomeSlots.widget("widget:missing") == null,
                 "Only implemented local widgets resolve through the registry.");
         LayoutOptions firstDiscovery = HomeSlots.discover(HomeSlots.defaults(), feeds);
-        check(firstDiscovery.visible(discovered).equals(Arrays.asList(HomeSlots.CLOCK, feed.item)),
-                "New opt-in widgets do not change the original visible Home defaults.");
+        check(firstDiscovery.visible(discovered).equals(Arrays.asList(feed.item)),
+                "Widgets start hidden, matching the existing launcher default.");
         for (WidgetProvider widget : HomeSlots.widgets()) {
             if (widget.defaultVisible()) continue;
             check(firstDiscovery.hidden.contains(widget.item().key()), "New opt-in widgets start hidden.");

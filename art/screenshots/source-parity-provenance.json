@@ -1,0 +1,20 @@
+{
+  "applicationId": "com.jeremykenedy.firetv.ui.preview",
+  "version": "0.1.0-preview",
+  "versionCode": 1,
+  "apkSha256": "bbea373e306a65c6c656395c3c325fc00f0ab471caef975e7d0f0f30590fb6cc",
+  "sourceBranch": "restore-existing-launcher-interface",
+  "sourceInputsSha256": "ec53834c1646b625051c96e04f51dca227db16a245f5c8c7d7d2996e6864777e",
+  "platform": "Android TV API 34 emulator",
+  "resolution": [
+    1920,
+    1080
+  ],
+  "capture": "Unmodified native screenshots of the local source candidate. Fresh preview data, stock apps and no personal accounts.",
+  "scope": "Home, root Settings and UI settings panel only. Deeper menu parity remains unfinished. Not a published release.",
+  "images": {
+    "home-source-parity-api34.png": "4ff4e30f2f55e6f54f55037eaaca0fd11fe2f431c20eafb98d6aeadfca1e7ee4",
+    "settings-source-parity-api34.png": "dd59874934246ee62264f12fd1234681f328d39f287dea74f75d8da03edf6e84",
+    "ui-settings-source-parity-api34.png": "8ac6b23410dc7c809334cf428b7f7467f4b197d896078796830874d6d56de052"
+  }
+}

@@ -7,6 +7,8 @@ import java.util.Map;
 public final class FocusPreferencesTest {
     public static void main(String[] args) {
         Context context = new Context();
+        check(FocusPreferences.legacyDefaultAppMode(context), "Fresh Home uses artwork-only app tiles.");
+        check(context.prefs.values.isEmpty(), "Reading Home defaults does not create explicit settings.");
         context.prefs.values.put("unrelated", "retained");
         check(!FocusPreferences.hasExplicitSettings(context), "Unrelated data does not override legacy presentation.");
         context.prefs.values.put("growth_percent", 0);

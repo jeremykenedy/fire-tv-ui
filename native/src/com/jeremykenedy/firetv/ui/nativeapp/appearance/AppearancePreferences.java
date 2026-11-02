@@ -55,11 +55,11 @@ public final class AppearancePreferences {
     public static AppearanceOptions load(Context context) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
         com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertReadable(context);
         Map<String, ?> values = file(context).getAll();
-        return new AppearanceOptions(string(values, "base", "off"), flag(values, "base_frozen"),
+        return new AppearanceOptions(string(values, "base", values.containsKey("wallpaper_mode") ? "off" : "still_legacy_gradient"), flag(values, "base_frozen"),
                 number(values, "base_speed"), number(values, "base_intensity"), number(values, "base_brightness"),
                 string(values, "overlay", "off"), flag(values, "overlay_frozen"), number(values, "overlay_speed"),
                 number(values, "overlay_intensity"), number(values, "overlay_opacity"), string(values, "scene", ""),
-                string(values, "wallpaper_image_uri", ""), string(values, "wallpaper_video_uri", ""), string(values,"base_palette",""), string(values,"overlay_palette",""), string(values,"legacy_gradient",""));
+                string(values, "wallpaper_image_uri", ""), string(values, "wallpaper_video_uri", ""), string(values,"base_palette",""), string(values,"overlay_palette",""), string(values,"legacy_gradient", "electric_indigo"));
     } }
     private static String string(Map<String, ?> values, String key, String fallback) { Object value = values.get(key); return value instanceof String ? (String) value : fallback; }
     private static int number(Map<String, ?> values, String key) { Object value = values.get(key); return value instanceof Integer ? (Integer) value : 50; }

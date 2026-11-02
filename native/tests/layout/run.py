@@ -16,7 +16,7 @@ import android.view.View;
 public class ClockWidgetProvider implements WidgetProvider {
  public LayoutItem item(){return HomeSlots.CLOCK;}
  public String title(){return "Clock";}
- public boolean defaultVisible(){return true;}
+ public boolean defaultVisible(){return false;}
  public State state(Context context){return State.READY;}
  public String message(Context context){return "Local time";}
  public int widthDp(){return 320;}

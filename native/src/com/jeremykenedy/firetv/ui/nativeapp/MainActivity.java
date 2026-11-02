@@ -66,18 +66,17 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Independent review shell. It neither selects Home nor imports production settings. */
+/** Home for the independently maintained launcher. */
 public final class MainActivity extends Activity {
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private final List<FocusTileView> tiles = new ArrayList<>();
     private LinearLayout appArea;
     private LinearLayout homeBody;
-    private TextView homeTitle;
     private boolean homeTextContrast;
     private final java.util.WeakHashMap<TextView, TextShadow> homeShadows = new java.util.WeakHashMap<>();
     private LinearLayout statusBarArea;
     private String statusBarState;
-    private Button settings;
+    private View settings;
     private Button allApps;
     private HomeContentView homeContent;
     private ScrollView slotViewport;
@@ -85,11 +84,11 @@ public final class MainActivity extends Activity {
     private LauncherAwakeController awake;
     private RecommendationLoader recommendations;
     private long feedRequest;
-    private TextView cardStatus;
     private boolean resumed;
     private List<AppInventory.App> apps = new ArrayList<>();
     private String focusedApp;
     private boolean restoringGridFocus;
+    private boolean focusInitialApp;
     private int generation;
     private RemoteButtonDispatcher remoteButtons;
     private LayoutScheduleController dashboard;
@@ -170,47 +169,21 @@ public final class MainActivity extends Activity {
         remoteButtons = new RemoteButtonDispatcher(this);
         if (saved != null) focusedApp = saved.getString("focused_app");
         restoringGridFocus = focusedApp != null;
+        focusInitialApp = saved == null;
         LinearLayout body = Pages.page(this);
         homeBody = body;
+        body.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32), Pages.dp(this, 96));
         statusBarArea = new LinearLayout(this);
         statusBarState = null;
         statusBarArea.setTag("home:statusbar-container");
-        body.addView(statusBarArea, new LinearLayout.LayoutParams(-1, -2));
+        body.addView(statusBarArea, new LinearLayout.LayoutParams(-1, Pages.dp(this, 44)));
         refreshStatusBar();
-        homeTitle = Pages.text(this, "com.jeremykenedy.firetv.ui".equals(getPackageName())
-                ? getApplicationInfo().loadLabel(getPackageManager()).toString() : "Fire TV UI Preview", 30);
-        body.addView(homeTitle);
-        LinearLayout actions = new LinearLayout(this);
-        settings = Pages.button(this, "Settings", new View.OnClickListener() {
-            @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, SettingsActivity.class)); }
-        });
-        settings.setId(0x1001);
-        actions.addView(settings);
-        Button help = Pages.button(this, "Help", new View.OnClickListener() {
-            @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, HelpActivity.class)); }
-        });
-        help.setId(0x1002); actions.addView(help); body.addView(actions);
         allApps = Pages.button(this, "All apps", new View.OnClickListener() {
             @Override public void onClick(View view) { startActivity(AllAppsActivity.intent(MainActivity.this)); }
         });
         allApps.setId(0x1003); allApps.setTag("home:all-apps");
         allApps.setVisibility(AllAppsPreferences.enabled(this) ? View.VISIBLE : View.GONE);
-        actions.addView(allApps);
-        View.OnFocusChangeListener headerFocus = new View.OnFocusChangeListener() {
-            @Override public void onFocusChange(View view, boolean focused) {
-                if (focused && resumed) { focusedApp = null; restoringGridFocus = false; }
-            }
-        };
-        settings.setOnFocusChangeListener(headerFocus); help.setOnFocusChangeListener(headerFocus);
-        allApps.setOnFocusChangeListener(headerFocus);
-        cardStatus = Pages.text(this, "Checking channel cards…", 14);
-        cardStatus.setTag("home:card-status");
-        cardStatus.setMaxLines(2);
-        cardStatus.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        cardStatus.setPadding(Pages.dp(this, 16), 0, 0, 0);
-        LinearLayout.LayoutParams statusLayout = new LinearLayout.LayoutParams(0, -2, 1);
-        statusLayout.gravity = android.view.Gravity.CENTER_VERTICAL;
-        actions.addView(cardStatus, statusLayout);
+        body.addView(allApps);
         homeContent = new HomeContentView(this, new ChannelCardView.Listener() {
             @Override public void onSelect(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
             @Override public void onLongPress(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
@@ -237,7 +210,7 @@ public final class MainActivity extends Activity {
         slotViewport = new ScrollView(this);
         slotViewport.setClipChildren(false); slotViewport.setClipToPadding(false);
         slotViewport.addView(homeContent);
-        body.addView(slotViewport, new LinearLayout.LayoutParams(-1, Pages.dp(this, 190)));
+        body.addView(slotViewport, new LinearLayout.LayoutParams(-1, 0, 1));
         if (saved != null) {
             final int scrollY = saved.getInt("slot_scroll_y", 0);
             slotViewport.post(new Runnable() { @Override public void run() { slotViewport.scrollTo(0, scrollY); } });
@@ -246,18 +219,20 @@ public final class MainActivity extends Activity {
             @Override public void onRecommendations(TvRecommendations.Result result) {
                 if (!homeContent.applyResult(feedRequest, result)) return;
                 AccessibilityStyle.apply(MainActivity.this, getWindow().getDecorView());
-                int omitted = HomeSlots.omittedCount(LayoutPreferences.load(MainActivity.this, HomeSlots.defaults()), result.feeds);
-                String capacity = omitted == 0 ? "" : "Home layout limit reached: " + omitted + " new items were not added. ";
-                cardStatus.setText(capacity + result.message()
-                        + (result.status == TvRecommendations.Status.PERMISSION_REQUIRED ? " Open Settings, Cards to allow access." : ""));
+
             }
         });
         appArea = new LinearLayout(this); appArea.setOrientation(LinearLayout.VERTICAL);
-        body.addView(appArea, new LinearLayout.LayoutParams(-1, 0, 1));
+        appArea.setPadding(Pages.dp(this, 10), Pages.dp(this, 14), Pages.dp(this, 10), Pages.dp(this, 14));
+        android.graphics.drawable.GradientDrawable tray = new android.graphics.drawable.GradientDrawable();
+        tray.setColor(0x55000000);
+        tray.setCornerRadius(Pages.dp(this, 22));
+        tray.setStroke(Pages.dp(this, 1), 0x226d657e);
+        appArea.setBackground(tray);
+        body.addView(appArea, new LinearLayout.LayoutParams(-1, Pages.dp(this, 113)));
         appArea.addView(Pages.text(this, "Loading apps…", 18));
         View savedHeader = saved == null ? null : findViewById(saved.getInt("focused_header", 0));
         if (savedHeader != null && savedHeader.getVisibility() == View.VISIBLE) savedHeader.requestFocus();
-        else settings.requestFocus();
         background = BackgroundLayer.attach(this, body);
         awake = new LauncherAwakeController(body);
     }
@@ -269,6 +244,7 @@ public final class MainActivity extends Activity {
         if (state.equals(statusBarState)) return;
         statusBarState = state;
         statusBarArea.removeAllViews();
+        settings = null;
         if (!options.configured) {
             statusBarArea.setVisibility(View.GONE);
             return;
@@ -279,7 +255,10 @@ public final class MainActivity extends Activity {
                 new Runnable() { @Override public void run() { openStatusDestination(DeviceRoutes.Destination.SYSTEM_SETTINGS); } },
                 new Runnable() { @Override public void run() { startActivity(new Intent(MainActivity.this, SettingsActivity.class)); } },
                 new Runnable() { @Override public void run() { StatusBarQuickPanel.show(MainActivity.this); } });
-        statusBarArea.addView(row, new LinearLayout.LayoutParams(-1, -2));
+        statusBarArea.addView(row, new LinearLayout.LayoutParams(-1, -1));
+        settings = row.findViewWithTag("statusbar:preferences");
+        if (settings == null) settings = row.findViewWithTag("statusbar:clock");
+        if (settings != null) settings.setId(0x1001);
     }
 
     private void openStatusDestination(DeviceRoutes.Destination destination) {
@@ -363,23 +342,27 @@ public final class MainActivity extends Activity {
             messages.add("App order limit reached. New apps remain usable, but their order cannot be saved.");
         GridLayout grid = new GridLayout(this);
         grid.setClipChildren(false); grid.setClipToPadding(false);
-        int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 64);
+        int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 84);
         int tileWidth = Math.max(1, width / options.columns);
         boolean legacyAppFocus = com.jeremykenedy.firetv.ui.nativeapp.focus.FocusPreferences.legacyDefaultAppMode(this);
-        int tileHeight = Math.max(Pages.dp(this, 96), Math.round(tileWidth * 9f / 16f) + Pages.dp(this, 46));
+        int tileHeight = legacyAppFocus ? Math.round(tileWidth * 9f / 16f) + Pages.dp(this, 3)
+                : Math.max(Pages.dp(this, 96), Math.round(tileWidth * 9f / 16f) + Pages.dp(this, 46));
+        int rows = options.rows == 0 ? 1 : options.rows;
+        int maxHeight = Math.round(getResources().getDisplayMetrics().heightPixels * 0.45f);
+        appArea.getLayoutParams().height = Math.min(maxHeight, rows * tileHeight + Pages.dp(this, 28));
+        appArea.requestLayout();
         if (options.horizontal) {
-            int availableHeight = Math.max(tileHeight, appArea.getHeight());
-            int rows = options.rows == 0 ? Math.max(1, availableHeight / tileHeight) : options.rows;
+            int availableHeight = Math.max(tileHeight, appArea.getLayoutParams().height - Pages.dp(this, 28));
             grid.setOrientation(GridLayout.VERTICAL); grid.setRowCount(rows);
             HorizontalScrollView scroll = new HorizontalScrollView(this);
-            scroll.setClipChildren(legacyAppFocus); scroll.setClipToPadding(legacyAppFocus);
+            scroll.setClipChildren(false); scroll.setClipToPadding(false);
             scroll.addView(grid);
             if (rows * tileHeight > availableHeight) {
                 ScrollView vertical = new ScrollView(this); vertical.addView(scroll); appArea.addView(vertical);
             } else appArea.addView(scroll);
         } else {
             grid.setColumnCount(options.columns);
-            ScrollView scroll = new ScrollView(this); scroll.setClipChildren(legacyAppFocus); scroll.setClipToPadding(legacyAppFocus);
+            ScrollView scroll = new ScrollView(this); scroll.setClipChildren(false); scroll.setClipToPadding(false);
             scroll.addView(grid); appArea.addView(scroll);
         }
         Map<String, AppInventory.App> byKey = new HashMap<>();
@@ -444,12 +427,13 @@ public final class MainActivity extends Activity {
         }
         for (String message : messages) grid.addView(homeMessage(message, 16));
         if (tiles.isEmpty()) grid.addView(homeMessage("No visible apps. Show apps in Settings → Home layout → Apps grid.", 18));
-        if (restoreTile) {
+        if (restoreTile || oldFocus == null || focusInitialApp) {
             if (restore != null) restore.requestFocus();
             else if (!tiles.isEmpty()) { tiles.get(0).requestFocus(); focusedApp = String.valueOf(tiles.get(0).getTag()); }
-            else { settings.requestFocus(); focusedApp = null; }
+            else { if (settings != null) settings.requestFocus(); focusedApp = null; }
         }
         restoringGridFocus = false;
+        focusInitialApp = false;
         AccessibilityStyle.apply(this, getWindow().getDecorView());
     }
 
@@ -491,11 +475,9 @@ public final class MainActivity extends Activity {
         AppearanceOptions options = AppearancePreferences.load(this);
         boolean clearLegacyGradient = options.base.equals("still_legacy_gradient") && options.scene.isEmpty()
                 && LegacyGradients.index(options.legacyGradient) >= 0;
-        homeBody.setBackgroundColor(clearLegacyGradient ? 0x00000000 : 0x66101523);
+        homeBody.setBackgroundColor(0x00000000);
         homeTextContrast = clearLegacyGradient || !options.scene.isEmpty();
         homeContent.setWidgetReadability(homeTextContrast);
-        setHomeTextContrast(homeTitle);
-        setHomeTextContrast(cardStatus);
         View clock = statusBarArea.findViewWithTag("statusbar:clock");
         if (clock != null) setStatusClockContrast(clock);
     }
@@ -558,6 +540,11 @@ public final class MainActivity extends Activity {
     }
 
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
+        if (homeReady && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+            if (event.getAction() == KeyEvent.ACTION_UP)
+                startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
         return remoteButtons != null && remoteButtons.dispatch(event, false) || super.dispatchKeyEvent(event);
     }
 
@@ -697,7 +684,7 @@ public final class MainActivity extends Activity {
         resumed = true;
         AccessibilityStyle.apply(this, getWindow().getDecorView());
         boolean showAllApps = AllAppsPreferences.enabled(this);
-        if (!showAllApps && allApps.isFocused()) settings.requestFocus();
+        if (!showAllApps && allApps.isFocused() && settings != null) settings.requestFocus();
         allApps.setVisibility(showAllApps ? View.VISIBLE : View.GONE);
         View focus = getCurrentFocus();
         if (!restoringGridFocus && !(focus instanceof FocusTileView) && focus != null

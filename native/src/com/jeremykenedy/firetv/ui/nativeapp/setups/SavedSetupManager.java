@@ -161,6 +161,7 @@ public final class SavedSetupManager {
         Map<String, Object> saved = LegacySetupSettings.validate(settings);
         Map<String, Object> present = new LinkedHashMap<>(saved);
         present.values().removeAll(Collections.singleton(null));
+        present.remove("source_status_bar_off");
         if (!icons) {
             present.remove("icon_pack_package");
             present.remove("factory_icon_packages");
@@ -204,6 +205,8 @@ public final class SavedSetupManager {
             target.put(file.getKey(), new PreferenceSnapshot(values));
         }
         Map<String, Object> raw = new LinkedHashMap<>(target.get("launcher_prefs").values());
+        if (saved.containsKey("minimal_status_bar") && !saved.containsKey("source_status_bar_off"))
+            raw.remove("source_status_bar_off");
         for (Map.Entry<String, Object> change :
                 LegacySetupSettings.toApply(settings, raw, icons).entrySet()) {
             if (change.getValue() == null) raw.remove(change.getKey());
