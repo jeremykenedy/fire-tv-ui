@@ -11,6 +11,7 @@ import android.text.InputFilter;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.jeremykenedy.firetv.ui.preview.R;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
 import com.jeremykenedy.firetv.ui.nativeapp.icons.IconPickerActivity;
 import com.jeremykenedy.firetv.ui.nativeapp.icons.IconSelectionStore;
@@ -60,7 +61,7 @@ public final class InputViews {
                 if (icon != null) return icon;
             }
         } catch (RuntimeException unavailable) { }
-        return context.getDrawable(android.R.drawable.ic_menu_slideshow);
+        return context.getDrawable(R.drawable.input_fallback);
     }
     public static void actions(final Activity activity, final InputEntry input, final Runnable refresh) {
         actions(activity, input, refresh, null);
