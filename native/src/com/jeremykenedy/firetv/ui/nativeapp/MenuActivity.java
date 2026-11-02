@@ -11,10 +11,11 @@ public abstract class MenuActivity extends Activity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         transitionReady = SourceStartup.ready(this);
-        android.content.res.TypedArray attributes = obtainStyledAttributes(new int[]{android.R.attr.windowIsTranslucent});
+        android.content.res.TypedArray attributes = obtainStyledAttributes(new int[]{
+                android.R.attr.windowIsTranslucent, android.R.attr.backgroundDimAmount});
         panel = attributes.getBoolean(0, false);
+        menuDim = attributes.getFloat(1, 0.32f);
         attributes.recycle();
-        menuDim = getWindow().getAttributes().dimAmount;
         if (transitionReady) MenuTransition.apply(this, true);
     }
     @Override protected void onResume() {
