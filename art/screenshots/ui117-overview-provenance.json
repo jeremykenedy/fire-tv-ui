@@ -1,0 +1,17 @@
+{
+  "version": "1.17.0",
+  "versionCode": 78,
+  "package": "com.jeremykenedy.firetv.ui",
+  "apkSha256": "feec52050090718424e7bada545d8b460583704ffa2fc5af28f187e863264df8",
+  "platform": "Android TV API 34 emulator",
+  "resolution": [
+    1920,
+    1080
+  ],
+  "capture": "Unmodified native screenshots of the published stable APK. Fresh emulator with stock apps and no personal accounts.",
+  "images": {
+    "home-ui117-code78-api34.png": "960e13fb0d50ac56b54ba7bc78eb8296e258ab15e342cfb3cd61e2bdca663332",
+    "settings-ui117-code78-api34.png": "55aadc32e5762832a420137b4f11e796708f29e1410d650b145c32ddd0b805a7",
+    "backgrounds-ui117-code78-api34.png": "5d640512d0ecc46a7122dcf52444bc8c60655a52bc0b85fdfe75c4ed41c5b0b6"
+  }
+}
