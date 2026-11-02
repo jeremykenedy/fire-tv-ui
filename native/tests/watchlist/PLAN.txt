@@ -1,0 +1,20 @@
+Tonight watchlist native proof
+
+Run only on an exclusively leased disposable preview emulator, never a physical TV or the production package. Before installing or changing a package, capture and verify the existing package, settings and foreground baseline and save a private pre-upgrade receipt. Stop if the existing installation or its data cannot be restored exactly.
+
+Build the candidate and matching instrumentation from the same isolated debug signer. Build the StateGuard with `python3 native/tests/state_guard/build_native_test.py --keystore native/.build/preview.jks` and the proof with `python3 native/tests/watchlist/build_native_test.py`. Verify the candidate, guard and proof hashes and signer before installation. Keep the exact source and artifact manifests with the private receipt.
+
+With the preview stopped and no other writers, capture and verify the three roots `shared_prefs,files,no_backup` using StateGuard. Require an empty Android Keystore, a quiescent target and matching case ID and manifest hash. Record the SHA256 of the independently verified pre-upgrade receipt. The receipt hash and verified flag supplied below are operator attestations, not device-side verification of a host receipt.
+
+Run the proof with the verified values:
+
+    adb -s SERIAL shell am instrument -w -r \
+      -e state_guard_case_id CASE_ID \
+      -e state_guard_manifest_sha256 GUARD_SHA256 \
+      -e preupgrade_receipt_sha256 RECEIPT_SHA256 \
+      -e preupgrade_receipt_verified true \
+      com.jeremykenedy.firetv.ui.watchlistproof/com.jeremykenedy.firetv.ui.nativeapp.widget.watchlist.WatchlistInstrumentation
+
+Require a passing result, `state_guard_verified_before_write=true`, `actual_home_visible_and_dpad=true` and `restored=true`. Capture and inspect the actual Home hold. The fixture reports bounded steps via instrumentation status and the `WatchlistProof` log tag. It tests local title entry, link confirmation cancellation, editing, watched status, removal, a visible short and ellipsized long title, D-pad access, and exact synthetic Plex identity lookup. This does not establish real-service playback, subscriptions or physical-TV acceptance.
+
+Stop the preview, then restore, verify and resolve the exact same three-root guard and confirm empty Keystore. If interrupted fixture work leaves a nonexportable key, preserve state and report it rather than guessing recovery. Restore and verify the pre-upgrade package, runtime permissions, Home/accessibility settings and foreground baseline as applicable. Remove only fixture packages installed by this case after resolving the guard.

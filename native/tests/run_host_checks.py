@@ -16,7 +16,7 @@ SUITES = (
     'appearance/run.py', 'setups/run_tests.py', 'backup/run.py',
     'network/run.py', 'protection/run.py', 'screensaver_admin/run.py',
     'updates/run.py', 'plex/run.py', 'worldclock/run.py', 'timers/run.py',
-    'notes/run.py', 'astronomy/run.py', 'quickactions/run.py',
+    'notes/run.py', 'watchlist/run.py', 'astronomy/run.py', 'quickactions/run.py',
     'reminders/run.py', 'photos/run.py', 'breathing/run.py',
     'release/test_build.py', 'state_guard/run.py',
     'accessibility/run.py', 'allapps/run.py', 'ambient/run.py', 'calendar/run.py',

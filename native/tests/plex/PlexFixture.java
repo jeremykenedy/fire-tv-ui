@@ -159,6 +159,8 @@ public final class PlexFixture implements AutoCloseable {
         }
         String request = new String(headers.toByteArray(), StandardCharsets.US_ASCII);
         if (!request.startsWith("GET / HTTP/1.1\r\n")
+                && !request.startsWith("GET /identity HTTP/1.1\r\n")
+                && !request.startsWith("GET /library/metadata/21 HTTP/1.1\r\n")
                 && !request.startsWith("GET /hubs/continueWatching?count=4 HTTP/1.1\r\n")
                 && !request.startsWith("GET /library/all?type=1&sort=addedAt:desc HTTP/1.1\r\n")
                 && !request.startsWith("GET /library/all?type=2&sort=addedAt:desc HTTP/1.1\r\n"))
@@ -180,7 +182,7 @@ public final class PlexFixture implements AutoCloseable {
         }
         if (!request.toLowerCase(java.util.Locale.ROOT).contains("x-plex-client-identifier: 00000000-0000-4000-8000-000000000007\r\n"))
             throw new AssertionError("The saved fixture Plex client identity was not retained.");
-        String response = request.startsWith("GET / HTTP")
+        String response = request.startsWith("GET / HTTP") || request.startsWith("GET /identity HTTP")
                 ? "{\"MediaContainer\":{\"machineIdentifier\":\"fixture-machine\"}}"
                 : "{\"MediaContainer\":{\"Metadata\":[{\"ratingKey\":\"12\",\"type\":\"episode\",\"title\":\"Pilot\",\"grandparentTitle\":\"Fixture Show\",\"grandparentRatingKey\":\"9\",\"key\":\"/library/metadata/12\",\"viewOffset\":5000,\"duration\":9000},{\"ratingKey\":\"13\",\"type\":\"episode\",\"title\":\"Next\",\"grandparentTitle\":\"Fixture Show\",\"grandparentRatingKey\":\"9\",\"key\":\"/library/metadata/13\"}]}}";
         if (profiles && request.startsWith("GET /hubs/continueWatching")) {
@@ -199,6 +201,7 @@ public final class PlexFixture implements AutoCloseable {
                                 .put("rating", 8.2).put("ratingImage", "imdb://image.rating")
                                 .put("Genre", new org.json.JSONArray().put(new org.json.JSONObject().put("tag", "Drama")))))).toString();
         if (request.startsWith("GET /library/all?type=2")) response = "{\"MediaContainer\":{\"Metadata\":[]}}";
+        if (request.startsWith("GET /library/metadata/21")) response = "{\"MediaContainer\":{\"Metadata\":[{\"ratingKey\":\"21\",\"type\":\"movie\",\"title\":\"Fixture Discovery Movie\",\"key\":\"/library/metadata/21\"}]}}";
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
         OutputStream output = socket.getOutputStream();
         output.write(("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "

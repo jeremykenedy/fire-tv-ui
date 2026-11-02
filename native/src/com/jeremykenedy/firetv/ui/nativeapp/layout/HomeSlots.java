@@ -37,6 +37,7 @@ public final class HomeSlots {
         widgets.add(new WorldClockWidgetProvider());
         widgets.add(new com.jeremykenedy.firetv.ui.nativeapp.widget.yearprogress.YearProgressWidgetProvider());
         widgets.add(new NotesWidgetProvider());
+        widgets.add(new com.jeremykenedy.firetv.ui.nativeapp.widget.watchlist.WatchlistWidgetProvider());
         widgets.add(new RemindersWidgetProvider());
         widgets.add(new QuickActionsWidgetProvider());
         widgets.add(new AstronomyWidgetProvider());

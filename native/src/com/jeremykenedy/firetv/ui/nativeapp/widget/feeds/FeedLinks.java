@@ -15,6 +15,14 @@ import com.jeremykenedy.firetv.ui.nativeapp.locks.LauncherLocks;
 /** An item can propose only an ordinary HTTPS browser link, opened after explicit user confirmation. */
 public final class FeedLinks {
     private FeedLinks() {}
+    public static void confirmSavedLink(final Activity activity, String title, final String url) {
+        final String host = FeedSource.validateUrl(url).getHost();
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Open saved link?")
+                .setMessage(title + "\n\nLink host: " + host + "\nAvailability is unknown.")
+                .setNegativeButton("Cancel", null).setPositiveButton("Open link", new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) { open(activity, url); }
+                }).show();
+    }
     public static void confirm(final Activity activity, FeedSource source, final FeedParser.Item item) {
         confirm(activity, source, item, null);
     }

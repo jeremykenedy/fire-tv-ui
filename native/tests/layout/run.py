@@ -71,6 +71,7 @@ WIDGETS = [
     ('worldclock', 'WorldClockWidgetProvider', 'world-clocks', 'World clocks'),
     ('yearprogress', 'YearProgressWidgetProvider', 'year-progress', 'Year progress'),
     ('notes', 'NotesWidgetProvider', 'household-notes', 'Household notes and lists'),
+    ('watchlist', 'WatchlistWidgetProvider', 'tonight-watchlist', 'Tonight watchlist'),
     ('breathing', 'BreathingWidgetProvider', 'breathing-break', 'Breathing break'),
     ('photos', 'PhotoWidgetProvider', 'photo-frame', 'Photo frame'),
     ('astronomy', 'AstronomyWidgetProvider', 'sun-moon', 'Sun and moon'),
