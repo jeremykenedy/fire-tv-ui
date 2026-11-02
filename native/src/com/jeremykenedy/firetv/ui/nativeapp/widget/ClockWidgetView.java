@@ -75,6 +75,7 @@ public final class ClockWidgetView extends LinearLayout {
     }
 
     public CharSequence timeText() { return time.getText(); }
+    public CharSequence dateText() { return date.getVisibility() == VISIBLE ? date.getText() : ""; }
 
     private void applyTimeFormat() {
         try {

@@ -14,6 +14,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.layout.WidgetProvider;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.ClockWidgetView;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherView;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherWidgetProvider;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,7 +82,8 @@ public final class WidgetGroupsView extends HorizontalScrollView {
             if (record.type.equals("Weather")) {
                 WeatherOptions options = WeatherGroupOptions.read(record);
                 WeatherWidgetProvider weather = new WeatherWidgetProvider();
-                content = weather.createView(activity, options); provider = weather;
+                content = weather.createView(activity, options);
+                ((WeatherView) content).setGroupedSize(record.size.equals("Small")); provider = weather;
             } else if (provider != null && provider.state(activity) == WidgetProvider.State.READY) {
                 content = provider.createView(activity);
             }
@@ -116,6 +118,14 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         frame.setTag(tag);
         frame.setFocusable(true);
         frame.setContentDescription(description);
+        frame.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                CharSequence detail = widgetSummary(content);
+                if (detail != null && detail.length() > 0)
+                    info.setContentDescription(description + ". " + detail);
+            }
+        });
         frame.setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
         final FocusTileView background = new FocusTileView(activity);
         background.setFocusable(false);
@@ -132,6 +142,18 @@ public final class WidgetGroupsView extends HorizontalScrollView {
             @Override public void onFocusChange(View view, boolean focused) { background.setPreviewFocused(focused); }
         });
         return frame;
+    }
+    private CharSequence widgetSummary(View content) {
+        if (content instanceof WeatherView) return ((WeatherView) content).accessibilitySummary();
+        if (content instanceof ClockWidgetView) {
+            ClockWidgetView clock = (ClockWidgetView) content;
+            CharSequence time = clock.timeText(), date = clock.dateText();
+            if (time == null || time.length() == 0) return date;
+            return date == null || date.length() == 0 ? time : time + ". " + date;
+        }
+        if (content instanceof LegacyYearProgressView)
+            return "Year " + LegacyYearProgressModel.at(java.time.LocalDate.now()).percent + "%";
+        return null;
     }
     private TextView label(String text) {
         TextView view = new TextView(activity); view.setText(text); view.setTextColor(Color.WHITE);

@@ -21,7 +21,7 @@ def run(*args):
     subprocess.run([str(arg) for arg in args], check=True)
 
 run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-    '-sourcepath', str(ROOT / 'src') + ':' + str(ROOT / '.build/gen'), '-implicit:none', '-d', WORK / 'classes', HERE / 'WeatherInstrumentation.java', HERE / 'WeatherFixture.java', HERE / 'WeatherPlaceInstrumentation.java', HERE / 'WeatherGroupInstrumentation.java')
+    '-sourcepath', str(ROOT / 'src') + ':' + str(ROOT / '.build/gen'), '-implicit:none', '-d', WORK / 'classes', HERE / 'WeatherInstrumentation.java', HERE / 'WeatherFixture.java', HERE / 'WeatherPlaceInstrumentation.java', HERE / 'WeatherGroupInstrumentation.java', HERE / 'WeatherGroupRenderInstrumentation.java')
 run(TOOLS / 'd8', '--release', '--lib', ANDROID, '--min-api', '27', '--output', WORK / 'dex',
     *sorted((WORK / 'classes').rglob('*.class')))
 run(TOOLS / 'aapt2', 'link', '-I', ANDROID, '--manifest', HERE / 'AndroidManifest.xml', '-o', WORK / 'base.apk')

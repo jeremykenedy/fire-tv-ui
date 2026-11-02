@@ -77,3 +77,33 @@ Native localized light effects are positioned over artwork lanterns, cottage win
 Four project-generated scene candidates are packaged at the paths recorded in `assets.json`, with their prompts in `prompts.json`. The Juneteenth image received a targeted built-in imagegen edit to its flag; the other three records identify original built-in outputs. No external source artwork was supplied. The four packaged images were inspected at their native 1672 by 941 dimensions. They show a Seder table, a temple garden with lotus lanterns, a neighborhood celebration with a white-star Juneteenth flag, and a Ramadan courtyard with lanterns and an iftar table, respectively. This inspection is not cultural or owner acceptance.
 
 The existing celebration layer places animated glows at scene-specific candles, lanterns and street or house lights. Motion Off and Reduced motion use the still image, and the optional overlay remains independent. Five host checks passed on the current source, including packaged byte and dimension verification. Native animation, sustained performance, target-TV detail and owner acceptance remain pending. These images are not 4K source images; no upscaling or 4K detail is claimed.
+
+## New Year, Epiphany, Eid al-Adha and Rosh Hashanah isolated candidates
+
+Four original images were generated with the built-in imagegen tool, without input or external stock imagery. The exact prompts and byte hashes are recorded in the adjacent JSON files. Native-resolution inspection found a New Year waterfront with fireworks, three Epiphany travelers under a star, an Eid al-Adha shared meal, and a Rosh Hashanah table with apples, honey, round challah and a shofar. The Eid image depicts a general celebration meal and awaits cultural and owner review.
+
+The isolated source candidate applies localized light animation to visible fireworks, star, lanterns and candles, using the existing scene motion, lifecycle and speed gates. Motion Off and Reduced motion retain the full still image. Native visual and performance checks, target-TV detail, cultural review and owner acceptance remain pending. The returned images are not 4K source and no 4K detail is claimed.
+
+## Yom Kippur, Sukkot, Purim and Holi isolated candidates
+
+Four original built-in imagegen outputs were generated without reference or stock images. The prompts and asset hashes are recorded alongside this file. Inspection at native resolution found a candle and prayer shawl in a synagogue, a leafy sukkah with citron and palm, Purim masks with hamantaschen and a noisemaker, and bowls of Holi colors in a courtyard. Scene-specific light positions use the existing lifecycle and motion gates. Native rendering, performance, cultural and owner acceptance remain pending. The returned files are not 4K sources.
+
+## Navratri, Janmashtami, Ganesh Chaturthi, Vaisakhi isolated candidates
+
+Native-resolution inspection found dandiya sticks and lamps, a decorated cradle with flute and butter, a Ganesha shrine with offerings, and wheat fields beside a gurdwara. Exact prompts and asset hashes are in the adjacent JSON files. These are original built-in imagegen outputs with no supplied reference or stock artwork. Scene-specific light positions use the existing lifecycle and motion gates. Native rendering, performance, cultural and owner acceptance remain pending. The returned files are not 4K sources.
+
+## Gurpurab, Losar, Obon, Mahavir Jayanti isolated candidates
+
+Native-resolution inspection found an illuminated gurdwara, a Tibetan New Year offering table and snowy village, floating Obon lanterns, and a flower-decorated Jain processional palanquin. Exact prompts and asset hashes are in the adjacent JSON files. These are original built-in imagegen outputs with no supplied reference or stock artwork. Scene-specific light positions use the existing lifecycle and motion gates. Native rendering, performance, cultural and owner acceptance remain pending. The returned files are not 4K sources.
+
+## Paryushan, Naw-Ruz, Ridvan, Nowruz isolated candidates
+
+Native-resolution inspection found a quiet marble temple, a spring garden meal, a riverside rose garden, and a Persian Haft-Sin table. The Paryushan composition has a bright center that needs readability review with launcher controls. Exact prompts and asset hashes are in the adjacent JSON files. These are original built-in imagegen outputs with no supplied reference or stock artwork. Scene-specific light positions use the existing lifecycle and motion gates. Native rendering, performance, cultural and owner acceptance remain pending. The returned files are not 4K sources.
+
+## Mehregan, Kwanzaa, Independence Day, Spring equinox isolated candidates
+
+Native-resolution inspection found a Persian autumn harvest table, seven correctly colored Kwanzaa candles, an Independence Day riverside fireworks scene and a spring meadow. The initial Independence Day town image and targeted edits were rejected because of an inaccurate flag and residual storefront lettering. The final scene was separately generated without input imagery; the prior candidate is privately archived and is not packaged. The spring image has a bright center needing launcher readability review. Exact prompts and asset hashes are in the adjacent JSON files. These are original built-in imagegen outputs with no supplied reference or stock artwork. Scene-specific light positions use the existing lifecycle and motion gates. Native rendering, performance, cultural and owner acceptance remain pending. The returned files are not 4K sources.
+
+## Summer solstice, Autumn equinox isolated candidates
+
+Native-resolution inspection found a summer lakeside meadow and an autumn maple stream. Both have bright skies needing launcher control readability review. Exact prompts and asset hashes are in the adjacent JSON files. These are original built-in imagegen outputs with no supplied reference or stock artwork. Scene-specific light positions use the existing lifecycle and motion gates. Native rendering, performance, cultural and owner acceptance remain pending. The returned files are not 4K sources.

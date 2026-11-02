@@ -35,16 +35,10 @@ public final class ProductionMigrationGate {
                     "fire_tv_ui_deep_sleep_enabled", "fire_tv_ui_dream_unlocked", "fire_tv_ui_preview_pending",
                     "fire_tv_ui_dream_enabled", "fire_tv_ui_sleep", "fire_tv_ui_sleep_saved",
                     "fire_tv_ui_auto_wake", "fire_tv_ui_idle", "fire_tv_ui_dream"}) unresolved.remove(key);
-            for (String key : new String[]{"fire_tv_ui_home_enabled", "start_on_boot", "override_home_button", "better_home_detection", "use_24h_clock", "featured_artwork_fit"}) {
+            for (String key : new String[]{"fire_tv_ui_home_enabled", "start_on_boot", "override_home_button", "better_home_detection"}) {
                 if (legacy.values().get(key) instanceof Boolean) unresolved.remove(key);
             }
-            if (legacy.values().get("minimal_status_bar") instanceof Boolean) {
-                unresolved.remove("minimal_status_bar");
-                for (String key : new String[]{"hide_status_bar_unless_focused", "tinted_status_bar"})
-                    if (legacy.values().get(key) instanceof Boolean) unresolved.remove(key);
-                Object position = legacy.values().get("status_bar_position");
-                if ("Left".equals(position) || "Right".equals(position)) unresolved.remove("status_bar_position");
-            }
+            unresolved.removeAll(LegacyPresentationMapper.directlyConsumedPresentationKeys(legacy.values()));
             // The maintained legacy launcher forces this compatibility flag on; the source UI
             // has no premium gate. Keep its original typed value for recovery.
             if (Boolean.TRUE.equals(legacy.values().get("is_premium"))) unresolved.remove("is_premium");

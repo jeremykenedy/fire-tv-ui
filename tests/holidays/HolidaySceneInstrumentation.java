@@ -101,7 +101,7 @@ public final class HolidaySceneInstrumentation extends Instrumentation {
                 view.setResumed(true); view.setScene(HolidayScenes.find("winter"), false, 50);
             } });
             stable("Motion off must restore the complete original winter still.");
-            for(final String id:new String[]{"hanukkah","diwali","eid_fitr","lunar_new_year","valentine","st_patrick","easter","thanksgiving","passover","vesak","juneteenth","ramadan"}) {
+            for(final String id:new String[]{"hanukkah","diwali","eid_fitr","lunar_new_year","valentine","st_patrick","easter","thanksgiving","passover","vesak","juneteenth","ramadan","new_year","epiphany","eid_adha","rosh_hashanah","yom_kippur","sukkot","purim","holi","navratri","janmashtami","ganesh_chaturthi","vaisakhi","gurpurab","losar","obon","mahavir_jayanti","paryushan","naw_ruz","ridvan","nowruz","mehrgan","kwanzaa","independence","spring","summer","autumn"}) {
                 onMain(new Runnable() { @Override public void run() { view.setScene(HolidayScenes.find(id),true,50); } });
                 waitForScene();
                 first=capture(); SystemClock.sleep(1400); second=capture();

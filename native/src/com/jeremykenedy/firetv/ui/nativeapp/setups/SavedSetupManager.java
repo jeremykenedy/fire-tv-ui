@@ -177,7 +177,9 @@ public final class SavedSetupManager {
                 empty.put(file, new PreferenceSnapshot(Collections.emptyMap()));
         LegacyPresentationMapper.Plan plan =
                 LegacyPresentationMapper.plan(new PreferenceSnapshot(present), identities, empty);
-        if (!plan.unmappedLegacyKeys.isEmpty())
+        Set<String> unresolved = new LinkedHashSet<>(plan.unmappedLegacyKeys);
+        unresolved.removeAll(LegacyPresentationMapper.directlyConsumedPresentationKeys(present));
+        if (!unresolved.isEmpty())
             throw new IOException(
                     "This legacy setup contains presentation choices that still need verified"
                             + " migration. The setup and all images have been kept.");

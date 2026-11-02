@@ -157,6 +157,240 @@
       "bytes": 2458279,
       "sha256": "f7bfbe9446a4333b5b7712e288bd8854cc801b1cb8654cb7ec89e8b8f05d19f1",
       "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "new_year",
+      "path": "native/res/drawable-nodpi/holiday_scene_new_year.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2535195,
+      "sha256": "4201b45ce88141c788000febe786e503be9560b58a9336057881bb46d2687600",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "epiphany",
+      "path": "native/res/drawable-nodpi/holiday_scene_epiphany.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2200483,
+      "sha256": "aa1284fd6befa063b66c037b708d66b7540c76f06fc43a3d878bb2323e1c3c0e",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "eid_adha",
+      "path": "native/res/drawable-nodpi/holiday_scene_eid_adha.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2693727,
+      "sha256": "b058b112fb1508556abd189e5a7393818ab875d248531140842c44a0c0337426",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "rosh_hashanah",
+      "path": "native/res/drawable-nodpi/holiday_scene_rosh_hashanah.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2292246,
+      "sha256": "01f876e864549b1d6385d7a222906b9cf582a964289dde8961459f56bac381f3",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "yom_kippur",
+      "path": "native/res/drawable-nodpi/holiday_scene_yom_kippur.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2038041,
+      "sha256": "ca513c58e50ae1b9bd897f7e9222b976c913079ebd1ce0cb5070e3c9e9c24b90",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "sukkot",
+      "path": "native/res/drawable-nodpi/holiday_scene_sukkot.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2774183,
+      "sha256": "270f204a1f89ef557ab1e08568e40e6db6c5c64f7f36e6bd591b06c7ac4c0062",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "purim",
+      "path": "native/res/drawable-nodpi/holiday_scene_purim.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2797059,
+      "sha256": "f4bba044aea05de648e09c8d2471cb2e769233de43e34e6bc8a47b728a41bdca",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "holi",
+      "path": "native/res/drawable-nodpi/holiday_scene_holi.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2500186,
+      "sha256": "209f699298b5b6838472b454211029d4192946f48a503c719e9dfda3c0f23c6e",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "navratri",
+      "path": "native/res/drawable-nodpi/holiday_scene_navratri.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2435691,
+      "sha256": "8d1b93d9ffa39b0c0ba45efdbf2a39b7d1834327e710de6ba8361b04597e7181",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "janmashtami",
+      "path": "native/res/drawable-nodpi/holiday_scene_janmashtami.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2219946,
+      "sha256": "46acab191ef4fcc251adc4d938f7476455daa7e386ec022c14c6c74dc8b05e7d",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "ganesh_chaturthi",
+      "path": "native/res/drawable-nodpi/holiday_scene_ganesh_chaturthi.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2349843,
+      "sha256": "a32261dcc3e64ffad4bf679ae4a8a6674096a219410c82f266680ff98e3c6bed",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "vaisakhi",
+      "path": "native/res/drawable-nodpi/holiday_scene_vaisakhi.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2670974,
+      "sha256": "2b8c2715fd216223110d6b970c79a65631787594d7409a3145ae3d3735b85125",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "gurpurab",
+      "path": "native/res/drawable-nodpi/holiday_scene_gurpurab.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2479776,
+      "sha256": "88631e115307e3a154736a3c849903308ab908847dd21a0da714c78fadc956c3",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "losar",
+      "path": "native/res/drawable-nodpi/holiday_scene_losar.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2680512,
+      "sha256": "10b86d41cf93d1258a7dd8cb7b60090a350eeeb0a4d888e1845596c8fc6cfa43",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "obon",
+      "path": "native/res/drawable-nodpi/holiday_scene_obon.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2731187,
+      "sha256": "54d0b5159f885fd4dc2f73564ddb1c9dd403e7051bed9473a10c28c149e97c01",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "mahavir_jayanti",
+      "path": "native/res/drawable-nodpi/holiday_scene_mahavir_jayanti.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2600809,
+      "sha256": "143ea22f955ccd6e961dbea88ddbce28a8f16e2b892edda22a1651d9473bb1a0",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "paryushan",
+      "path": "native/res/drawable-nodpi/holiday_scene_paryushan.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2160704,
+      "sha256": "5b62a0075235a112e3dfafa979104551a14120b2cea538ed67cf12c74121455e",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "naw_ruz",
+      "path": "native/res/drawable-nodpi/holiday_scene_naw_ruz.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2949140,
+      "sha256": "5b16b756af63a72cff950943743f764f3d5e427e2473fd9cbc9bf6aeccc7a387",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "ridvan",
+      "path": "native/res/drawable-nodpi/holiday_scene_ridvan.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2660272,
+      "sha256": "edd20d418aa77c536d3b4bea7d600eff958e867dfa6c8f78111a1fc527fcf966",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "nowruz",
+      "path": "native/res/drawable-nodpi/holiday_scene_nowruz.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2956369,
+      "sha256": "4de1453fa57af4205f658882455b75fa1e8d7ad895a73cf5d752a96b96de75c5",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "mehrgan",
+      "path": "native/res/drawable-nodpi/holiday_scene_mehrgan.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2667087,
+      "sha256": "8af51fbacc307a4da93f12f9b153687dcaf5b3c2bf055a2941d0fa1e11bd2adb",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "kwanzaa",
+      "path": "native/res/drawable-nodpi/holiday_scene_kwanzaa.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2171498,
+      "sha256": "33e63676a2307d8450210c749ce7218c6093c308acb53a88e779bbebd6cde1ea",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "independence",
+      "path": "native/res/drawable-nodpi/holiday_scene_independence.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2446085,
+      "sha256": "20d616f5b4903145baa754681ba6d6220307967685ec0fdadf608597e481f9a7",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "spring",
+      "path": "native/res/drawable-nodpi/holiday_scene_spring.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2855438,
+      "sha256": "2c7e720ade5e61f5368eb6af21c49e703a454a427f64b339db322764f15634fa",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "summer",
+      "path": "native/res/drawable-nodpi/holiday_scene_summer.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2373287,
+      "sha256": "0c7518a0e79f05ecbf2fbd28a1bbc38c25671c5285c7c47236911f74ec1d3773",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "autumn",
+      "path": "native/res/drawable-nodpi/holiday_scene_autumn.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3211719,
+      "sha256": "deb8d41a9ee3a5525dbd52fcf3e0d016efbc43d2480abf56c20c6edf2c328300",
+      "origin": "Original artwork generated for this project using built-in imagegen; no input images or external stock artwork."
     }
   ]
 }

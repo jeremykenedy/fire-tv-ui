@@ -96,8 +96,13 @@ public final class WeatherForecast {
         ZoneId displayZone = options.deviceTime ? ZoneId.systemDefault() : ZoneId.of(zone);
         DateTimeFormatter stamp = DateTimeFormatter.ofPattern("MMM d HH:mm z", Locale.getDefault()).withZone(displayZone);
         return "National Weather Service\n" + (options.deviceTime ? "TV time: " : "Location time: ") + displayZone.getId()
-                + "\nUpdated " + stamp.format(Instant.ofEpochMilli(updatedAt))
+                + "\n" + updatedText(options)
                 + "\nChecked " + stamp.format(Instant.ofEpochMilli(receivedAt));
+    }
+    String updatedText(WeatherOptions options) {
+        ZoneId displayZone = options.deviceTime ? ZoneId.systemDefault() : ZoneId.of(zone);
+        DateTimeFormatter stamp = DateTimeFormatter.ofPattern("MMM d HH:mm z", Locale.getDefault()).withZone(displayZone);
+        return "Updated " + stamp.format(Instant.ofEpochMilli(updatedAt));
     }
     public String display(WeatherOptions options, long now, int count, boolean time24) {
         String label = options.label.isEmpty() ? "Selected location" : options.label;

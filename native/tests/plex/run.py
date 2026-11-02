@@ -15,7 +15,7 @@ ANDROID = Path.home() / 'Library/Android/sdk/platforms/android-36/android.jar'
 PURE = ['PlexTransportPolicy', 'PlexValues', 'PlexLibrary', 'PlexFeedSettings', 'PlexFeedData', 'PlexItemLinks',
         'PlexResources', 'PlexArtworkRedirect', 'PlexHomeUsers', 'PlexSession', 'PlexConnection', 'LegacyPlexCardLookup', 'LegacyPlexArtworkPath']
 TESTS = ['PlexLibraryTest', 'PlexFeedDataTest', 'PlexItemLinksTest', 'PlexFeedSettingsTest',
-         'PlexResourcesTest', 'PlexArtworkRedirectTest', 'PlexHomeUsersTest', 'PlexAdapterTest', 'LegacyPlexCardLookupTest', 'LegacyPlexArtworkPathTest']
+         'PlexResourcesTest', 'PlexArtworkRedirectTest', 'PlexHomeUsersTest', 'PlexAdapterTest', 'PlexProfileConnectionTest', 'PlexSessionTest', 'LegacyPlexCardLookupTest', 'LegacyPlexArtworkPathTest']
 with tempfile.TemporaryDirectory(prefix='source-plex-tests-') as directory:
     work = Path(directory)
     runtime = str(json_runtime())
@@ -29,7 +29,8 @@ with tempfile.TemporaryDirectory(prefix='source-plex-tests-') as directory:
     integration = work / 'integration'
     integration.mkdir()
     files = list((SOURCE / 'providers/plex').glob('*.java')) + [SOURCE / 'providers/discovery' / (name + '.java') for name in ('DiscoveryItem', 'PlexDiscoveryMetadata')] + [
-        SOURCE / 'providers/TvRecommendations.java', SOURCE / 'providers/RecommendationActions.java', SOURCE / 'providers/RecommendationKeys.java', SOURCE / 'providers/OwnedPlexIdentity.java',
+        SOURCE / 'providers/TvRecommendations.java', SOURCE / 'providers/RecommendationActions.java', SOURCE / 'providers/RecommendationKeys.java', SOURCE / 'providers/OwnedPlexIdentity.java', SOURCE / 'providers/NotificationRecommendations.java', SOURCE / 'providers/NotificationRules.java',
+        *[SOURCE / 'locks' / (name + '.java') for name in ('LauncherLocks', 'LockStore', 'LockState', 'LockResult')],
         SOURCE / 'layout/LayoutItem.java', SOURCE / 'Pages.java', SOURCE / 'SourceStartup.java', Path(__file__).parent / 'PlexFixture.java']
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
                     '-bootclasspath', str(ANDROID), '-classpath', str(ROOT / '.build/classes'), '-d', str(integration), *map(str, files), *map(str, (SOURCE / 'accessibility').glob('*.java'))], check=True)

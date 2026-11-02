@@ -157,7 +157,7 @@ public class WinterTest {
 
     def test_packaged_scene_bytes_match_provenance(self):
         manifest = json.loads((ROOT / 'native/holiday-art/assets.json').read_text())
-        self.assertEqual({'halloween', 'christmas', 'winter', 'halloween_clean', 'halloween_walk', 'hanukkah', 'diwali', 'eid_fitr', 'lunar_new_year', 'valentine', 'st_patrick', 'easter', 'thanksgiving', 'passover', 'vesak', 'juneteenth', 'ramadan'}, {a['id'] for a in manifest['assets']})
+        self.assertEqual({'halloween', 'christmas', 'winter', 'halloween_clean', 'halloween_walk', 'hanukkah', 'diwali', 'eid_fitr', 'lunar_new_year', 'valentine', 'st_patrick', 'easter', 'thanksgiving', 'passover', 'vesak', 'juneteenth', 'ramadan', 'new_year', 'epiphany', 'eid_adha', 'rosh_hashanah', 'yom_kippur', 'sukkot', 'purim', 'holi', 'navratri', 'janmashtami', 'ganesh_chaturthi', 'vaisakhi', 'gurpurab', 'losar', 'obon', 'mahavir_jayanti', 'paryushan', 'naw_ruz', 'ridvan', 'nowruz', 'mehrgan', 'kwanzaa', 'independence', 'spring', 'summer', 'autumn'}, {a['id'] for a in manifest['assets']})
         for asset in manifest['assets']:
             data = (ROOT / asset['path']).read_bytes()
             self.assertEqual(asset['bytes'], len(data))

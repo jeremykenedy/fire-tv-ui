@@ -74,6 +74,19 @@ public final class LegacyPresentationMapper {
         mapper.grid(); mapper.focus(); mapper.cards(); mapper.iconsAndVisibility(); mapper.inputs(); mapper.appearance(); mapper.contentMode();
         return mapper.finish();
     }
+    public static Set<String> directlyConsumedPresentationKeys(Map<String, ?> legacy) {
+        Set<String> accepted = new LinkedHashSet<>();
+        for (String key : new String[]{"use_24h_clock", "featured_artwork_fit"})
+            if (legacy.get(key) instanceof Boolean) accepted.add(key);
+        if (legacy.get("minimal_status_bar") instanceof Boolean) {
+            accepted.add("minimal_status_bar");
+            for (String key : new String[]{"hide_status_bar_unless_focused", "tinted_status_bar"})
+                if (legacy.get(key) instanceof Boolean) accepted.add(key);
+            Object position = legacy.get("status_bar_position");
+            if ("Left".equals(position) || "Right".equals(position)) accepted.add("status_bar_position");
+        }
+        return accepted;
+    }
     public static Map<String, Set<String>> ownedNativeKeys(Set<String> legacyKeys, PresentationMappingContext identities) {
         Map<String, Set<String>> result = new LinkedHashMap<>();
         for (String file : FILES) if (!file.equals(LauncherMigration.PREFERENCES)) result.put(file, new LinkedHashSet<String>());
@@ -117,7 +130,9 @@ public final class LegacyPresentationMapper {
         // Without both explicit choices the inherited widget default cannot be inferred from its stored type.
         if (!legacy.containsKey("hide_watch_next") || !legacy.containsKey("enable_widgets")) return;
         boolean cards = !bool("hide_watch_next"), widgets = bool("enable_widgets");
-        put(LAYOUT, "mode", cards ? (widgets ? "BOTH" : "CARDS_ONLY") : (widgets ? "WIDGETS_ONLY" : "NONE"));
+        // Widget visibility with a visible recommendation feed remains unverified.
+        if (widgets) return;
+        put(LAYOUT, "mode", cards ? "CARDS_ONLY" : "NONE");
         mapped.add("hide_watch_next"); mapped.add("enable_widgets");
     }
     private void appearance() {

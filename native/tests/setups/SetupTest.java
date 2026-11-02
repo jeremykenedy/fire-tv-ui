@@ -180,6 +180,53 @@ public final class SetupTest {
         check(
                 legacyPlan.get("launcher_prefs").values().get("menu_overlay_frozen").equals(false),
                 "legacy subset preserves unrelated presentation keys");
+        Map<String, PreferenceSnapshot> beforeDirect = PresentationState.capture(context);
+        prefs(context, "launcher_prefs").values.put("use_24h_clock", false);
+        prefs(context, "launcher_prefs").values.put("featured_artwork_fit", true);
+        prefs(context, "launcher_prefs").values.put("minimal_status_bar", false);
+        prefs(context, "launcher_prefs").values.put("tinted_status_bar", true);
+        JSONObject direct = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("use_24h_clock", "featured_artwork_fit",
+                        "minimal_status_bar", "status_bar_position", "hide_status_bar_unless_focused")))
+                .put("values", new JSONObject().put("use_24h_clock", true)
+                        .put("minimal_status_bar", true).put("status_bar_position", "Left")
+                        .put("hide_status_bar_unless_focused", false));
+        Map<String, PreferenceSnapshot> directTarget = manager.prepareLegacy(direct,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true);
+        Map<String, Object> directValues = directTarget.get("launcher_prefs").values();
+        check(Boolean.TRUE.equals(directValues.get("use_24h_clock"))
+                && !directValues.containsKey("featured_artwork_fit")
+                && Boolean.TRUE.equals(directValues.get("minimal_status_bar"))
+                && "Left".equals(directValues.get("status_bar_position"))
+                && Boolean.FALSE.equals(directValues.get("hide_status_bar_unless_focused"))
+                && Boolean.TRUE.equals(directValues.get("tinted_status_bar")),
+                "Legacy direct choices apply, owned absence resets and unowned tint remains.");
+        Map<String, PreferenceSnapshot> beforeDirectApply = PresentationState.capture(context);
+        prefs(context, "launcher_prefs").failures = 1;
+        rejects(() -> PresentationState.apply(context, directTarget, true), "Direct choice commit failure rejected.");
+        check(same(beforeDirectApply, PresentationState.capture(context)) && !PresentationState.hasRecovery(context),
+                "Direct choice commit failure restores exact prior preferences.");
+        PresentationState.apply(context, directTarget, true);
+        check(prefs(context, "launcher_prefs").values.get("use_24h_clock").equals(true)
+                && !prefs(context, "launcher_prefs").values.containsKey("featured_artwork_fit"),
+                "Applying a setup persists direct choices and reset.");
+        Map<String, PreferenceSnapshot> appliedDirect = PresentationState.capture(context);
+        for (JSONObject bad : Arrays.asList(
+                new JSONObject().put("keys", new JSONArray(Arrays.asList("minimal_status_bar")))
+                        .put("values", new JSONObject().put("minimal_status_bar", "true")),
+                new JSONObject().put("keys", new JSONArray(Arrays.asList("status_bar_position")))
+                        .put("values", new JSONObject().put("status_bar_position", "Left")),
+                new JSONObject().put("keys", new JSONArray(Arrays.asList("minimal_status_bar", "status_bar_position")))
+                        .put("values", new JSONObject().put("minimal_status_bar", true).put("status_bar_position", "Center")),
+                new JSONObject().put("keys", new JSONArray(Arrays.asList("use_24h_clock", "poster_mode")))
+                        .put("values", new JSONObject().put("use_24h_clock", false).put("poster_mode", true)))) {
+            rejects(() -> manager.prepareLegacy(bad,
+                    com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true),
+                    "Malformed, incomplete or unsupported direct choice blocks setup.");
+            check(same(appliedDirect, PresentationState.capture(context)) && !PresentationState.hasRecovery(context),
+                    "Rejected preparation leaves preferences and journal unchanged.");
+        }
+        PresentationState.apply(context, beforeDirect, true);
         Map<String, Object> previousAppearance = new LinkedHashMap<>(prefs(context, "source_appearance").values);
         prefs(context, "source_appearance").values.put("scene", "christmas");
         prefs(context, "source_appearance").values.put("base", "aurora");

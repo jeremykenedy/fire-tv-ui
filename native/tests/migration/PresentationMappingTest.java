@@ -172,11 +172,25 @@ public final class PresentationMappingTest {
         }
     }
     private static void contentModeMapping() throws Exception {
-        for (Object[] choice : new Object[][]{{false, true, "BOTH"}, {false, false, "CARDS_ONLY"}, {true, true, "WIDGETS_ONLY"}, {true, false, "NONE"}}) {
+        for (Object[] choice : new Object[][]{{false, false, "CARDS_ONLY"}, {true, false, "NONE"}}) {
             Map<String, Object> legacy = new LinkedHashMap<>(); legacy.put("hide_watch_next", choice[0]); legacy.put("enable_widgets", choice[1]);
             LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(legacy), identities(), Collections.emptyMap());
             check(plan.after.get(LegacyPresentationMapper.LAYOUT).values().get("mode").equals(choice[2]), "Explicit card and widget visibility maps to stable content mode.");
             check(plan.unmappedLegacyKeys.isEmpty(), "Only both explicit flags establish a complete content-mode mapping.");
+        }
+        Map<String, Object> hiddenWithWidgets = new LinkedHashMap<>(); hiddenWithWidgets.put("hide_watch_next", true); hiddenWithWidgets.put("enable_widgets", true);
+        LegacyPresentationMapper.Plan unresolved = LegacyPresentationMapper.plan(snapshot(hiddenWithWidgets), identities(), Collections.emptyMap());
+        check(unresolved.unmappedLegacyKeys.equals(set("hide_watch_next", "enable_widgets")) && unresolved.patches.isEmpty(), "The observed hidden row remains unresolved until its behavior with cards is verified.");
+        check(unresolved.after.get(LauncherMigration.PREFERENCES).values().get("hide_watch_next").equals(true)
+                && unresolved.after.get(LauncherMigration.PREFERENCES).values().get("enable_widgets").equals(true), "Original content choices remain intact.");
+        hiddenWithWidgets.put("hide_watch_next", false);
+        LegacyPresentationMapper.Plan coexistence = LegacyPresentationMapper.plan(snapshot(hiddenWithWidgets), identities(), Collections.emptyMap());
+        check(coexistence.unmappedLegacyKeys.equals(set("hide_watch_next", "enable_widgets")) && coexistence.patches.isEmpty(), "Cards and widgets together require visible-feed proof.");
+        for (LegacyPresentationMapper.Plan held : Arrays.asList(unresolved, coexistence)) {
+            PresentationSnapshot original = new PresentationSnapshot(held.before);
+            FixtureDisk disk = new FixtureDisk(original);
+            reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), original, identities(), null));
+            check(disk.events.isEmpty() && original.sameValues(new FixtureStore(disk).read()), "Unverified content mode blocks before writing any store.");
         }
         LegacyPresentationMapper.Plan unknownDefault = LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("hide_watch_next", false)), identities(), Collections.emptyMap());
         check(unknownDefault.patches.isEmpty() && unknownDefault.unmappedLegacyKeys.equals(set("hide_watch_next")), "Absent widget default is not guessed.");

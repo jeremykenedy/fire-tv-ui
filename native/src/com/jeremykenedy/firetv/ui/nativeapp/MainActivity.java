@@ -32,6 +32,9 @@ import com.jeremykenedy.firetv.ui.nativeapp.cards.ChannelCardView;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.HomeContentView;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationLoader;
 import com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundLayer;
+import com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearanceOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearancePreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.appearance.LegacyGradients;
 import com.jeremykenedy.firetv.ui.nativeapp.locks.LauncherLocks;
 import com.jeremykenedy.firetv.ui.nativeapp.folders.FolderActivity;
 import com.jeremykenedy.firetv.ui.nativeapp.folders.FolderOptions;
@@ -68,6 +71,10 @@ public final class MainActivity extends Activity {
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private final List<FocusTileView> tiles = new ArrayList<>();
     private LinearLayout appArea;
+    private LinearLayout homeBody;
+    private TextView homeTitle;
+    private boolean homeTextContrast;
+    private final java.util.WeakHashMap<TextView, TextShadow> homeShadows = new java.util.WeakHashMap<>();
     private LinearLayout statusBarArea;
     private String statusBarState;
     private Button settings;
@@ -164,12 +171,14 @@ public final class MainActivity extends Activity {
         if (saved != null) focusedApp = saved.getString("focused_app");
         restoringGridFocus = focusedApp != null;
         LinearLayout body = Pages.page(this);
+        homeBody = body;
         statusBarArea = new LinearLayout(this);
         statusBarArea.setTag("home:statusbar-container");
         body.addView(statusBarArea, new LinearLayout.LayoutParams(-1, -2));
         refreshStatusBar();
-        body.addView(Pages.text(this, "com.jeremykenedy.firetv.ui".equals(getPackageName())
-                ? getApplicationInfo().loadLabel(getPackageManager()).toString() : "Fire TV UI Preview", 30));
+        homeTitle = Pages.text(this, "com.jeremykenedy.firetv.ui".equals(getPackageName())
+                ? getApplicationInfo().loadLabel(getPackageManager()).toString() : "Fire TV UI Preview", 30);
+        body.addView(homeTitle);
         LinearLayout actions = new LinearLayout(this);
         settings = Pages.button(this, "Settings", new View.OnClickListener() {
             @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, SettingsActivity.class)); }
@@ -430,8 +439,8 @@ public final class MainActivity extends Activity {
             addGridTile(grid, tile, tileWidth, tileHeight);
             if (key.equals(focusedApp)) restore = tile;
         }
-        for (String message : messages) grid.addView(Pages.text(this, message, 16));
-        if (tiles.isEmpty()) grid.addView(Pages.text(this, "No visible apps. Show apps in Settings → Home layout → Apps grid.", 18));
+        for (String message : messages) grid.addView(homeMessage(message, 16));
+        if (tiles.isEmpty()) grid.addView(homeMessage("No visible apps. Show apps in Settings → Home layout → Apps grid.", 18));
         if (restoreTile) {
             if (restore != null) restore.requestFocus();
             else if (!tiles.isEmpty()) { tiles.get(0).requestFocus(); focusedApp = String.valueOf(tiles.get(0).getTag()); }
@@ -439,6 +448,53 @@ public final class MainActivity extends Activity {
         }
         restoringGridFocus = false;
         AccessibilityStyle.apply(this, getWindow().getDecorView());
+    }
+
+    private TextView homeMessage(String message, int size) {
+        TextView text = Pages.text(this, message, size);
+        setHomeTextContrast(text);
+        return text;
+    }
+
+    private static final class TextShadow {
+        final float radius, dx, dy;
+        final int color;
+        TextShadow(TextView text) {
+            radius = text.getShadowRadius(); dx = text.getShadowDx(); dy = text.getShadowDy();
+            color = text.getShadowColor();
+        }
+        void restore(TextView text) { text.setShadowLayer(radius, dx, dy, color); }
+    }
+
+    private void setHomeTextContrast(TextView text) {
+        if (homeTextContrast) {
+            if (!homeShadows.containsKey(text)) homeShadows.put(text, new TextShadow(text));
+            text.setShadowLayer(Pages.dp(this, 2), 0, Pages.dp(this, 1), 0xff000000);
+        } else {
+            TextShadow original = homeShadows.remove(text);
+            if (original != null) original.restore(text);
+        }
+    }
+
+    private void setStatusClockContrast(View view) {
+        if (view instanceof TextView) setHomeTextContrast((TextView) view);
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) setStatusClockContrast(group.getChildAt(i));
+        }
+    }
+
+    private void refreshHomeAppearance() {
+        AppearanceOptions options = AppearancePreferences.load(this);
+        boolean clearLegacyGradient = options.base.equals("still_legacy_gradient") && options.scene.isEmpty()
+                && LegacyGradients.index(options.legacyGradient) >= 0;
+        homeBody.setBackgroundColor(clearLegacyGradient ? 0x00000000 : 0x66101523);
+        homeTextContrast = clearLegacyGradient || !options.scene.isEmpty();
+        homeContent.setWidgetReadability(homeTextContrast);
+        setHomeTextContrast(homeTitle);
+        setHomeTextContrast(cardStatus);
+        View clock = statusBarArea.findViewWithTag("statusbar:clock");
+        if (clock != null) setStatusClockContrast(clock);
     }
 
     private void addGridTile(GridLayout grid, FocusTileView tile, int width, int height) {
@@ -611,6 +667,7 @@ public final class MainActivity extends Activity {
     }
     private void resumeHome() {
         refreshStatusBar();
+        refreshHomeAppearance();
         DeviceRoutes.launcherVisibility(this, true);
         SourceStartup.startProtection(this, new Runnable() {
             @Override public void run() {

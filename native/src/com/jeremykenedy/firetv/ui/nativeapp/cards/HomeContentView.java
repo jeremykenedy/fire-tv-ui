@@ -44,6 +44,7 @@ public final class HomeContentView extends HorizontalScrollView {
     private final List<TvRecommendations.Feed> feeds = new ArrayList<>();
     private TvRecommendations.Status status = TvRecommendations.Status.EMPTY;
     private boolean resumed;
+    private boolean widgetReadability;
     private boolean checking = true;
     private LayoutOptions dashboardLayout;
     private boolean preserveDashboardSlots;
@@ -71,6 +72,12 @@ public final class HomeContentView extends HorizontalScrollView {
         row.setClipChildren(false);
         row.setClipToPadding(false);
         addView(row, new HorizontalScrollView.LayoutParams(-2, -2));
+    }
+
+    public void setWidgetReadability(boolean enabled) {
+        if (widgetReadability == enabled) return;
+        widgetReadability = enabled;
+        for (Slot slot : slots.values()) slot.updateWidgetBacking();
     }
 
     public long beginRefresh() {
@@ -317,6 +324,7 @@ public final class HomeContentView extends HorizontalScrollView {
             super(activity);
             this.item = item;
             provider = HomeSlots.widget(item.key());
+            updateWidgetBacking();
             title = titles.containsKey(item.key()) ? titles.get(item.key()) : HomeSlots.title(item.key());
             setTag("slot:" + item.key());
             setFocusable(true);
@@ -353,6 +361,15 @@ public final class HomeContentView extends HorizontalScrollView {
             setOnLongClickListener(new OnLongClickListener() {
                 @Override public boolean onLongClick(View view) { select(true); return true; }
             });
+        }
+
+        void updateWidgetBacking() {
+            if (provider != null && widgetReadability) {
+                android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
+                surface.setColor(0xd9101523);
+                surface.setCornerRadius(dp(14));
+                setBackground(surface);
+            } else setBackground(null);
         }
 
         void update(TvRecommendations.Feed feed, CardOptions options) {
