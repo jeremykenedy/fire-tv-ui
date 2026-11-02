@@ -52,9 +52,6 @@ The separately installed alpha provides a native Home interface, app organizatio
 
 Use the [source preview guide](docs/source-preview.md) for installation, included features, data boundaries and known limits. Optional work beyond the frozen first cut is excluded.
 
-<p align="center"><a href="docs/source-preview.md#screenshots"><img src="art/screenshots/source-alpha-home-api34.png" alt="Fire TV UI Source Preview 2.0.0-alpha.1 Home on an API 34 TV emulator, showing the default clock, stock apps and TV listings access state" width="900"></a></p>
-
-Source Preview 2.0.0-alpha.1/code 2, captured from the verified signed alpha interface on an API 34 TV emulator. See the [preview gallery](docs/source-preview.md#screenshots) for Settings and Focus and motion. Physical-TV acceptance remains separate.
 
 ## Requirements
 
@@ -172,9 +169,11 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Stable Fire TV UI 1.17.0/code 78 on Android TV API 34. This historical stable image is separate from the [source-preview gallery](docs/source-preview.md#screenshots). Audio brand artwork and individual factory resets are available from each tile. The [full gallery](docs/screenshots.md) includes input naming and earlier features labeled by version.
+Fire TV UI 1.17.0, the current stable release, running on an Android TV emulator. This example shows stock apps without personal accounts; your installed apps, inputs, widgets and background determine your Home layout.
 
-<p align="center"><img src="art/screenshots/audio-brand-picker-ui117-code78-api34.png" alt="Fire TV UI 1.17 native audio brand icon picker" width="900"></p>
+<p align="center"><a href="docs/screenshots.md"><img src="art/screenshots/home-ui117-code78-api34.png" alt="Fire TV UI 1.17 Home with a purple gradient, status bar and app tiles" width="900"></a></p>
+
+See the [current Home and Settings captures](docs/screenshots.md#current-stable-interface) or the separately labeled [early source preview](docs/source-preview.md#screenshots).
 
 ## License
 

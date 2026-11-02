@@ -1,5 +1,19 @@
 # Screenshots
 
+## Current stable interface
+
+Fresh, unmodified captures from published Fire TV UI 1.17.0/code 78 at 1920x1080 on Android TV API 34. This example uses a fresh emulator with stock apps and no personal accounts. Your installed apps, inputs, widgets and selected appearance change the Home layout.
+
+<table>
+  <tr>
+    <td><a href="../art/screenshots/home-ui117-code78-api34.png"><img src="../art/screenshots/home-ui117-code78-api34.png" alt="Fire TV UI 1.17 Home with purple gradient, status bar and stock app tiles"></a><br>Home</td>
+    <td><a href="../art/screenshots/settings-ui117-code78-api34.png"><img src="../art/screenshots/settings-ui117-code78-api34.png" alt="Fire TV UI 1.17 Settings panel over the Home screen"></a><br>Settings</td>
+    <td><a href="../art/screenshots/backgrounds-ui117-code78-api34.png"><img src="../art/screenshots/backgrounds-ui117-code78-api34.png" alt="Fire TV UI 1.17 Backgrounds and overlays controls"></a><br>Backgrounds and overlays</td>
+  </tr>
+</table>
+
+[Capture provenance](../art/screenshots/ui117-overview-provenance.json) records the exact public APK and raw image hashes. The [source preview gallery](source-preview.md#screenshots) shows the separate early alpha interface. Earlier feature captures remain labeled by version below.
+
 ## Fire TV UI 1.17.0, code 78
 
 Native Android TV API 34 and Fire TV captures from version code 78. The picker fits the complete wide logo, and each tile offers an individual factory reset. Input menus scroll so Rename input and Use factory name remain reachable with the remote.
