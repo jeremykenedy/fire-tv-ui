@@ -87,6 +87,7 @@ WIDGETS = [
     ('nowplaying', 'NowPlayingWidgetProvider', 'now-playing', 'Now Playing'),
     ('weather', 'WeatherWidgetProvider', 'weather-hourly', 'Hourly weather'),
     ('feeds', 'FeedWidgetProvider', 'custom-feed', 'Custom feed'),
+    ('history', 'HistoryWidgetProvider', 'on-this-day', 'On This Day'),
     ('radar', 'RadarWidgetProvider', 'weather-radar', 'NWS radar'),
     ('uv', 'UvWidgetProvider', 'uv-forecast', 'UV forecast'),
 ]

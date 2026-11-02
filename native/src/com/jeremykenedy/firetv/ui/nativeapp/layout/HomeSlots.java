@@ -56,6 +56,7 @@ public final class HomeSlots {
         widgets.add(new com.jeremykenedy.firetv.ui.nativeapp.widget.uv.UvWidgetProvider());
         widgets.add(new FeedWidgetProvider());
         widgets.addAll(com.jeremykenedy.firetv.ui.nativeapp.widget.dailycontent.DailyContentWidgets.providers());
+        widgets.add(new com.jeremykenedy.firetv.ui.nativeapp.widget.history.HistoryWidgetProvider());
         return Collections.unmodifiableList(widgets);
     }
 

@@ -49,7 +49,7 @@ public final class FeedLinks {
             return listed ? request.setComponent(new ComponentName(info.packageName, info.name)) : null;
         } catch (RuntimeException unavailable) { return null; }
     }
-    private static void open(final Activity activity, final String url) {
+    public static void open(final Activity activity, final String url) {
         final Intent target = resolve(activity, url);
         if (target == null) { unavailable(activity); return; }
         final String destination = target.getComponent().flattenToString();
