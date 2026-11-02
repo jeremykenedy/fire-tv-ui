@@ -14,7 +14,7 @@ import java.util.List;
 public final class PlexRepository {
     public static final String PACKAGE = "com.plexapp.android";
     private static final String PREFERENCES = "source_plex";
-    public enum Status { DISABLED, NOT_CONNECTED, READY, EMPTY, UNAVAILABLE }
+    public enum Status { DISABLED, NOT_CONNECTED, READY, EMPTY, PARTIAL, UNAVAILABLE }
     public static final class Result {
         public final Status status;
         public final List<TvRecommendations.Feed> feeds;
@@ -32,6 +32,7 @@ public final class PlexRepository {
                 case NOT_CONNECTED: return "Connect Plex on this device to read your library.";
                 case READY: return feeds.size() + " Plex feeds available. Title links open details; choose playback in Plex.";
                 case EMPTY: return "The selected Plex feeds have no supported titles.";
+                case PARTIAL: return "Some Plex Home profiles could not be read. Check profile access and refresh. Saved connections were kept.";
                 default: return "Plex could not be read. Your saved connection was kept. Check setup and refresh.";
             }
         }
@@ -49,17 +50,25 @@ public final class PlexRepository {
         List<TvRecommendations.Feed> result = new ArrayList<>();
         if (!enabled(context)) return new Result(Status.DISABLED, result);
         check(cancellation);
+        final long generation = PlexSession.generation();
         try {
             PlexConnection connection = PlexConnection.load(context);
+            check(cancellation, generation);
             if (connection == null) return new Result(Status.NOT_CONNECTED, result);
             // Reading does not rotate identity, authorize an account or change the saved connection.
-            readConnection(context, connection, null, result, cancellation);
+            readConnection(context, connection, null, result, cancellation, generation);
+            boolean partial = false;
             for (PlexConnection.Profile profile : connection.profiles) {
-                check(cancellation);
-                readConnection(context, connection.forProfile(profile), profile.name, result, cancellation);
+                check(cancellation, generation);
+                try { readConnection(context, connection.forProfile(profile), profile.name, result, cancellation, generation); }
+                catch (OperationCanceledException canceled) { throw canceled; }
+                catch (java.util.concurrent.CancellationException canceled) { throw new OperationCanceledException(); }
+                catch (Exception unavailable) { check(cancellation, generation); partial = true; }
             }
-            return new Result(result.isEmpty() ? Status.EMPTY : Status.READY, result);
+            check(cancellation, generation);
+            return new Result(partial ? Status.PARTIAL : result.isEmpty() ? Status.EMPTY : Status.READY, result);
         } catch (OperationCanceledException canceled) { throw canceled; }
+        catch (java.util.concurrent.CancellationException canceled) { throw new OperationCanceledException(); }
         catch (PlexApi.TransportUnavailable policy) { return new Result(Status.UNAVAILABLE,
                 Collections.<TvRecommendations.Feed>emptyList(), policy.getMessage()); }
         catch (IllegalArgumentException address) { return new Result(Status.UNAVAILABLE,
@@ -71,10 +80,14 @@ public final class PlexRepository {
         if (cancellation != null) cancellation.throwIfCanceled();
         if (Thread.currentThread().isInterrupted()) throw new OperationCanceledException();
     }
-    private static void readConnection(Context context, final PlexConnection connection, String profile,
-            List<TvRecommendations.Feed> result, final CancellationSignal cancellation) throws Exception {
-        final PlexApi api = new PlexApi(context, PlexSession.generation(), cancellation);
+    private static void check(CancellationSignal cancellation, long generation) {
         check(cancellation);
+        if (!PlexSession.current(generation)) throw new OperationCanceledException();
+    }
+    private static void readConnection(Context context, final PlexConnection connection, String profile,
+            List<TvRecommendations.Feed> result, final CancellationSignal cancellation, final long generation) throws Exception {
+        final PlexApi api = new PlexApi(context, generation, cancellation);
+        check(cancellation, generation);
         String actual = api.server(connection, "/").getJSONObject("MediaContainer").optString("machineIdentifier", "");
         if (!connection.machine.equals(actual)) throw new java.io.IOException("Plex server identity changed.");
         PlexFeedSettings settings = profile == null ? connection.feeds : new PlexFeedSettings(
@@ -82,15 +95,17 @@ public final class PlexRepository {
                 Collections.<String>emptySet(), connection.feeds.cards);
         List<PlexFeedData.Feed> feeds = PlexFeedData.read(new PlexFeedData.Reader() {
             @Override public org.json.JSONObject read(String path, int count) throws Exception {
-                check(cancellation);
-                return api.server(connection, path, count);
+                check(cancellation, generation);
+                org.json.JSONObject response = api.server(connection, path, count);
+                check(cancellation, generation);
+                return response;
             }
         }, settings);
         for (PlexFeedData.Feed feed : feeds) {
-            check(cancellation);
+            check(cancellation, generation);
             List<TvRecommendations.Program> programs = new ArrayList<>();
             for (PlexLibrary.Item item : feed.items) {
-                check(cancellation);
+                check(cancellation, generation);
                 String details = PlexItemLinks.details(connection.machine, item);
                 // A details handoff is the only supported action. No duplicate play/resume action.
                 if (details == null) continue;
@@ -101,7 +116,8 @@ public final class PlexRepository {
                 Uri artwork = null;
                 try { artwork = PlexArtworkProvider.cache(context, api, connection, item); }
                 catch (OperationCanceledException canceled) { throw canceled; }
-                catch (Exception unavailable) { /* Cards remain available when artwork is unavailable. */ }
+                catch (java.util.concurrent.CancellationException canceled) { throw new OperationCanceledException(); }
+                catch (Exception unavailable) { check(cancellation, generation); /* Cards remain available when artwork is unavailable. */ }
                 programs.add(new TvRecommendations.Program("plex:" + source + ":" + item.id,
                         PACKAGE, item.title, artwork, target, series,
                         series == null ? null : item.seriesTitle, target, null));

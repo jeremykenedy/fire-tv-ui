@@ -269,6 +269,7 @@ public final class PresentationMappingTest {
             check(mapped.after.get(LegacyPresentationMapper.ICON_PACKS).values().get("package").equals(builtin[1]), "Maintained built-in pack identifiers preserve the named native style choice.");
         }
         reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "builtin:holiday:christmas")), standard, Collections.emptyMap()));
+        reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "builtin:holiday:unknown")), standard, Collections.emptyMap()));
         reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "fixture.icons")), standard, Collections.emptyMap()));
         reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "unavailable.pack")), packs, Collections.emptyMap()));
     }

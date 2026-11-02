@@ -1,0 +1,34 @@
+History Home fixture
+
+Build the source preview with `python3 native/build.py --debug`, then build the
+state guard with `python3 native/tests/state_guard/build_native_test.py --keystore native/.build/preview.jks`
+and this fixture with `python3 native/tests/history/build_native_test.py`.
+Use only a disposable preview target, the same lab signer and an exclusive
+device lease. Record package, foreground, accessibility and global-setting
+baselines. Do not replace an existing installation without a recovery plan.
+
+Stop the target and other writers. Capture the durable state guard with
+component com.jeremykenedy.firetv.ui.stateguardproof/com.jeremykenedy.firetv.ui.nativeapp.stateguard.StateGuardInstrumentation
+and arguments `quiescent=true`, `operation=capture`, a unique `case_id` and
+`roots=shared_prefs,files,no_backup`. Preserve the returned manifest SHA-256.
+Require `VERIFIED`, `matches=true` and an empty keystore. If capture refuses,
+retain the guard and stop; do not fabricate an earlier state.
+Run `operation=verify` with the same case, roots and manifest hash before the
+fixture. Save both outputs and the baseline in an immutable private receipt;
+record its SHA-256 separately from the guard manifest hash.
+
+Run component com.jeremykenedy.firetv.ui.historyhomeproof/com.jeremykenedy.firetv.ui.nativeapp.widget.historyproof.HistoryHomeInstrumentation
+with `state_guard_case_id` and `state_guard_manifest_sha256` set to the captured
+values. The fixture seeds a synthetic same-day event in memory and selects the
+registered widget on actual Home. It checks visible attribution, settled
+geometry, summary and detail text, D-pad traversal, and both link routes. The
+link result must be a pinned intercepted handler or the no-handler message.
+It does not open an external browser or demonstrate live on-device fetching.
+A failure, timeout, lock prompt or unexpected route remains unproved.
+
+Force-stop the target, then run guard operations `restore`, `verify` and
+`resolve` in order, with the same case, roots and `manifest_sha256`; force-stop
+before each operation. Require `VERIFIED` and matching state for each. On any
+refusal retain the private guard and stop for review. Remove only lab packages
+proven absent before the test after successful guard resolution, then compare
+the recorded package and environment baselines.

@@ -43,6 +43,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-widgetgroups-') as folder:
         'widgetgroups/LegacyYearProgressView.java', 'widgetgroups/LegacyYearProgressProvider.java')]
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
                     '-bootclasspath', str(sdk / 'platforms/android-36/android.jar'),
+                    '-classpath', str(root / '.build/classes'),
                     '-sourcepath', str(root / 'src') + ':' + str(root / '.build/gen'),
                     '-d', str(Path(folder) / 'android'), str(stub), *map(str, files)], check=True)
     print('Grouped widget views and store compiled against Android API 36.')

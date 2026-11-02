@@ -17,7 +17,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.holidays.HolidaySelection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class BackgroundSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+public final class BackgroundSettingsActivity extends Activity {
     private boolean startupBlocked;
     private static final int IMAGE=7101, VIDEO=7102;
     private BackgroundLayer layer;
@@ -55,9 +55,10 @@ public final class BackgroundSettingsActivity extends com.jeremykenedy.firetv.ui
         } });
         controls.addView(Pages.text(this,"Reduced motion holds backgrounds, holiday scenes, overlays and personal video still. Your individual motion choices stay saved.",16));
         section(controls,"Holiday scenery");
+        row(controls,"holiday_theme","Holiday themes",new View.OnClickListener() { @Override public void onClick(View view) { chooseHolidayTheme(); } });
         row(controls,"scene","",new View.OnClickListener() { @Override public void onClick(View view) { chooseScene(); } });
         row(controls,"scene_overlay","Use this scene's suggested overlay",new View.OnClickListener() { @Override public void onClick(View view) {
-            try { HolidaySelection.apply(AppearancePreferences.file(BackgroundSettingsActivity.this),options.scene,HolidaySelection.Mode.OVERLAY); refresh(); }
+            try { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) { com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(BackgroundSettingsActivity.this); HolidaySelection.apply(AppearancePreferences.file(BackgroundSettingsActivity.this),options.scene,HolidaySelection.Mode.OVERLAY); } refresh(); }
             catch(IllegalStateException failure) { error(failure); }
         } });
         controls.addView(Pages.text(this,"Scene selection changes only the scenery. Choose a transparent overlay separately, or use the scene's suggestion. Off returns to your saved background and wallpaper.",16));
@@ -96,6 +97,35 @@ public final class BackgroundSettingsActivity extends com.jeremykenedy.firetv.ui
         values[0]=""; labels[0]="Off: use saved background and wallpaper";
         for(int i=0;i<HolidayScenes.ALL.length;i++) { values[i+1]=HolidayScenes.ALL[i].id; labels[i+1]=HolidayScenes.ALL[i].name; }
         choose("Holiday scenery","scene",values,labels,options.scene);
+    }
+
+    private void chooseHolidayTheme() {
+        String[] names=PaletteRecipes.names();
+        String[] labels=java.util.Arrays.copyOf(names,names.length+1);
+        labels[names.length]="My own celebration";
+        new AlertDialog.Builder(this).setTitle("Holiday themes").setItems(labels, new DialogInterface.OnClickListener() {
+            @Override public void onClick(DialogInterface dialog,int index) {
+                if(index==PaletteRecipes.ALL.length) {
+                    new AlertDialog.Builder(BackgroundSettingsActivity.this).setTitle("My own celebration")
+                            .setMessage("Choose your background, overlay, colors and motion here. You can save them in Saved setups.")
+                            .setPositiveButton("Choose appearance",null).show();
+                    return;
+                }
+                final PaletteRecipes.Theme theme=PaletteRecipes.ALL[index];
+                final boolean[] choices={true,true,false};
+                new AlertDialog.Builder(BackgroundSettingsActivity.this).setTitle(theme.name)
+                        .setMultiChoiceItems(new String[]{"Transparent overlay over my current background", "Animated (off for still)", "Use coordinated icon colors"},choices,
+                                new DialogInterface.OnMultiChoiceClickListener() {
+                                    @Override public void onClick(DialogInterface owner,int which,boolean checked) { choices[which]=checked; }
+                                })
+                        .setNegativeButton("Cancel",null).setPositiveButton("Apply",new DialogInterface.OnClickListener() {
+                            @Override public void onClick(DialogInterface owner,int which) {
+                                try { HolidayThemeSettings.apply(BackgroundSettingsActivity.this,theme.id,choices[0],choices[1],choices[2]); refresh(); }
+                                catch (java.io.IOException | RuntimeException failure) { error(failure); }
+                            }
+                        }).show();
+            }
+        }).setNegativeButton("Cancel",null).show();
     }
 
     private void chooseWallpaper() {
@@ -192,6 +222,7 @@ public final class BackgroundSettingsActivity extends com.jeremykenedy.firetv.ui
     private void pick(int request,String type) { Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT).setType(type).addCategory(Intent.CATEGORY_OPENABLE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION); try { startActivityForResult(intent,request); } catch(android.content.ActivityNotFoundException unavailable) { new AlertDialog.Builder(this).setMessage("This device has no document picker. Your current wallpaper is kept.").setPositiveButton("OK",null).show(); } }
     @Override protected void onActivityResult(int request,int result,Intent data) {
         if (startupBlocked) { super.onActivityResult(request, result, data); return; } super.onActivityResult(request,result,data); if(result!=RESULT_OK||data==null||data.getData()==null||(request!=IMAGE&&request!=VIDEO)) return;
+        if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(this)) { startupBlocked=com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this); return; }
         Uri uri=data.getData(); if(!"content".equals(uri.getScheme())) return;
         try {
             getContentResolver().takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -199,10 +230,22 @@ public final class BackgroundSettingsActivity extends com.jeremykenedy.firetv.ui
             AppearancePreferences.update(this,new String[]{key,"wallpaper_mode"},new Object[]{uri.toString(),request==IMAGE?"image":"video"}); refresh();
         } catch(SecurityException | IllegalStateException failure) { error(failure); }
     }
-    private void error(Exception failure) { new AlertDialog.Builder(this).setTitle("Settings not saved").setMessage(failure.getMessage()).setPositiveButton("OK",null).show(); }
+    private void error(Exception failure) {
+        if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(this)) {
+            if (layer != null) layer.setResumed(false);
+            startupBlocked = com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this);
+            return;
+        }
+        new AlertDialog.Builder(this).setTitle("Settings not saved").setMessage(failure.getMessage()).setPositiveButton("OK",null).show();
+    }
     private int dp(int value) { return Pages.dp(this,value); }
     @Override protected void onResume() {
-        if (startupBlocked) { super.onResume(); return; } super.onResume(); if(layer!=null) { refresh(); layer.setResumed(true); } }
+        if (startupBlocked) { super.onResume(); return; } super.onResume();
+        if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(this)) {
+            if(layer!=null) layer.setResumed(false);
+            startupBlocked=com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this); return;
+        }
+        if(layer!=null) { refresh(); layer.setResumed(true); } }
     @Override protected void onPause() {
         if (startupBlocked) { super.onPause(); return; } if(layer!=null) layer.setResumed(false); super.onPause(); }
 }

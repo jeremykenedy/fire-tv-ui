@@ -19,7 +19,8 @@ public final class BackupTransaction {
         File path = journal(context).getBaseFile();
         return path.exists() || new File(path.getPath()+".bak").exists();
     }
-    public static synchronized void apply(Context context, BackupPayload payload) throws Exception {
+    public static synchronized void apply(Context context, BackupPayload payload) throws Exception { synchronized(PresentationState.class) {
+        if (com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.hasRecovery(context)) throw new IOException("Restore the interrupted holiday change first.");
         PresentationState.validatePortable(payload.stores);
         Map<String,String> documents = HouseholdContent.sanitize(payload.household);
         if (hasRecovery(context) || PresentationState.hasRecovery(context)) throw new IOException("Restore the interrupted presentation change first.");
@@ -53,8 +54,9 @@ public final class BackupTransaction {
             catch (Exception rollbackFailed) { throw new IOException("Import failed and private recovery must be restored.",rollbackFailed); }
             throw new IOException("Import failed. Previous presentation and household content restored.",failed);
         }
-    }
-    public static synchronized void recover(Context context) throws Exception {
+    } }
+    public static synchronized void recover(Context context) throws Exception { synchronized(PresentationState.class) {
+        if (com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.hasRecovery(context)) throw new IOException("Restore the interrupted holiday change first.");
         if (!hasRecovery(context)) { if(PresentationState.hasRecovery(context))PresentationState.recover(context); return; }
         Recovery before=decode(readBytes(context));
         if(PresentationState.hasRecovery(context))PresentationState.recover(context);
@@ -64,7 +66,7 @@ public final class BackupTransaction {
         for(String file:before.stores.keySet())if(!before.stores.get(file).values().equals(current.get(file).values()))throw new IOException("Presentation restoration could not be verified.");
         journal(context).delete();
         if(hasRecovery(context))throw new IOException("Private recovery could not be resolved.");
-    }
+    } }
     private static void write(Context context,String name,Map<String,Object> values) throws IOException {
         SharedPreferences preferences=context.getSharedPreferences(HouseholdContent.store(name),0);
         SharedPreferences.Editor editor=preferences.edit();

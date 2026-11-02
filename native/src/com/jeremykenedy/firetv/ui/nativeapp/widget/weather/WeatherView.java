@@ -72,7 +72,7 @@ public final class WeatherView extends LinearLayout {
         title.setText(location == null || location.label.isEmpty() ? "Hourly weather" : location.label);
         if (options == null || (forecast.state != WeatherForecast.State.READY && forecast.state != WeatherForecast.State.EMPTY)) {
             status.setVisibility(VISIBLE);
-            status.setText(forecast.state == WeatherForecast.State.SETUP_REQUIRED ? "Choose a weather location" : "Forecast unavailable");
+            status.setText(forecast.state == WeatherForecast.State.SETUP_REQUIRED ? "Choose exact location" : "Forecast unavailable");
             source.setText("National Weather Service");
             return;
         }

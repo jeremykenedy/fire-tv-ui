@@ -34,7 +34,8 @@ public final class FocusTileView extends FrameLayout {
 
     public FocusTileView(Context context) {
         super(context);
-        options = FocusPreferences.load(context);
+        options = com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(context)
+                ? FocusPreferences.load(context) : FocusOptions.defaults();
         setFocusable(true);
         setClickable(true);
         setClipChildren(false);
@@ -162,6 +163,7 @@ public final class FocusTileView extends FrameLayout {
     }
 
     public void refreshPreferences() {
+        if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(getContext())) { cancelAnimation(); return; }
         options = FocusPreferences.load(getContext());
         updatePresentation();
         cancelAnimation();
@@ -195,6 +197,7 @@ public final class FocusTileView extends FrameLayout {
     }
 
     private void animateFocus() {
+        if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(getContext())) { cancelAnimation(); return; }
         options = FocusPreferences.load(getContext());
         updatePresentation();
         cancelAnimation();

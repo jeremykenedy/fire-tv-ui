@@ -131,6 +131,10 @@ public final class SettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp
     @Override protected void onResume() {
         if (startupBlocked) { super.onResume(); return; }
         super.onResume();
+        if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(this)) {
+            startupBlocked = com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this);
+            return;
+        }
         com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityStyle.apply(this, getWindow().getDecorView());
     }
 }

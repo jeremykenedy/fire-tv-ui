@@ -13,7 +13,7 @@ import android.content.Context; class OwnedPlexIdentity { static String canonica
 import android.content.Context;import android.os.CancellationSignal;import java.util.*;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
 public class PlexRepository {
- public enum Status {DISABLED,NOT_CONNECTED,READY,EMPTY,UNAVAILABLE}
+ public enum Status {DISABLED,NOT_CONNECTED,READY,EMPTY,PARTIAL,UNAVAILABLE}
  public static boolean fail; public static int reads; public static Status next=Status.NOT_CONNECTED;
  public static List<TvRecommendations.Feed> feeds=Collections.emptyList();
  public static boolean enabled(Context context){if(fail)throw new IllegalStateException();return context.plexEnabled;}

@@ -141,6 +141,7 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.backup.BackupActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.notes.NotesActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.watchlist.WatchlistActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.calendar.CalendarActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.ambient.AmbientAudioActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.livetv.LiveTvSettingsActivity" android:exported="false" />

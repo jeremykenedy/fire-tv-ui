@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.holidaypresetproof">
+ <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36"/>
+ <application android:label="Production focus migration verification"/>
+ <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.migration.HolidayPresetInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui"/>
+ <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.migration.HolidayThemeUiInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui"/>
+</manifest>

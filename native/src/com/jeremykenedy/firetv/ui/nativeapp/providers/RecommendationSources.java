@@ -26,6 +26,7 @@ public final class RecommendationSources {
                 SourceStatus.State state;
                 switch (plex.status) {
                     case READY: state = SourceStatus.State.READY; break;
+                    case PARTIAL: state = SourceStatus.State.PARTIAL; break;
                     case EMPTY: state = SourceStatus.State.EMPTY; break;
                     case DISABLED: state = SourceStatus.State.DISABLED; break;
                     case NOT_CONNECTED: state = SourceStatus.State.SETUP_REQUIRED; break;

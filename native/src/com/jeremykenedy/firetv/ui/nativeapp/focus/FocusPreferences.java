@@ -11,7 +11,8 @@ public final class FocusPreferences {
 
     private FocusPreferences() {}
 
-    public static FocusOptions load(Context context) {
+    public static FocusOptions load(Context context) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertReadable(context);
         SharedPreferences prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
         FocusOptions defaults = FocusOptions.defaults();
         return new FocusOptions(number(prefs, KEYS[0], defaults.durationMillis, 500),
@@ -20,18 +21,20 @@ public final class FocusPreferences {
                 number(prefs, KEYS[4], defaults.borderOpacity, 100),
                 enabled(prefs, KEYS[5]), number(prefs, KEYS[6], defaults.fillRgb, 0xffffff),
                 number(prefs, KEYS[7], defaults.fillOpacity, 100));
-    }
+    } }
 
-    public static boolean hasExplicitSettings(Context context) {
+    public static boolean hasExplicitSettings(Context context) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertReadable(context);
         Map<String, ?> values = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getAll();
         return FocusOptions.hasExplicitSettings(values);
-    }
+    } }
 
-    public static boolean legacyDefaultAppMode(Context context) {
+    public static boolean legacyDefaultAppMode(Context context) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertReadable(context);
         Map<String, ?> values = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getAll();
         return Boolean.TRUE.equals(values.get(FocusOptions.LEGACY_APP_DEFAULT))
                 && !FocusOptions.hasExplicitSettings(values);
-    }
+    } }
 
     private static int number(SharedPreferences prefs, String key, int fallback, int max) {
         try {
@@ -45,7 +48,8 @@ public final class FocusPreferences {
         catch (ClassCastException invalid) { return true; }
     }
 
-    public static void save(Context context, FocusOptions options) {
+    public static void save(Context context, FocusOptions options) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(context);
         SharedPreferences prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
         Map<String, ?> previous = prefs.getAll();
         if (prefs.edit().putInt(KEYS[0], options.durationMillis)
@@ -62,7 +66,7 @@ public final class FocusPreferences {
         restore(rollback, FocusOptions.LEGACY_APP_DEFAULT, previous.get(FocusOptions.LEGACY_APP_DEFAULT));
         rollback.commit();
         throw new IllegalStateException("Focus settings could not be saved. Try again.");
-    }
+    } }
     private static void restore(SharedPreferences.Editor editor, String key, Object value) {
         if (value instanceof Integer) editor.putInt(key, (Integer) value);
         else if (value instanceof Boolean) editor.putBoolean(key, (Boolean) value);

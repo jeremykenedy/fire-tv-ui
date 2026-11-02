@@ -8,7 +8,7 @@ public final class HolidaySelection {
 
     private HolidaySelection() {}
 
-    public static void apply(SharedPreferences preferences, String id, Mode mode) {
+    public static void apply(SharedPreferences preferences, String id, Mode mode) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
         HolidayScenes.Scene scene = HolidayScenes.find(id);
         if (scene == null || mode == null) throw new IllegalArgumentException("Choose a holiday scene and layer.");
         Map<String, ?> previous = preferences.getAll();
@@ -21,7 +21,7 @@ public final class HolidaySelection {
         if (mode != Mode.SCENE) restore(rollback, previous, "overlay");
         rollback.commit();
         throw new IllegalStateException("Holiday selection could not be saved. Try again.");
-    }
+    } }
 
     private static void restore(SharedPreferences.Editor editor, Map<String, ?> previous, String key) {
         Object value = previous.get(key);
