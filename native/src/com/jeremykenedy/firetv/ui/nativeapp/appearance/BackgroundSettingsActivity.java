@@ -40,16 +40,19 @@ public final class BackgroundSettingsActivity extends Activity {
         android.widget.FrameLayout.LayoutParams bounds=new android.widget.FrameLayout.LayoutParams(-1,-1);
         bounds.setMargins(dp(32),dp(24),dp(32),dp(24)); root.addView(scroll,bounds);
         LinearLayout controls=new LinearLayout(this); controls.setOrientation(LinearLayout.VERTICAL);
-        controls.setPadding(dp(24),dp(24),dp(24),dp(24)); scroll.addView(controls);
+        controls.setPadding(dp(24),dp(14),dp(24),dp(24)); scroll.addView(controls);
         TextView heading=Pages.text(this,"Backgrounds and overlays",28);
-        heading.setTypeface(null,android.graphics.Typeface.BOLD); controls.addView(heading);
-        controls.addView(Pages.text(this,"Keep your wallpaper and add a transparent overlay, or choose a full background. Each layer has its own motion and colors. The preview uses a neutral base.",18));
+        heading.setTypeface(null,android.graphics.Typeface.BOLD);
+        heading.setPadding(0,dp(6),0,dp(2)); controls.addView(heading);
+        TextView description=Pages.text(this,"Keep your wallpaper and add a transparent overlay, or choose a full background. Each layer has its own motion and colors. The preview uses a neutral base.",18);
+        description.setPadding(0,dp(6),0,dp(10)); controls.addView(description);
         layer=new BackgroundLayer(this);
         android.graphics.drawable.GradientDrawable previewBackground=new android.graphics.drawable.GradientDrawable();
         previewBackground.setColor(0xff202733); previewBackground.setCornerRadius(dp(8));
         layer.setBackground(previewBackground); layer.setClipToOutline(true);
-        controls.addView(layer,new LinearLayout.LayoutParams(dp(320),dp(180)));
-        Button full=Pages.menuButton(this,"Full screen preview",new View.OnClickListener() { @Override public void onClick(View view) { startActivity(new Intent(BackgroundSettingsActivity.this,BackgroundPreviewActivity.class)); } });
+        LinearLayout.LayoutParams previewBounds=new LinearLayout.LayoutParams(dp(320),dp(180));
+        previewBounds.bottomMargin=dp(10); controls.addView(layer,previewBounds);
+        Button full=editorButton("Full screen preview",new View.OnClickListener() { @Override public void onClick(View view) { startActivity(new Intent(BackgroundSettingsActivity.this,BackgroundPreviewActivity.class)); } });
         full.setTag("appearance:preview");
         row(controls,"holiday_theme","Holiday themes",new View.OnClickListener() { @Override public void onClick(View view) { chooseHolidayTheme(); } });
         row(controls,"base","",new View.OnClickListener() { @Override public void onClick(View view) { choose("Background","base",AppearanceOptions.BASES,AppearanceOptions.BASE_LABELS,options.base); } });
@@ -175,7 +178,17 @@ public final class BackgroundSettingsActivity extends Activity {
         } });
     }
     private void section(LinearLayout parent,String title) { TextView text=Pages.text(this,title,21); text.setPadding(0,dp(20),0,dp(6)); parent.addView(text); }
-    private void row(LinearLayout parent,String key,String label,View.OnClickListener listener) { Button row=Pages.menuButton(this,label,listener); row.setTag("appearance:"+key); rows.put(key,row); parent.addView(row); }
+    private Button editorButton(String label, View.OnClickListener listener) {
+        Button button=Pages.menuButton(this,label,listener);
+        button.setOnFocusChangeListener(null);
+        button.setTextSize(18); button.setTypeface(null,android.graphics.Typeface.NORMAL);
+        button.setPadding(dp(14),0,dp(14),0);
+        LinearLayout.LayoutParams bounds=new LinearLayout.LayoutParams(-1,dp(42)); bounds.bottomMargin=dp(6);
+        button.setLayoutParams(bounds);
+        com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityStyle.apply(this,button);
+        return button;
+    }
+    private void row(LinearLayout parent,String key,String label,View.OnClickListener listener) { Button row=editorButton(label,listener); row.setTag("appearance:"+key); rows.put(key,row); parent.addView(row); }
     private void number(LinearLayout parent,String key,String label) { row(parent,key,label,new View.OnClickListener() { @Override public void onClick(View view) {
         final android.widget.SeekBar bar=new android.widget.SeekBar(BackgroundSettingsActivity.this); bar.setMax(100); bar.setKeyProgressIncrement(1); bar.setProgress(value(key)); bar.setPadding(dp(24),dp(16),dp(24),dp(16)); bar.setContentDescription(label);
         final TextView caption=Pages.text(BackgroundSettingsActivity.this,label+": "+value(key)+"%",20);

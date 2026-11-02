@@ -78,11 +78,8 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
         widgetSettings.setTag("layout:widget-settings");
         enableWidgets = Pages.menuButton(this, "Enable widgets", new View.OnClickListener() {
             @Override public void onClick(View view) {
-                boolean cards = options.includes(LayoutItem.Kind.CHANNEL_CARD);
-                boolean widgets = options.includes(LayoutItem.Kind.WIDGET);
-                LayoutOptions.Mode next = widgets ? (cards ? LayoutOptions.Mode.CARDS_ONLY : LayoutOptions.Mode.NONE)
-                        : (cards ? LayoutOptions.Mode.BOTH : LayoutOptions.Mode.WIDGETS_ONLY);
-                save(options.withMode(next), "layout:enable-widgets");
+                save(options.withMode(LayoutPreferences.toggleWidgetsMode(LayoutSettingsActivity.this, options)),
+                        "layout:enable-widgets");
             }
         });
         enableWidgets.setTag("layout:enable-widgets");
@@ -309,7 +306,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
         enableWidgets.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
         widgetBackground.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
         widgetText.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
-        enableWidgets.setText("Enable widgets: " + (options.includes(LayoutItem.Kind.WIDGET) ? "On" : "Off"));
+        enableWidgets.setText("Enable widgets: " + (LayoutPreferences.widgetsEnabled(this, options) ? "On" : "Off"));
         explanation.setVisibility(widgetPage ? View.GONE : View.VISIBLE);
         explanation.setText(widgetPage ? "Configure your local widgets and choose which ones appear on Home. Set shared order in Your cards and widgets."
                 : "Keep cards and widgets together in the order you choose.");
