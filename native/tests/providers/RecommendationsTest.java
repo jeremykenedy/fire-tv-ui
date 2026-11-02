@@ -118,6 +118,11 @@ public final class RecommendationsTest {
         check(result.sources.size() == 3 && result.sources.get(1).state == TvRecommendations.SourceStatus.State.READY
                 && result.sources.get(2).state == TvRecommendations.SourceStatus.State.DISABLED,
                 "Individual source readiness is preserved rather than inferred from another provider.");
+        com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.next =
+                com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.Status.PARTIAL;
+        result = RecommendationSources.read(optional);
+        check(result.feeds.size() == 1 && result.sources.get(1).state == TvRecommendations.SourceStatus.State.PARTIAL,
+                "Partial Plex profile failure retains successful feeds and reports partial status.");
         optional.permission = true;
         com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.fail = true;
         result = RecommendationSources.read(optional);
