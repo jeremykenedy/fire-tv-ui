@@ -15,4 +15,5 @@ with tempfile.TemporaryDirectory(prefix='local-timers-') as folder:
                     '-d', folder, SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
                     SOURCE / 'layout/LayoutOptions.java', SOURCE / 'layout/LayoutPreferences.java',
                     *sorted((SOURCE / 'widget/timers').glob('*.java')),
+                    ROOT / 'tests/state_guard/GuardStore.java',
                     ROOT / 'tests/timers/TimerInstrumentation.java'], check=True)
