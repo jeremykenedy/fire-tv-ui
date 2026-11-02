@@ -7,6 +7,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp'
 STUBS = {
+'com/jeremykenedy/firetv/ui/nativeapp/providers/OwnedPlexIdentity.java': '''package com.jeremykenedy.firetv.ui.nativeapp.providers;
+import android.content.Context; class OwnedPlexIdentity { static String canonical(Context c,android.database.Cursor r,String s){return null;} static boolean notification(Context c,android.database.Cursor r,String s){return false;} }''',
 'com/jeremykenedy/firetv/ui/nativeapp/providers/plex/PlexRepository.java': '''package com.jeremykenedy.firetv.ui.nativeapp.providers.plex;
 import android.content.Context;import android.os.CancellationSignal;import java.util.*;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
@@ -68,7 +70,7 @@ public class ContentResolver {
 'android/content/Context.java': '''package android.content; import android.content.pm.PackageManager;
 public class Context {
  public final PackageManager packages=new PackageManager();public final ContentResolver resolver=new ContentResolver();
- public boolean plexEnabled; public boolean permission=true;public PackageManager getPackageManager(){return packages;}
+ public String getPackageName(){return "fixture.owner";} public boolean plexEnabled; public boolean permission=true;public PackageManager getPackageManager(){return packages;}
  public ContentResolver getContentResolver(){return resolver;}public int checkSelfPermission(String name){return permission?0:-1;}
 }''',
 'android/media/tv/TvContract.java': '''package android.media.tv;import android.net.Uri;
@@ -89,6 +91,10 @@ with tempfile.TemporaryDirectory() as folder:
                     SOURCE / 'layout/LayoutItem.java',
                     SOURCE / 'providers/TvRecommendations.java', SOURCE / 'providers/RecommendationKeys.java',
                     SOURCE / 'providers/RecommendationSources.java', SOURCE / 'providers/NotificationRules.java',
-                    ROOT / 'tests/providers/RecommendationsTest.java'], check=True)
+                    SOURCE / 'providers/LegacyRecommendationIdentities.java',
+                    ROOT / 'tests/providers/LegacyIdentityTest.java', ROOT / 'tests/providers/RecommendationsTest.java'], check=True)
     subprocess.run(['java', '-cp', work,
                     'com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationsTest'], check=True)
+
+    subprocess.run(['java', '-cp', work,
+                    'com.jeremykenedy.firetv.ui.nativeapp.providers.LegacyIdentityTest'], check=True)

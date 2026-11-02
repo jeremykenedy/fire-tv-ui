@@ -20,9 +20,13 @@ PROOF_COMPONENT = PROOF_PACKAGE + '/com.jeremykenedy.firetv.ui.nativeapp.provide
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--serial', required=True)
 parser.add_argument('--expected-apk-sha256', required=True)
-parser.add_argument('--source-ref', required=True)
+identity = parser.add_mutually_exclusive_group(required=True)
+identity.add_argument('--source-ref')
+identity.add_argument('--source-snapshot', type=Path)
+parser.add_argument('--native-root', type=Path, default=ROOT)
 parser.add_argument('--output', required=True, type=Path)
 args = parser.parse_args()
+ROOT = args.native_root.resolve()
 args.output.mkdir(parents=True, exist_ok=True)
 adb_path = Path.home() / 'Library/Android/sdk/platform-tools/adb'
 
@@ -62,19 +66,27 @@ build_manifest = json.loads(manifest.read_text())
 if build_manifest.get('sha256') != actual_hash:
     raise RuntimeError('Local build manifest does not identify the installed APK.')
 source_matches = {}
+snapshot_identity = json.loads(args.source_snapshot.read_text()) if args.source_snapshot else None
+if snapshot_identity and Path(snapshot_identity['snapshotNativeRoot']).resolve() != ROOT:
+    raise RuntimeError('Snapshot identity does not describe the selected native root.')
 for name, digest in build_manifest['sourceInputs'].items():
-    source = subprocess.check_output(['git', 'show', args.source_ref + ':native/' + name], cwd=ROOT.parent)
-    source_matches[name] = hashlib.sha256(source).hexdigest() == digest
+    if snapshot_identity:
+        source_matches[name] = snapshot_identity['inputs'].get(name) == digest \
+            and hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == digest
+    else:
+        source = subprocess.check_output(['git', 'show', args.source_ref + ':native/' + name], cwd=ROOT.parent)
+        source_matches[name] = hashlib.sha256(source).hexdigest() == digest
 if not all(source_matches.values()):
     raise RuntimeError('Source ref does not match the artifact source manifest.')
-(args.output / 'source-identity.json').write_text(json.dumps({'source_ref': args.source_ref,
+(args.output / 'source-identity.json').write_text(json.dumps({'source_ref': args.source_ref, 'source_snapshot': str(args.source_snapshot) if args.source_snapshot else None,
     'all_inputs_match': True, 'input_count': len(source_matches), 'inputs': source_matches}, indent=2) + '\n')
-proof = HERE / '.build/performance-proof.apk'
+proof = ROOT / 'tests/performance/.build/performance-proof.apk'
 adb('install', '-r', '-t', str(proof))
 metadata = {'preferences_before': None}
 installed_proof = True
 try:
     metadata = {'serial': args.serial, 'installed_apk_sha256': actual_hash, 'source_ref': args.source_ref,
+                'source_snapshot': str(args.source_snapshot) if args.source_snapshot else None,
                 'foreground_before': foreground, 'started_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                 'model': adb('shell', 'getprop', 'ro.product.model').strip(),
                 'api': adb('shell', 'getprop', 'ro.build.version.sdk').strip(),
@@ -111,7 +123,7 @@ try:
         metadata['startup'].append({'kind': kind, 'android_am_start': launch})
         time.sleep(.35)
     adb('shell', 'dumpsys', 'gfxinfo', PACKAGE, 'reset')
-    proof = HERE / '.build/performance-proof.apk'
+    proof = ROOT / 'tests/performance/.build/performance-proof.apk'
     metadata['instrumentation_sha256'] = hashlib.sha256(proof.read_bytes()).hexdigest()
     process = subprocess.Popen([str(adb_path), '-s', args.serial, 'shell', 'am', 'instrument', '-w', PROOF_COMPONENT],
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

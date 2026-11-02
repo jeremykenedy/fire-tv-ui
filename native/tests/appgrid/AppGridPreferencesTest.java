@@ -14,10 +14,13 @@ public final class AppGridPreferencesTest {
         AppGridPreferences.saveDiscoveredOrder(context, Arrays.asList("example.one/.Main"));
         check(context.prefs.values.size() == 1 && context.prefs.values.containsKey("order"),
                 "Discovery writes only order without materializing default grid controls");
-        context.prefs.values.put("columns", 7);
+        context.prefs.values.put("columns", 16);
         context.prefs.values.put("horizontal", false);
         context.prefs.values.put("hidden", "example.one/.Main");
         context.prefs.values.put("future", "preserved");
+        check(AppGridPreferences.load(context).columns == 16
+                && AppGridPreferences.load(context).hidden.contains("example.one/.Main"),
+                "A saved sixteen column grid loads without resetting app choices");
         Map<String, Object> before = new HashMap<>(context.prefs.values);
         AppGridPreferences.saveDiscoveredOrder(context, Arrays.asList("example.two/.Main", "example.one/.Main"));
         check("example.one/.Main\nexample.two/.Main".equals(context.prefs.values.get("order")),
@@ -54,6 +57,14 @@ public final class AppGridPreferencesTest {
         before = new HashMap<>(context.prefs.values);
         reject(context, Arrays.asList("example.one/.Main"));
         check(before.equals(context.prefs.values), "Wrong-typed order retained without reset");
+        Context saved = new Context();
+        AppGridOptions wide = AppGridOptions.defaults().discover(Arrays.asList("example.one/.Main"))
+                .toggleFavorite("example.one/.Main").grid(16, 2, true);
+        AppGridPreferences.save(saved, wide);
+        AppGridOptions restored = AppGridPreferences.load(saved);
+        check(restored.columns == 16 && restored.rows == 2 && restored.horizontal
+                && restored.order.equals(wide.order) && restored.favorites.equals(wide.favorites),
+                "Sixteen columns and app choices survive preference save and reload");
         System.out.println("Discovery preserves absent controls, explicit values, missing order and failed writes");
     }
     private static void reject(Context context, java.util.List<String> apps) {

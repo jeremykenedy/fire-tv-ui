@@ -1,12 +1,14 @@
 package com.jeremykenedy.firetv.ui.nativeapp.migration;
 
 import com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearanceOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.appearance.LegacyGradients;
 import com.jeremykenedy.firetv.ui.nativeapp.appearance.PaletteRecipes;
+import com.jeremykenedy.firetv.ui.nativeapp.holidays.HolidayScenes;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
-/** Only reviewed layer and palette choices; inherited gradient modes remain unresolved. */
+/** Reviewed appearance choices; unknown legacy modes remain unmapped. */
 final class LegacyAppearanceMapper {
     private static final Map<String, String> KEYS;
     static {
@@ -22,7 +24,7 @@ final class LegacyAppearanceMapper {
     }
     private LegacyAppearanceMapper() {}
     static Map<String, String> keys() { return KEYS; }
-    static Map<String, Object> map(Map<String, Object> legacy, Set<String> mapped) {
+    static Map<String, Object> map(Map<String, Object> legacy, Set<String> mapped, PresentationMappingContext identities) {
         Map<String, Object> values = new LinkedHashMap<>();
         for (Map.Entry<String, String> entry : KEYS.entrySet()) {
             if (!legacy.containsKey(entry.getKey())) continue;
@@ -36,10 +38,26 @@ final class LegacyAppearanceMapper {
             else if (!(value instanceof Integer) || (Integer) value < 0 || (Integer) value > 100) throw invalid();
             values.put(target, value); mapped.add(entry.getKey());
         }
+        if (legacy.containsKey("custom_gradient")) {
+            Object original = legacy.get("custom_gradient");
+            String selected;
+            if ("Electric Indigo".equals(original)) selected = "electric_indigo";
+            else if ("Cloud Nine".equals(original)) selected = "cloud_nine";
+            else throw invalid();
+            values.put("legacy_gradient", selected);
+            mapped.add("custom_gradient");
+        }
+        if ("custom".equals(legacy.get("mode"))) {
+            if (!values.containsKey("legacy_gradient")
+                    || values.containsKey("base") && !"off".equals(values.get("base"))) throw invalid();
+            values.put("base", "still_legacy_gradient");
+            values.put("scene", "");
+            mapped.add("mode");
+        }
         if ("customv".equals(legacy.get("mode"))) {
             Object uri = legacy.get("custom_video_uri");
-            if (!(uri instanceof String) || !contentUri((String) uri)) {
-                throw new IllegalArgumentException("The active legacy video needs a retained native-supported content URI before mapping.");
+            if (!(uri instanceof String) || !contentUri((String) uri) && !verifiedPrivate((String) uri, identities)) {
+                throw new IllegalArgumentException("The active legacy video needs a supported content URI or verified app-private media reference before mapping.");
             }
             values.put("wallpaper_mode", "video"); mapped.add("mode");
         }
@@ -56,14 +74,27 @@ final class LegacyAppearanceMapper {
             else if (key.endsWith("_uri")) { if (!(value instanceof String)) throw invalid(); }
             else if (!(value instanceof Integer) || (Integer) value < 0 || (Integer) value > 100) throw invalid();
         }
+        if (values.containsKey("legacy_gradient")) {
+            Object gradient = values.get("legacy_gradient");
+            if (!(gradient instanceof String) || (!((String) gradient).isEmpty() && LegacyGradients.index((String) gradient) < 0)) throw invalid();
+        }
         if (values.containsKey("wallpaper_mode")) choice(values.get("wallpaper_mode"), new String[]{"system", "image", "video"});
-        if (values.containsKey("scene")) choice(values.get("scene"), new String[]{"", "halloween", "christmas", "winter"});
+        if (values.containsKey("scene")) {
+            Object scene = values.get("scene");
+            if (!(scene instanceof String) || !((String) scene).isEmpty() && HolidayScenes.find((String) scene) == null) throw invalid();
+        }
     }
     private static void palette(Object value) {
         if (!(value instanceof String) || !((String) value).isEmpty() && PaletteRecipes.find((String) value) == null) throw invalid();
     }
     private static void choice(Object value, String[] supported) {
         if (!(value instanceof String) || !Arrays.asList(supported).contains(value)) throw invalid();
+    }
+    private static boolean verifiedPrivate(String uri, PresentationMappingContext identities) {
+        PrivateMediaReference reference = identities.privateMedia.get(uri);
+        if (reference == null) return false;
+        try { reference.verifyAvailable(); return true; }
+        catch (java.io.IOException unavailable) { return false; }
     }
     private static boolean contentUri(String value) {
         try {

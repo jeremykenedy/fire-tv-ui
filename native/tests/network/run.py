@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Compile the network lane in isolation and check diagnostic formatting."""
 from pathlib import Path
+from host_stubs import SOURCES
 import subprocess
 import tempfile
 
@@ -17,3 +18,18 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-network-') as target:
                     *map(str, sources)], check=True)
     subprocess.run(['java', '-cp', target + ':' + str(ANDROID),
                     'com.jeremykenedy.firetv.ui.nativeapp.device.network.NetworkTest'], check=True)
+
+with tempfile.TemporaryDirectory(prefix='fire-tv-network-behavior-') as target:
+    root = Path(target)
+    for name, content in SOURCES.items():
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+    subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', target,
+                    *map(str, (root / name for name in SOURCES)),
+                    str(SOURCE / 'device/network/NetworkSnapshot.java'),
+                    str(SOURCE / 'device/DeviceRoutes.java'),
+                    str(HERE / 'NetworkSnapshotTest.java'), str(HERE / 'NetworkRoutesTest.java')], check=True)
+    for name in ('network.NetworkSnapshotTest', 'NetworkRoutesTest'):
+        subprocess.run(['java', '-cp', target,
+                        'com.jeremykenedy.firetv.ui.nativeapp.device.' + name], check=True)

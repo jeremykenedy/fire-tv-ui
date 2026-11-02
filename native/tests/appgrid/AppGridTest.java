@@ -23,7 +23,13 @@ public final class AppGridTest {
         check(options.visible(available).equals(Arrays.asList(a, c, b)), "Show and unfavorite restore original position");
         options = options.grid(9, 2, true);
         check(options.columns == 9 && options.rows == 2 && options.horizontal && options.visible(available).equals(Arrays.asList(a, c, b)), "Custom dimensions preserve app choices");
-        for (int columns : new int[] {-1, 0, 1, 13}) {
+        for (int columns : new int[] {1, 2, 12, 13, 16, 20}) {
+            AppGridOptions retained = options.grid(columns, 2, true);
+            check(retained.columns == columns && retained.rows == 2 && retained.horizontal
+                    && retained.visible(available).equals(options.visible(available)),
+                    "Saved legacy dimensions preserve exact columns and app choices");
+        }
+        for (int columns : new int[] {-1, 0, 21}) {
             try { options.grid(columns, 0, false); throw new AssertionError("Invalid column accepted"); } catch (IllegalArgumentException expected) {}
         }
         try { options.discover(Arrays.asList("bad\nkey")); throw new AssertionError("Invalid identity accepted"); } catch (IllegalArgumentException expected) {}

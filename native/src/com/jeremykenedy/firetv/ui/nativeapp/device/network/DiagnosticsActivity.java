@@ -15,7 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class DiagnosticsActivity extends Activity {
+public final class DiagnosticsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    private boolean startupBlocked;
     private static final int EXPORT = 731;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private TextView report;
@@ -28,6 +29,7 @@ public final class DiagnosticsActivity extends Activity {
 
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         LinearLayout page = Pages.page(this);
         page.addView(Pages.text(this, "Diagnostics", 28));
         page.addView(Pages.text(this, "Read-only build, storage and memory snapshot. Export contains only the report below. Choose a destination to save; no automatic upload.", 16));
@@ -92,6 +94,7 @@ public final class DiagnosticsActivity extends Activity {
     }
 
     @Override protected void onActivityResult(int request, int result, Intent data) {
+        if (startupBlocked) { super.onActivityResult(request, result, data); return; }
         super.onActivityResult(request, result, data);
         if (request != EXPORT) return;
         final String value = exportSnapshot;
@@ -123,10 +126,12 @@ public final class DiagnosticsActivity extends Activity {
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         super.onSaveInstanceState(state);
         state.putString("pendingExport", exportSnapshot);
         View focused = getCurrentFocus();
         if (focused != null && focused.getTag() instanceof String) state.putString("focus", (String) focused.getTag());
     }
-    @Override protected void onDestroy() { worker.shutdown(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } worker.shutdown(); super.onDestroy(); }
 }

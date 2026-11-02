@@ -33,6 +33,12 @@ public final class HomeRoutingPolicyTest {
         policy.launcherVisibility(false);
         check(policy.shouldOpen(true, 60002), "Returning to launcher ends handoff");
         check(policy.shouldOpen(true, -1), "Clock reset cannot permanently lock routing");
+        HomeRoutingPolicy quickReturn = new HomeRoutingPolicy();
+        quickReturn.opened(1000);
+        quickReturn.launcherVisibility(true);
+        quickReturn.launcherVisibility(false);
+        check(!quickReturn.launchPending(1400) && quickReturn.shouldOpen(true, 1400),
+                "A completed Home launch cannot swallow another Home after the user enters a different app");
         MemoryStore store = new MemoryStore();
         HomeRoutingPolicy firstProcess = new HomeRoutingPolicy(store);
         check(firstProcess.beginHandoff(), "Handoff must be durable before dispatch");

@@ -28,7 +28,7 @@ final class TimerDialogs {
         EditText zone = input(activity, fields, "Time zone: America/Los_Angeles or UTC",
                 previous == null ? ZoneId.systemDefault().getId() : previous.zone, 80, false);
         note(activity, fields, "Daylight saving is handled in the chosen zone. Repeated times use the first occurrence. Skipped times are rejected.");
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Countdown")
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Countdown")
                 .setView(scroll(activity, fields)).setPositiveButton("Save", null)
                 .setNegativeButton("Back", null).setNeutralButton("Remove countdown", new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface d, int which) {
@@ -56,7 +56,7 @@ final class TimerDialogs {
         TimerState state = TimerPreferences.timer(activity);
         if (state == null) { editTimer(activity); return; }
         String action = state.running ? "Pause" : state.pausedRemaining == 0 ? "Start again" : "Start / Resume";
-        new AlertDialog.Builder(activity).setTitle(state.label)
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(state.label)
                 .setItems(new String[]{action, "Reset", "Edit timer", "Cancel timer", "Sound and standby behavior"}, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                     TimerState latest = TimerPreferences.timer(activity);
@@ -71,7 +71,7 @@ final class TimerDialogs {
                         case 1: if (!TimerPreferences.saveTimer(activity, latest.reset())) failed(activity); break;
                         case 2: editTimer(activity); break;
                         case 3:
-                            new AlertDialog.Builder(activity).setTitle("Cancel timer?").setMessage("Remove this timer and its saved duration?")
+                            new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Cancel timer?").setMessage("Remove this timer and its saved duration?")
                                     .setPositiveButton("Cancel timer", new DialogInterface.OnClickListener() {
                                         @Override public void onClick(DialogInterface d, int w) {
                                             if (!TimerPreferences.saveTimer(activity, null)) failed(activity);
@@ -80,7 +80,7 @@ final class TimerDialogs {
                                     .setNegativeButton("Keep timer", null).show();
                             break;
                         case 4:
-                            new AlertDialog.Builder(activity).setTitle("Sound and standby behavior")
+                            new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Sound and standby behavior")
                                     .setMessage(new TimerWidgetProvider().message(activity)
                                             + " The saved deadline continues while Home is closed. On return, elapsed timers show Finished."
                                             + " After a TV restart, recovery uses the saved wall-clock deadline. If the TV blocks boot identity access, recovery uses wall time.")
@@ -104,7 +104,7 @@ final class TimerDialogs {
         sound.setTag("timer:sound");
         fields.addView(sound);
         note(activity, fields, "Save prepares the timer. Select Start / Resume to run it. Editing resets the current timer. Sound defaults to off. No standby alarm or wake is scheduled.");
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Set timer").setView(scroll(activity, fields))
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Set timer").setView(scroll(activity, fields))
                 .setPositiveButton("Save timer", null).setNegativeButton("Back", null).create();
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override public void onShow(DialogInterface d) {

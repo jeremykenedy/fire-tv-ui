@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -26,7 +27,7 @@ public final class LockStore {
     public boolean hasPin() throws IOException { synchronized (LOCK) { return read().hasPin(); } }
 
     public boolean isLocked(String key) throws IOException {
-        synchronized (LOCK) { return read().targets.contains(LockState.key(key)); }
+        synchronized (LOCK) { return read().isLocked(key); }
     }
 
     public Set<String> lockedTargets() throws IOException {
@@ -45,6 +46,18 @@ public final class LockStore {
         LockState.key(key);
         synchronized (LOCK) {
             LockState state = read(); state.createPin(pin); state.lock(key, true); write(state);
+        }
+    }
+
+    /** Opt-in private in-place migration only. Caller must clear the supplied legacy PIN buffer. */
+    public boolean importLegacyPin(char[] legacyPin, Set<String> exactTargets) throws IOException, GeneralSecurityException {
+        synchronized (LOCK) {
+            LockState state = read();
+            if (!state.importLegacyPin(legacyPin, exactTargets)) return false;
+            byte[] expected = state.encode();
+            write(state);
+            if (!Arrays.equals(expected, read().encode())) throw new IOException("Imported private locks could not be verified.");
+            return true;
         }
     }
 

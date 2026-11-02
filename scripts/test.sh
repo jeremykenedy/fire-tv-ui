@@ -2,26 +2,12 @@
 set -euo pipefail
 TASK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$TASK_ROOT"
-mkdir -p .build/tests
-javac -encoding UTF-8 -d .build/tests \
-  app/src/com/jeremykenedy/firetv/ui/Screensavers.java \
-  app/src/com/jeremykenedy/firetv/ui/TimeoutValues.java \
-  app/src/com/jeremykenedy/firetv/ui/SleepTimerOptions.java \
-  app/src/com/jeremykenedy/firetv/ui/InputValues.java \
-  app/src/com/jeremykenedy/firetv/ui/DiagnosticValues.java \
-  app/src/com/jeremykenedy/firetv/ui/StorageValues.java \
-  app/src/com/jeremykenedy/firetv/ui/IdleDispatch.java \
-  app/src/com/jeremykenedy/firetv/ui/GuardReport.java \
-  tests/GuardReportTest.java \
-  tests/IdleDispatchTest.java \
-  tests/StorageValuesTest.java \
-  tests/DiagnosticValuesTest.java \
-  tests/InputValuesTest.java \
-  tests/ScreensaversTest.java
-java -cp .build/tests com.jeremykenedy.firetv.ui.ScreensaversTest
-java -cp .build/tests com.jeremykenedy.firetv.ui.StorageValuesTest
-java -cp .build/tests com.jeremykenedy.firetv.ui.DiagnosticValuesTest
-java -cp .build/tests com.jeremykenedy.firetv.ui.InputValuesTest
-java -cp .build/tests com.jeremykenedy.firetv.ui.IdleDispatchTest
-java -cp .build/tests com.jeremykenedy.firetv.ui.GuardReportTest
-python3 -m unittest discover -s tests -p 'test_*.py' -v
+TASK_TEST_DIR="$(mktemp -d)"
+trap 'rm -rf "$TASK_TEST_DIR"' EXIT
+python3 native/build.py --release-config native/preview-release.json --unsigned --output-dir "$TASK_TEST_DIR/preview"
+python3 native/tests/run_host_checks.py --classes-dir "$TASK_TEST_DIR/preview/.build/classes"
+python3 -m unittest discover -s tests/production_release -v
+python3 native/tests/device/production_contract_test.py
+python3 native/tests/device/run.py
+python3 -m unittest discover -s tests -p 'test_installer.py' -v
+python3 -m unittest discover -s tests -p 'test_build.py' -v

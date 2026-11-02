@@ -4,7 +4,6 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.provider.Settings;
 import android.view.accessibility.AccessibilityManager;
 
@@ -50,24 +49,15 @@ public final class HomeSetup {
         return new HomeSetup(choices, state, enabled, keyCapability);
     }
 
-    /** Explicit user action only. Existing unrelated and legacy values remain untouched. */
+    /** Explicit user action only. Journal the three Home flags and preserve other preferences. */
     public static boolean saveChoices(Context context, boolean keys, boolean windows) {
         if (!HomeRoutingPolicy.PRODUCTION_PACKAGE.equals(context.getPackageName()) || !HomeCommandHandler.recover(context)) return false;
-        SharedPreferences preferences = context.getSharedPreferences("launcher_prefs", 0);
-        java.util.Map<String, ?> before = preferences.getAll();
-        for (String key : new String[] {HomeSetupPolicy.HOME_KEYS, HomeSetupPolicy.HOME_WINDOWS, HomeSetupPolicy.LEGACY_HOME}) {
-            if (before.containsKey(key) && !(before.get(key) instanceof Boolean)) return false;
+        try {
+            HomeCommandPolicy.saveChoices(new HomeCommandStore(context), keys, windows);
+            return true;
+        } catch (RuntimeException failed) {
+            return false;
         }
-        if (preferences.edit().putBoolean(HomeSetupPolicy.HOME_KEYS, keys)
-                .putBoolean(HomeSetupPolicy.HOME_WINDOWS, windows)
-                .putBoolean(HomeSetupPolicy.LEGACY_HOME, keys || windows).commit()) return true;
-        SharedPreferences.Editor restore = preferences.edit();
-        for (String key : new String[] {HomeSetupPolicy.HOME_KEYS, HomeSetupPolicy.HOME_WINDOWS, HomeSetupPolicy.LEGACY_HOME}) {
-            if (before.containsKey(key)) restore.putBoolean(key, (Boolean) before.get(key));
-            else restore.remove(key);
-        }
-        restore.commit();
-        return false;
     }
 
     public static Intent accessibilitySettings(Context context) {

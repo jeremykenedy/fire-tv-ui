@@ -10,15 +10,18 @@ import java.io.IOException;
 import java.util.Set;
 
 public final class LockSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private String focus = "pin";
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         if (state != null) focus = state.getString("focus", "pin");
         render();
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         state.putString("focus", focus); super.onSaveInstanceState(state);
     }
 

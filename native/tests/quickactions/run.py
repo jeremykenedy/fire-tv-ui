@@ -17,7 +17,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-quick-actions-') as folder:
     subprocess.run(['java', '-cp', work,
                     'com.jeremykenedy.firetv.ui.nativeapp.widget.quickactions.QuickActionsTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
-                    '-bootclasspath', SDK / 'platforms/android-36/android.jar', '-d', work / 'android',
+                    '-bootclasspath', SDK / 'platforms/android-36/android.jar', '-classpath', str(ROOT / '.build/classes'), '-d', work / 'android',
                     SOURCE / 'Pages.java', SOURCE / 'layout/LayoutItem.java', SOURCE / 'layout/WidgetProvider.java',
                     SOURCE / 'appgrid/AppInventory.java', *sorted((SOURCE / 'locks').glob('*.java')),
                     *sorted((SOURCE / 'widget/quickactions').glob('*.java')),

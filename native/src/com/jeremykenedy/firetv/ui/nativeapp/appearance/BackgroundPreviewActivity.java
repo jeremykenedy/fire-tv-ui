@@ -8,9 +8,11 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 public final class BackgroundPreviewActivity extends Activity {
+    private boolean startupBlocked;
     private BackgroundLayer layer;
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         getWindow().getDecorView().setSystemUiVisibility(5894);
         FrameLayout content=new FrameLayout(this);
         TextView hint=new TextView(this); hint.setText("Background preview   •   Press Back to return");
@@ -19,6 +21,8 @@ public final class BackgroundPreviewActivity extends Activity {
         position.bottomMargin=24; content.addView(hint,position);
         layer=BackgroundLayer.attach(this,content); content.setBackgroundColor(0x00000000);
     }
-    @Override protected void onResume() { super.onResume(); layer.setResumed(true); }
-    @Override protected void onPause() { layer.setResumed(false); super.onPause(); }
+    @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; } super.onResume(); layer.setResumed(true); }
+    @Override protected void onPause() {
+        if (startupBlocked) { super.onPause(); return; } layer.setResumed(false); super.onPause(); }
 }

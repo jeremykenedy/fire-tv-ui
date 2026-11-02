@@ -55,6 +55,15 @@ public final class CardTest {
         legacy.remove("schema_version"); legacy.remove("hidden_series"); legacy.remove("item_order");
         check(CardOptions.fromBackup(legacy).globalSeconds == value.globalSeconds && CardOptions.fromBackup(legacy).isHidden("com.first.app", "item-2"), "Existing v1 settings retain timers and item hides.");
         Context context = new Context();
+        check(CardPreferences.artworkFits(context), "Absent artwork choice preserves Fit default.");
+        CardPreferences.setArtworkFit(context, false);
+        check(!CardPreferences.artworkFits(context), "Saved Fill choice survives reload.");
+        context.prefs.fail = true;
+        try { CardPreferences.setArtworkFit(context, true); throw new AssertionError("Failed artwork write accepted."); }
+        catch (IllegalStateException expected) { check(!CardPreferences.artworkFits(context), "Failed artwork save retains Fill."); }
+        context.prefs.fail = false;
+        CardPreferences.setArtworkFit(context, true);
+        check(CardPreferences.artworkFits(context), "Saved Fit choice survives reload.");
         context.prefs.values.put("unrelated", "keep");
         CardPreferences.save(context, value);
         check(CardPreferences.load(context).backupValues().equals(value.backupValues()), "Settings survive reload.");

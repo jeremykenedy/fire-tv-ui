@@ -17,27 +17,26 @@ public final class AppearanceView extends View {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
     private final Paint ground = new Paint(Paint.DITHER_FLAG);
     private final Path shape = new Path();
-    private boolean resumed, attached, scheduled;
-    private long previous, elapsed;
+    private boolean resumed, attached, scheduled, reducedMotion;
+    private final AppearanceClock clock = new AppearanceClock();
     private final Runnable frame = new Runnable() {
         @Override public void run() {
             scheduled = false;
             if (!running()) return;
-            long now = SystemClock.uptimeMillis();
-            if (previous != 0) elapsed += Math.min(100, now - previous);
-            previous = now;
+            clock.frame(SystemClock.uptimeMillis(), overlay ? options.overlaySpeed : options.baseSpeed);
             invalidate(); schedule();
         }
     };
     public AppearanceView(Context context, boolean overlay) { super(context); this.overlay = overlay; setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO); }
     public void setOptions(AppearanceOptions value) { options = value; gradient(); invalidate(); update(); }
+    public void setReducedMotion(boolean value) { reducedMotion = value; invalidate(); update(); }
     public void setResumed(boolean value) { resumed = value; update(); }
     public boolean isFrameScheduled() { return scheduled; }
-    public long animationMillis() { return elapsed; }
-    private boolean running() { return attached && resumed && hasWindowFocus() && isShown() && getWindowVisibility() == VISIBLE
+    public long animationMillis() { return clock.elapsedMillis(); }
+    private boolean running() { return !reducedMotion && attached && resumed && hasWindowFocus() && isShown() && getWindowVisibility() == VISIBLE
             && (overlay ? options.overlayAnimated() : options.baseAnimated()); }
     private void schedule() { if (!scheduled && running()) { scheduled = true; postDelayed(frame, 33); } }
-    private void update() { if (!running()) { removeCallbacks(frame); scheduled = false; previous = 0; } else schedule(); }
+    private void update() { if (!running()) { removeCallbacks(frame); scheduled = false; clock.pause(); } else schedule(); }
     @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); attached = true; update(); }
     @Override protected void onDetachedFromWindow() { attached = false; update(); super.onDetachedFromWindow(); }
     @Override protected void onVisibilityChanged(View view, int visibility) { super.onVisibilityChanged(view, visibility); if (frame != null) update(); }
@@ -51,22 +50,30 @@ public final class AppearanceView extends View {
         else if (options.base.equals("still_plum") || options.base.equals("silk")) { top=0xff241a36; bottom=0xff59405b; }
         else if (options.base.equals("embers")) { top=0xff231924; bottom=0xff613e30; }
         else if (options.base.equals("aurora") || options.base.equals("waves")) { top=0xff102834; bottom=0xff28534f; }
-        PaletteRecipes.Theme recipe=PaletteRecipes.find(options.basePalette);
-        if(recipe!=null) { top=recipe.dark; bottom=recipe.middle; }
-        ground.setShader(new LinearGradient(0, 0, Math.max(1,getWidth()), Math.max(1,getHeight()), top, bottom, Shader.TileMode.CLAMP));
+        int legacy = options.base.equals("still_legacy_gradient") ? LegacyGradients.index(options.legacyGradient) : -1;
+        if (legacy >= 0) { top = LegacyGradients.top(legacy); bottom = LegacyGradients.bottom(legacy); }
+        else {
+            PaletteRecipes.Theme recipe=PaletteRecipes.find(options.basePalette);
+            if(recipe!=null) { top=recipe.dark; bottom=recipe.middle; }
+        }
+        ground.setShader(new LinearGradient(0, 0, legacy >= 0 ? 0 : Math.max(1,getWidth()), Math.max(1,getHeight()), top, bottom, Shader.TileMode.CLAMP));
     }
     @Override protected void onDraw(Canvas canvas) {
         String style = overlay ? options.overlay : options.base;
-        if (style.equals("off") || (!overlay && !options.scene.isEmpty())) return;
+        if (style.equals("off") || (!overlay && !options.scene.isEmpty())
+                || (!overlay && style.equals("still_legacy_gradient") && LegacyGradients.index(options.legacyGradient) < 0)) return;
         int strength = overlay ? options.overlayOpacity : options.brightness;
         int density = overlay ? options.overlayIntensity : options.baseIntensity;
-        double seconds = elapsed / 1000.0;
-        double speed = 0.25 + (overlay ? options.overlaySpeed : options.baseSpeed) / 50.0;
-        if (!overlay) { canvas.drawRect(0,0,getWidth(),getHeight(),ground); paint.setColor(Color.BLACK); paint.setAlpha(Math.round((100-strength)*1.5f)); canvas.drawRect(0,0,getWidth(),getHeight(),paint); }
+        double seconds = clock.elapsedMillis() / 1000.0;
+        double phase = clock.phaseSeconds();
+        if (!overlay) {
+            canvas.drawRect(0,0,getWidth(),getHeight(),ground);
+            if (!style.equals("still_legacy_gradient")) { paint.setColor(Color.BLACK); paint.setAlpha(Math.round((100-strength)*1.5f)); canvas.drawRect(0,0,getWidth(),getHeight(),paint); }
+        }
         if (style.startsWith("still_") || density == 0 || (overlay && strength == 0)) return;
         float scale = Math.max(0.5f, getHeight()/1080f);
-        if (!overlay && (style.equals("aurora") || style.equals("waves") || style.equals("silk") || style.equals("prism") || style.equals("rays") || style.equals("orbits"))) {
-            ribbons(canvas, style, seconds*speed, density, scale); return;
+        if ((style.equals("aurora") || style.equals("waves") || style.equals("silk") || style.equals("prism") || style.equals("rays") || style.equals("orbits"))) {
+            ribbons(canvas, style, phase, density, scale); return;
         }
         int count = style.equals("snowflakes") ? 18+density*3/4 : 24+density*2;
         float width=getWidth(), height=getHeight();
@@ -74,9 +81,9 @@ public final class AppearanceView extends View {
         PaletteRecipes.Theme recipe=PaletteRecipes.find(overlay ? options.overlayPalette : options.basePalette);
         for (int i=0;i<count;i++) {
             double depth=0.35+fraction(i*19.137)*0.65;
-            double position=fraction(i*0.61803398875 + seconds*speed*(0.014+depth*0.021));
+            double position=fraction(i*0.61803398875 + phase*(0.014+depth*0.021));
             float y=(float)((rising ? 1-position : position)*(height+80*scale)-40*scale);
-            float x=(float)(fraction(i*0.754877666)*width+Math.sin(seconds*speed*0.4+i)*18*scale*depth);
+            float x=(float)(fraction(i*0.754877666)*width+Math.sin(phase*0.4+i)*18*scale*depth);
             float size=(float)((2+depth*5)*scale);
             int color=0xfff3f7ff;
             if (style.equals("leaves")) color=i%3==0 ? 0xffe9b75a : i%3==1 ? 0xffb75b32 : 0xffd9893e;
@@ -87,7 +94,7 @@ public final class AppearanceView extends View {
             paint.setColor(color); paint.setAlpha((int)((overlay ? strength/100f : 0.75f)*(130+depth*125)));
             canvas.save(); canvas.translate(x,y);
             if (style.equals("snowflakes")) {
-                canvas.rotate((float)(i*31+seconds*speed*9)); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(Math.max(1,scale*1.3f));
+                canvas.rotate((float)(i*31+phase*9)); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(Math.max(1,scale*1.3f));
                 int alpha=paint.getAlpha(), flakeColor=paint.getColor();
                 for(int spoke=0;spoke<6;spoke++) {
                     paint.setColor(0xff30445a); paint.setAlpha(alpha/2); paint.setStrokeWidth(Math.max(2,scale*3.5f));
@@ -101,7 +108,7 @@ public final class AppearanceView extends View {
                 shape.moveTo(0,size); shape.cubicTo(-size*2,-size*.2f,-size,-size*1.9f,0,-size*.8f);
                 shape.cubicTo(size,-size*1.9f,size*2,-size*.2f,0,size); canvas.drawPath(shape,paint);
             } else if (style.equals("leaves") || style.equals("petals")) {
-                canvas.rotate((float)(i*47+seconds*speed*24)); shape.reset(); shape.moveTo(-size*1.5f,0);
+                canvas.rotate((float)(i*47+phase*24)); shape.reset(); shape.moveTo(-size*1.5f,0);
                 shape.quadTo(0,-size*1.4f,size*1.5f,0); shape.quadTo(0,size*1.4f,-size*1.5f,0); canvas.drawPath(shape,paint);
                 paint.setColor(0xff70452e); paint.setAlpha((int)(strength*1.5f)); paint.setStrokeWidth(scale); canvas.drawLine(-size,0,size,0,paint);
             } else if (style.equals("rain")) { paint.setStrokeWidth(scale); canvas.drawLine(0,0,-size,size*5,paint); }
@@ -124,10 +131,10 @@ public final class AppearanceView extends View {
     }
     private void ribbons(Canvas canvas, String style, double time, int density, float scale) {
         int count=3+density/20;
-        PaletteRecipes.Theme recipe=PaletteRecipes.find(options.basePalette);
+        PaletteRecipes.Theme recipe=PaletteRecipes.find(overlay ? options.overlayPalette : options.basePalette);
         for(int i=0;i<count;i++) {
             paint.setColor(recipe==null ? (i%2==0 ? 0xff72b5b4 : 0xff8994d0) : (i%2==0 ? recipe.light : recipe.accent));
-            paint.setAlpha(18+i*3);
+            paint.setAlpha(Math.round((18+i*3)*(overlay ? options.overlayOpacity/100f : 1f)));
             float width=getWidth(), height=getHeight();
             float y=(float)((i+1.0)/(count+1)*height+Math.sin(time*.15+i)*height*.07);
             if(style.equals("orbits")) {

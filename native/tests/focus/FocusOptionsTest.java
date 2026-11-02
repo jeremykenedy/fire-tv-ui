@@ -2,6 +2,18 @@ package com.jeremykenedy.firetv.ui.nativeapp.focus;
 
 public final class FocusOptionsTest {
     public static void main(String[] args) {
+        check(FocusOptions.needsDarkLegacySurface(new int[]{0, 0, 0xffffffff, 0xffffffff}), "White transparent artwork uses a contrasting surface.");
+        check(!FocusOptions.needsDarkLegacySurface(new int[]{0, 0, 0xff2688d4, 0xff2688d4}), "Colored transparent artwork keeps the white surface.");
+        check(!FocusOptions.needsDarkLegacySurface(new int[]{0xffffffff, 0xffffffff}), "Opaque white artwork is not treated as a transparent glyph.");
+        for (int cell : new int[]{20, 40, 89, 112, 358, 640}) {
+            int artwork = FocusOptions.legacyAppArtworkWidth(cell);
+            int height = FocusOptions.legacyAppArtworkHeight(artwork);
+            int top = FocusOptions.legacyAppTopInset(height);
+            check(artwork * FocusOptions.LEGACY_APP_SCALE <= cell + 0.001f,
+                    "Focused legacy artwork stays within its grid cell.");
+            check(top >= height * (FocusOptions.LEGACY_APP_SCALE - 1f) / 2f,
+                    "Focused legacy artwork keeps its top edge inside its cell.");
+        }
         FocusOptions defaults = FocusOptions.defaults();
         check(defaults.durationMillis == 100, "Fast is the initial transition speed.");
         check(defaults.scale(1f) == 1.06f, "Default growth is six percent.");

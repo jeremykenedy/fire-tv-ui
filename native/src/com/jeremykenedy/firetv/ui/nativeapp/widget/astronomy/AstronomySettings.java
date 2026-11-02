@@ -49,7 +49,7 @@ public final class AstronomySettings {
         fields.addView(zone);
         ScrollView scroll = new ScrollView(activity);
         scroll.addView(fields);
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity).setTitle("Sun and moon location").setView(scroll)
+        AlertDialog.Builder builder = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Sun and moon location").setView(scroll)
                 .setNegativeButton("Cancel", null).setPositiveButton("Save", null);
         if (loaded != null || invalid) builder.setNeutralButton("Clear location", new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int which) {
@@ -89,6 +89,6 @@ public final class AstronomySettings {
         return field;
     }
     private static void failure(Activity activity, String message) {
-        new AlertDialog.Builder(activity).setTitle("Location was not saved").setMessage(message).setPositiveButton("OK", null).show();
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Location was not saved").setMessage(message).setPositiveButton("OK", null).show();
     }
 }

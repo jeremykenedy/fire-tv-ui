@@ -16,7 +16,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-locks-') as directory:
                     str(Path(__file__).with_name('LockTest.java'))], check=True)
     subprocess.run(['java', '-cp', str(target), 'com.jeremykenedy.firetv.ui.nativeapp.locks.LockTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
-                    '-bootclasspath', str(SDK / 'platforms/android-36/android.jar'),
+                    '-bootclasspath', str(SDK / 'platforms/android-36/android.jar'), '-classpath', str(ROOT / '.build/classes'),
                     '-d', str(target / 'android'), str(SOURCE / 'Pages.java'),
                     *map(str, sorted((SOURCE / 'locks').glob('*.java'))),
                     str(Path(__file__).with_name('LockInstrumentation.java'))], check=True)

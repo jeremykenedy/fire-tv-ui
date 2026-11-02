@@ -12,7 +12,7 @@ with tempfile.TemporaryDirectory(prefix='breathing-widget-') as folder:
                     ROOT / 'tests/breathing/BreathingSessionTest.java'], check=True)
     subprocess.run(['java', '-cp', folder, 'com.jeremykenedy.firetv.ui.nativeapp.widget.breathing.BreathingSessionTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-                    '-d', folder, SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
+                    '-d', folder, SOURCE / 'HomeDialogBuilder.java', SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
                     SOURCE / 'layout/LayoutOptions.java', SOURCE / 'layout/LayoutPreferences.java',
                     *sorted((SOURCE / 'widget/breathing').glob('*.java')),
                     ROOT / 'tests/breathing/BreathingInstrumentation.java'], check=True)

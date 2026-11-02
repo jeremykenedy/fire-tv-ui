@@ -47,12 +47,35 @@ public final class SetupTest {
     }
 
     public static void main(String[] args) throws Exception {
+        for (String style : Arrays.asList("default", "none", "fade", "slide")) {
+            Context transitionContext = new Context(new File(args[0], "transition-" + style));
+            prefs(transitionContext, "launcher_prefs").values.put("menu_transition_style", style);
+            Map<String, PreferenceSnapshot> saved = PresentationState.capture(transitionContext);
+            prefs(transitionContext, "launcher_prefs").values.put("menu_transition_style", "none");
+            PresentationState.apply(transitionContext, saved, true);
+            check(style.equals(prefs(transitionContext, "launcher_prefs").values.get("menu_transition_style")),
+                    "Saved setup restores the exact settings transition choice.");
+        }
+        Context focusContext = new Context(new File(args[0], "focus-mode"));
+        prefs(focusContext, "native_focus").values.put("legacy_app_default", true);
+        Map<String, PreferenceSnapshot> legacyMode = PresentationState.capture(focusContext);
+        check(Boolean.TRUE.equals(legacyMode.get("native_focus").values().get("legacy_app_default")), "Legacy app focus survives capture.");
+        prefs(focusContext, "native_focus").values.clear();
+        prefs(focusContext, "native_focus").values.put("growth_percent", 0);
+        Map<String, PreferenceSnapshot> sourceMode = PresentationState.capture(focusContext);
+        PresentationState.apply(focusContext, legacyMode, true);
+        check(Boolean.TRUE.equals(prefs(focusContext, "native_focus").values.get("legacy_app_default")) && !prefs(focusContext, "native_focus").values.containsKey("growth_percent"), "Restoring setup restores legacy mode and removes later native choice.");
+        PresentationState.apply(focusContext, sourceMode, true);
+        check(!prefs(focusContext, "native_focus").values.containsKey("legacy_app_default") && Integer.valueOf(0).equals(prefs(focusContext, "native_focus").values.get("growth_percent")), "Restoring a native setup clears legacy mode and restores explicit focus.");
+        Map<String, PreferenceSnapshot> invalidFocus = new LinkedHashMap<>(legacyMode);
+        invalidFocus.put("native_focus", new PreferenceSnapshot(Collections.<String, Object>singletonMap("legacy_app_default", "true")));
+        rejects(() -> PresentationState.validate(invalidFocus), "Malformed legacy marker is rejected.");
         final Context context = new Context(new File(args[0], "fixtures"));
         prefs(context, "launcher_prefs").values.put("access_token", "private-fixture");
         prefs(context, "launcher_prefs").values.put("fire_tv_ui_sleep", 1234);
         prefs(context, "launcher_prefs").values.put("folder_lock_pin", "private-fixture");
         prefs(context, "launcher_prefs").values.put("menu_overlay_frozen", false);
-        prefs(context, "native_app_grid").values.put("columns", 7);
+        prefs(context, "native_app_grid").values.put("columns", 16);
         prefs(context, "native_app_grid").values.put("owner_future_metadata", "keep");
         prefs(context, "native_focus").values.put("growth_percent", 6);
         prefs(context, "native_inputs").values.put("name:vendor/.Input/HDMI1", "Receiver");
@@ -180,6 +203,110 @@ public final class SetupTest {
         check(
                 legacyPlan.get("launcher_prefs").values().get("menu_overlay_frozen").equals(false),
                 "legacy subset preserves unrelated presentation keys");
+        Map<String, PreferenceSnapshot> beforeDirect = PresentationState.capture(context);
+        prefs(context, "launcher_prefs").values.put("use_24h_clock", false);
+        prefs(context, "launcher_prefs").values.put("featured_artwork_fit", true);
+        prefs(context, "launcher_prefs").values.put("minimal_status_bar", false);
+        prefs(context, "launcher_prefs").values.put("tinted_status_bar", true);
+        JSONObject direct = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("use_24h_clock", "featured_artwork_fit",
+                        "minimal_status_bar", "status_bar_position", "hide_status_bar_unless_focused")))
+                .put("values", new JSONObject().put("use_24h_clock", true)
+                        .put("minimal_status_bar", true).put("status_bar_position", "Left")
+                        .put("hide_status_bar_unless_focused", false));
+        Map<String, PreferenceSnapshot> directTarget = manager.prepareLegacy(direct,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true);
+        Map<String, Object> directValues = directTarget.get("launcher_prefs").values();
+        check(Boolean.TRUE.equals(directValues.get("use_24h_clock"))
+                && !directValues.containsKey("featured_artwork_fit")
+                && Boolean.TRUE.equals(directValues.get("minimal_status_bar"))
+                && "Left".equals(directValues.get("status_bar_position"))
+                && Boolean.FALSE.equals(directValues.get("hide_status_bar_unless_focused"))
+                && Boolean.TRUE.equals(directValues.get("tinted_status_bar")),
+                "Legacy direct choices apply, owned absence resets and unowned tint remains.");
+        Map<String, PreferenceSnapshot> beforeDirectApply = PresentationState.capture(context);
+        prefs(context, "launcher_prefs").failures = 1;
+        rejects(() -> PresentationState.apply(context, directTarget, true), "Direct choice commit failure rejected.");
+        check(same(beforeDirectApply, PresentationState.capture(context)) && !PresentationState.hasRecovery(context),
+                "Direct choice commit failure restores exact prior preferences.");
+        PresentationState.apply(context, directTarget, true);
+        check(prefs(context, "launcher_prefs").values.get("use_24h_clock").equals(true)
+                && !prefs(context, "launcher_prefs").values.containsKey("featured_artwork_fit"),
+                "Applying a setup persists direct choices and reset.");
+        Map<String, PreferenceSnapshot> appliedDirect = PresentationState.capture(context);
+        for (JSONObject bad : Arrays.asList(
+                new JSONObject().put("keys", new JSONArray(Arrays.asList("minimal_status_bar")))
+                        .put("values", new JSONObject().put("minimal_status_bar", "true")),
+                new JSONObject().put("keys", new JSONArray(Arrays.asList("status_bar_position")))
+                        .put("values", new JSONObject().put("status_bar_position", "Left")),
+                new JSONObject().put("keys", new JSONArray(Arrays.asList("minimal_status_bar", "status_bar_position")))
+                        .put("values", new JSONObject().put("minimal_status_bar", true).put("status_bar_position", "Center")),
+                new JSONObject().put("keys", new JSONArray(Arrays.asList("use_24h_clock", "poster_mode")))
+                        .put("values", new JSONObject().put("use_24h_clock", false).put("poster_mode", true)))) {
+            rejects(() -> manager.prepareLegacy(bad,
+                    com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true),
+                    "Malformed, incomplete or unsupported direct choice blocks setup.");
+            check(same(appliedDirect, PresentationState.capture(context)) && !PresentationState.hasRecovery(context),
+                    "Rejected preparation leaves preferences and journal unchanged.");
+        }
+        PresentationState.apply(context, beforeDirect, true);
+        Map<String, Object> previousAppearance = new LinkedHashMap<>(prefs(context, "source_appearance").values);
+        prefs(context, "source_appearance").values.put("scene", "christmas");
+        prefs(context, "source_appearance").values.put("base", "aurora");
+        prefs(context, "source_appearance").values.put("legacy_gradient", "cloud_nine");
+        prefs(context, "source_appearance").values.put("overlay", "snow");
+        JSONObject gradientSetup = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("mode", "custom_gradient")))
+                .put("values", new JSONObject().put("mode", "custom").put("custom_gradient", "Electric Indigo"));
+        Map<String, Object> gradientTarget = manager.prepareLegacy(gradientSetup,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("source_appearance").values();
+        check("still_legacy_gradient".equals(gradientTarget.get("base")) && "".equals(gradientTarget.get("scene"))
+                && "electric_indigo".equals(gradientTarget.get("legacy_gradient")) && "snow".equals(gradientTarget.get("overlay")),
+                "Legacy setup replaces its owned scene and gradient while preserving overlay");
+        JSONObject clearedGradient = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("mode", "custom_gradient"))).put("values", new JSONObject());
+        Map<String, Object> clearedTarget = manager.prepareLegacy(clearedGradient,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("source_appearance").values();
+        check("aurora".equals(clearedTarget.get("base")) && "christmas".equals(clearedTarget.get("scene"))
+                && !clearedTarget.containsKey("legacy_gradient") && "snow".equals(clearedTarget.get("overlay")),
+                "Absent mode preserves unrelated background and scene while clearing the saved gradient");
+        JSONObject videoSetup = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("mode", "custom_video_uri")))
+                .put("values", new JSONObject().put("mode", "customv").put("custom_video_uri", "content://fixture.invalid/video"));
+        Map<String, Object> videoTarget = manager.prepareLegacy(videoSetup,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("source_appearance").values();
+        check("video".equals(videoTarget.get("wallpaper_mode")) && "aurora".equals(videoTarget.get("base"))
+                && "christmas".equals(videoTarget.get("scene")) && "cloud_nine".equals(videoTarget.get("legacy_gradient")),
+                "Video mode preserves independent background, scene and dormant gradient");
+        JSONObject videoResetBase = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("mode", "custom_video_uri", "menu_animation")))
+                .put("values", new JSONObject().put("mode", "customv").put("custom_video_uri", "content://fixture.invalid/video"));
+        Map<String, Object> resetBaseTarget = manager.prepareLegacy(videoResetBase,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("source_appearance").values();
+        check(!resetBaseTarget.containsKey("base") && "christmas".equals(resetBaseTarget.get("scene")),
+                "Explicitly absent animation resets only its own base");
+        prefs(context, "source_appearance").values.clear();
+        prefs(context, "source_appearance").values.putAll(previousAppearance);
+        JSONObject excludedIcons = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("icon_pack_package", "factory_icon_packages", "app_visibility")))
+                .put("values", new JSONObject()
+                        .put("icon_pack_package", "unavailable.fixture.pack")
+                        .put("factory_icon_packages", new JSONArray(Arrays.asList("missing.fixture.app")))
+                        .put("app_visibility", "{\"missing.fixture.app\":{\"customIconUri\":\"file:/missing-private-image\"}}"));
+        prefs(context, "native_icon_packs").values.put("package", "clean-line");
+        Map<String, PreferenceSnapshot> noIcons = manager.prepareLegacy(excludedIcons,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), false);
+        check(noIcons.get("native_icon_packs").values().get("package").equals("clean-line"),
+                "legacy icon exclusion retains current native pack without requiring unavailable pack or image identities");
+        check(noIcons.get("native_icons").values().equals(PresentationState.capture(context).get("native_icons").values()),
+                "legacy icon exclusion retains every current native icon");
+        rejects(() -> manager.prepareLegacy(excludedIcons,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true),
+                "included legacy icons still require verified identities");
         JSONObject unsupported =
                 new JSONObject()
                         .put("keys", new JSONArray(Arrays.asList("folders")))
@@ -278,6 +405,70 @@ public final class SetupTest {
         rejects(() -> manager.save("Too many", null), "24 setup bound enforced");
         manager.rename(id, "Evening renamed");
         check(manager.list().get(0).getString("name").equals("Evening renamed"), "rename persists");
+        prefs(context, "source_appearance").values.clear();
+        prefs(context, "native_app_grid").values.put("show_all_apps_button", false);
+        prefs(context, "native_inputs")
+                .values
+                .put("order", "vendor/.Input/HDMI2\nvendor/.Input/HDMI1");
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI1", false);
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI2", true);
+        final Map<String, PreferenceSnapshot> organized = PresentationState.capture(context);
+        check(
+                Boolean.FALSE.equals(
+                        organized.get("native_app_grid").values().get("show_all_apps_button")),
+                "explicit All apps false retained");
+        check(
+                Boolean.FALSE.equals(
+                        organized.get("native_inputs").values().get("hidden:vendor/.Input/HDMI1")),
+                "explicit input shown false retained");
+        check(
+                organized
+                        .get("native_inputs")
+                        .values()
+                        .get("order")
+                        .equals("vendor/.Input/HDMI2\nvendor/.Input/HDMI1"),
+                "exact input order retained");
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI1", true);
+        prefs(context, "native_inputs").values.put("order", "");
+        prefs(context, "native_app_grid").values.put("show_all_apps_button", true);
+        PresentationState.apply(context, organized, true);
+        check(
+                same(organized, PresentationState.capture(context)),
+                "input organization and All apps restored transactionally");
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI1", "false");
+        rejects(() -> PresentationState.capture(context), "wrong input hidden type rejected");
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI1", false);
+        prefs(context, "native_inputs")
+                .values
+                .put("order", "vendor/.Input/HDMI1\nvendor/.Input/HDMI1");
+        rejects(() -> PresentationState.capture(context), "duplicate input order rejected");
+        prefs(context, "native_inputs").values.put("order", "");
+        prefs(context, "native_app_grid").values.put("show_all_apps_button", "false");
+        rejects(() -> PresentationState.capture(context), "wrong All apps flag type rejected");
+        prefs(context, "native_app_grid").values.put("show_all_apps_button", false);
+        StringBuilder longIdBuilder = new StringBuilder();
+        for (int i = 0; i < 2042; i++) longIdBuilder.append('a');
+        String longId = longIdBuilder.toString();
+        prefs(context, "native_inputs").values.put("hidden:" + longId, false);
+        prefs(context, "native_icons").values.put("input:" + longId, "factory");
+        Map<String, PreferenceSnapshot> longSnapshot = PresentationState.capture(context);
+        check(
+                Boolean.FALSE.equals(
+                        SavedSetupManager.decodeNative(SavedSetupManager.encodeNative(longSnapshot))
+                                .get("native_inputs")
+                                .values()
+                                .get("hidden:" + longId)),
+                "maximum platform input identity survives typed encoding");
+        check(
+                "factory".equals(longSnapshot.get("native_icons").values().get("input:" + longId)),
+                "maximum platform input artwork key retained");
+        prefs(context, "native_icons").values.remove("input:" + longId);
+        prefs(context, "native_icons").values.put("input:\n", "factory");
+        rejects(
+                () -> PresentationState.capture(context),
+                "malformed input artwork identity rejected explicitly");
+        prefs(context, "native_icons").values.remove("input:\n");
+        prefs(context, "native_inputs").values.remove("hidden:" + longId);
         File oversized = new File(context.files, "oversized.png");
         try (RandomAccessFile file = new RandomAccessFile(oversized, "rw")) {
             file.setLength(20L * 1024 * 1024 + 1);
@@ -327,6 +518,26 @@ public final class SetupTest {
         check(
                 prefs(legacyContext, "native_app_grid").values.get("columns").equals(8),
                 "existing version 1 setup applies reviewed mapped scalar");
+        prefs(legacyContext, "source_accessibility").values.put("text_percent", 120);
+        prefs(legacyContext, "source_accessibility").values.put("high_contrast", false);
+        prefs(legacyContext, "source_accessibility").values.put("future_private", "kept");
+        Map<String, PreferenceSnapshot> readable = PresentationState.capture(legacyContext);
+        check(readable.get("source_accessibility").values().get("text_percent").equals(120)
+                && readable.get("source_accessibility").values().get("high_contrast").equals(false)
+                && !readable.get("source_accessibility").values().containsKey("future_private"),
+                "readability capture retains exact explicit choices and excludes unrelated fields");
+        Map<String, PreferenceSnapshot> olderPortable = new LinkedHashMap<>(readable);
+        olderPortable.remove("source_accessibility");
+        PresentationState.validatePortable(olderPortable);
+        check(!olderPortable.containsKey("source_accessibility"), "older portable presentation validates without mutating its original store map");
+        JSONObject olderNative = SavedSetupManager.encodeNative(readable);
+        olderNative.remove("source_accessibility");
+        Map<String, PreferenceSnapshot> olderDecoded = SavedSetupManager.decodeNative(olderNative);
+        check(olderDecoded.get("source_accessibility").values().isEmpty(), "older native setup absence remains readable as absent optional readability fields");
+        PresentationState.apply(legacyContext, olderDecoded, true);
+        check(!prefs(legacyContext, "source_accessibility").values.containsKey("text_percent")
+                && prefs(legacyContext, "source_accessibility").values.get("future_private").equals("kept"),
+                "applying older setup removes owned readability choices while preserving unknown data");
         System.out.println("Saved setups: " + checks + " checks passed.");
     }
 }

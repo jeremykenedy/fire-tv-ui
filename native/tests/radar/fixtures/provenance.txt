@@ -1,0 +1,6 @@
+Unmodified National Weather Service standard KRTX radar still used only as a captured native decode/render fixture. Not a current weather report.
+Source: https://radar.weather.gov/ridge/standard/KRTX_0.gif
+Retrieved: 2026-11-02T02:18:18.207200+00:00
+HTTP Last-Modified: Mon, 02 Nov 2026 02:13:19 GMT
+SHA256: 0223bee9beae49eb2d92407f1cbd6667fe1e54328cb21f485cc4bd4422630bf5
+Reuse: https://www.weather.gov/disclaimer . NWS public-domain product; original complete source identifiers, logos, legend and product timestamps retained. No NOAA/NWS endorsement claimed.

@@ -18,6 +18,13 @@ public interface WidgetProvider {
     View createView(Context context);
     void configure(Activity activity);
 
+    default void activate(Activity activity, View view) { configure(activity); }
+
+    default boolean canRender(State state) { return state == State.READY; }
+
+    /** Observe source readiness on the UI thread, including while the slot is empty. */
+    default AutoCloseable observe(Context context, Runnable changed) { return null; }
+
     /** Called on the UI thread when Home becomes visible. Must be idempotent and reload saved configuration. */
     void onStart(View view);
 

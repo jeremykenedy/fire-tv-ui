@@ -54,7 +54,7 @@ public final class LocalTimeWidgetView extends LinearLayout {
     }
 
     public void start() {
-        stop();
+        if (started) { render(); return; }
         started = true;
         tick.run();
     }

@@ -28,6 +28,16 @@ class ProductionContractTest(unittest.TestCase):
     def test_current_candidate_contract(self):
         build.validate(self.root)
 
+    def test_production_activities_gate_before_screen_setup(self):
+        tree = ET.parse(ROOT / 'production-src/AndroidManifest.xml')
+        for activity in tree.getroot().findall('application/activity'):
+            name = activity.get(build.attr('name'))
+            if name.endswith('.MainActivity'):
+                continue
+            source = ROOT / 'src' / (name.replace('.', '/') + '.java')
+            text = source.read_text()
+            self.assertRegex(text, r'super\.onCreate\(\w+\);\s*if \(com\.jeremykenedy\.firetv\.ui\.nativeapp\.SourceStartup\.redirectIfBlocked\(this\)\)', name)
+
     def test_new_preview_route_cannot_be_silently_omitted(self):
         path = self.root / 'AndroidManifest.xml'
         tree = ET.parse(path)
@@ -53,6 +63,34 @@ class ProductionContractTest(unittest.TestCase):
         tree.getroot().set(build.attr('canRequestFilterKeyEvents'), 'true')
         tree.write(path)
         with self.assertRaisesRegex(ValueError, 'Unexpected service capability'):
+            build.validate(self.root)
+
+    def test_boot_receiver_cannot_be_public(self):
+        path = self.root / 'production-src/AndroidManifest.xml'
+        tree = ET.parse(path)
+        receiver = next(node for node in tree.getroot().findall('application/receiver')
+                        if node.get(build.attr('name')) == build.PACKAGE + '.DeviceBootReceiver')
+        receiver.set(build.attr('exported'), 'true')
+        tree.write(path)
+        with self.assertRaisesRegex(ValueError, 'Boot receiver'):
+            build.validate(self.root)
+
+    def test_unreviewed_production_component_is_rejected(self):
+        path = self.root / 'production-src/AndroidManifest.xml'
+        tree = ET.parse(path)
+        ET.SubElement(tree.getroot().find('application'), 'receiver',
+                      {build.attr('name'): 'example.Unreviewed', build.attr('exported'): 'true'})
+        tree.write(path)
+        with self.assertRaisesRegex(ValueError, 'Unreviewed production component'):
+            build.validate(self.root)
+
+    def test_unreviewed_production_permission_is_rejected(self):
+        path = self.root / 'production-src/AndroidManifest.xml'
+        tree = ET.parse(path)
+        ET.SubElement(tree.getroot(), 'uses-permission',
+                      {build.attr('name'): 'android.permission.READ_CONTACTS'})
+        tree.write(path)
+        with self.assertRaisesRegex(ValueError, 'permission/feature drift'):
             build.validate(self.root)
 
     def test_cli_receiver_cannot_lose_its_dump_boundary(self):

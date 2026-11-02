@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.transitionproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Settings transition proof" android:allowBackup="false" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.MenuTransitionInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

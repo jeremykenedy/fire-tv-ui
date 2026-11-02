@@ -69,6 +69,7 @@ public class SharedPreferences {
 # These host doubles isolate registry/order tests from Android views. Native tests use real providers.
 WIDGETS = [
     ('worldclock', 'WorldClockWidgetProvider', 'world-clocks', 'World clocks'),
+    ('yearprogress', 'YearProgressWidgetProvider', 'year-progress', 'Year progress'),
     ('notes', 'NotesWidgetProvider', 'household-notes', 'Household notes and lists'),
     ('breathing', 'BreathingWidgetProvider', 'breathing-break', 'Breathing break'),
     ('photos', 'PhotoWidgetProvider', 'photo-frame', 'Photo frame'),
@@ -77,6 +78,17 @@ WIDGETS = [
     ('reminders', 'RemindersWidgetProvider', 'household-reminders', 'Household reminders'),
     ('timers', 'CountdownWidgetProvider', 'countdown', 'Countdown'),
     ('timers', 'TimerWidgetProvider', 'timer', 'Timer'),
+    ('status', 'NetworkStatusWidgetProvider', 'network-status', 'Network status'),
+    ('status', 'TvAudioStatusWidgetProvider', 'tv-audio-status', 'TV and audio status'),
+    ('puzzles', 'DailyPuzzleWidgetProvider', 'daily-puzzle', 'Daily puzzle'),
+    ('calendar', 'CalendarWidgetProvider', 'calendar', 'Calendar'),
+    ('ambient', 'AmbientWidgetProvider', 'ambient-audio', 'Ambient audio'),
+    ('livetv', 'LiveTvWidgetProvider', 'live-tv-favorites', 'Live TV favorites'),
+    ('nowplaying', 'NowPlayingWidgetProvider', 'now-playing', 'Now Playing'),
+    ('weather', 'WeatherWidgetProvider', 'weather-hourly', 'Hourly weather'),
+    ('feeds', 'FeedWidgetProvider', 'custom-feed', 'Custom feed'),
+    ('radar', 'RadarWidgetProvider', 'weather-radar', 'NWS radar'),
+    ('uv', 'UvWidgetProvider', 'uv-forecast', 'UV forecast'),
 ]
 for package, name, identity, title in WIDGETS:
     STUBS[f'com/jeremykenedy/firetv/ui/nativeapp/widget/{package}/{name}.java'] = f'''package com.jeremykenedy.firetv.ui.nativeapp.widget.{package};
@@ -86,6 +98,19 @@ public final class {name} extends ClockWidgetProvider {{
  public String title(){{return "{title}";}}
  public boolean defaultVisible(){{return false;}}
 }}'''
+STUBS['com/jeremykenedy/firetv/ui/nativeapp/widget/dailycontent/DailyContentWidgets.java'] = '''package com.jeremykenedy.firetv.ui.nativeapp.widget.dailycontent;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.*;
+import java.util.*;
+public final class DailyContentWidgets {
+ public static List<WidgetProvider> providers(){
+  List<WidgetProvider> out=new ArrayList<>();
+  for(String id:Arrays.asList("daily-astronomy","daily-art","word-of-day","daily-trivia","daily-inspiration","daily-horoscope","daily-comic")){
+   final String key=id;
+   out.add(new ClockWidgetProvider(){public LayoutItem item(){return new LayoutItem(key,LayoutItem.Kind.WIDGET);} public boolean defaultVisible(){return false;}});
+  }
+  return out;
+ }
+}'''
 with tempfile.TemporaryDirectory() as folder:
     work = Path(folder)
     for name, source in STUBS.items():

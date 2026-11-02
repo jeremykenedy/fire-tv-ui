@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -24,6 +25,7 @@ public final class ChannelCardView extends LinearLayout {
     }
 
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private final CardRotationDeadline rotationDeadline = new CardRotationDeadline();
     private final FocusTileView tile;
     private final TextView channel;
     private final Listener listener;
@@ -42,6 +44,7 @@ public final class ChannelCardView extends LinearLayout {
     private ArtworkLoader.Request artwork;
     private final Runnable rotate = new Runnable() {
         @Override public void run() {
+            rotationDeadline.reset();
             if (active()) showNextProgram();
         }
     };
@@ -96,7 +99,7 @@ public final class ChannelCardView extends LinearLayout {
     public void restoreProgramKey(String key) {
         selectedKey = key;
         for (int next = 0; next < programs.size(); next++) {
-            if (programs.get(next).key.equals(key)) { index = next; display(); return; }
+            if (programs.get(next).key.equals(key)) { index = next; display(); schedule(); return; }
         }
     }
 
@@ -147,6 +150,14 @@ public final class ChannelCardView extends LinearLayout {
         schedule();
     }
 
+    public void showPreviousProgram() {
+        if (programs.size() > 1) {
+            index = (index + programs.size() - 1) % programs.size();
+            display();
+        }
+        schedule();
+    }
+
     public void onHostResume() {
         hostResumed = true;
         tile.refreshPreferences();
@@ -156,7 +167,7 @@ public final class ChannelCardView extends LinearLayout {
 
     public void onHostPause() {
         hostResumed = false;
-        handler.removeCallbacks(rotate);
+        schedule();
         cancelArtwork();
         artworkVisible = false;
         tile.setIcon(null);
@@ -189,7 +200,7 @@ public final class ChannelCardView extends LinearLayout {
 
     @Override protected void onDetachedFromWindow() {
         attached = false;
-        handler.removeCallbacks(rotate);
+        schedule();
         cancelArtwork();
         super.onDetachedFromWindow();
     }
@@ -222,8 +233,10 @@ public final class ChannelCardView extends LinearLayout {
 
     private void schedule() {
         handler.removeCallbacks(rotate);
-        if (active() && intervalMillis > 0 && programs.size() > 1)
-            handler.postDelayed(rotate, intervalMillis);
+        TvRecommendations.Program selected = currentProgram();
+        long due = rotationDeadline.update(SystemClock.uptimeMillis(), active() && programs.size() > 1,
+                intervalMillis, selected == null ? null : selected.key);
+        if (due != 0) handler.postAtTime(rotate, due);
     }
 
     private void display() {
@@ -231,6 +244,7 @@ public final class ChannelCardView extends LinearLayout {
         if (program != null) selectedKey = program.key;
         String title = program == null ? "No visible items" : program.title;
         tile.setTitle(title);
+        tile.setArtworkFit(CardPreferences.artworkFits(getContext()));
         setContentDescription(feed.title + ": " + title);
         Uri nextArtwork = program == null ? null : program.artwork;
         int edge = Math.max(getWidth(), getHeight());

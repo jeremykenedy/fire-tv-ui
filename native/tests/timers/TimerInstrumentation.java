@@ -64,6 +64,8 @@ public final class TimerInstrumentation extends Instrumentation {
             click("Save timer");
             check(!TimerPreferences.timer(getTargetContext()).sound, "Native creation defaults completion sound to off.");
             check(findView("local:timer") != null, "Home replaces empty state with actual timer.");
+            verifyRepeatedStartPreservesTone();
+            result.putBoolean("completion_tone_survives_refresh", true);
             select("timer"); click("Start / Resume");
             TimerState running = TimerPreferences.timer(getTargetContext());
             check(running.running, "Native action starts timer.");
@@ -100,6 +102,35 @@ public final class TimerInstrumentation extends Instrumentation {
             } catch (Throwable failure) { result.putString("restoration_error", android.util.Log.getStackTraceString(failure)); }
         }
         finish(result.containsKey("error") || result.containsKey("restoration_error") ? Activity.RESULT_CANCELED : Activity.RESULT_OK, result);
+    }
+
+    private void verifyRepeatedStartPreservesTone() {
+        final LocalTimeWidgetView view = (LocalTimeWidgetView) findView("local:timer");
+        final TimerState previous = TimerPreferences.timer(getTargetContext());
+        onMain(new Runnable() { @Override public void run() {
+            try {
+                long elapsed = SystemClock.elapsedRealtime();
+                long wall = System.currentTimeMillis();
+                TimerState finished = new TimerState("Tone proof", 1000, 1000, true, true,
+                        elapsed, wall, TimerPreferences.boot(getTargetContext()));
+                check(TimerPreferences.saveTimer(getTargetContext(), finished), "Could not save tone fixture.");
+                view.start();
+                check(!TimerPreferences.timer(getTargetContext()).running, "Completion must be persisted.");
+                java.lang.reflect.Field field = LocalTimeWidgetView.class.getDeclaredField("tone");
+                field.setAccessible(true);
+                Object active = field.get(view);
+                check(active != null, "Native completion tone could not be created.");
+                view.start();
+                check(field.get(view) == active, "Home refresh must not release the active completion tone.");
+                view.stop();
+                check(field.get(view) == null, "Stopping the widget must release the tone.");
+            } catch (Exception error) {
+                throw new AssertionError(error);
+            } finally {
+                check(TimerPreferences.saveTimer(getTargetContext(), previous), "Could not restore timer fixture.");
+                view.start();
+            }
+        }});
     }
 
     private void requireDurableGuard(Bundle result) throws Exception {

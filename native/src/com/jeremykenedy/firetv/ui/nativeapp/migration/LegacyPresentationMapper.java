@@ -1,8 +1,11 @@
 package com.jeremykenedy.firetv.ui.nativeapp.migration;
 
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTileOrder;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.CardOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.inputs.InputEntry;
+import com.jeremykenedy.firetv.ui.nativeapp.inputs.InputOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -12,10 +15,10 @@ import java.util.*;
 /** Produces validated native store changes without reading files or applying settings. */
 public final class LegacyPresentationMapper {
     public static final String GRID = "native_app_grid", FOCUS = "native_focus", LAYOUT = "native_layout",
-            CARDS = "native_cards", ICONS = "native_icons", INPUTS = "native_inputs", APPEARANCE = "source_appearance", ICON_PACKS = "native_icon_packs";
+            CARDS = "native_cards", ICONS = "native_icons", INPUTS = "native_inputs", APPEARANCE = "source_appearance", ICON_PACKS = "native_icon_packs", FOLDERS = "native_folders";
     public static final String VERSION_KEY = "source_ui_presentation_mapping_version";
     public static final List<String> FILES = Collections.unmodifiableList(Arrays.asList(
-            LauncherMigration.PREFERENCES, GRID, FOCUS, LAYOUT, CARDS, ICONS, INPUTS, APPEARANCE, ICON_PACKS));
+            LauncherMigration.PREFERENCES, GRID, FOCUS, LAYOUT, CARDS, ICONS, INPUTS, APPEARANCE, ICON_PACKS, FOLDERS));
     private static final String FEED_GROUP = digest("preview\nfire-tv-ui\nprovider:top-level-feeds");
 
     public static final class Plan {
@@ -32,6 +35,8 @@ public final class LegacyPresentationMapper {
     }
     private final Map<String, Object> legacy;
     private final PresentationMappingContext identities;
+    private LegacyFolderMigration.Plan folders;
+    private boolean completeLegacySnapshot;
     private final Map<String, PreferenceSnapshot> before = new LinkedHashMap<>();
     private final Map<String, Map<String, Object>> patches = new LinkedHashMap<>();
     private final Set<String> mapped = new LinkedHashSet<>();
@@ -53,23 +58,65 @@ public final class LegacyPresentationMapper {
     }
     public static Plan plan(PreferenceSnapshot legacy, PresentationMappingContext identities,
             Map<String, PreferenceSnapshot> nativeBefore) {
+        return plan(legacy, identities, nativeBefore, null, false);
+    }
+    static Plan plan(PreferenceSnapshot legacy, PresentationMappingContext identities,
+            Map<String, PreferenceSnapshot> nativeBefore, LegacyFolderMigration.Plan folders, boolean privateLocksVerified) {
+        return plan(legacy, identities, nativeBefore, folders, privateLocksVerified, false);
+    }
+    static Plan plan(PreferenceSnapshot legacy, PresentationMappingContext identities,
+            Map<String, PreferenceSnapshot> nativeBefore, LegacyFolderMigration.Plan folders, boolean privateLocksVerified, boolean completeLegacySnapshot) {
         LegacyPresentationMapper mapper = new LegacyPresentationMapper(legacy, identities, nativeBefore);
+        mapper.completeLegacySnapshot = completeLegacySnapshot;
+        if (folders != null) {
+            if (!legacy.values().containsKey("folders") || !folders.matches(legacy) || (folders.pinPresent && !privateLocksVerified)) throw invalid();
+            mapper.folders = folders;
+            mapper.put(FOLDERS, "schema_version", 1);
+            mapper.put(FOLDERS, "folders", LegacyFolderMigration.encode(folders.folders));
+            mapper.put(FOLDERS, "legacy_migration_version", 1);
+            mapper.mapped.add("folders");
+            if (folders.pinPresent) mapper.mapped.add("folder_lock_pin");
+        }
         mapper.grid(); mapper.focus(); mapper.cards(); mapper.iconsAndVisibility(); mapper.inputs(); mapper.appearance(); mapper.contentMode();
         return mapper.finish();
+    }
+    public static Set<String> directlyConsumedPresentationKeys(Map<String, ?> legacy) {
+        Set<String> accepted = new LinkedHashSet<>();
+        Object transition = legacy.get("menu_transition_style");
+        if (transition instanceof String && Arrays.asList("default", "none", "fade", "slide").contains(transition))
+            accepted.add("menu_transition_style");
+        for (String key : new String[]{"use_24h_clock", "featured_artwork_fit"})
+            if (legacy.get(key) instanceof Boolean) accepted.add(key);
+        if (legacy.get("minimal_status_bar") instanceof Boolean) {
+            accepted.add("minimal_status_bar");
+            for (String key : new String[]{"hide_status_bar_unless_focused", "tinted_status_bar"})
+                if (legacy.get(key) instanceof Boolean) accepted.add(key);
+            Object position = legacy.get("status_bar_position");
+            if ("Left".equals(position) || "Right".equals(position)) accepted.add("status_bar_position");
+        }
+        return accepted;
     }
     public static Map<String, Set<String>> ownedNativeKeys(Set<String> legacyKeys, PresentationMappingContext identities) {
         Map<String, Set<String>> result = new LinkedHashMap<>();
         for (String file : FILES) if (!file.equals(LauncherMigration.PREFERENCES)) result.put(file, new LinkedHashSet<String>());
         for (String key : legacyKeys) {
             if (LegacyAppearanceMapper.keys().containsKey(key)) result.get(APPEARANCE).add(LegacyAppearanceMapper.keys().get(key));
-            if (key.equals("mode")) result.get(APPEARANCE).add("wallpaper_mode");
+            if (key.equals("mode")) { result.get(APPEARANCE).add("wallpaper_mode"); result.get(APPEARANCE).add("base"); result.get(APPEARANCE).add("scene"); }
+            if (key.equals("custom_gradient")) result.get(APPEARANCE).add("legacy_gradient");
             if (key.equals("icon_pack_package")) result.get(ICON_PACKS).add("package");
             if (key.equals("apps_per_row")) result.get(GRID).add("columns");
             if (key.equals("app_max_rows")) result.get(GRID).add("rows");
             if (key.equals("app_scroll_direction")) result.get(GRID).add("horizontal");
-            if (key.equals("display_order")) result.get(GRID).add("order");
-            if (key.equals("app_visibility")) result.get(GRID).add("hidden");
-            if (key.equals("white_border") || key.equals("icon_focus_style")) result.get(FOCUS).add("border_enabled");
+            if (key.equals("display_order")) { result.get(GRID).add("order"); result.get(GRID).add("home_order"); result.get(INPUTS).add("order"); }
+            if (key.equals("app_visibility")) {
+                result.get(GRID).add("hidden");
+                for (String id : identities.inputs.values()) result.get(INPUTS).add("hidden:" + id);
+            }
+            if (key.equals("show_all_apps_button")) result.get(GRID).add("show_all_apps_button");
+            if (key.equals("white_border") || key.equals("icon_focus_style")) {
+                result.get(FOCUS).add("border_enabled");
+                result.get(FOCUS).add(FocusOptions.LEGACY_APP_DEFAULT);
+            }
             if (key.equals("icon_focus_style")) result.get(FOCUS).add("fill_enabled");
             if (key.equals("icon_focus_background")) result.get(FOCUS).add("fill_rgb");
             if (key.equals("icon_focus_border")) result.get(FOCUS).add("border_rgb");
@@ -95,12 +142,13 @@ public final class LegacyPresentationMapper {
         // Without both explicit choices the inherited widget default cannot be inferred from its stored type.
         if (!legacy.containsKey("hide_watch_next") || !legacy.containsKey("enable_widgets")) return;
         boolean cards = !bool("hide_watch_next"), widgets = bool("enable_widgets");
-        if (!cards && !widgets) throw new IllegalArgumentException("Both cards and widgets were disabled. The native content mode cannot preserve that choice yet.");
-        put(LAYOUT, "mode", cards ? (widgets ? "BOTH" : "CARDS_ONLY") : "WIDGETS_ONLY");
+        // Widget visibility with a visible recommendation feed remains unverified.
+        if (widgets) return;
+        put(LAYOUT, "mode", cards ? "CARDS_ONLY" : "NONE");
         mapped.add("hide_watch_next"); mapped.add("enable_widgets");
     }
     private void appearance() {
-        for (Map.Entry<String, Object> entry : LegacyAppearanceMapper.map(legacy, mapped).entrySet()) put(APPEARANCE, entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Object> entry : LegacyAppearanceMapper.map(legacy, mapped, identities).entrySet()) put(APPEARANCE, entry.getKey(), entry.getValue());
     }
     private void inputs() {
         if (!present("input_names")) return;
@@ -108,7 +156,8 @@ public final class LegacyPresentationMapper {
         if (names.size() > 64) throw invalid();
         for (Map.Entry<String, Object> entry : names.entrySet()) {
             String id = identities.inputs.get(entry.getKey());
-            if (id == null || !(entry.getValue() instanceof String)) throw invalid();
+            if (id == null) throw missingInput();
+            if (!(entry.getValue() instanceof String)) throw invalid();
             String name = (String) entry.getValue();
             if (name.isEmpty() || name.length() > 60 || !name.trim().equals(name)) throw invalid();
             for (int index = 0; index < name.length(); index++) if (Character.isISOControl(name.charAt(index))) throw invalid();
@@ -117,23 +166,39 @@ public final class LegacyPresentationMapper {
         }
     }
     private void grid() {
-        if (present("apps_per_row")) put(GRID, "columns", number("apps_per_row", 2, 12));
+        if (present("show_all_apps_button")) put(GRID, "show_all_apps_button", bool("show_all_apps_button"));
+        if (present("apps_per_row")) put(GRID, "columns", number("apps_per_row", 1, 20));
         if (present("app_max_rows")) put(GRID, "rows", number("app_max_rows", 0, 6));
         if (present("app_scroll_direction")) {
             String value = string("app_scroll_direction");
             if (!Arrays.asList("vertical", "horizontal").contains(value)) throw invalid();
             put(GRID, "horizontal", value.equals("horizontal"));
         }
-        if (present("display_order")) {
-            List<String> ordered = new ArrayList<>();
+        if (legacy.containsKey("display_order")) {
+            List<String> ordered = new ArrayList<>(), inputOrder = new ArrayList<>(), homeOrder = new ArrayList<>();
+            Set<String> seen = new HashSet<>();
             String value = string("display_order");
             if (!value.isEmpty()) for (String key : value.split(",", -1)) {
-                String nativeKey = identities.component(key);
-                if (ordered.contains(nativeKey)) throw invalid();
-                ordered.add(nativeKey);
+                if (key.startsWith("folder://")) {
+                    String id = key.substring("folder://".length());
+                    if (folders == null || folders.folders.find(id) == null || !seen.add("folder:" + id)) throw invalid();
+                    homeOrder.add("folder:" + id);
+                } else if (key.startsWith("tvinput_name:")) {
+                    String id = identities.inputs.get(key);
+                    if (id == null) throw missingInput();
+                    if (!seen.add("input:" + id)) throw invalid();
+                    inputOrder.add(id); homeOrder.add("input:" + id);
+                } else {
+                    String component = identities.component(key);
+                    if (!seen.add("app:" + component)) throw invalid();
+                    ordered.add(component); homeOrder.add(component);
+                }
             }
             if (ordered.size() > 2048) throw invalid();
-            put(GRID, "order", String.join("\n", ordered));
+            if (!ordered.isEmpty() || value.isEmpty()) put(GRID, "order", String.join("\n", ordered));
+            if (!inputOrder.isEmpty()) put(INPUTS, "order", new InputOptions(inputOrder, Collections.<String>emptySet()).savedOrder());
+            put(GRID, "home_order", String.join("\n", homeOrder));
+            mapped.add("display_order");
         }
     }
     private void focus() {
@@ -141,14 +206,22 @@ public final class LegacyPresentationMapper {
         if (!Arrays.asList("default", "border", "fill").contains(style)) throw invalid();
         if (legacy.containsKey("icon_focus_border")) color("icon_focus_border");
         if (legacy.containsKey("icon_focus_background")) color("icon_focus_background");
+        if (completeLegacySnapshot && !legacy.isEmpty() && style.equals("default") && !legacy.containsKey("white_border")
+                && !legacy.containsKey("icon_focus_border") && !legacy.containsKey("icon_focus_background")
+                && !FocusOptions.hasExplicitSettings(before.get(FOCUS).values())) {
+            put(FOCUS, FocusOptions.LEGACY_APP_DEFAULT, true);
+            if (legacy.containsKey("icon_focus_style")) mapped.add("icon_focus_style");
+        }
         if (!style.equals("default")) {
             mapped.add("icon_focus_style");
             put(FOCUS, "border_enabled", true);
             put(FOCUS, "fill_enabled", style.equals("fill"));
-            if (present("icon_focus_border")) put(FOCUS, "border_rgb", color("icon_focus_border"));
-            if (present("icon_focus_background")) put(FOCUS, "fill_rgb", color("icon_focus_background"));
+            put(FOCUS, "border_rgb", present("icon_focus_border") ? color("icon_focus_border") : 0xffffff);
+            put(FOCUS, "fill_rgb", present("icon_focus_background") ? color("icon_focus_background") : 0x263a5c);
+            put(FOCUS, "border_opacity", 100);
+            put(FOCUS, "fill_opacity", 100);
         }
-        // Default delegates to the inherited renderer. Its unused custom colors remain in legacy recovery.
+        // Unverified default combinations and their custom colors remain in legacy recovery.
         if (legacy.containsKey("white_border")) {
             boolean border = bool("white_border"); mapped.add("white_border");
             if (style.equals("default")) put(FOCUS, "border_enabled", border);
@@ -180,6 +253,7 @@ public final class LegacyPresentationMapper {
                 PresentationMappingContext.Item item = identities.item(hash);
                 hidden = item.series ? hidden.hideSeries(item.source, item.nativeKey, item.title)
                         : hidden.hide(item.source, item.nativeKey, item.title);
+                if (item.aliasSource != null) hidden = hidden.hide(item.aliasSource, item.aliasKey, item.title);
             }
             put(CARDS, "hidden_items", hidden.backupValues().get("hidden_items"));
             put(CARDS, "hidden_series", hidden.backupValues().get("hidden_series"));
@@ -219,6 +293,8 @@ public final class LegacyPresentationMapper {
         if (present("icon_pack_package")) {
             String pack = string("icon_pack_package");
             if (pack.trim().isEmpty()) put(ICON_PACKS, "package", "original");
+            else if (pack.equals("builtin:clean_line")) put(ICON_PACKS, "package", "clean-line");
+            else if (pack.equals("builtin:muted_solid")) put(ICON_PACKS, "package", "muted-solid");
             else {
                 if (!identities.advertisedIconPacks.contains(pack)) {
                     throw new IllegalArgumentException("The selected legacy icon pack is not verified as supported and available.");
@@ -241,12 +317,19 @@ public final class LegacyPresentationMapper {
                 for (Map.Entry<String, Object> choice : choices.entrySet()) {
                     if (choice.getKey().equals("hidden")) {
                         if (!(choice.getValue() instanceof Boolean)) throw invalid();
-                        String component = identities.component(entry.getKey());
-                        if (resolvedVisibility.containsKey(component)
-                                && !resolvedVisibility.get(component).equals(choice.getValue())) throw invalid();
-                        resolvedVisibility.put(component, (Boolean) choice.getValue());
-                        if ((Boolean) choice.getValue()) hidden.add(component); else hidden.remove(component);
-                        changedHidden = true;
+                        if (entry.getKey().startsWith("tvinput_name:")) {
+                            String id = identities.inputs.get(entry.getKey());
+                            if (id == null) throw missingInput();
+                            put(INPUTS, "hidden:" + id, choice.getValue());
+                            put(INPUTS, "known:" + id, true);
+                        } else {
+                            String component = identities.component(entry.getKey());
+                            if (resolvedVisibility.containsKey(component)
+                                    && !resolvedVisibility.get(component).equals(choice.getValue())) throw invalid();
+                            resolvedVisibility.put(component, (Boolean) choice.getValue());
+                            if ((Boolean) choice.getValue()) hidden.add(component); else hidden.remove(component);
+                            changedHidden = true;
+                        }
                     } else if (choice.getKey().equals("customIconUri")) {
                         if (!(choice.getValue() instanceof String)) throw invalid();
                         String uri = (String) choice.getValue();
@@ -306,8 +389,10 @@ public final class LegacyPresentationMapper {
         new AppGridOptions(nativeInt(grid, "columns", 5), nativeInt(grid, "rows", 0), nativeBool(grid, "horizontal", false),
                 lines(grid.get("order"), 2048), new LinkedHashSet<>(lines(grid.get("hidden"), 2048)),
                 new LinkedHashSet<>(lines(grid.get("favorites"), 2048)));
+        new HomeTileOrder(lines(grid.get("home_order"), 4096));
         Map<String, Object> focus = values.get(FOCUS).values();
         FocusOptions defaults = FocusOptions.defaults();
+        nativeBool(focus, FocusOptions.LEGACY_APP_DEFAULT, false);
         new FocusOptions(nativeInt(focus, "duration_millis", defaults.durationMillis), nativeInt(focus, "growth_percent", defaults.growthPercent),
                 nativeBool(focus, "border_enabled", defaults.borderEnabled), nativeInt(focus, "border_rgb", defaults.borderRgb),
                 nativeInt(focus, "border_opacity", defaults.borderOpacity), nativeBool(focus, "fill_enabled", defaults.fillEnabled),
@@ -317,12 +402,37 @@ public final class LegacyPresentationMapper {
         LayoutOptions.fromBackup(layout);
         cardOptions(values.get(CARDS));
         LegacyAppearanceMapper.validateNative(values.get(APPEARANCE).values());
+        nativeBool(grid, "show_all_apps_button", false);
+        validateInputs(values.get(INPUTS).values());
+    }
+    private static void validateInputs(Map<String, Object> values) {
+        Object storedOrder = values.get("order");
+        if (storedOrder != null && !(storedOrder instanceof String)) throw invalid();
+        List<String> order = InputOptions.parseOrder((String) storedOrder);
+        Set<String> hidden = new LinkedHashSet<>(), known = new LinkedHashSet<>(order);
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            String prefix = null;
+            for (String candidate : new String[]{"hidden:", "known:", "name:", "factory:"}) if (entry.getKey().startsWith(candidate)) prefix = candidate;
+            if (prefix == null) continue;
+            String id = entry.getKey().substring(prefix.length());
+            if (!InputEntry.validId(id)) throw invalid();
+            known.add(id);
+            if (prefix.equals("hidden:") || prefix.equals("known:")) {
+                if (!(entry.getValue() instanceof Boolean)) throw invalid();
+                if (prefix.equals("hidden:") && (Boolean) entry.getValue()) hidden.add(id);
+            } else if (!(entry.getValue() instanceof String)) throw invalid();
+        }
+        new InputOptions(order, hidden);
+        if (known.size() > InputOptions.MAX_INPUTS) throw invalid();
     }
     private CardOptions currentCards() { return cardOptions(before.get(CARDS)); }
     private static CardOptions cardOptions(PreferenceSnapshot snapshot) {
         Map<String, Object> values = new LinkedHashMap<>(CardOptions.defaults().backupValues());
         for (String key : new ArrayList<>(values.keySet())) if (snapshot.values().containsKey(key)) values.put(key, snapshot.values().get(key));
         return CardOptions.fromBackup(values);
+    }
+    private static IllegalArgumentException missingInput() {
+        return new IllegalArgumentException("A saved input has no unique verified platform identity. Its original settings were kept. Restore input discovery before upgrading.");
     }
     private boolean present(String key) { if (!legacy.containsKey(key)) return false; mapped.add(key); return true; }
     private String string(String key) { Object value = legacy.get(key); if (!(value instanceof String)) throw invalid(); return (String) value; }

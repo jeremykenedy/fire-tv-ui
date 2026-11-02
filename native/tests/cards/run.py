@@ -11,8 +11,8 @@ STUBS = {
 import java.util.*;
 public final class TvRecommendations {
  public static final class Program {
-  public final String key,source,title,seriesKey,seriesTitle;
-  public Program(String k,String s,String t,Object a,String intent,String sk,String st){key=k;source=s;title=t;seriesKey=sk;seriesTitle=st;}
+  public final String key,source,title,seriesKey,seriesTitle,compatibilityKey;
+  public Program(String k,String s,String t,Object a,String intent,String sk,String st){key=k;source=s;title=t;seriesKey=sk;seriesTitle=st;compatibilityKey=null;}
  }
  public static final class Item { public final String id; Item(String v){id=v;} }
  public static final class Feed {
@@ -59,6 +59,9 @@ with tempfile.TemporaryDirectory() as folder:
         path.write_text(source)
     subprocess.run(['javac', '-d', work, *[work / p for p in STUBS],
                     SOURCE / 'CardOptions.java',
-                    SOURCE / 'CardPreferences.java', ROOT / 'tests/cards/CardTest.java'], check=True)
+                    SOURCE / 'CardPreferences.java', SOURCE / 'CardRotationDeadline.java',
+                    ROOT / 'tests/cards/CardTest.java', ROOT / 'tests/cards/CardRotationDeadlineTest.java'], check=True)
     subprocess.run(['java', '-cp', work,
                     'com.jeremykenedy.firetv.ui.nativeapp.cards.CardTest'], check=True)
+    subprocess.run(['java', '-cp', work,
+                    'com.jeremykenedy.firetv.ui.nativeapp.cards.CardRotationDeadlineTest'], check=True)

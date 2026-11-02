@@ -45,6 +45,11 @@ public final class RoutingFixture extends Instrumentation {
                 check(service.key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HOME), "Visible Home consumes repeated Home");
                 check(service.key(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HOME), "Visible Home key-up consumed");
                 check(service.launches == 1, "Repeated Home never recreates the visible activity");
+                check(prefs.edit().putBoolean(HomeSetupPolicy.HOME_KEYS, false).commit(), "Window-only mode saves");
+                check(service.key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HOME), "Window-only mode keeps an already visible Home");
+                check(service.key(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HOME), "Window-only mode consumes the complete visible-Home pair");
+                check(service.launches == 1, "Visible Home never flashes through factory in window-only mode");
+                check(prefs.edit().putBoolean(HomeSetupPolicy.HOME_KEYS, true).commit(), "Direct mode restored for fixture");
                 FakeService windowOnly = new FakeService(getTargetContext()) {
                     @Override protected boolean filtersHomeKeys() { return false; }
                 };
@@ -57,6 +62,31 @@ public final class RoutingFixture extends Instrumentation {
                 window(service, "fixture.other", "fixture.other.Screen");
                 check(!service.key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HOME), "Failed launch leaves system Home available");
                 check(!service.key(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HOME), "Failed launch does not swallow key-up");
+                resetPolicy();
+                service.fail = false;
+                if (factory != null) {
+                    int before = service.launches;
+                    for (int i = 0; i < 4; i++) {
+                        window(service, factory.getComponent().getPackageName(), factory.getComponent().getClassName());
+                        SystemClock.sleep(250);
+                    }
+                    check(service.launches == before + 1,
+                            "Repeated Home window reports cannot postpone the fallback deadline");
+                    resetPolicy();
+                    before = service.launches;
+                    window(service, factory.getComponent().getPackageName(), factory.getComponent().getClassName());
+                    window(service, "com.android.tv.settings", "android.widget.FrameLayout",
+                            AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_DISAPPEARED);
+                    SystemClock.sleep(1100);
+                    check(service.launches == before + 1, "Outgoing pane disappearance cannot cancel Home fallback");
+                    resetPolicy();
+                    before = service.launches;
+                    window(service, factory.getComponent().getPackageName(), factory.getComponent().getClassName());
+                    window(service, "com.android.tv.settings", "android.widget.FrameLayout",
+                            AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_APPEARED);
+                    SystemClock.sleep(1100);
+                    check(service.launches == before, "Incoming Settings pane must cancel pending Home fallback");
+                }
                 service.preview = true;
                 service.fail = false;
                 check(!service.key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HOME), "Preview cannot redirect even with true preferences");
@@ -84,10 +114,13 @@ public final class RoutingFixture extends Instrumentation {
         field.set(null, null);
     }
     private void window(final FakeService service, final String pkg, final String cls) {
+        window(service, pkg, cls, 0);
+    }
+    private void window(final FakeService service, final String pkg, final String cls, final int changes) {
         runOnMainSync(new Runnable() {
             @Override public void run() {
                 AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
-                event.setPackageName(pkg); event.setClassName(cls);
+                event.setPackageName(pkg); event.setClassName(cls); event.setContentChangeTypes(changes);
                 service.onAccessibilityEvent(event);
                 event.recycle();
             }

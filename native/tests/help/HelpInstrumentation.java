@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 /** Native navigation checks. Does not modify app preferences or install fixtures. */
 public final class HelpInstrumentation extends Instrumentation {
@@ -39,10 +40,14 @@ public final class HelpInstrumentation extends Instrumentation {
             check(help != null, "Main Help route must open.");
             settle();
             check(tag(help.getCurrentFocus()).equals("help:topic:start"), "Help needs initial topic focus.");
+            verifyPackageGuidance();
             verifyRoute("apps");
             verifyRoute("focus");
             verifyRoute("layout");
             verifyRoute("cards");
+            verifyRoute("accessibility");
+            verifyRoute("remote-buttons");
+            verifyRoute("dashboards");
             choose("licenses");
             for (int i = 0; i < 7; i++) sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
             settle();
@@ -86,6 +91,24 @@ public final class HelpInstrumentation extends Instrumentation {
             if (help != null && !help.isFinishing()) onMain(new Runnable() { @Override public void run() { help.finish(); } });
         }
         finish(0, result);
+    }
+
+    private void verifyPackageGuidance() {
+        boolean preview = "com.jeremykenedy.firetv.ui.preview".equals(getTargetContext().getPackageName());
+        String start = paragraph(1);
+        check(preview ? start.contains("separate settings") : start.contains("Home configuration"),
+                "Getting started must match the installed package.");
+        choose("limits");
+        String recovery = paragraph(3);
+        check(preview ? recovery.contains("Preview settings are separate")
+                : recovery.contains("Retry or Open device Home"),
+                "Troubleshooting must match the installed package.");
+    }
+
+    private String paragraph(int index) {
+        View view = help.getWindow().getDecorView().findViewWithTag("help:paragraph:" + index);
+        check(view instanceof TextView, "Missing Help paragraph " + index);
+        return ((TextView) view).getText().toString();
     }
 
     private void verifyRoute(String key) {

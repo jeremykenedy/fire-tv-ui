@@ -19,6 +19,10 @@ public final class HolidaySceneView extends View {
     private final Rect frameSource = new Rect();
     private final RectF sceneBounds = new RectF(), characterBounds = new RectF();
     private final HolidayAnimation timeline = new HolidayAnimation();
+    private final ChristmasSceneLayer christmas = new ChristmasSceneLayer();
+    private final WinterSceneLayer winter = new WinterSceneLayer();
+    private final CelebrationSceneLayer celebration = new CelebrationSceneLayer();
+    private int speed = 50;
     private HolidayScenes.Scene scene;
     private Bitmap still, clean, characters;
     private HolidaySceneLoader.Request stillRequest, cleanRequest, characterRequest;
@@ -29,7 +33,13 @@ public final class HolidaySceneView extends View {
         @Override public void doFrame(long frameTimeNanos) {
             scheduled = false;
             if (!canAnimate()) { previousFrame = 0; return; }
-            if (previousFrame != 0) timeline.advance((frameTimeNanos - previousFrame) / 1000000);
+            if (previousFrame != 0) {
+                long elapsed = (frameTimeNanos - previousFrame) / 1000000;
+                timeline.advance(elapsed);
+                if (isChristmas()) christmas.advance(elapsed, speed);
+                if (isWinter()) winter.advance(elapsed, speed);
+                celebration.advance(elapsed, speed);
+            }
             previousFrame = frameTimeNanos;
             invalidate();
             updateAnimation();
@@ -49,6 +59,7 @@ public final class HolidaySceneView extends View {
         if (value != null && HolidayScenes.find(value.id) != value)
             throw new IllegalArgumentException("Choose a known holiday scene.");
         animated = animate;
+        this.speed = Math.max(0, Math.min(100, speed));
         timeline.setSpeed(speed);
         if (scene != value) {
             cancelLoads();
@@ -56,6 +67,9 @@ public final class HolidaySceneView extends View {
             still = clean = characters = null;
             loadedWidth = loadedHeight = 0;
             timeline.reset();
+            christmas.reset();
+            winter.reset();
+            celebration.reset();
         }
         loadImages();
         updateAnimation();
@@ -79,7 +93,7 @@ public final class HolidaySceneView extends View {
                         @Override public void onLoaded(Bitmap bitmap) {
                             if (expected != generation) return;
                             still = bitmap;
-                            invalidate();
+                            updateAnimation(); invalidate();
                         }
                     });
         }
@@ -105,8 +119,12 @@ public final class HolidaySceneView extends View {
 
     private boolean layersReady() { return clean != null && characters != null; }
 
+    private boolean isChristmas() { return scene != null && "christmas".equals(scene.id); }
+
+    private boolean isWinter() { return scene != null && "winter".equals(scene.id); }
+
     private boolean canAnimate() {
-        return animated && layersReady() && attached && resumed && isShown() && hasWindowFocus()
+        return animated && (layersReady() || ((isChristmas() || isWinter() || (scene != null && celebration.supports(scene.id))) && still != null)) && attached && resumed && isShown() && hasWindowFocus()
                 && getWindowVisibility() == VISIBLE;
     }
 
@@ -142,6 +160,9 @@ public final class HolidaySceneView extends View {
                 (getWidth() + width) / 2, (getHeight() + height) / 2);
         imagePaint.setAlpha(255);
         canvas.drawBitmap(background, null, sceneBounds, imagePaint);
+        if (animated && isChristmas()) christmas.draw(canvas, sceneBounds, getWidth(), getHeight());
+        if (animated && isWinter()) winter.draw(canvas, sceneBounds, getWidth(), getHeight());
+        if (animated) celebration.draw(canvas, sceneBounds, scene.id);
         if (!layered) return;
         drawGlow(canvas, .075f, .73f, .06f);
         drawGlow(canvas, .25f, .72f, .04f);

@@ -26,9 +26,9 @@ The preview registers no production Home or accessibility service and applies no
 
 ## Not a replacement yet
 
-Production Home/key routing, complete 1.x parity, real-service playback and physical-device acceptance remain open. The alpha includes folders, reviewed appearance controls and screensaver administration, as described in the preview guide. Exact-alpha card controls pass, including D-pad custom-timer Save; the tested TV provider supplies item identity without series identity. Typed migration interruption/recovery passes at three write boundaries using an isolated synthetic fixture; this does not prove a production upgrade or corrective-build recovery. The full production parity and migration inventory is maintained in private delivery records. Public preview scope and limits are documented in the [source preview guide](../docs/source-preview.md). Do not publish or deploy this review shell as the production UI.
+The production candidate implements Home/key routing, but complete 1.x parity, production upgrade and recovery behavior, real-service playback and physical-device acceptance remain open. The alpha includes folders, reviewed appearance controls and screensaver administration, as described in the preview guide. Exact-alpha card controls pass, including D-pad custom-timer Save; the tested TV provider supplies item identity without series identity. Typed migration interruption/recovery passes at three write boundaries using an isolated synthetic fixture; this does not prove a production upgrade or corrective-build recovery. The full production parity and migration inventory is maintained in private delivery records. Public preview scope and limits are documented in the [source preview guide](../docs/source-preview.md). Do not publish or deploy this review shell as the production UI.
 
-The original release build remains unchanged. Historical attribution and third-party notices remain in the repository.
+The default build now produces a source-native production candidate. Use `python3 scripts/build.py --unsigned --output-dir /tmp/fire-tv-production` for an unsigned, nondeployable candidate. Production signing and native acceptance remain separate gates. Historical attribution and third-party notices remain in the repository.
 
 ## Focused verification
 

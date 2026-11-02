@@ -25,6 +25,7 @@ def run(*args):
 sources = [SOURCE / (name + '.java') for name in (
     'HomeRoutingPolicy', 'HomeHandoffStore', 'HomeSetupPolicy', 'HomeSetup', 'HomeKeyService', 'DeviceRoutes',
     'HomeCommandHandler', 'HomeCommandPolicy', 'HomeCommandStore')]
+sources += [SOURCE / 'remotebuttons' / name for name in ('RemoteButtonDispatcher.java', 'RemoteButtonPreferences.java', 'RemoteButtonPolicy.java')]
 run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
     '-d', WORK / 'classes', *sources, HERE / 'RoutingFixture.java')
 run(TOOLS / 'd8', '--release', '--lib', ANDROID, '--min-api', '27', '--output', WORK / 'dex',

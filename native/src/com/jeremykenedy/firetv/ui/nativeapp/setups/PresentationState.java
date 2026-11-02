@@ -5,11 +5,15 @@ import android.content.SharedPreferences;
 import android.util.AtomicFile;
 
 import com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearancePreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTileOrder;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.CardOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.folders.FolderPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.icons.IconCatalog;
+import com.jeremykenedy.firetv.ui.nativeapp.inputs.InputEntry;
+import com.jeremykenedy.firetv.ui.nativeapp.inputs.InputOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.breathing.BreathingSession;
@@ -26,17 +30,20 @@ public final class PresentationState {
     private static final Map<String, Set<String>> KEYS = new LinkedHashMap<>();
 
     static {
-        add("native_app_grid", "columns rows horizontal order hidden favorites");
+        add(
+                "native_app_grid",
+                "columns rows horizontal order home_order hidden favorites show_all_apps_button");
         add(
                 "native_focus",
                 "duration_millis growth_percent border_enabled border_rgb border_opacity"
-                        + " fill_enabled fill_rgb fill_opacity");
+                        + " fill_enabled fill_rgb fill_opacity legacy_app_default");
         add("native_layout", "card_width_dp card_height_dp order hidden mode");
         add(
                 "native_cards",
                 "schema_version global_seconds feed_seconds hidden_items hidden_series item_order");
         add("native_folders", "schema_version folders");
         add("native_world_clocks", "clocks");
+        add(AccessibilityPreferences.FILE, "text_percent high_contrast");
         add("native_breathing_break", "inhale hold exhale rest duration reduced_motion");
         add("native_icons", "");
         add("native_inputs", "");
@@ -65,12 +72,10 @@ public final class PresentationState {
 
     private static boolean owns(String file, String key) {
         if (file.equals("native_inputs"))
-            return key.startsWith("name:")
-                    && key.length() > 5
-                    && key.length() <= 2047
-                    && !key.matches("(?s).*\\p{Cntrl}.*");
+            return key.equals("order") || key.startsWith("name:") || key.startsWith("hidden:");
         return file.equals("native_icons")
-                ? key.length() <= 512 && key.matches("[A-Za-z0-9_.$:/-]+")
+                ? key.startsWith("input:")
+                        || key.length() <= 512 && key.matches("[A-Za-z0-9_.$:/-]+")
                 : KEYS.get(file).contains(key);
     }
 
@@ -92,7 +97,15 @@ public final class PresentationState {
         return Collections.unmodifiableMap(result);
     }
 
+    private static Map<String, PreferenceSnapshot> optionalStores(Map<String, PreferenceSnapshot> state) {
+        if (state == null || state.containsKey(AccessibilityPreferences.FILE)) return state;
+        Map<String, PreferenceSnapshot> result = new LinkedHashMap<>(state);
+        result.put(AccessibilityPreferences.FILE, new PreferenceSnapshot(Collections.emptyMap()));
+        return result;
+    }
+
     public static void validate(Map<String, PreferenceSnapshot> state) throws Exception {
+        state = optionalStores(state);
         if (state == null || !state.keySet().equals(files()))
             throw new IOException("The saved presentation is incomplete or unsupported.");
         for (String file : files()) {
@@ -107,6 +120,10 @@ public final class PresentationState {
                 for (Map.Entry<String, Object> entry : values.entrySet()) {
                     if (!owns(file, entry.getKey()))
                         throw new IOException("An unsupported setting was found.");
+                    if (file.equals("native_icons")
+                            && entry.getKey().startsWith("input:")
+                            && !InputEntry.validId(entry.getKey().substring(6)))
+                        throw new IOException("Invalid input artwork identity.");
                     if (file.equals("native_icons")
                             && (!(entry.getValue() instanceof String)
                                     || !((String) entry.getValue())
@@ -134,11 +151,16 @@ public final class PresentationState {
                 lines(grid.get("order")),
                 new LinkedHashSet<>(lines(grid.get("hidden"))),
                 new LinkedHashSet<>(lines(grid.get("favorites"))));
+        Object homeOrder = state.get("native_app_grid").values().get("home_order");
+        if (homeOrder != null) new HomeTileOrder(lines(homeOrder));
         LayoutOptions.fromBackup(
                 defaults("native_layout", state, LayoutOptions.defaults(320, 180).backupValues()));
         CardOptions.fromBackup(
                 defaults("native_cards", state, CardOptions.defaults().backupValues()));
         Map<String, Object> f = state.get("native_focus").values();
+        if (f.containsKey(FocusOptions.LEGACY_APP_DEFAULT)
+                && !(f.get(FocusOptions.LEGACY_APP_DEFAULT) instanceof Boolean))
+            throw new IOException("Invalid legacy app focus presentation.");
         FocusOptions d = FocusOptions.defaults();
         new FocusOptions(
                 integer(f, "duration_millis", d.durationMillis),
@@ -154,11 +176,37 @@ public final class PresentationState {
                 && !Integer.valueOf(1).equals(folders.get("schema_version")))
             throw new IOException("Unsupported folders version.");
         FolderPreferences.decode((String) folders.getOrDefault("folders", "[]"));
-        for (Object value : state.get("native_inputs").values().values())
-            if (!(value instanceof String)
-                    || ((String) value).length() > 60
-                    || ((String) value).matches("(?s).*\\p{Cntrl}.*"))
-                throw new IOException("Invalid input name.");
+        Map<String, Object> inputs = state.get("native_inputs").values();
+        List<String> inputOrder = Collections.emptyList();
+        Set<String> hiddenInputs = new LinkedHashSet<>(), explicitInputs = new LinkedHashSet<>();
+        for (Map.Entry<String, Object> entry : inputs.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (key.equals("order")) {
+                if (!(value instanceof String)) throw new IOException("Invalid input order type.");
+                inputOrder = InputOptions.parseOrder((String) value);
+            } else {
+                String id = key.substring(key.startsWith("name:") ? 5 : 7);
+                if (!InputEntry.validId(id)) throw new IOException("Invalid input identity.");
+                if (key.startsWith("name:")) {
+                    if (!(value instanceof String)
+                            || !InputEntry.name((String) value).equals(value))
+                        throw new IOException("Invalid input name.");
+                } else {
+                    if (!(value instanceof Boolean))
+                        throw new IOException("Invalid input visibility type.");
+                    explicitInputs.add(id);
+                    if ((Boolean) value) hiddenInputs.add(id);
+                }
+            }
+        }
+        new InputOptions(inputOrder, hiddenInputs);
+        explicitInputs.addAll(inputOrder);
+        if (explicitInputs.size() > InputOptions.MAX_INPUTS)
+            throw new IOException("Too many saved input visibility choices.");
+        Object allApps = state.get("native_app_grid").values().get("show_all_apps_button");
+        if (allApps != null && !(allApps instanceof Boolean))
+            throw new IOException("Invalid All apps visibility type.");
         Map<String, Object> clocks = state.get("native_world_clocks").values();
         if (clocks.containsKey("clocks")) WorldClocks.decode((String) clocks.get("clocks"));
         Map<String, Object> breathing = state.get("native_breathing_break").values();
@@ -173,6 +221,7 @@ public final class PresentationState {
                 0,
                 false);
         AppearancePreferences.validateSnapshot(state.get(AppearancePreferences.FILE).values());
+        AccessibilityPreferences.validateSnapshot(state.get(AccessibilityPreferences.FILE).values());
         for (Object value : state.get("native_icon_packs").values().values())
             if (!(value instanceof String)
                     || !((String) value)
@@ -250,6 +299,7 @@ public final class PresentationState {
     public static synchronized void apply(
             Context context, Map<String, PreferenceSnapshot> state, boolean icons)
             throws Exception {
+        state = optionalStores(state);
         validate(state);
         if (hasRecovery(context))
             throw new IOException(

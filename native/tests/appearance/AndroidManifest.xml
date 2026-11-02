@@ -1,5 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.appearanceproof">
     <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
-    <application android:label="Appearance verification" />
+    <application android:label="Appearance verification" android:forceQueryable="true">
+        <provider android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearanceMediaProvider"
+            android:authorities="com.jeremykenedy.firetv.ui.appearanceproof.media" android:exported="true" />
+    </application>
     <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearanceInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.WallpaperInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
 </manifest>

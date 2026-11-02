@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class ScreensaverSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private LinearLayout rows;
     private ScrollView scroll;
@@ -33,6 +34,7 @@ public final class ScreensaverSettingsActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         if (state != null) {
             focusKey = state.getString("focus", focusKey);
             edited = state.getString("edited", "");
@@ -89,7 +91,8 @@ public final class ScreensaverSettingsActivity extends Activity {
         page.addView(status);
     }
 
-    @Override protected void onResume() { super.onResume(); refresh(); }
+    @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; } super.onResume(); refresh(); }
 
     private void refresh() {
         final int request = ++generation;
@@ -218,13 +221,16 @@ public final class ScreensaverSettingsActivity extends Activity {
         scrollY = scroll.getScrollY();
     }
 
-    @Override protected void onPause() { remember(); super.onPause(); }
+    @Override protected void onPause() {
+        if (startupBlocked) { super.onPause(); return; } remember(); super.onPause(); }
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         remember();
         state.putString("focus", focusKey);
         state.putString("edited", edited);
         state.putInt("scroll", scrollY);
         super.onSaveInstanceState(state);
     }
-    @Override protected void onDestroy() { destroyed = true; generation++; worker.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } destroyed = true; generation++; worker.shutdownNow(); super.onDestroy(); }
 }

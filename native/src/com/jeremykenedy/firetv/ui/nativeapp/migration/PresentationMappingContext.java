@@ -13,19 +13,28 @@ public final class PresentationMappingContext {
         }
     }
     public static final class Item {
-        public final String source, nativeKey, title;
+        public final String source, nativeKey, title, aliasSource, aliasKey;
         public final boolean series;
         public Item(String source, String nativeKey, String title, boolean series) {
+            this(source, nativeKey, title, series, null, null);
+        }
+        public Item(String source, String nativeKey, String title, boolean series, String aliasSource, String aliasKey) {
             if (source == null || !source.matches("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+") || source.length() > 200
                     || nativeKey == null || nativeKey.length() > 200 || !nativeKey.matches("[A-Za-z0-9.:_/-]+")
                     || title == null || title.length() > 512) throw invalid();
+            if ((aliasSource == null) != (aliasKey == null) || (aliasSource != null
+                    && (series || aliasSource.length() > 200 || !aliasSource.matches("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")
+                    || aliasKey.length() > 200 || !aliasKey.matches("[A-Za-z0-9.:_/-]+")
+                    || (aliasSource.equals(source) && aliasKey.equals(nativeKey))))) throw invalid();
             this.source = source; this.nativeKey = nativeKey; this.title = title; this.series = series;
+            this.aliasSource = aliasSource; this.aliasKey = aliasKey;
         }
     }
     public final Map<String, String> components, icons, inputs;
     public final Map<String, Feed> feeds;
     public final Map<String, Item> items;
     public final Set<String> advertisedIconPacks;
+    public final Map<String, PrivateMediaReference> privateMedia;
 
     public PresentationMappingContext(Map<String, String> components, Map<String, Feed> feeds,
             Map<String, Item> items, Map<String, String> icons) {
@@ -37,12 +46,23 @@ public final class PresentationMappingContext {
     }
     public PresentationMappingContext(Map<String, String> components, Map<String, Feed> feeds,
             Map<String, Item> items, Map<String, String> icons, Map<String, String> inputs, Set<String> advertisedIconPacks) {
+        this(components, feeds, items, icons, inputs, advertisedIconPacks, Collections.<PrivateMediaReference>emptyList());
+    }
+    public PresentationMappingContext(Map<String, String> components, Map<String, Feed> feeds,
+            Map<String, Item> items, Map<String, String> icons, Map<String, String> inputs, Set<String> advertisedIconPacks,
+            Collection<PrivateMediaReference> privateMedia) {
+        if (privateMedia == null || privateMedia.size() > 512) throw invalid();
+        Map<String, PrivateMediaReference> verifiedMedia = new LinkedHashMap<>();
+        for (PrivateMediaReference reference : privateMedia) {
+            if (reference == null || verifiedMedia.put(reference.uri, reference) != null) throw invalid();
+        }
+        this.privateMedia = Collections.unmodifiableMap(verifiedMedia);
         if (advertisedIconPacks == null || advertisedIconPacks.size() > 256) throw invalid();
         for (String id : advertisedIconPacks) {
             if (id == null || id.length() > 200 || !id.matches("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")) throw invalid();
         }
         this.advertisedIconPacks = Collections.unmodifiableSet(new LinkedHashSet<>(advertisedIconPacks));
-        if (inputs == null || inputs.size() > 64) throw invalid();
+        if (inputs == null || inputs.size() > 256) throw invalid();
         Set<String> inputIds = new HashSet<>();
         for (Map.Entry<String, String> entry : inputs.entrySet()) {
             String id = entry.getValue();
@@ -67,6 +87,7 @@ public final class PresentationMappingContext {
             Item item = entry.getValue();
             if (!hash(entry.getKey()) || item == null
                     || !mappedItems.add(item.source + "\t" + item.series + "\t" + item.nativeKey)) throw invalid();
+            if (item.aliasSource != null && !mappedItems.add(item.aliasSource + "\tfalse\t" + item.aliasKey)) throw invalid();
         }
         for (Map.Entry<String, String> entry : icons.entrySet()) {
             if (entry.getKey() == null || entry.getKey().length() > 4096 || !validIcon(entry.getValue())) throw invalid();
@@ -85,7 +106,7 @@ public final class PresentationMappingContext {
     String component(String key) {
         if (components.containsKey(key)) return components.get(key);
         if (validComponent(key)) return canonicalComponent(key);
-        throw new IllegalArgumentException("A legacy tile has no verified native component mapping.");
+        throw new IllegalArgumentException("A saved app has no unique verified launch activity. Its original settings were kept. Restore the app or resolve its activity inventory before upgrading.");
     }
     String tile(String key) {
         return inputs.containsKey(key) ? "input:" + inputs.get(key) : component(key);

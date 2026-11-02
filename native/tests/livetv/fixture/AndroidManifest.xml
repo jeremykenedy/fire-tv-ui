@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.livetvfixture">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
+    <application android:label="Isolated Live TV guide fixture" android:theme="@android:style/Theme.Material.NoActionBar">
+        <receiver android:name=".GuideReceiver" android:exported="true" />
+        <activity android:name=".ChannelActivity" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent-filter>
+            <intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><data android:scheme="livetvfixture" /></intent-filter>
+        </activity>
+        <service android:name=".GuideInput" android:permission="android.permission.BIND_TV_INPUT" android:exported="true">
+            <intent-filter><action android:name="android.media.tv.TvInputService" /></intent-filter>
+            <meta-data android:name="android.media.tv.input" android:resource="@xml/input" />
+        </service>
+    </application>
+</manifest>

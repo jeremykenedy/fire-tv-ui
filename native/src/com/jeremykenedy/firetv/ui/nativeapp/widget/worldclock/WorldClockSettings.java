@@ -18,7 +18,7 @@ public final class WorldClockSettings {
         final WorldClocks clocks;
         try { clocks = WorldClockPreferences.read(activity); }
         catch (IllegalArgumentException error) {
-            new AlertDialog.Builder(activity).setTitle("World clocks unavailable")
+            new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("World clocks unavailable")
                     .setMessage("Saved clocks could not be read. Clear only the world-clock list to start again.")
                     .setNegativeButton("Cancel", null).setPositiveButton("Clear clocks", new DialogInterface.OnClickListener() {
                         @Override public void onClick(DialogInterface dialog, int which) {
@@ -30,7 +30,7 @@ public final class WorldClockSettings {
         List<String> rows = new ArrayList<>();
         for (WorldClocks.Entry entry : clocks.entries) rows.add(entry.label + "  (" + entry.zone + ")");
         if (clocks.entries.size() < WorldClocks.MAX_CLOCKS) rows.add("Add clock");
-        new AlertDialog.Builder(activity).setTitle("World clocks (" + clocks.entries.size() + "/6)")
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("World clocks (" + clocks.entries.size() + "/6)")
                 .setItems(rows.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int index) {
                         if (index == clocks.entries.size()) regions(activity, clocks, -1);
@@ -46,7 +46,7 @@ public final class WorldClockSettings {
         actions.add("Remove clock");
         if (index > 0) actions.add("Move earlier");
         if (index + 1 < clocks.entries.size()) actions.add("Move later");
-        new AlertDialog.Builder(activity).setTitle(clocks.entries.get(index).label)
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(clocks.entries.get(index).label)
                 .setItems(actions.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         String action = actions.get(which);
@@ -74,7 +74,7 @@ public final class WorldClockSettings {
             String region = zone.contains("/") ? zone.substring(0, zone.indexOf('/')) : zone;
             if (!regions.contains(region)) regions.add(region);
         }
-        new AlertDialog.Builder(activity).setTitle("Choose a region")
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Choose a region")
                 .setItems(regions.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         zone(activity, clocks, index, regions.get(which));
@@ -86,7 +86,7 @@ public final class WorldClockSettings {
     private static void zone(Activity activity, WorldClocks clocks, int index, String region) {
         List<String> choices = new ArrayList<>();
         for (String zone : zones()) if (zone.equals(region) || zone.startsWith(region + "/")) choices.add(zone);
-        new AlertDialog.Builder(activity).setTitle(region + " time zones")
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(region + " time zones")
                 .setItems(choices.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         label(activity, clocks, index, choices.get(which));
@@ -102,7 +102,7 @@ public final class WorldClockSettings {
         input.setText(index < 0 ? zone.substring(zone.lastIndexOf('/') + 1).replace('_', ' ')
                 : clocks.entries.get(index).label);
         input.selectAll();
-        AlertDialog dialog = new AlertDialog.Builder(activity).setTitle(zone).setView(input)
+        AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(zone).setView(input)
                 .setNegativeButton("Cancel", back(activity, clocks, index, null))
                 .setPositiveButton("Save", null).create();
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -133,7 +133,7 @@ public final class WorldClockSettings {
     private static boolean save(Activity activity, WorldClocks clocks) {
         try { WorldClockPreferences.save(activity, clocks); return true; }
         catch (IllegalStateException error) {
-            new AlertDialog.Builder(activity).setTitle("World clocks were not saved")
+            new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("World clocks were not saved")
                     .setMessage(error.getMessage()).setPositiveButton("OK", null).show();
             return false;
         }

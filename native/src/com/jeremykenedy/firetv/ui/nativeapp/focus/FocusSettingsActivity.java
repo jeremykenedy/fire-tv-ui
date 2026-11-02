@@ -18,15 +18,18 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
-public final class FocusSettingsActivity extends Activity {
+public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    private boolean startupBlocked;
     private FocusOptions options;
     private FocusTileView preview;
     private TextView summary;
+    private TextView importedNotice;
     private RadioGroup growthChoices;
     private SeekBar growthSlider;
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         options = FocusPreferences.load(this);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
@@ -37,6 +40,10 @@ public final class FocusSettingsActivity extends Activity {
         TextView intro = text("Choose how apps respond as you move with the remote.", 17, 0xffc8bfdc);
         intro.setPadding(0, dp(6), 0, dp(18));
         root.addView(intro);
+        importedNotice = text("Apps use an imported focus style. The preview and controls show a new style; changing a setting replaces the imported style.", 16, 0xffe5dff0);
+        importedNotice.setPadding(0, 0, 0, dp(12));
+        importedNotice.setVisibility(FocusPreferences.legacyDefaultAppMode(this) ? View.VISIBLE : View.GONE);
+        root.addView(importedNotice);
         LinearLayout row = new LinearLayout(this);
         root.addView(row, new LinearLayout.LayoutParams(-1, 0, 1));
         ScrollView scroll = new ScrollView(this);
@@ -202,6 +209,7 @@ public final class FocusSettingsActivity extends Activity {
         try {
             FocusPreferences.save(this, value);
             options = value;
+            importedNotice.setVisibility(View.GONE);
             preview.refreshPreferences();
             updateSummary();
         } catch (IllegalStateException failure) {

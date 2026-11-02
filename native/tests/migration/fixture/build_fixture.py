@@ -21,10 +21,14 @@ for folder in (WORK / 'classes', WORK / 'dex'):
     folder.mkdir(parents=True)
 SOURCE = NATIVE / 'src/com/jeremykenedy/firetv/ui/nativeapp'
 sources = sorted((SOURCE / 'migration').glob('*.java'))
-sources += [SOURCE / name for name in ('appgrid/AppGridOptions.java', 'focus/FocusOptions.java',
-            'layout/LayoutOptions.java', 'layout/LayoutItem.java', 'cards/CardOptions.java',
-            'appearance/AppearanceOptions.java', 'appearance/PaletteRecipes.java')]
+sources += [SOURCE / name for name in ('folders/FolderOptions.java', 'locks/LockStore.java', 'locks/LockState.java', 'locks/LockResult.java', 'holidays/HolidayScenes.java', 'appgrid/HomeTileOrder.java', 'appgrid/AppGridOptions.java', 'focus/FocusOptions.java',
+            'layout/LayoutOptions.java', 'layout/LayoutItem.java', 'cards/CardOptions.java', 'cards/CardPreferences.java',
+            'appearance/AppearanceOptions.java', 'appearance/PaletteRecipes.java', 'inputs/InputEntry.java', 'inputs/InputOptions.java')]
+sources += [SOURCE / ('providers/' + name) for name in ('RecommendationKeys.java', 'OwnedPlexIdentity.java', 'LegacyRecommendationIdentities.java', 'AndroidRecommendationIdentityInventory.java', 'TvRecommendations.java')]
 sources.append(HERE / 'MigrationCrashInstrumentation.java')
+sources.append(HERE / 'PlexIdentityInstrumentation.java')
+sources.append(HERE / 'DeviceProtectionInstrumentation.java')
+sources += [SOURCE / 'device/protection/LegacyDeviceProtection.java', SOURCE / 'device/protection/LegacyProtectionSession.java', SOURCE / 'device/commands/LegacySettingTransaction.java', SOURCE / 'device/commands/SettingCommandPolicy.java']
 
 def run(*args):
     subprocess.run([str(arg) for arg in args], check=True)

@@ -25,7 +25,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
-public final class RemindersActivity extends Activity {
+public final class RemindersActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    private boolean startupBlocked;
     private LinearLayout body;
     private String focusKey = "add";
     private View desiredFocus;
@@ -35,11 +36,15 @@ public final class RemindersActivity extends Activity {
         @Override public void run() { refreshStatuses(); handler.postDelayed(this, 30000); }
     };
     @Override public void onCreate(Bundle state) {
-        super.onCreate(state); if (state != null) focusKey = state.getString("focus", "add"); render();
+        super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; } if (state != null) focusKey = state.getString("focus", "add"); render();
     }
-    @Override protected void onSaveInstanceState(Bundle state) { super.onSaveInstanceState(state); state.putString("focus", focusKey); }
-    @Override protected void onResume() { super.onResume(); render(); handler.removeCallbacks(tick); handler.post(tick); }
-    @Override protected void onPause() { handler.removeCallbacks(tick); super.onPause(); }
+    @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; } super.onSaveInstanceState(state); state.putString("focus", focusKey); }
+    @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; } super.onResume(); render(); handler.removeCallbacks(tick); handler.post(tick); }
+    @Override protected void onPause() {
+        if (startupBlocked) { super.onPause(); return; } handler.removeCallbacks(tick); super.onPause(); }
     private void render() {
         desiredFocus = null; renderFocus = focusKey;
         LinearLayout page = Pages.page(this);

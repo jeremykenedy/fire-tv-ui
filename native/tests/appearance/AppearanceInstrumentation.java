@@ -43,12 +43,14 @@ public final class AppearanceInstrumentation extends Instrumentation {
                 AppearanceView overlay=(AppearanceView)editor.getWindow().getDecorView().findViewWithTag("appearance:overlay");
                 check(overlay.animationMillis()>time[0],"Overlay time advances visibly independent of base");
             } });
+            verifyPhaseContinuity();
             preview=open(editor,"Full screen preview",PREFIX+"appearance.BackgroundPreviewActivity");
             onMain(new Runnable() { @Override public void run() {
                 AppearanceView overlay=(AppearanceView)editor.getWindow().getDecorView().findViewWithTag("appearance:overlay");
                 check(!overlay.isFrameScheduled(),"Covered settings pause frame callback");
             } });
             sendKeyDownUpSync(KeyEvent.KEYCODE_BACK); waitForIdleSync();
+            waitForFocus(editor);
             onMain(new Runnable() { @Override public void run() {
                 check(editor.hasWindowFocus(),"Back restores settings window focus");
                 View action=editor.getWindow().getDecorView().findViewWithTag("appearance:overlay_frozen"); action.performClick();
@@ -58,6 +60,16 @@ public final class AppearanceInstrumentation extends Instrumentation {
             AppearanceOptions saved=AppearancePreferences.load(getTargetContext());
             check(saved.overlayFrozen&&saved.overlayOpacity==80&&saved.base.equals("off"),"Selected state persists without unrelated changes");
             check(saved.imageUri.equals("content://owner/preserved-image")&&saved.videoUri.equals("content://owner/preserved-video"),"Wallpaper references retained");
+            onMain(new Runnable() { @Override public void run() {
+                editor.getWindow().getDecorView().findViewWithTag("appearance:overlay_frozen").performClick();
+                AppearanceView overlay=(AppearanceView)editor.getWindow().getDecorView().findViewWithTag("appearance:overlay");
+                check(overlay.isFrameScheduled(),"Individual animated choice resumes");
+                editor.getWindow().getDecorView().findViewWithTag("appearance:reduced_motion").performClick();
+                check(!overlay.isFrameScheduled(),"Reduced motion cancels overlay callback");
+                check(!AppearancePreferences.load(getTargetContext()).overlayFrozen,"Reduced motion keeps individual choice");
+                editor.getWindow().getDecorView().findViewWithTag("appearance:reduced_motion").performClick();
+                check(overlay.isFrameScheduled(),"Disabling reduced motion restores individual animated choice");
+            } });
             result.putString("result","PASS: native overlay transparency, opacity, independent motion, actual settings and preview routes, pause and Back");
         } catch(Throwable failure) { result.putString("failure",failure.toString()); }
         finally {
@@ -74,6 +86,86 @@ public final class AppearanceInstrumentation extends Instrumentation {
         }
         finish(result.containsKey("failure") ? 1 : -1,result);
     }
+    private void verifyPhaseContinuity() {
+        final AppearanceView[] views=new AppearanceView[2];
+        final Bitmap[] still=new Bitmap[2];
+        onMain(new Runnable() { @Override public void run() {
+            View decor=editor.getWindow().getDecorView();
+            views[0]=(AppearanceView)decor.findViewWithTag("appearance:base");
+            views[1]=(AppearanceView)decor.findViewWithTag("appearance:overlay");
+            for(AppearanceView view:views) {
+                check(view!=null&&view.getWidth()>0&&view.getHeight()>0,"Appearance layer is laid out");
+                view.setOptions(phaseOptions(false,false,0));
+                view.setResumed(true);
+                check(view.isFrameScheduled(),"Animated layer schedules frames");
+            }
+        } });
+        SystemClock.sleep(1600);
+        onMain(new Runnable() { @Override public void run() {
+            for(int i=0;i<views.length;i++) {
+                AppearanceView view=views[i];
+                check(view.animationMillis()>500,"Layer has accumulated motion before changing speed");
+                view.setOptions(phaseOptions(false,true,0));
+                check(!view.isFrameScheduled(),"Frozen layer stops frames");
+                still[i]=render(view);
+                view.setOptions(phaseOptions(false,true,100));
+                Bitmap changed=render(view);
+                check(still[i].sameAs(changed),"Changing speed while frozen must not relocate the scene");
+                changed.recycle();
+                view.setOptions(phaseOptions(false,false,100));
+                check(view.isFrameScheduled(),"Layer resumes after speed change");
+            }
+        } });
+        SystemClock.sleep(800);
+        onMain(new Runnable() { @Override public void run() {
+            for(int i=0;i<views.length;i++) {
+                AppearanceView view=views[i];
+                view.setResumed(false);
+                check(!view.isFrameScheduled(),"Lifecycle pause stops frames");
+                view.setResumed(true);
+                check(view.isFrameScheduled(),"Lifecycle resume restarts frames");
+                view.setReducedMotion(true);
+                check(!view.isFrameScheduled(),"Reduced motion stops frames");
+                Bitmap moved=render(view);
+                check(!still[i].sameAs(moved),"Resumed layer visibly advances at the new speed");
+                still[i].recycle(); still[i]=moved;
+            }
+        } });
+        SystemClock.sleep(200);
+        onMain(new Runnable() { @Override public void run() {
+            for(int i=0;i<views.length;i++) {
+                AppearanceView view=views[i];
+                Bitmap held=render(view);
+                check(still[i].sameAs(held),"Reduced motion holds rendered pixels");
+                held.recycle(); still[i].recycle();
+                view.setReducedMotion(false);
+                check(view.isFrameScheduled(),"Disabling reduced motion resumes frames");
+                view.setOptions(phaseOptions(true,false,100));
+                check(!view.isFrameScheduled(),"Off stops frames");
+                view.setOptions(AppearancePreferences.load(getTargetContext()));
+                view.setResumed(true);
+            }
+        } });
+    }
+    private static AppearanceOptions phaseOptions(boolean off,boolean frozen,int speed) {
+        return new AppearanceOptions(off?"off":"particles",frozen,speed,70,80,
+                off?"off":"snowflakes",frozen,speed,70,80,"","","");
+    }
+    private static Bitmap render(AppearanceView view) {
+        Bitmap pixels=Bitmap.createBitmap(view.getWidth(),view.getHeight(),Bitmap.Config.ARGB_8888);
+        view.draw(new Canvas(pixels));
+        return pixels;
+    }
+    private void waitForFocus(final Activity activity) {
+        final boolean[] focused={false};
+        long deadline=SystemClock.uptimeMillis()+5000;
+        do {
+            onMain(new Runnable() { @Override public void run() { focused[0]=activity.hasWindowFocus(); } });
+            if(focused[0])return;
+            SystemClock.sleep(50);
+        } while(SystemClock.uptimeMillis()<deadline);
+        throw new AssertionError("Editor did not regain focus after Back");
+    }
     private void verifyRender() {
         Context context=getTargetContext(); AppearanceView view=new AppearanceView(context,true); view.layout(0,0,960,540);
         Bitmap pixels=Bitmap.createBitmap(960,540,Bitmap.Config.ARGB_8888);
@@ -84,7 +176,39 @@ public final class AppearanceInstrumentation extends Instrumentation {
         AppearancePreferences.number(context,"overlay_opacity",20); pixels.eraseColor(0);
         view.setOptions(AppearancePreferences.load(context)); view.draw(new Canvas(pixels));
         check(alpha(pixels)<high/2,"Opacity visibly changes rendered alpha");
-        AppearancePreferences.number(context,"overlay_opacity",80); pixels.recycle();
+        AppearancePreferences.number(context,"overlay_opacity",80);
+        int[] rendered=new int[960*540];
+        for(String style:AppearanceOptions.OVERLAYS) {
+            pixels.eraseColor(0);
+            view.setOptions(new AppearanceOptions("off",false,50,50,50,style,true,50,70,80,"","",""));
+            view.draw(new Canvas(pixels)); pixels.getPixels(rendered,0,960,0,0,960,540);
+            int visible=0,clear=0;
+            for(int pixel:rendered) { if((pixel>>>24)==0)clear++; else visible++; }
+            check(clear>0,"Transparent backing retained for "+style);
+            check(style.equals("off")?visible==0:visible>0,"Selected overlay actually renders: "+style);
+        }
+        AppearanceView background = new AppearanceView(context, false);
+        background.layout(0,0,960,540);
+        for (int i=0; i<LegacyGradients.IDS.length; i++) {
+            pixels.eraseColor(0);
+            background.setOptions(new AppearanceOptions("still_legacy_gradient",false,50,50,0,"off",false,50,50,50,"","","","diwali","",LegacyGradients.IDS[i]));
+            background.draw(new Canvas(pixels));
+            check(!background.isFrameScheduled(),"Legacy gradient is static");
+            check(close(pixels.getPixel(0,0),LegacyGradients.top(i)) && close(pixels.getPixel(959,0),LegacyGradients.top(i)),"Gradient top is horizontal and independent of palette and brightness");
+            check(close(pixels.getPixel(0,539),LegacyGradients.bottom(i)) && close(pixels.getPixel(959,539),LegacyGradients.bottom(i)),"Gradient bottom is horizontal");
+        }
+        pixels.recycle();
+        Bitmap source=Bitmap.createBitmap(3,2,Bitmap.Config.ARGB_8888);
+        source.setPixel(0,0,0xffff0000); source.setPixel(2,0,0xff00ff00); source.setPixel(0,1,0xff0000ff);
+        Bitmap rotated=WallpaperImages.orient(source,android.media.ExifInterface.ORIENTATION_ROTATE_90);
+        check(rotated.getWidth()==2&&rotated.getHeight()==3,"Portrait EXIF rotates dimensions");
+        check(rotated.getPixel(1,0)==0xffff0000&&rotated.getPixel(1,2)==0xff00ff00&&rotated.getPixel(0,0)==0xff0000ff,"Portrait EXIF preserves pixel orientation");
+        rotated.recycle();
+    }
+    private static boolean close(int actual,int expected) {
+        return Math.abs(android.graphics.Color.red(actual)-android.graphics.Color.red(expected))<=1
+                && Math.abs(android.graphics.Color.green(actual)-android.graphics.Color.green(expected))<=1
+                && Math.abs(android.graphics.Color.blue(actual)-android.graphics.Color.blue(expected))<=1;
     }
     private long alpha(Bitmap pixels) { long sum=0; for(int y=0;y<pixels.getHeight();y++)for(int x=0;x<pixels.getWidth();x++)sum+=pixels.getPixel(x,y)>>>24; return sum; }
     private Activity open(final Activity source,final String label,String target) {

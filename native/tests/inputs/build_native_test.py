@@ -20,6 +20,13 @@ if not signer.exists():
 def run(*args):
     subprocess.run([str(arg) for arg in args], check=True)
 
+# Generate the resource symbols beside this proof; other lanes may add assets
+# after the last combined build, so shared generated R is not a safe dependency.
+(work / 'gen').mkdir(exist_ok=True)
+run(tools / 'aapt2', 'compile', '--dir', root / 'res', '-o', work / 'source-res.zip')
+run(tools / 'aapt2', 'link', '-I', android, '--manifest', root / 'AndroidManifest.xml',
+    '--java', work / 'gen', '-o', work / 'source-res.apk', work / 'source-res.zip')
+
 for name, manifest, sources in (
     ('input-fixture', here / 'fixture/AndroidManifest.xml', list((here / 'fixture').glob('*.java'))),
     ('input-proof', here / 'AndroidManifest.xml', [here / 'InputInstrumentation.java']),
@@ -31,7 +38,7 @@ for name, manifest, sources in (
     (build / 'dex').mkdir()
     dependencies = list((root / 'src/com/jeremykenedy/firetv/ui/nativeapp/inputs').glob('*.java')) if name == 'input-proof' else []
     run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', android,
-        '-sourcepath', os.pathsep.join([str(root / 'src'), str(root / '.build/gen')]),
+        '-sourcepath', os.pathsep.join([str(root / 'src'), str(work / 'gen')]),
         '-d', build / 'classes', *dependencies, *sources)
     classes = sorted((build / 'classes').rglob('*.class'))
     if name == 'input-proof':

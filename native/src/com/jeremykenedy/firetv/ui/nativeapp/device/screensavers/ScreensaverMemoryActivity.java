@@ -15,11 +15,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class ScreensaverMemoryActivity extends Activity {
+    private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private LinearLayout body;
     private boolean destroyed;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         LinearLayout page = Pages.page(this);
         page.addView(Pages.text(this, "Screensaver memory and storage", 28));
         page.addView(Pages.button(this, "Refresh measurements", new View.OnClickListener() {
@@ -64,5 +66,6 @@ public final class ScreensaverMemoryActivity extends Activity {
             }
         });
     }
-    @Override protected void onDestroy() { destroyed = true; worker.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } destroyed = true; worker.shutdownNow(); super.onDestroy(); }
 }

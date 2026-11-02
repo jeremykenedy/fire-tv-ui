@@ -44,10 +44,11 @@ public final class RecommendationsTest {
         check(result.feeds.get(0).programs.get(0).title.equals("Untitled item"), "Blank titles receive an honest fallback.");
         Context bounded = context();
         List<Map<String,Object>> many = new ArrayList<>();
-        for (int i = 1; i <= 40; i++) many.add(program(i, "tv.example.movies", 0, "Item " + i, "item" + i));
+        for (int i = 1; i <= 120; i++) many.add(program(i, "tv.example.movies", 0, "Item " + i, "item" + i));
         bounded.resolver.tables.put("watch_next_program", new Rows(many));
         result = TvRecommendations.read(bounded);
-        check(result.status == TvRecommendations.Status.READY && result.feeds.get(0).programs.size() == 24,
+        check(result.status == TvRecommendations.Status.READY && result.feeds.get(0).programs.size() == 96
+                        && result.feeds.get(0).programs.get(74).title.equals("Item 75"),
                 "Expected per-feed limits do not masquerade as a permission failure.");
         Context unsafe = context();
         Map<String,Object> entry = program(1, "tv.example.movies", 0, "Item", "id");

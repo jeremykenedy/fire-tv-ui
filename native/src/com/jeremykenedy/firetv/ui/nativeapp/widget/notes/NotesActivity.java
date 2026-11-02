@@ -13,20 +13,24 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 
-public final class NotesActivity extends Activity {
+public final class NotesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    private boolean startupBlocked;
     private LinearLayout body;
     private String focusKey = "add-note";
     private View desiredFocus;
     private String renderFocus;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         if (state != null) focusKey = state.getString("focus", "add-note");
         render();
     }
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         super.onSaveInstanceState(state); state.putString("focus", focusKey);
     }
-    @Override protected void onResume() { super.onResume(); render(); }
+    @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; } super.onResume(); render(); }
     private void render() {
         desiredFocus = null; renderFocus = focusKey;
         LinearLayout page = Pages.page(this);

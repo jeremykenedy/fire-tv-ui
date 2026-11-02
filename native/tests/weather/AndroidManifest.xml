@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.weatherproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Hourly weather verification" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherPlaceInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherGroupInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherGroupRenderInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

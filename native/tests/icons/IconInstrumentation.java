@@ -55,6 +55,8 @@ public final class IconInstrumentation extends Instrumentation {
             check(packed instanceof BitmapDrawable && ((BitmapDrawable) packed).getBitmap().getWidth() <= 512,
                     "Installed pack component artwork must render at a bounded size.");
             check(IconPackStore.resolve(context, second, factory) == factory, "Unmapped components must retain factory artwork.");
+            checkMutedArtwork(context);
+            result.putBoolean("muted_artwork_pixels_verified", true);
             check(IconPackStore.select(context, IconPackStore.CLEAN), "Built in clean style must be selectable.");
             check(!IconPackStore.select(context, "uninstalled.pack"), "Unavailable icon packs must be rejected.");
             check(IconPackStore.CLEAN.equals(IconPackStore.selected(context)), "Rejected pack must preserve previous selection.");
@@ -79,6 +81,17 @@ public final class IconInstrumentation extends Instrumentation {
             IconSelectionStore.save(context, first, imported);
             Bitmap bitmap = ((BitmapDrawable)IconSelectionStore.resolve(context, first, factory, theme)).getBitmap();
             check(bitmap.getWidth() <= 512 && bitmap.getWidth() == bitmap.getHeight() * 2, "Imported image must be bounded and keep its aspect ratio.");
+            java.io.File selectedImage = new java.io.File(new java.io.File(context.getFilesDir(), "icons"), imported.substring(6));
+            check(selectedImage.delete(), "Fixture selected image must be removable.");
+            check(IconSelectionStore.resolve(context, first, factory, theme) == factory
+                    && imported.equals(IconSelectionStore.choice(context, first)),
+                    "A missing selected image must show factory artwork and retain its saved choice.");
+            try (java.io.FileOutputStream output = new java.io.FileOutputStream(selectedImage)) {
+                output.write(new byte[] {1, 2, 3});
+            }
+            check(IconSelectionStore.resolve(context, first, factory, theme) == factory
+                    && imported.equals(IconSelectionStore.choice(context, first)),
+                    "A corrupt selected image must show factory artwork and retain its saved choice.");
             IconSelectionStore.save(context, first, IconSelectionStore.THEME);
 
             IconPackStore.select(context, IconPackStore.ORIGINAL);
@@ -143,6 +156,25 @@ public final class IconInstrumentation extends Instrumentation {
             if(imported!=null) IconSelectionStore.discardPreparedImage(context,imported);
         }
         finish(0,result);
+    }
+
+    private static void checkMutedArtwork(Context context) {
+        ColorDrawable red = new ColorDrawable(Color.RED);
+        red.setBounds(3, 5, 83, 45);
+        check(IconPackStore.select(context, IconPackStore.CLEAN), "Select clean style for rendered color comparison.");
+        Bitmap clean = ((BitmapDrawable) IconPackStore.resolve(context, "proof.color/.Main", red)).getBitmap();
+        check(clean.getPixel(256, 144) == Color.RED, "Clean line must preserve original artwork color.");
+        check(IconPackStore.select(context, IconPackStore.MUTED), "Select muted style for rendered color comparison.");
+        Bitmap muted = ((BitmapDrawable) IconPackStore.resolve(context, "proof.color/.Main", red)).getBitmap();
+        int pixel = muted.getPixel(256, 144);
+        check(Math.abs(Color.red(pixel) - 145) <= 2 && Math.abs(Color.green(pixel) - 30) <= 2
+                && Math.abs(Color.blue(pixel) - 30) <= 2 && Color.alpha(pixel) == 255,
+                "Muted solid must render subdued artwork, not only add a background plate.");
+        Bitmap gray = ((BitmapDrawable) IconPackStore.resolve(context, "proof.gray/.Main", new ColorDrawable(0xff808080))).getBitmap();
+        check(gray.getPixel(256, 144) == 0xff808080, "Muted artwork must preserve neutral gray brightness.");
+        check(red.getColor() == Color.RED && red.getBounds().equals(new android.graphics.Rect(3, 5, 83, 45)),
+                "Style rendering must preserve the source drawable and its bounds.");
+        clean.recycle(); muted.recycle(); gray.recycle();
     }
 
     private void onMain(final Runnable action) {

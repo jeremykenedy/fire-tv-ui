@@ -23,12 +23,23 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-device-') as folder:
                     'com.jeremykenedy.firetv.ui.nativeapp.device.HomeCommandPolicyTest'], check=True)
     adapters = []
     for source in sorted((ROOT / 'production-src/com/jeremykenedy/firetv/ui').glob('*.java')):
+        if source.name in ('SourceApplication.java', 'ProtectionService.java'):
+            continue
         adapter = work / source.name
         adapter.write_text(source.read_text())
         adapters.append(adapter)
     subprocess.run(['javac', '-encoding', 'UTF-8', '-source', '8', '-target', '8',
                     '-Xlint:-options', '-bootclasspath', str(SDK / 'platforms/android-36/android.jar'),
                     '-d', str(work / 'android'), str(ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/Pages.java'),
-                    *map(str, sorted(SOURCE.glob('*.java'))), str(ROOT / 'tests/device/DeviceInstrumentation.java'), *map(str, adapters),
+                    str(ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/SourceStartup.java'),
+                    str(ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/MenuActivity.java'),
+                    str(ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/MenuTransition.java'),
+                    str(ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/HomeDialogBuilder.java'),
+                    *map(str, sorted(SOURCE.glob('*.java'))),
+                    *[str(ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/accessibility' / name) for name in ('AccessibilityStyle.java', 'AccessibilityPreferences.java')],
+                    *map(str, sorted((SOURCE / 'commands').glob('*.java'))),
+                    *[str(SOURCE / 'remotebuttons' / name) for name in ('RemoteButtonDispatcher.java', 'RemoteButtonPreferences.java', 'RemoteButtonPolicy.java')],
+                    str(SOURCE / 'protection/LegacyDeviceProtection.java'),
+                    *[str(SOURCE / 'screensavers' / name) for name in ('ScreensaverEntry.java', 'ScreensaverSystem.java', 'ReviewedPreviews.java', 'LegacyDreamSelection.java')], str(ROOT / 'tests/device/DeviceInstrumentation.java'), *map(str, adapters),
                     str(ROOT / 'tests/device/fixture/RoutingFixture.java')], check=True)
     print('Device module Android SDK compilation passed')

@@ -19,7 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Discovery reports only feeds actually shared through the device's TV provider. */
-public final class RecommendationSourcesActivity extends Activity {
+public final class RecommendationSourcesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Map<String, String> installed = new LinkedHashMap<>();
     private RecommendationLoader loader;
@@ -32,6 +33,7 @@ public final class RecommendationSourcesActivity extends Activity {
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         LinearLayout body = Pages.page(this);
         body.addView(Pages.text(this, "App recommendation sources", 28));
         body.addView(Pages.text(this, "Only recommendations shared by apps on this device appear here. Installing an app does not provide access to its personal watch history.", 17));
@@ -166,10 +168,14 @@ public final class RecommendationSourcesActivity extends Activity {
             sources.addView(Pages.text(this, "No installed TV apps or shared recommendation sources were found.", 17));
     }
 
-    @Override protected void onResume() { super.onResume(); loader.start(); }
-    @Override protected void onPause() { loader.stop(); super.onPause(); }
-    @Override protected void onDestroy() { loader.close(); worker.shutdownNow(); super.onDestroy(); }
+    @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; } super.onResume(); loader.start(); }
+    @Override protected void onPause() {
+        if (startupBlocked) { super.onPause(); return; } loader.stop(); super.onPause(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } loader.close(); worker.shutdownNow(); super.onDestroy(); }
     @Override public void onRequestPermissionsResult(int request, String[] names, int[] results) {
+        if (startupBlocked) { super.onRequestPermissionsResult(request, names, results); return; }
         super.onRequestPermissionsResult(request, names, results);
         if (request == 1) loader.refresh();
     }

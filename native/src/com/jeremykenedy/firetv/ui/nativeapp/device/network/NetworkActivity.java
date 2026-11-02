@@ -12,7 +12,8 @@ import com.jeremykenedy.firetv.ui.nativeapp.device.DeviceRoutes;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class NetworkActivity extends Activity {
+public final class NetworkActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private TextView details;
     private TextView status;
@@ -21,6 +22,7 @@ public final class NetworkActivity extends Activity {
 
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         LinearLayout page = Pages.page(this);
         page.addView(Pages.text(this, "Network and IP", 28));
         Button settings = Pages.button(this, "Open TV network settings", new View.OnClickListener() {
@@ -59,7 +61,8 @@ public final class NetworkActivity extends Activity {
         }
     }
 
-    @Override protected void onResume() { super.onResume(); refresh(); }
+    @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; } super.onResume(); refresh(); }
 
     private void refresh() {
         if (reading) return;
@@ -81,11 +84,13 @@ public final class NetworkActivity extends Activity {
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         super.onSaveInstanceState(state);
         View focused = getCurrentFocus();
         if (focused != null && focused.getTag() instanceof String) state.putString("focus", (String) focused.getTag());
         state.putInt("scroll", scroll.getScrollY());
     }
 
-    @Override protected void onDestroy() { worker.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } worker.shutdownNow(); super.onDestroy(); }
 }

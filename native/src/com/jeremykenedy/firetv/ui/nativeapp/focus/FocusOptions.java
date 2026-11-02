@@ -2,6 +2,8 @@ package com.jeremykenedy.firetv.ui.nativeapp.focus;
 
 /** User-selected visual feedback; keyboard focus never waits for an animation. */
 public final class FocusOptions {
+    public static final String LEGACY_APP_DEFAULT = "legacy_app_default";
+    public static final float LEGACY_APP_SCALE = 1.18f;
     public static final int FAST_MILLIS = 100;
     public static final int MAX_GROWTH = 10;
     public final int durationMillis;
@@ -34,6 +36,38 @@ public final class FocusOptions {
         this.fillEnabled = fillEnabled;
         this.fillRgb = fillRgb;
         this.fillOpacity = fillOpacity;
+    }
+
+    public static boolean hasExplicitSettings(java.util.Map<String, ?> values) {
+        for (String key : new String[]{"duration_millis", "growth_percent", "border_enabled", "border_rgb",
+                "border_opacity", "fill_enabled", "fill_rgb", "fill_opacity"})
+            if (values.containsKey(key)) return true;
+        return false;
+    }
+
+    public static boolean needsDarkLegacySurface(int[] pixels) {
+        int transparent = 0, visible = 0, bright = 0;
+        for (int pixel : pixels) {
+            int alpha = pixel >>> 24;
+            if (alpha < 224) transparent++;
+            if (alpha >= 128) {
+                visible++;
+                if (((pixel >> 16) & 255) >= 224 && ((pixel >> 8) & 255) >= 224 && (pixel & 255) >= 224) bright++;
+            }
+        }
+        return visible > 0 && transparent * 20 >= pixels.length && bright * 20 >= visible;
+    }
+
+    public static int legacyAppArtworkWidth(int cellWidth) {
+        return Math.max(1, (int) Math.floor(Math.max(1, cellWidth) / LEGACY_APP_SCALE));
+    }
+
+    public static int legacyAppArtworkHeight(int artworkWidth) {
+        return (int) Math.ceil(Math.max(1, artworkWidth) * 9f / 16f);
+    }
+
+    public static int legacyAppTopInset(int artworkHeight) {
+        return (int) Math.ceil(Math.max(1, artworkHeight) * (LEGACY_APP_SCALE - 1f) / 2f);
     }
 
     public static FocusOptions defaults() {

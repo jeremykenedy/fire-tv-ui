@@ -18,7 +18,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Source preview never treats the legacy production release as a compatible update. */
-public class UpdatesActivity extends Activity {
+public class UpdatesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private UpdateCoordinator coordinator;
     private StagedUpdateStore staged;
@@ -32,17 +33,19 @@ public class UpdatesActivity extends Activity {
 
     /** Fixture hosts can inject reviewed metadata; no intent extra can change this trust boundary. */
     protected UpdateCoordinator.Source releaseSource() {
-        return new UpdateCoordinator.Source() {
-            @Override public UpdateCoordinator.Release check(UpdateCoordinator.Cancellation cancellation) throws Exception {
-                cancellation.check();
-                return null;
-            }
-        };
+        try {
+            UpdateCoordinator.Identity installed = new AndroidPackages(this).installed(getPackageName());
+            if (installed == null) throw new IllegalStateException("Installed package unavailable.");
+            return new GitHubReleaseSource(getPackageName(), installed.version);
+        } catch (Exception failed) {
+            throw new IllegalStateException("Installed package unavailable.", failed);
+        }
     }
     protected UpdateCoordinator.Transport releaseTransport() { return new ReleaseTransport(); }
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         coordinator = new UpdateCoordinator(getPackageName(), getCacheDir(), new AndroidPackages(this));
         staged = new StagedUpdateStore(getCacheDir());
         LinearLayout page = Pages.page(this);
@@ -65,13 +68,13 @@ public class UpdatesActivity extends Activity {
             @Override public void onClick(View view) { installRelease(); }
         });
         install.setTag("updates:install"); page.addView(install);
-        cancel = Pages.button(this, "Cancel download", new View.OnClickListener() {
+        cancel = Pages.button(this, "Cancel", new View.OnClickListener() {
             @Override public void onClick(View view) { cancellation.cancel(); status.setText("Cancelling update. Waiting for the current network read to finish."); }
         });
         cancel.setTag("updates:cancel"); page.addView(cancel);
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(false);
-        details = Pages.text(this, "Source preview has no configured compatible release feed. Legacy production APKs cannot update this preview.", 16);
+        details = Pages.text(this, "Check GitHub for source releases compatible with this installed package.", 16);
         details.setTag("updates:release"); scroll.addView(details);
         page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         render(); check.requestFocus();
@@ -233,6 +236,7 @@ public class UpdatesActivity extends Activity {
         return failed instanceof InterruptedException || failed.getCause() instanceof InterruptedException;
     }
     @Override protected void onActivityResult(int request, int result, Intent data) {
+        if (startupBlocked) { super.onActivityResult(request, result, data); return; }
         super.onActivityResult(request, result, data);
         if (request == 41) {
             installerOpen = false;
@@ -248,6 +252,7 @@ public class UpdatesActivity extends Activity {
         }
     }
     @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; }
         destroyed = true; cancellation.cancel(); worker.shutdownNow();
         // An installer may still be reading its granted file when this activity is destroyed.
         // Retain the private verified journal for rotation, process recreation or installer return.

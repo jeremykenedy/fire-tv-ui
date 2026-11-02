@@ -149,6 +149,14 @@ public class CardControlsInstrumentation extends Instrumentation {
             press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(settings);
             press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
             ChannelCardView card = awaitCard(feed.item.id);
+            step = "Main previous title";
+            final ChannelCardView previousCard = card;
+            final String[] beforePrevious = new String[1];
+            onMain(new Runnable() { @Override public void run() { beforePrevious[0] = previousCard.currentProgram().key; } });
+            focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Previous title"); awaitWindow(main);
+            final String[] afterPrevious = new String[1];
+            onMain(new Runnable() { @Override public void run() { afterPrevious[0] = previousCard.currentProgram().key; } });
+            check(!beforePrevious[0].equals(afterPrevious[0]), "Previous title selects another item on the same card.");
             if (tvSeriesSupported) {
                 step = "Main Select Hide series and recover";
                 focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Hide series");
@@ -377,35 +385,17 @@ public class CardControlsInstrumentation extends Instrumentation {
         getUiAutomation().setServiceInfo(info);
         boolean ime = false;
         for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
-            if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) ime = true;
-        if (ime) {
-            press(KeyEvent.KEYCODE_BACK);
-            awaitDialogText("Save");
-            long dismissed = SystemClock.uptimeMillis() + 3000;
-            do {
-                ime = false;
-                for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
-                    if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) ime = true;
-                if (!ime) break;
-                SystemClock.sleep(50);
-            } while (SystemClock.uptimeMillis() < dismissed);
-            check(!ime, "Visible input-method window must close before D-pad Save.");
-        }
+            if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD && (window.isActive() || window.isFocused())) ime = true;
+        if (ime) { press(KeyEvent.KEYCODE_BACK); awaitDialogText("Save"); }
         AccessibilityNodeInfo save = node(getUiAutomation().getRootInActiveWindow(), "Save", false);
         check(save != null && "android.widget.Button".equals(String.valueOf(save.getClassName()))
                 && getTargetContext().getPackageName().equals(String.valueOf(save.getPackageName()))
                 && save.isEnabled(), "D-pad Save target must be the native preview dialog button.");
         check(save.isFocused() || save.performAction(AccessibilityNodeInfo.ACTION_FOCUS), "Native Save button must accept input focus.");
-        boolean focused = false; long stableSince = 0; long end = SystemClock.uptimeMillis() + 3000;
+        boolean focused = false; long end = SystemClock.uptimeMillis() + 2000;
         while (SystemClock.uptimeMillis() < end) {
             save = node(getUiAutomation().getRootInActiveWindow(), "Save", false);
-            boolean windowFocused = false;
-            if (save != null) for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
-                if (window.getId() == save.getWindowId() && window.isFocused()) windowFocused = true;
-            if (save != null && save.isFocused() && windowFocused) {
-                if (stableSince == 0) stableSince = SystemClock.uptimeMillis();
-                if (SystemClock.uptimeMillis() - stableSince >= 300) { focused = true; break; }
-            } else stableSince = 0;
+            if (save != null && save.isFocused()) { focused = true; break; }
             SystemClock.sleep(30);
         }
         check(focused, "Native Save button must hold actual input focus before D-pad Select.");

@@ -7,14 +7,20 @@ public final class InputEntry {
     public final String displayName;
     public final State state;
     public final boolean passthrough;
+    public final boolean hidden;
 
     public InputEntry(String id, String factoryName, String displayName, State state, boolean passthrough) {
+        this(id, factoryName, displayName, state, passthrough, false);
+    }
+
+    public InputEntry(String id, String factoryName, String displayName, State state, boolean passthrough, boolean hidden) {
         if (!validId(id)) throw new IllegalArgumentException("Select a TV input.");
         this.id = id;
         this.factoryName = factoryName == null || factoryName.trim().isEmpty() ? "TV input" : factoryName;
         this.displayName = displayName == null ? this.factoryName : name(displayName);
         this.state = state;
         this.passthrough = passthrough;
+        this.hidden = hidden;
     }
 
     public String artworkKey() { return "input:" + id; }

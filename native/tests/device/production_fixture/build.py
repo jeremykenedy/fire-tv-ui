@@ -21,7 +21,7 @@ def run(*args):
     subprocess.run([str(arg) for arg in args], check=True)
 
 run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-    '-d', WORK / 'classes', HERE / 'UnprivilegedSender.java')
+    '-d', WORK / 'classes', HERE / 'UnprivilegedSender.java', HERE / 'HomeUiFixture.java')
 run(TOOLS / 'd8', '--release', '--lib', ANDROID, '--min-api', '27', '--output', WORK / 'dex',
     *sorted((WORK / 'classes').rglob('*.class')))
 run(TOOLS / 'aapt2', 'link', '-I', ANDROID, '--manifest', HERE / 'AndroidManifest.xml', '-o', WORK / 'base.apk')

@@ -3,6 +3,8 @@ package com.jeremykenedy.firetv.ui.nativeapp.providers;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,13 +16,14 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.ArtworkLoader;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.ChannelCardView;
+import com.jeremykenedy.firetv.ui.nativeapp.cards.CardPreferences;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** Emulator-only renderer checks; no provider fixture, credentials or preferences are changed. */
+/** Emulator-only renderer checks with exact artwork preference restoration. */
 public final class ChannelRenderInstrumentation extends Instrumentation {
     private Activity activity;
     private ChannelCardView card;
@@ -31,7 +34,11 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
 
     @Override public void onStart() {
         Bundle result = new Bundle();
+        final SharedPreferences preferences = getTargetContext().getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE);
+        final Object originalFit = preferences.getAll().get("featured_artwork_fit");
         try {
+            check(originalFit == null || originalFit instanceof Boolean, "Artwork setting must have a valid original type.");
+            CardPreferences.setArtworkFit(getTargetContext(), true);
             activity = startActivitySync(new Intent().setClassName(getTargetContext(),
                     "com.jeremykenedy.firetv.ui.nativeapp.MainActivity")
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
@@ -43,7 +50,9 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                     "Second title", artwork, "");
             final TvRecommendations.Feed feed = new TvRecommendations.Feed("render:feed", "Renderer check", source,
                     Arrays.asList(first, second));
-            runOnMainSync(new Runnable() {
+            sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_DPAD_DOWN);
+            waitForIdleSync();
+            onMain(new Runnable() {
                 @Override public void run() {
                     card = new ChannelCardView(activity, feed, new ChannelCardView.Listener() {
                         @Override public void onSelect(TvRecommendations.Feed value, TvRecommendations.Program item) {
@@ -61,11 +70,19 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             });
             waitForIdleSync();
             waitForArtwork();
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     ImageView image = image(card);
                     check(image != null && image.getScaleType() == ImageView.ScaleType.FIT_CENTER,
                             "Artwork must fit with its proportions preserved.");
+                    CardPreferences.setArtworkFit(activity, false);
+                    card.updateFeed(feed);
+                    check(image.getScaleType() == ImageView.ScaleType.CENTER_CROP,
+                            "Saved Fill choice crops artwork without replacing its drawable or focus target.");
+                    CardPreferences.setArtworkFit(activity, true);
+                    card.updateFeed(feed);
+                    check(image.getScaleType() == ImageView.ScaleType.FIT_CENTER,
+                            "Switching back to Fit restores the entire image.");
                     check(card.hasFocus() && card.findFocus() == card, "Only the stable outer card takes focus.");
                     card.showNextProgram();
                     check(card.currentProgram() == second && card.isFocused(), "Manual advance preserves card focus.");
@@ -80,11 +97,34 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                 }
             });
             waitForDifferent(second.key);
-            runOnMainSync(new Runnable() { @Override public void run() { card.onHostPause(); } });
+            final String[] beforeRefresh = new String[1];
+            onMain(new Runnable() { @Override public void run() {
+                card.setRotationIntervalMillis(1200);
+                beforeRefresh[0] = card.currentProgram().key;
+            }});
+            boolean rotatedDuringRefresh = false;
+            long refreshUntil = SystemClock.uptimeMillis() + 3200;
+            while (SystemClock.uptimeMillis() < refreshUntil) {
+                SystemClock.sleep(200);
+                onMain(new Runnable() { @Override public void run() {
+                    card.updateFeed(feed);
+                    card.setRotationIntervalMillis(1200);
+                }});
+                if (!beforeRefresh[0].equals(currentKey())) { rotatedDuringRefresh = true; break; }
+            }
+            check(rotatedDuringRefresh, "Repeated equivalent refreshes must not defer rotation indefinitely.");
+            onMain(new Runnable() { @Override public void run() { card.setRotationIntervalMillis(3000); } });
+            final String beforeChange = currentKey();
+            SystemClock.sleep(100);
+            onMain(new Runnable() { @Override public void run() { card.setRotationIntervalMillis(400); } });
+            long changedUntil = SystemClock.uptimeMillis() + 1800;
+            while (beforeChange.equals(currentKey()) && SystemClock.uptimeMillis() < changedUntil) SystemClock.sleep(50);
+            check(!beforeChange.equals(currentKey()), "Changed interval must replace the previous deadline.");
+            onMain(new Runnable() { @Override public void run() { card.onHostPause(); } });
             final String paused = currentKey();
-            SystemClock.sleep(180);
+            SystemClock.sleep(600);
             check(paused.equals(currentKey()), "Paused cards must not rotate.");
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     card.setRotationIntervalMillis(0);
                     card.onHostResume();
@@ -92,7 +132,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             });
             SystemClock.sleep(180);
             check(paused.equals(currentKey()), "Manual mode must not schedule rotation.");
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     card.setPrograms(Collections.singletonList(first));
                     check(card.currentProgram() == first && card.isFocused(), "Hide refresh keeps the same focused card.");
@@ -102,7 +142,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                     check("empty".equals(longPressed), "Empty cards retain their management action.");
                 }
             });
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     card.setPrograms(Collections.singletonList(first));
                     int width = Math.round(64 * activity.getResources().getDisplayMetrics().density);
@@ -131,6 +171,8 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             result.putString("status", "PASS");
             result.putBoolean("stable_focus_rotation_refresh_hide", true);
             result.putBoolean("manual_and_paused_rotation", true);
+            result.putBoolean("rotation_deadline_survives_refresh", true);
+            result.putBoolean("changed_interval_replaces_deadline", true);
             result.putBoolean("current_item_actions", true);
             result.putBoolean("native_fit_artwork", true);
             result.putBoolean("minimum_card_artwork_area", true);
@@ -140,12 +182,21 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             result.putString("status", "FAIL");
             result.putString("reason", error.toString());
         } finally {
-            if (activity != null) runOnMainSync(new Runnable() {
+            if (activity != null) onMain(new Runnable() {
                 @Override public void run() {
                     if (card != null) card.onHostPause();
                     activity.finish();
                 }
             });
+            if (originalFit == null || originalFit instanceof Boolean) {
+                SharedPreferences.Editor restore = preferences.edit();
+                if (originalFit == null) restore.remove("featured_artwork_fit");
+                else restore.putBoolean("featured_artwork_fit", (Boolean) originalFit);
+                if (!restore.commit() || !java.util.Objects.equals(originalFit, preferences.getAll().get("featured_artwork_fit"))) {
+                    result.putString("status", "FAIL");
+                    result.putString("reason", "Artwork preference restoration failed.");
+                }
+            }
         }
         finish(0, result);
     }
@@ -159,7 +210,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
         final ArtworkLoader.Request one = ArtworkLoader.load(getTargetContext(), stalled, cancelled);
         final ArtworkLoader.Request two = ArtworkLoader.load(getTargetContext(), stalled, cancelled);
         SystemClock.sleep(120);
-        runOnMainSync(new Runnable() {
+        onMain(new Runnable() {
             @Override public void run() {
                 long start = SystemClock.elapsedRealtime();
                 one.cancel();
@@ -190,7 +241,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
 
     private String currentKey() {
         final String[] value = new String[1];
-        runOnMainSync(new Runnable() { @Override public void run() { value[0] = card.currentProgram().key; } });
+        onMain(new Runnable() { @Override public void run() { value[0] = card.currentProgram().key; } });
         return value[0];
     }
 
@@ -207,7 +258,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
         long end = SystemClock.uptimeMillis() + 3000;
         final boolean[] loaded = new boolean[1];
         while (SystemClock.uptimeMillis() < end) {
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     ImageView image = image(card);
                     loaded[0] = image != null && image.getDrawable() instanceof BitmapDrawable;
@@ -226,6 +277,16 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             if (result != null) return result;
         }
         return null;
+    }
+
+    private void onMain(final Runnable action) {
+        final Throwable[] failure = new Throwable[1];
+        super.runOnMainSync(new Runnable() {
+            @Override public void run() {
+                try { action.run(); } catch (Throwable error) { failure[0] = error; }
+            }
+        });
+        if (failure[0] != null) throw new AssertionError("Main-thread fixture action failed", failure[0]);
     }
 
     private static void check(boolean value, String message) {

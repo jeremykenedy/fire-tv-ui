@@ -7,7 +7,7 @@ import java.io.*;
 import java.util.*;
 
 /** Opt-in private adapter. Construction does not read or change any preference values. */
-public final class AndroidPresentationStore implements PresentationTransaction.Store {
+public final class AndroidPresentationStore implements PresentationUpgrade.Store {
     private static final Object LOCK = new Object();
     private final Context context;
     private final File path;
@@ -25,7 +25,7 @@ public final class AndroidPresentationStore implements PresentationTransaction.S
         return new PresentationSnapshot(values);
     }
     @Override public void saveRecovery(PresentationSnapshot snapshot) throws IOException {
-        if (path.exists() || new File(path.getPath() + ".bak").exists()) {
+        if (hasRecovery()) {
             throw new IOException("Existing private presentation recovery must be resolved before another operation.");
         }
         byte[] bytes = snapshot.encode();
@@ -38,7 +38,19 @@ public final class AndroidPresentationStore implements PresentationTransaction.S
         }
         if (!snapshot.sameValues(readRecovery())) throw new IOException("Private presentation recovery could not be verified.");
     }
-    public PresentationSnapshot readRecovery() throws IOException {
+    @Override public boolean hasRecovery() {
+        return path.exists() || new File(path.getPath() + ".bak").exists()
+                || new File(path.getPath() + ".new").exists();
+    }
+    @Override public void resolveRecovery(PresentationSnapshot original, PresentationSnapshot current) throws IOException {
+        synchronized (LOCK) {
+            if (!original.sameValues(readRecovery()) || !current.matches(read()))
+                throw new IOException("Presentation recovery or current settings changed before resolution.");
+            recovery.delete();
+            if (hasRecovery()) throw new IOException("Private presentation recovery could not be resolved.");
+        }
+    }
+    @Override public PresentationSnapshot readRecovery() throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try (InputStream input = recovery.openRead()) {
             byte[] buffer = new byte[8192]; int size;

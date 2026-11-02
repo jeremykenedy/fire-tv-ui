@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.feedfixture">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Local feed widget fixture" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false">
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.feeds.FeedFixtureActivity" android:exported="true" />
+    </application>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.feeds.FeedInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.feedfixture" />
+</manifest>
