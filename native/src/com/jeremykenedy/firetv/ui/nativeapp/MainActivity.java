@@ -11,6 +11,9 @@ import android.graphics.Path;
 import android.os.Bundle;
 import android.view.View;
 import android.view.KeyEvent;
+import com.jeremykenedy.firetv.ui.nativeapp.statusbar.StatusBarOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.statusbar.StatusBarQuickPanel;
+import com.jeremykenedy.firetv.ui.nativeapp.statusbar.StatusBarView;
 import com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityStyle;
 import com.jeremykenedy.firetv.ui.nativeapp.device.remotebuttons.RemoteButtonDispatcher;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTileOrder;
@@ -65,6 +68,8 @@ public final class MainActivity extends Activity {
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private final List<FocusTileView> tiles = new ArrayList<>();
     private LinearLayout appArea;
+    private LinearLayout statusBarArea;
+    private String statusBarState;
     private Button settings;
     private Button allApps;
     private HomeContentView homeContent;
@@ -159,6 +164,10 @@ public final class MainActivity extends Activity {
         if (saved != null) focusedApp = saved.getString("focused_app");
         restoringGridFocus = focusedApp != null;
         LinearLayout body = Pages.page(this);
+        statusBarArea = new LinearLayout(this);
+        statusBarArea.setTag("home:statusbar-container");
+        body.addView(statusBarArea, new LinearLayout.LayoutParams(-1, -2));
+        refreshStatusBar();
         body.addView(Pages.text(this, "com.jeremykenedy.firetv.ui".equals(getPackageName())
                 ? getApplicationInfo().loadLabel(getPackageManager()).toString() : "Fire TV UI Preview", 30));
         LinearLayout actions = new LinearLayout(this);
@@ -241,6 +250,31 @@ public final class MainActivity extends Activity {
         else settings.requestFocus();
         background = BackgroundLayer.attach(this, body);
         awake = new LauncherAwakeController(body);
+    }
+
+    private void refreshStatusBar() {
+        StatusBarOptions options = StatusBarOptions.load(this);
+        String state = options.configured + ":" + options.minimal + ":" + options.position
+                + ":" + options.hideUnlessFocused + ":" + options.tinted;
+        if (state.equals(statusBarState)) return;
+        statusBarState = state;
+        statusBarArea.removeAllViews();
+        if (!options.configured) {
+            statusBarArea.setVisibility(View.GONE);
+            return;
+        }
+        statusBarArea.setVisibility(View.VISIBLE);
+        StatusBarView row = new StatusBarView(this, options,
+                new Runnable() { @Override public void run() { openStatusDestination(DeviceRoutes.Destination.NETWORK_SETTINGS); } },
+                new Runnable() { @Override public void run() { openStatusDestination(DeviceRoutes.Destination.SYSTEM_SETTINGS); } },
+                new Runnable() { @Override public void run() { startActivity(new Intent(MainActivity.this, SettingsActivity.class)); } },
+                new Runnable() { @Override public void run() { StatusBarQuickPanel.show(MainActivity.this); } });
+        statusBarArea.addView(row, new LinearLayout.LayoutParams(-1, -2));
+    }
+
+    private void openStatusDestination(DeviceRoutes.Destination destination) {
+        if (DeviceRoutes.open(this, destination) != DeviceRoutes.Result.STARTED)
+            Toast.makeText(this, "This device destination is unavailable.", Toast.LENGTH_LONG).show();
     }
 
     private void loadApps() {
@@ -576,6 +610,7 @@ public final class MainActivity extends Activity {
         if (homeReady) resumeHome();
     }
     private void resumeHome() {
+        refreshStatusBar();
         DeviceRoutes.launcherVisibility(this, true);
         SourceStartup.startProtection(this, new Runnable() {
             @Override public void run() {

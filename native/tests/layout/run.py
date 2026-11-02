@@ -69,6 +69,7 @@ public class SharedPreferences {
 # These host doubles isolate registry/order tests from Android views. Native tests use real providers.
 WIDGETS = [
     ('worldclock', 'WorldClockWidgetProvider', 'world-clocks', 'World clocks'),
+    ('yearprogress', 'YearProgressWidgetProvider', 'year-progress', 'Year progress'),
     ('notes', 'NotesWidgetProvider', 'household-notes', 'Household notes and lists'),
     ('breathing', 'BreathingWidgetProvider', 'breathing-break', 'Breathing break'),
     ('photos', 'PhotoWidgetProvider', 'photo-frame', 'Photo frame'),

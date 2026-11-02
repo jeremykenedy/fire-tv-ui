@@ -14,6 +14,8 @@ import com.jeremykenedy.firetv.ui.nativeapp.SourceStartup;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidProductionMigration;
 import com.jeremykenedy.firetv.ui.nativeapp.device.protection.LegacyDeviceProtection;
 import com.jeremykenedy.firetv.ui.nativeapp.device.protection.LegacyProtectionService;
+import com.jeremykenedy.firetv.ui.nativeapp.device.updates.UpdateBlockPolicy;
+import com.jeremykenedy.firetv.ui.nativeapp.device.updates.UpdateBlockService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -74,31 +76,48 @@ public final class SourceApplication extends Application implements SourceStartu
         if (!ready) { main.post(complete); return; }
         executor.execute(new Runnable() {
             @Override public void run() {
-                boolean wanted = false;
-                String error = null;
+                boolean wanted = false, updateWanted = false;
+                String error = null, updateError = null;
                 try {
-                    wanted = LegacyDeviceProtection.hasSavedChoices(getSharedPreferences("launcher_prefs", MODE_PRIVATE).getAll());
+                    java.util.Map<String, ?> saved = getSharedPreferences("launcher_prefs", MODE_PRIVATE).getAll();
+                    wanted = LegacyDeviceProtection.hasSavedChoices(saved);
                     if (wanted && checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
                         error = "Saved device protection needs the TV's existing secure settings permission.";
                         wanted = false;
                     }
+                    try {
+                        updateWanted = UpdateBlockPolicy.enabled(saved);
+                        if (updateWanted) {
+                            UpdateBlockPolicy.includesAppstore(saved);
+
+                        }
+                    } catch (RuntimeException invalid) {
+                        updateWanted = false;
+                        updateError = "Saved update protection could not be checked. Existing settings were kept.";
+                    }
                 } catch (RuntimeException unavailable) {
                     error = "Saved device protection could not be checked. Open Sleep and protection, then select Refresh system status.";
+                    updateError = "Saved update protection could not be checked. Existing settings were kept.";
                 }
-                final boolean shouldStart = wanted;
-                final String inspectionError = error;
+                final boolean shouldStart = wanted, shouldStartUpdates = updateWanted;
+                final String inspectionError = error, updateInspectionError = updateError;
                 main.post(new Runnable() {
                     @Override public void run() {
                         try {
                             if (expired != null && expired.get()) return;
                             protectionFailure = inspectionError;
-                            if (shouldStart) {
-                                if (foregroundDenied()) protectionFailure = "The TV did not allow saved device protection to start. Open Sleep and protection, then select Refresh system status.";
-                                else startForegroundService(new Intent(SourceApplication.this, LegacyProtectionService.class));
+                            try {
+                                if (shouldStart) {
+                                    if (foregroundDenied()) protectionFailure = "The TV did not allow saved device protection to start. Open Sleep and protection, then select Refresh system status.";
+                                    else startForegroundService(new Intent(SourceApplication.this, LegacyProtectionService.class));
+                                }
+                            } catch (RuntimeException unavailable) {
+                                protectionFailure = "Saved device protection could not start. Open Sleep and protection, then select Refresh system status.";
+                                android.util.Log.w("FireTvProtection", protectionFailure, unavailable);
                             }
-                        } catch (RuntimeException unavailable) {
-                            protectionFailure = "Saved device protection could not start. Open Sleep and protection, then select Refresh system status.";
-                            android.util.Log.w("FireTvProtection", protectionFailure, unavailable);
+                            if (updateInspectionError != null) UpdateBlockService.reportPending(updateInspectionError);
+                            else if (shouldStartUpdates && !UpdateBlockService.active())
+                                UpdateBlockService.reportPending("Saved update protection needs an explicit retry. The saved choice was kept.");
                         } finally { complete.run(); }
                     }
                 });

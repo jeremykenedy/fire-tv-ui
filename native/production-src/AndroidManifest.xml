@@ -12,6 +12,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <queries>
+        <package android:name="com.amazon.device.software.ota" />
+        <package android:name="com.amazon.device.software.ota.override" />
+        <package android:name="com.amazon.tv.forcedotaupdater" />
+        <package android:name="com.amazon.tv.forcedotaupdater.v2" />
+        <package android:name="com.amazon.venezia" />
         <provider android:authorities="android.media.tv" />
         <package android:name="com.amazon.tv.livetv" />
         <package android:name="com.android.tv" />
@@ -127,6 +132,7 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.network.NetworkActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.network.DiagnosticsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.protection.ProtectionActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.updates.UpdateBlockActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.screensavers.ScreensaverSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationSourcesActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexSettingsActivity" android:exported="false" />
@@ -176,6 +182,10 @@
         </service>
         <service android:name="com.jeremykenedy.firetv.ui.nativeapp.device.protection.LegacyProtectionService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Maintain explicitly saved device settings" />
+        </service>
+        <service android:name="com.jeremykenedy.firetv.ui.ProtectionService" android:exported="false" android:permission="android.permission.BIND_VPN_SERVICE" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Block explicitly selected Amazon update packages" />
+            <intent-filter><action android:name="android.net.VpnService" /></intent-filter>
         </service>
         <receiver android:name="com.jeremykenedy.firetv.ui.BackupReceiver" android:exported="true" android:permission="android.permission.DUMP" />
         <receiver android:name="com.jeremykenedy.firetv.ui.DeviceBootReceiver" android:exported="false">

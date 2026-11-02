@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.statusbarproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Status bar verification" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.statusbar.StatusBarInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.statusbar.StatusBarHomeInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

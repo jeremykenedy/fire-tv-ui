@@ -13,6 +13,7 @@ import java.util.Locale;
 /** Clock follows the TV time and an optional retained launcher format choice. */
 public final class ClockWidgetView extends LinearLayout {
     private final TextClock time;
+    private final TextClock date;
     private final SharedPreferences preferences;
     private final SharedPreferences.OnSharedPreferenceChangeListener changed =
             new SharedPreferences.OnSharedPreferenceChangeListener() {
@@ -33,7 +34,7 @@ public final class ClockWidgetView extends LinearLayout {
         time.setTextSize(44);
         time.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
         addView(time, new LayoutParams(-1, -2));
-        TextClock date = new TextClock(context);
+        date = new TextClock(context);
         String pattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), "EEE MMM d");
         date.setFormat12Hour(pattern);
         date.setFormat24Hour(pattern);
@@ -41,6 +42,14 @@ public final class ClockWidgetView extends LinearLayout {
         date.setTextSize(18);
         addView(date, new LayoutParams(-1, -2));
     }
+    public void setCompact() {
+        setPadding(0, 0, 0, 0);
+        date.setVisibility(GONE);
+        time.setTextSize(18);
+    }
+
+    public CharSequence timeText() { return time.getText(); }
+
     private void applyTimeFormat() {
         try {
             if (preferences.contains("use_24h_clock")) {

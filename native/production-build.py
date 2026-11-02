@@ -44,6 +44,9 @@ def validate(root=ROOT):
     if any(node.get(attr('name')) == 'android.accessibilityservice.AccessibilityService'
            for node in preview.find('application').iter('action')):
         raise ValueError('Preview must not register Home accessibility services')
+    if any(node.get(attr('name')) == 'android.net.VpnService'
+           for node in preview.find('application').iter('action')):
+        raise ValueError('Preview must not register a VPN service')
     base = preview.find('application')
     candidate = production.find('application')
     expected_application = dict(base.attrib)
@@ -68,6 +71,8 @@ def validate(root=ROOT):
         ('service', 'Hra'), ('service', 'HomeRedirectService'), ('receiver', 'BackupReceiver'),
         ('receiver', 'DeviceBootReceiver'), ('activity-alias', 'MainActivity'))}
     compatibility.add(('service', PACKAGE + '.nativeapp.device.protection.LegacyProtectionService'))
+    compatibility.add(('service', PACKAGE + '.ProtectionService'))
+    compatibility.add(('activity', PACKAGE + '.nativeapp.device.updates.UpdateBlockActivity'))
     preview_components = {(node.tag, node.get(attr('name'))) for node in base}
     for node in candidate:
         if (node.tag, node.get(attr('name'))) not in preview_components | compatibility:
@@ -80,6 +85,24 @@ def validate(root=ROOT):
                                                   attr('value'): 'Maintain explicitly saved device settings'})
     if len(protection) != 1 or canonical(protection[0]) != canonical(expected_service):
         raise ValueError('Device protection service must remain private and limited to its reviewed foreground use')
+    block_activity = [node for node in candidate.findall('activity')
+                      if node.get(attr('name')) == PACKAGE + '.nativeapp.device.updates.UpdateBlockActivity']
+    expected_activity = ET.Element('activity', {attr('name'): PACKAGE + '.nativeapp.device.updates.UpdateBlockActivity',
+                                                attr('exported'): 'false'})
+    if len(block_activity) != 1 or canonical(block_activity[0]) != canonical(expected_activity):
+        raise ValueError('Update block activity must remain private')
+    vpn = [node for node in candidate.findall('service')
+           if node.get(attr('name')) == PACKAGE + '.ProtectionService']
+    expected_vpn = ET.Element('service', {attr('name'): PACKAGE + '.ProtectionService',
+                                          attr('exported'): 'false',
+                                          attr('permission'): 'android.permission.BIND_VPN_SERVICE',
+                                          attr('foregroundServiceType'): 'specialUse'})
+    ET.SubElement(expected_vpn, 'property', {attr('name'): 'android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE',
+                                              attr('value'): 'Block explicitly selected Amazon update packages'})
+    vpn_filter = ET.SubElement(expected_vpn, 'intent-filter')
+    ET.SubElement(vpn_filter, 'action', {attr('name'): 'android.net.VpnService'})
+    if len(vpn) != 1 or canonical(vpn[0]) != canonical(expected_vpn):
+        raise ValueError('VPN service must remain private and limited to its reviewed contract')
     boot = [node for node in candidate.findall('receiver')
             if node.get(attr('name')) == PACKAGE + '.DeviceBootReceiver']
     if (len(boot) != 1 or boot[0].get(attr('exported')) != 'false'
@@ -139,7 +162,10 @@ def validate(root=ROOT):
     preview_queries = {canonical(node) for node in preview.find('queries')}
     accessibility = ET.Element('intent')
     ET.SubElement(accessibility, 'action', {attr('name'): 'android.settings.ACCESSIBILITY_SETTINGS'})
-    if preview_queries | {canonical(accessibility)} != {canonical(node) for node in production.find('queries')}:
+    vpn_packages = ('com.amazon.device.software.ota', 'com.amazon.device.software.ota.override',
+                    'com.amazon.tv.forcedotaupdater', 'com.amazon.tv.forcedotaupdater.v2', 'com.amazon.venezia')
+    extra_queries = {canonical(ET.Element('package', {attr('name'): name})) for name in vpn_packages}
+    if preview_queries | {canonical(accessibility)} | extra_queries != {canonical(node) for node in production.find('queries')}:
         raise ValueError('Production package visibility drift requires review')
 
 

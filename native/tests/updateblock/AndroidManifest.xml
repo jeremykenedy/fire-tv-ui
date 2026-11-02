@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.updateproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Update protection fixture" android:allowBackup="false" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.device.updates.UpdateBlockInstrumentation"
+        android:targetPackage="com.jeremykenedy.firetv.updateproof" />
+</manifest>

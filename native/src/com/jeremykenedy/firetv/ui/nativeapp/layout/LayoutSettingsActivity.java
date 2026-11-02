@@ -68,6 +68,13 @@ public final class LayoutSettingsActivity extends Activity {
         content.addView(widgetSettings);
         general = column();
         content.addView(general);
+        Button statusBar = Pages.button(this, "Status bar", new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                com.jeremykenedy.firetv.ui.nativeapp.statusbar.StatusBarSettings.show(LayoutSettingsActivity.this);
+            }
+        });
+        statusBar.setTag("layout:statusbar-settings");
+        general.addView(statusBar);
         general.addView(Pages.text(this, "Home content", 22));
         mode = Pages.text(this, "", 18);
         mode.setTag("layout:mode-status");

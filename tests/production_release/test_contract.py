@@ -105,6 +105,51 @@ class ProductionReleaseContractTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Device protection service'):
             build.validate(root)
 
+    def test_vpn_manifest_contract_rejects_exposure_and_extra_actions(self):
+        for mutation in ('exported', 'permission', 'action', 'subtype', 'activity'):
+            with self.subTest(mutation=mutation):
+                root = Path(self.tmp.name) / mutation
+                (root / 'production-src').mkdir(parents=True)
+                shutil.copy(ROOT / 'native/AndroidManifest.xml', root)
+                shutil.copy(ROOT / 'native/production-src/AndroidManifest.xml', root / 'production-src')
+                shutil.copytree(ROOT / 'native/production-res', root / 'production-res')
+                manifest = root / 'production-src/AndroidManifest.xml'
+                tree = build.ET.parse(manifest)
+                application = tree.getroot().find('application')
+                service = next(node for node in application.findall('service')
+                               if node.get(build.attr('name')) == build.PACKAGE + '.ProtectionService')
+                if mutation == 'exported':
+                    service.set(build.attr('exported'), 'true')
+                elif mutation == 'permission':
+                    service.attrib.pop(build.attr('permission'))
+                elif mutation == 'action':
+                    build.ET.SubElement(service.find('intent-filter'), 'action',
+                                        {build.attr('name'): 'example.Unreviewed'})
+                elif mutation == 'subtype':
+                    service.find('property').set(build.attr('value'), 'unreviewed')
+                else:
+                    activity = next(node for node in application.findall('activity')
+                                    if node.get(build.attr('name')) == build.PACKAGE + '.nativeapp.device.updates.UpdateBlockActivity')
+                    activity.set(build.attr('exported'), 'true')
+                tree.write(manifest)
+                with self.assertRaises(ValueError):
+                    build.validate(root)
+
+    def test_preview_cannot_register_a_vpn_service(self):
+        root = Path(self.tmp.name) / 'native'
+        (root / 'production-src').mkdir(parents=True)
+        shutil.copy(ROOT / 'native/AndroidManifest.xml', root)
+        shutil.copy(ROOT / 'native/production-src/AndroidManifest.xml', root / 'production-src')
+        shutil.copytree(ROOT / 'native/production-res', root / 'production-res')
+        manifest = root / 'AndroidManifest.xml'
+        tree = build.ET.parse(manifest)
+        service = build.ET.SubElement(tree.getroot().find('application'), 'service')
+        intent = build.ET.SubElement(service, 'intent-filter')
+        build.ET.SubElement(intent, 'action', {build.attr('name'): 'android.net.VpnService'})
+        tree.write(manifest)
+        with self.assertRaisesRegex(ValueError, 'Preview must not register a VPN'):
+            build.validate(root)
+
     def test_preview_and_production_manifest_contract(self):
         build.validate()
         preview = build.ET.parse(ROOT / 'native/AndroidManifest.xml').getroot()

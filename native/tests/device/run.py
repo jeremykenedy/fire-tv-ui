@@ -23,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-device-') as folder:
                     'com.jeremykenedy.firetv.ui.nativeapp.device.HomeCommandPolicyTest'], check=True)
     adapters = []
     for source in sorted((ROOT / 'production-src/com/jeremykenedy/firetv/ui').glob('*.java')):
-        if source.name == 'SourceApplication.java':
+        if source.name in ('SourceApplication.java', 'ProtectionService.java'):
             continue
         adapter = work / source.name
         adapter.write_text(source.read_text())

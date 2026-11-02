@@ -3,6 +3,7 @@ package com.jeremykenedy.firetv.ui.nativeapp.device.protection;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -46,6 +47,16 @@ public final class ProtectionActivity extends Activity {
         });
         settings.setTag("protection:settings");
         page.addView(settings);
+        if ("com.jeremykenedy.firetv.ui".equals(getPackageName())) {
+            Button updates = Pages.button(this, "Amazon update protection", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    startActivity(new Intent().setClassName(ProtectionActivity.this,
+                            "com.jeremykenedy.firetv.ui.nativeapp.device.updates.UpdateBlockActivity"));
+                }
+            });
+            updates.setTag("protection:update-blocking");
+            page.addView(updates);
+        }
         Button refresh = Pages.button(this, "Refresh system status", new View.OnClickListener() {
             @Override public void onClick(View view) {
                 final boolean retrying = SourceStartup.protectionError(ProtectionActivity.this) != null;
