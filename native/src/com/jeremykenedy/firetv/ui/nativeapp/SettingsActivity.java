@@ -24,7 +24,7 @@ public final class SettingsActivity extends MenuActivity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        if (SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         LinearLayout page = Pages.sidePanel(this);
         heading = new TextView(this);
         heading.setText("Settings"); heading.setTextSize(26);
@@ -155,6 +155,16 @@ public final class SettingsActivity extends MenuActivity {
         else if ("cards".equals(screen)) show("ui", 0x2020);
         else show("root", "ui".equals(screen) ? 0x2070 : "backup".equals(screen) ? 0x2050
                 : "about".equals(screen) ? 0x2080 : 0x2030);
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (startupBlocked) return;
+        if (!SourceStartup.ready(this)) {
+            startupBlocked = SourceStartup.redirectIfBlocked(this);
+            return;
+        }
+        com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityStyle.apply(this, getWindow().getDecorView());
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
