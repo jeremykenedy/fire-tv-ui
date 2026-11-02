@@ -50,7 +50,9 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                     "Second title", artwork, "");
             final TvRecommendations.Feed feed = new TvRecommendations.Feed("render:feed", "Renderer check", source,
                     Arrays.asList(first, second));
-            runOnMainSync(new Runnable() {
+            sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_DPAD_DOWN);
+            waitForIdleSync();
+            onMain(new Runnable() {
                 @Override public void run() {
                     card = new ChannelCardView(activity, feed, new ChannelCardView.Listener() {
                         @Override public void onSelect(TvRecommendations.Feed value, TvRecommendations.Program item) {
@@ -68,7 +70,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             });
             waitForIdleSync();
             waitForArtwork();
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     ImageView image = image(card);
                     check(image != null && image.getScaleType() == ImageView.ScaleType.FIT_CENTER,
@@ -95,11 +97,34 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                 }
             });
             waitForDifferent(second.key);
-            runOnMainSync(new Runnable() { @Override public void run() { card.onHostPause(); } });
+            final String[] beforeRefresh = new String[1];
+            onMain(new Runnable() { @Override public void run() {
+                card.setRotationIntervalMillis(1200);
+                beforeRefresh[0] = card.currentProgram().key;
+            }});
+            boolean rotatedDuringRefresh = false;
+            long refreshUntil = SystemClock.uptimeMillis() + 3200;
+            while (SystemClock.uptimeMillis() < refreshUntil) {
+                SystemClock.sleep(200);
+                onMain(new Runnable() { @Override public void run() {
+                    card.updateFeed(feed);
+                    card.setRotationIntervalMillis(1200);
+                }});
+                if (!beforeRefresh[0].equals(currentKey())) { rotatedDuringRefresh = true; break; }
+            }
+            check(rotatedDuringRefresh, "Repeated equivalent refreshes must not defer rotation indefinitely.");
+            onMain(new Runnable() { @Override public void run() { card.setRotationIntervalMillis(3000); } });
+            final String beforeChange = currentKey();
+            SystemClock.sleep(100);
+            onMain(new Runnable() { @Override public void run() { card.setRotationIntervalMillis(400); } });
+            long changedUntil = SystemClock.uptimeMillis() + 1800;
+            while (beforeChange.equals(currentKey()) && SystemClock.uptimeMillis() < changedUntil) SystemClock.sleep(50);
+            check(!beforeChange.equals(currentKey()), "Changed interval must replace the previous deadline.");
+            onMain(new Runnable() { @Override public void run() { card.onHostPause(); } });
             final String paused = currentKey();
-            SystemClock.sleep(180);
+            SystemClock.sleep(600);
             check(paused.equals(currentKey()), "Paused cards must not rotate.");
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     card.setRotationIntervalMillis(0);
                     card.onHostResume();
@@ -107,7 +132,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             });
             SystemClock.sleep(180);
             check(paused.equals(currentKey()), "Manual mode must not schedule rotation.");
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     card.setPrograms(Collections.singletonList(first));
                     check(card.currentProgram() == first && card.isFocused(), "Hide refresh keeps the same focused card.");
@@ -117,7 +142,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                     check("empty".equals(longPressed), "Empty cards retain their management action.");
                 }
             });
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     card.setPrograms(Collections.singletonList(first));
                     int width = Math.round(64 * activity.getResources().getDisplayMetrics().density);
@@ -146,6 +171,8 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             result.putString("status", "PASS");
             result.putBoolean("stable_focus_rotation_refresh_hide", true);
             result.putBoolean("manual_and_paused_rotation", true);
+            result.putBoolean("rotation_deadline_survives_refresh", true);
+            result.putBoolean("changed_interval_replaces_deadline", true);
             result.putBoolean("current_item_actions", true);
             result.putBoolean("native_fit_artwork", true);
             result.putBoolean("minimum_card_artwork_area", true);
@@ -155,7 +182,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             result.putString("status", "FAIL");
             result.putString("reason", error.toString());
         } finally {
-            if (activity != null) runOnMainSync(new Runnable() {
+            if (activity != null) onMain(new Runnable() {
                 @Override public void run() {
                     if (card != null) card.onHostPause();
                     activity.finish();
@@ -183,7 +210,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
         final ArtworkLoader.Request one = ArtworkLoader.load(getTargetContext(), stalled, cancelled);
         final ArtworkLoader.Request two = ArtworkLoader.load(getTargetContext(), stalled, cancelled);
         SystemClock.sleep(120);
-        runOnMainSync(new Runnable() {
+        onMain(new Runnable() {
             @Override public void run() {
                 long start = SystemClock.elapsedRealtime();
                 one.cancel();
@@ -214,7 +241,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
 
     private String currentKey() {
         final String[] value = new String[1];
-        runOnMainSync(new Runnable() { @Override public void run() { value[0] = card.currentProgram().key; } });
+        onMain(new Runnable() { @Override public void run() { value[0] = card.currentProgram().key; } });
         return value[0];
     }
 
@@ -231,7 +258,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
         long end = SystemClock.uptimeMillis() + 3000;
         final boolean[] loaded = new boolean[1];
         while (SystemClock.uptimeMillis() < end) {
-            runOnMainSync(new Runnable() {
+            onMain(new Runnable() {
                 @Override public void run() {
                     ImageView image = image(card);
                     loaded[0] = image != null && image.getDrawable() instanceof BitmapDrawable;
@@ -250,6 +277,16 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             if (result != null) return result;
         }
         return null;
+    }
+
+    private void onMain(final Runnable action) {
+        final Throwable[] failure = new Throwable[1];
+        super.runOnMainSync(new Runnable() {
+            @Override public void run() {
+                try { action.run(); } catch (Throwable error) { failure[0] = error; }
+            }
+        });
+        if (failure[0] != null) throw new AssertionError("Main-thread fixture action failed", failure[0]);
     }
 
     private static void check(boolean value, String message) {

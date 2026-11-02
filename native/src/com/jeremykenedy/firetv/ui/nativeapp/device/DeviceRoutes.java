@@ -18,6 +18,8 @@ import java.util.List;
 public final class DeviceRoutes {
     public enum Destination { FACTORY_UI, SYSTEM_SETTINGS, LIVE_TV, NETWORK_SETTINGS }
     public enum Result { STARTED, UNAVAILABLE, FAILED }
+    private static final String[] NETWORK_SETTINGS_ACTIONS = {"android.settings.ETHERNET_SETTINGS",
+            Settings.ACTION_WIFI_IP_SETTINGS, Settings.ACTION_WIFI_SETTINGS, Settings.ACTION_WIRELESS_SETTINGS};
     private static HomeRoutingPolicy routing;
     static synchronized HomeRoutingPolicy policy(Context context) {
         if (routing == null) routing = new HomeRoutingPolicy(new HomeHandoffStore(context.getApplicationContext()));
@@ -42,8 +44,7 @@ public final class DeviceRoutes {
             return firstSystem(context, new Intent(Settings.ACTION_SETTINGS), null);
         }
         if (destination == Destination.NETWORK_SETTINGS) {
-            for (String action : new String[] {"android.settings.ETHERNET_SETTINGS", Settings.ACTION_WIFI_IP_SETTINGS,
-                    Settings.ACTION_WIFI_SETTINGS, Settings.ACTION_WIRELESS_SETTINGS}) {
+            for (String action : NETWORK_SETTINGS_ACTIONS) {
                 Intent network = firstSystem(context, new Intent(action), null);
                 if (network != null) return network;
             }
@@ -107,7 +108,37 @@ public final class DeviceRoutes {
     }
 
     public static Result open(Context context, Destination destination) {
+        if (destination == Destination.NETWORK_SETTINGS) return openNetworkSettings(context);
         return dispatch(context, resolve(context, destination));
+    }
+
+    private static Result openNetworkSettings(Context context) {
+        List<ComponentName> attempted = new ArrayList<>();
+        boolean failed = false;
+        for (String action : NETWORK_SETTINGS_ACTIONS) {
+            Intent intent;
+            try {
+                intent = firstSystem(context, new Intent(action), null);
+            } catch (RuntimeException unavailable) {
+                continue;
+            }
+            if (intent == null || attempted.contains(intent.getComponent())) continue;
+            attempted.add(intent.getComponent());
+            try {
+                if (!policy(context).beginHandoff()) return Result.FAILED;
+            } catch (RuntimeException handoffFailed) {
+                policy(context).cancelHandoff();
+                return Result.FAILED;
+            }
+            try {
+                context.startActivity(intent);
+                return Result.STARTED;
+            } catch (RuntimeException launchFailed) {
+                policy(context).cancelHandoff();
+                failed = true;
+            }
+        }
+        return failed ? Result.FAILED : Result.UNAVAILABLE;
     }
 
     /** Validate an already resolved system destination before arming the shared Home exemption. */

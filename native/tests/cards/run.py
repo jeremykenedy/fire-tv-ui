@@ -59,6 +59,9 @@ with tempfile.TemporaryDirectory() as folder:
         path.write_text(source)
     subprocess.run(['javac', '-d', work, *[work / p for p in STUBS],
                     SOURCE / 'CardOptions.java',
-                    SOURCE / 'CardPreferences.java', ROOT / 'tests/cards/CardTest.java'], check=True)
+                    SOURCE / 'CardPreferences.java', SOURCE / 'CardRotationDeadline.java',
+                    ROOT / 'tests/cards/CardTest.java', ROOT / 'tests/cards/CardRotationDeadlineTest.java'], check=True)
     subprocess.run(['java', '-cp', work,
                     'com.jeremykenedy.firetv.ui.nativeapp.cards.CardTest'], check=True)
+    subprocess.run(['java', '-cp', work,
+                    'com.jeremykenedy.firetv.ui.nativeapp.cards.CardRotationDeadlineTest'], check=True)

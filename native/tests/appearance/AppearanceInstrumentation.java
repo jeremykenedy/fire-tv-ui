@@ -43,12 +43,14 @@ public final class AppearanceInstrumentation extends Instrumentation {
                 AppearanceView overlay=(AppearanceView)editor.getWindow().getDecorView().findViewWithTag("appearance:overlay");
                 check(overlay.animationMillis()>time[0],"Overlay time advances visibly independent of base");
             } });
+            verifyPhaseContinuity();
             preview=open(editor,"Full screen preview",PREFIX+"appearance.BackgroundPreviewActivity");
             onMain(new Runnable() { @Override public void run() {
                 AppearanceView overlay=(AppearanceView)editor.getWindow().getDecorView().findViewWithTag("appearance:overlay");
                 check(!overlay.isFrameScheduled(),"Covered settings pause frame callback");
             } });
             sendKeyDownUpSync(KeyEvent.KEYCODE_BACK); waitForIdleSync();
+            waitForFocus(editor);
             onMain(new Runnable() { @Override public void run() {
                 check(editor.hasWindowFocus(),"Back restores settings window focus");
                 View action=editor.getWindow().getDecorView().findViewWithTag("appearance:overlay_frozen"); action.performClick();
@@ -83,6 +85,86 @@ public final class AppearanceInstrumentation extends Instrumentation {
             check(restore.commit()&&prefs.getAll().equals(before),"Restore all appearance preferences exactly");
         }
         finish(result.containsKey("failure") ? 1 : -1,result);
+    }
+    private void verifyPhaseContinuity() {
+        final AppearanceView[] views=new AppearanceView[2];
+        final Bitmap[] still=new Bitmap[2];
+        onMain(new Runnable() { @Override public void run() {
+            View decor=editor.getWindow().getDecorView();
+            views[0]=(AppearanceView)decor.findViewWithTag("appearance:base");
+            views[1]=(AppearanceView)decor.findViewWithTag("appearance:overlay");
+            for(AppearanceView view:views) {
+                check(view!=null&&view.getWidth()>0&&view.getHeight()>0,"Appearance layer is laid out");
+                view.setOptions(phaseOptions(false,false,0));
+                view.setResumed(true);
+                check(view.isFrameScheduled(),"Animated layer schedules frames");
+            }
+        } });
+        SystemClock.sleep(1600);
+        onMain(new Runnable() { @Override public void run() {
+            for(int i=0;i<views.length;i++) {
+                AppearanceView view=views[i];
+                check(view.animationMillis()>500,"Layer has accumulated motion before changing speed");
+                view.setOptions(phaseOptions(false,true,0));
+                check(!view.isFrameScheduled(),"Frozen layer stops frames");
+                still[i]=render(view);
+                view.setOptions(phaseOptions(false,true,100));
+                Bitmap changed=render(view);
+                check(still[i].sameAs(changed),"Changing speed while frozen must not relocate the scene");
+                changed.recycle();
+                view.setOptions(phaseOptions(false,false,100));
+                check(view.isFrameScheduled(),"Layer resumes after speed change");
+            }
+        } });
+        SystemClock.sleep(800);
+        onMain(new Runnable() { @Override public void run() {
+            for(int i=0;i<views.length;i++) {
+                AppearanceView view=views[i];
+                view.setResumed(false);
+                check(!view.isFrameScheduled(),"Lifecycle pause stops frames");
+                view.setResumed(true);
+                check(view.isFrameScheduled(),"Lifecycle resume restarts frames");
+                view.setReducedMotion(true);
+                check(!view.isFrameScheduled(),"Reduced motion stops frames");
+                Bitmap moved=render(view);
+                check(!still[i].sameAs(moved),"Resumed layer visibly advances at the new speed");
+                still[i].recycle(); still[i]=moved;
+            }
+        } });
+        SystemClock.sleep(200);
+        onMain(new Runnable() { @Override public void run() {
+            for(int i=0;i<views.length;i++) {
+                AppearanceView view=views[i];
+                Bitmap held=render(view);
+                check(still[i].sameAs(held),"Reduced motion holds rendered pixels");
+                held.recycle(); still[i].recycle();
+                view.setReducedMotion(false);
+                check(view.isFrameScheduled(),"Disabling reduced motion resumes frames");
+                view.setOptions(phaseOptions(true,false,100));
+                check(!view.isFrameScheduled(),"Off stops frames");
+                view.setOptions(AppearancePreferences.load(getTargetContext()));
+                view.setResumed(true);
+            }
+        } });
+    }
+    private static AppearanceOptions phaseOptions(boolean off,boolean frozen,int speed) {
+        return new AppearanceOptions(off?"off":"particles",frozen,speed,70,80,
+                off?"off":"snowflakes",frozen,speed,70,80,"","","");
+    }
+    private static Bitmap render(AppearanceView view) {
+        Bitmap pixels=Bitmap.createBitmap(view.getWidth(),view.getHeight(),Bitmap.Config.ARGB_8888);
+        view.draw(new Canvas(pixels));
+        return pixels;
+    }
+    private void waitForFocus(final Activity activity) {
+        final boolean[] focused={false};
+        long deadline=SystemClock.uptimeMillis()+5000;
+        do {
+            onMain(new Runnable() { @Override public void run() { focused[0]=activity.hasWindowFocus(); } });
+            if(focused[0])return;
+            SystemClock.sleep(50);
+        } while(SystemClock.uptimeMillis()<deadline);
+        throw new AssertionError("Editor did not regain focus after Back");
     }
     private void verifyRender() {
         Context context=getTargetContext(); AppearanceView view=new AppearanceView(context,true); view.layout(0,0,960,540);

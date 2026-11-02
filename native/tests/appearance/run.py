@@ -15,5 +15,6 @@ with tempfile.TemporaryDirectory(prefix='appearance-test-') as folder:
         path=work/name
         path.parent.mkdir(parents=True,exist_ok=True)
         path.write_text(source)
-    subprocess.run(['javac','-d',str(work),*[str(work/name) for name in STUBS],str(ROOT/'src/com/jeremykenedy/firetv/ui/nativeapp/holidays/HolidayScenes.java'),str(SOURCE/'LegacyGradients.java'),str(SOURCE/'AppearanceOptions.java'),str(SOURCE/'AppearancePreferences.java'),str(SOURCE/'PaletteRecipes.java'),str(ROOT/'tests/appearance/AppearanceTest.java')],check=True)
+    subprocess.run(['javac','-d',str(work),*[str(work/name) for name in STUBS],str(ROOT/'src/com/jeremykenedy/firetv/ui/nativeapp/holidays/HolidayScenes.java'),str(SOURCE/'LegacyGradients.java'),str(SOURCE/'AppearanceOptions.java'),str(SOURCE/'AppearancePreferences.java'),str(SOURCE/'PaletteRecipes.java'),str(SOURCE/'AppearanceClock.java'),str(ROOT/'tests/appearance/AppearanceTest.java'),str(ROOT/'tests/appearance/AppearanceClockTest.java')],check=True)
     subprocess.run(['java','-cp',str(work),'com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearanceTest'],check=True)
+    subprocess.run(['java','-cp',str(work),'com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearanceClockTest'],check=True)

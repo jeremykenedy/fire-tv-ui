@@ -18,14 +18,12 @@ public final class AppearanceView extends View {
     private final Paint ground = new Paint(Paint.DITHER_FLAG);
     private final Path shape = new Path();
     private boolean resumed, attached, scheduled, reducedMotion;
-    private long previous, elapsed;
+    private final AppearanceClock clock = new AppearanceClock();
     private final Runnable frame = new Runnable() {
         @Override public void run() {
             scheduled = false;
             if (!running()) return;
-            long now = SystemClock.uptimeMillis();
-            if (previous != 0) elapsed += Math.min(100, now - previous);
-            previous = now;
+            clock.frame(SystemClock.uptimeMillis(), overlay ? options.overlaySpeed : options.baseSpeed);
             invalidate(); schedule();
         }
     };
@@ -34,11 +32,11 @@ public final class AppearanceView extends View {
     public void setReducedMotion(boolean value) { reducedMotion = value; invalidate(); update(); }
     public void setResumed(boolean value) { resumed = value; update(); }
     public boolean isFrameScheduled() { return scheduled; }
-    public long animationMillis() { return elapsed; }
+    public long animationMillis() { return clock.elapsedMillis(); }
     private boolean running() { return !reducedMotion && attached && resumed && hasWindowFocus() && isShown() && getWindowVisibility() == VISIBLE
             && (overlay ? options.overlayAnimated() : options.baseAnimated()); }
     private void schedule() { if (!scheduled && running()) { scheduled = true; postDelayed(frame, 33); } }
-    private void update() { if (!running()) { removeCallbacks(frame); scheduled = false; previous = 0; } else schedule(); }
+    private void update() { if (!running()) { removeCallbacks(frame); scheduled = false; clock.pause(); } else schedule(); }
     @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); attached = true; update(); }
     @Override protected void onDetachedFromWindow() { attached = false; update(); super.onDetachedFromWindow(); }
     @Override protected void onVisibilityChanged(View view, int visibility) { super.onVisibilityChanged(view, visibility); if (frame != null) update(); }
@@ -66,8 +64,8 @@ public final class AppearanceView extends View {
                 || (!overlay && style.equals("still_legacy_gradient") && LegacyGradients.index(options.legacyGradient) < 0)) return;
         int strength = overlay ? options.overlayOpacity : options.brightness;
         int density = overlay ? options.overlayIntensity : options.baseIntensity;
-        double seconds = elapsed / 1000.0;
-        double speed = 0.25 + (overlay ? options.overlaySpeed : options.baseSpeed) / 50.0;
+        double seconds = clock.elapsedMillis() / 1000.0;
+        double phase = clock.phaseSeconds();
         if (!overlay) {
             canvas.drawRect(0,0,getWidth(),getHeight(),ground);
             if (!style.equals("still_legacy_gradient")) { paint.setColor(Color.BLACK); paint.setAlpha(Math.round((100-strength)*1.5f)); canvas.drawRect(0,0,getWidth(),getHeight(),paint); }
@@ -75,7 +73,7 @@ public final class AppearanceView extends View {
         if (style.startsWith("still_") || density == 0 || (overlay && strength == 0)) return;
         float scale = Math.max(0.5f, getHeight()/1080f);
         if ((style.equals("aurora") || style.equals("waves") || style.equals("silk") || style.equals("prism") || style.equals("rays") || style.equals("orbits"))) {
-            ribbons(canvas, style, seconds*speed, density, scale); return;
+            ribbons(canvas, style, phase, density, scale); return;
         }
         int count = style.equals("snowflakes") ? 18+density*3/4 : 24+density*2;
         float width=getWidth(), height=getHeight();
@@ -83,9 +81,9 @@ public final class AppearanceView extends View {
         PaletteRecipes.Theme recipe=PaletteRecipes.find(overlay ? options.overlayPalette : options.basePalette);
         for (int i=0;i<count;i++) {
             double depth=0.35+fraction(i*19.137)*0.65;
-            double position=fraction(i*0.61803398875 + seconds*speed*(0.014+depth*0.021));
+            double position=fraction(i*0.61803398875 + phase*(0.014+depth*0.021));
             float y=(float)((rising ? 1-position : position)*(height+80*scale)-40*scale);
-            float x=(float)(fraction(i*0.754877666)*width+Math.sin(seconds*speed*0.4+i)*18*scale*depth);
+            float x=(float)(fraction(i*0.754877666)*width+Math.sin(phase*0.4+i)*18*scale*depth);
             float size=(float)((2+depth*5)*scale);
             int color=0xfff3f7ff;
             if (style.equals("leaves")) color=i%3==0 ? 0xffe9b75a : i%3==1 ? 0xffb75b32 : 0xffd9893e;
@@ -96,7 +94,7 @@ public final class AppearanceView extends View {
             paint.setColor(color); paint.setAlpha((int)((overlay ? strength/100f : 0.75f)*(130+depth*125)));
             canvas.save(); canvas.translate(x,y);
             if (style.equals("snowflakes")) {
-                canvas.rotate((float)(i*31+seconds*speed*9)); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(Math.max(1,scale*1.3f));
+                canvas.rotate((float)(i*31+phase*9)); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(Math.max(1,scale*1.3f));
                 int alpha=paint.getAlpha(), flakeColor=paint.getColor();
                 for(int spoke=0;spoke<6;spoke++) {
                     paint.setColor(0xff30445a); paint.setAlpha(alpha/2); paint.setStrokeWidth(Math.max(2,scale*3.5f));
@@ -110,7 +108,7 @@ public final class AppearanceView extends View {
                 shape.moveTo(0,size); shape.cubicTo(-size*2,-size*.2f,-size,-size*1.9f,0,-size*.8f);
                 shape.cubicTo(size,-size*1.9f,size*2,-size*.2f,0,size); canvas.drawPath(shape,paint);
             } else if (style.equals("leaves") || style.equals("petals")) {
-                canvas.rotate((float)(i*47+seconds*speed*24)); shape.reset(); shape.moveTo(-size*1.5f,0);
+                canvas.rotate((float)(i*47+phase*24)); shape.reset(); shape.moveTo(-size*1.5f,0);
                 shape.quadTo(0,-size*1.4f,size*1.5f,0); shape.quadTo(0,size*1.4f,-size*1.5f,0); canvas.drawPath(shape,paint);
                 paint.setColor(0xff70452e); paint.setAlpha((int)(strength*1.5f)); paint.setStrokeWidth(scale); canvas.drawLine(-size,0,size,0,paint);
             } else if (style.equals("rain")) { paint.setStrokeWidth(scale); canvas.drawLine(0,0,-size,size*5,paint); }
