@@ -3,9 +3,11 @@ package com.jeremykenedy.firetv.ui.nativeapp;
 import android.app.Activity;
 import android.graphics.Color;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityStyle;
 
 public final class Pages {
     private Pages() {}
@@ -24,6 +26,11 @@ public final class Pages {
         int pad = dp(activity, 32);
         body.setPadding(pad, pad, pad, pad);
         activity.setContentView(body);
+        body.getViewTreeObserver().addOnWindowFocusChangeListener(new ViewTreeObserver.OnWindowFocusChangeListener() {
+            @Override public void onWindowFocusChanged(boolean hasFocus) {
+                if (hasFocus) AccessibilityStyle.apply(activity, body);
+            }
+        });
         return body;
     }
 
@@ -33,6 +40,7 @@ public final class Pages {
         text.setTextSize(size);
         text.setTextColor(Color.WHITE);
         text.setPadding(0, dp(activity, 6), 0, dp(activity, 12));
+        AccessibilityStyle.apply(activity, text);
         return text;
     }
 
@@ -41,6 +49,7 @@ public final class Pages {
         button.setText(label);
         button.setAllCaps(false);
         button.setOnClickListener(click);
+        AccessibilityStyle.apply(activity, button);
         return button;
     }
 }

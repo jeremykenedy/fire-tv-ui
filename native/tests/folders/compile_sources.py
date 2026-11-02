@@ -12,5 +12,5 @@ files = [*sorted((source / 'folders').glob('*.java')), *sorted((source / 'locks'
          source / 'Pages.java', source / 'appgrid/AppInventory.java', here / 'FolderInstrumentation.java']
 with tempfile.TemporaryDirectory(prefix='fire-tv-folder-compile-') as work:
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', str(android),
-                    '-d', work, *[str(file) for file in files]], check=True)
+                    '-sourcepath', str(native / 'src'), '-d', work, *[str(file) for file in files]], check=True)
 print('Folder UI and instrumentation compile passed')

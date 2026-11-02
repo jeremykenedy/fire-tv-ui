@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 
 /** Downloads only on request, then opens the ordinary installer only after a separate explicit action. */
 public final class ScreensaverCatalogActivity extends Activity {
+    private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private UpdateCoordinator.Cancellation cancellation = new UpdateCoordinator.Cancellation();
     private TextView status;
@@ -32,6 +33,7 @@ public final class ScreensaverCatalogActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         if (state != null) focusPackage = state.getString("focus", "");
         String pendingName = getPreferences(0).getString("installer_file", "");
         String pendingPackage = getPreferences(0).getString("installer_package", "");
@@ -154,6 +156,7 @@ public final class ScreensaverCatalogActivity extends Activity {
     }
 
     @Override protected void onActivityResult(int request, int result, Intent data) {
+        if (startupBlocked) { super.onActivityResult(request, result, data); return; }
         super.onActivityResult(request, result, data);
         if (request == 610) {
             installerOpen = false; busy = true;
@@ -190,8 +193,10 @@ public final class ScreensaverCatalogActivity extends Activity {
         if (verified != null) { verified.delete(); verified = null; }
         getPreferences(0).edit().clear().commit();
     }
-    @Override protected void onSaveInstanceState(Bundle state) { state.putString("focus", focusPackage); super.onSaveInstanceState(state); }
+    @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; } state.putString("focus", focusPackage); super.onSaveInstanceState(state); }
     @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; }
         destroyed = true; cancellation.cancel(); worker.shutdownNow();
         if (!installerOpen) discard();
         super.onDestroy();

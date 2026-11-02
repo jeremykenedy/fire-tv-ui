@@ -1,5 +1,6 @@
-This source preview includes 21 individually reviewed curated icons.
-The remaining 27 legacy catalog images are excluded pending verified redistribution rights.
+This source preview includes 22 individually reviewed curated icons.
+27 legacy source variants remain excluded pending verified redistribution rights.
+Denon uses a separately reviewed Wikimedia depiction instead of the held official-site SVG.
 
 Original project artwork and tile backgrounds/layout are MIT.
 Simple Icons artwork is CC0-1.0 at the pinned revision in provenance.json.
@@ -68,6 +69,9 @@ https://commons.wikimedia.org/wiki/File:Pioneer_logo.svg
 
 Harman Kardon: Public domain textlogo per Wikimedia Commons; MIT project tile layout
 https://commons.wikimedia.org/wiki/File:Harman_Kardon_logo.svg
+
+Denon: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/w/index.php?title=File:Denon_(logo).svg&oldid=1117877107
 
 provenance.json records exact source and rendered image hashes.
 catalog-review.json records each of the 40 newly reviewed assets, including exclusions.

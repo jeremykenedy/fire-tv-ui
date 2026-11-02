@@ -22,7 +22,7 @@ final class LegacyAppearanceMapper {
     }
     private LegacyAppearanceMapper() {}
     static Map<String, String> keys() { return KEYS; }
-    static Map<String, Object> map(Map<String, Object> legacy, Set<String> mapped) {
+    static Map<String, Object> map(Map<String, Object> legacy, Set<String> mapped, PresentationMappingContext identities) {
         Map<String, Object> values = new LinkedHashMap<>();
         for (Map.Entry<String, String> entry : KEYS.entrySet()) {
             if (!legacy.containsKey(entry.getKey())) continue;
@@ -38,8 +38,8 @@ final class LegacyAppearanceMapper {
         }
         if ("customv".equals(legacy.get("mode"))) {
             Object uri = legacy.get("custom_video_uri");
-            if (!(uri instanceof String) || !contentUri((String) uri)) {
-                throw new IllegalArgumentException("The active legacy video needs a retained native-supported content URI before mapping.");
+            if (!(uri instanceof String) || !contentUri((String) uri) && !verifiedPrivate((String) uri, identities)) {
+                throw new IllegalArgumentException("The active legacy video needs a supported content URI or verified app-private media reference before mapping.");
             }
             values.put("wallpaper_mode", "video"); mapped.add("mode");
         }
@@ -64,6 +64,12 @@ final class LegacyAppearanceMapper {
     }
     private static void choice(Object value, String[] supported) {
         if (!(value instanceof String) || !Arrays.asList(supported).contains(value)) throw invalid();
+    }
+    private static boolean verifiedPrivate(String uri, PresentationMappingContext identities) {
+        PrivateMediaReference reference = identities.privateMedia.get(uri);
+        if (reference == null) return false;
+        try { reference.verifyAvailable(); return true; }
+        catch (java.io.IOException unavailable) { return false; }
     }
     private static boolean contentUri(String value) {
         try {

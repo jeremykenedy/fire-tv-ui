@@ -2,6 +2,7 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
@@ -9,6 +10,7 @@
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <queries>
         <provider android:authorities="android.media.tv" />
+        <provider android:authorities="com.android.calendar" />
         <package android:name="com.amazon.tv.livetv" />
         <package android:name="com.android.tv" />
         <package android:name="com.google.android.tv" />
@@ -16,6 +18,7 @@
         <intent><action android:name="android.settings.SETTINGS" /></intent>
         <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="livetv" /></intent>
         <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent>
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent>
         <intent><action android:name="android.settings.ETHERNET_SETTINGS" /></intent>
         <intent><action android:name="android.settings.WIFI_IP_SETTINGS" /></intent>
         <intent><action android:name="android.settings.WIFI_SETTINGS" /></intent>
@@ -62,7 +65,7 @@
         <package android:name="com.jeremykenedy.nibbleshd" />
         <package android:name="com.jeremykenedy.lumenbreaker" />
     </queries>
-    <application android:label="Fire TV UI Source Preview" android:theme="@style/AppTheme" android:icon="@drawable/icon" android:banner="@drawable/banner" android:allowBackup="false" android:debuggable="false" android:supportsRtl="true" android:usesCleartextTraffic="false" android:networkSecurityConfig="@xml/network_security_config">
+    <application android:debuggable="false" android:label="Fire TV UI Source Preview" android:theme="@style/AppTheme" android:icon="@drawable/icon" android:banner="@drawable/banner" android:allowBackup="false" android:supportsRtl="true" android:usesCleartextTraffic="false" android:networkSecurityConfig="@xml/network_security_config">
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.MainActivity" android:exported="true" android:launchMode="singleTop">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent-filter>
         </activity>
@@ -70,10 +73,14 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.HelpActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.focus.FocusSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.allapps.AllAppsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.icons.IconPickerActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.cards.CardsSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.DeviceSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.remotebuttons.RemoteButtonsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilitySettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundPreviewActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.folders.FolderActivity" android:exported="false" />
@@ -85,10 +92,15 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.screensavers.ScreensaverSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationSourcesActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.discovery.DiscoveryActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.updates.UpdatesActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.backup.BackupActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.notes.NotesActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.calendar.CalendarActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.ambient.AmbientAudioActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.livetv.LiveTvSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherSettingsActivity" android:exported="false" />
         <provider android:name="com.jeremykenedy.firetv.ui.nativeapp.updates.UpdateFileProvider" android:authorities="com.jeremykenedy.firetv.ui.preview.updates" android:exported="false" android:grantUriPermissions="true" />
         <provider android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexArtworkProvider" android:authorities="com.jeremykenedy.firetv.ui.preview.plex-art" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.reminders.RemindersActivity" android:exported="false" />

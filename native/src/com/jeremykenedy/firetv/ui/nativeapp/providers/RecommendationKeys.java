@@ -29,7 +29,7 @@ final class RecommendationKeys {
     static String program(String feedId, long rowId, String providerId) {
         return hash(feedId + "\n" + (providerId.isEmpty() ? "row:" + rowId : "provider:" + providerId));
     }
-    private static String hash(String value) {
+    static String hash(String value) {
         try {
             byte[] bytes = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
             StringBuilder result = new StringBuilder(64);

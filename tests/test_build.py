@@ -8,208 +8,16 @@ from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from patch_launcher import classes, java_hash, replace_once
 from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
-    def test_rotation_setting_restarts_the_effect_without_recreating_home(self):
-        decoded = ROOT / '.build/decoded'
-        if not decoded.exists():
-            self.skipTest('Build the native launcher to check rotation lifecycle wiring.')
-        built = classes(decoded)
-        model = built['LQ3/T3;'].read_text()
-        self.assertIn('featuredRotation:LN/g0;', model)
-        self.assertIn('.method public final refreshFeaturedRotation()V', model)
-        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
-        resume = main.split('.method public final onResume()V', 1)[1].split('.end method', 1)[0]
-        self.assertIn('LQ3/T3;->refreshFeaturedRotation()V', resume)
-        self.assertNotIn('->recreate()', resume)
-        wallpaper = built['LO4/m;'].read_text()
-        self.assertIn('iget-object v9, v0, LQ3/T3;->featuredRotation:LN/g0;', wallpaper)
-        self.assertIn('filled-new-array {v2, v3, v4, v7, v9}, [Ljava/lang/Object;', wallpaper)
 
-    def test_ui_settings_layout_row_replaces_the_duplicate_saver_route(self):
-        decoded = ROOT / '.build/decoded'
-        if not decoded.exists():
-            self.skipTest('Build the launcher to check the actual Appearance route.')
-        built = classes(decoded)
-        launcher = built['LQ3/M7;'].read_text()
-        start = launcher.index('const-string v0, "Appearance_Screensaver"')
-        end = launcher.index(':goto_19e', start)
-        row = launcher[start:end]
-        self.assertIn('UiSettingsRow;->draw', row)
-        self.assertNotIn('LA3/a;->A(', row,
-                         'The legacy toggle must not remain rendered alongside its replacement.')
-        shortcut = built['Lcom/jeremykenedy/firetv/ui/UiSettingsRow;'].read_text()
-        self.assertIn('UiSettingsAction;-><init>', shortcut)
-        self.assertIn('Layout and focus', shortcut)
-        self.assertNotIn('ScreensaverAction;-><init>', shortcut)
-        self.assertIn('move-object v6, p2', shortcut)
-        self.assertIn('Appearance_Favorites', shortcut)
-        self.assertNotIn('SharedPreferences', shortcut)
 
-    def test_menu_moves_grid_settings_without_breaking_remote_focus(self):
-        decoded = ROOT / '.build/decoded'
-        if not decoded.exists():
-            self.skipTest('Build the launcher before checking the menu integration.')
-        built = classes(decoded)
-        launcher = built['LQ3/M7;'].read_text()
-        self.assertIn('UiMenuLabels;->display', launcher)
-        self.assertIn('UpdatesAction;-><init>', launcher)
-        controls = launcher.split('.method public static final l(', 1)[1].split('.end method', 1)[0]
-        self.assertIn('new-array v2, v2, [Ljava/lang/Integer;', controls)
-        heading = controls.split('const-string v16, "Apps per row"', 1)[1].split('move/from16 v29, v4', 1)[0]
-        self.assertNotIn('LK/L0;->b', heading)
-        focus = built['LQ3/k7;'].read_text()
-        self.assertNotIn('Controls_AppsRow_0', focus)
-        self.assertIn('Controls_AccessibilityBtn', focus)
-        self.assertNotIn('Controls_AppsRow_2', built['LQ3/E1;'].read_text())
-        theme = built['Landroid/support/v4/media/session/b;'].read_text()
-        row = theme.split('const-string v4, "Theme Mode_Screensaver"', 1)[1]
-        row = row.split('SavedSetupsRow;->draw', 1)[0]
-        self.assertIn('SavedSetupsRow;->draw', theme)
-        setup_rows = built['Lcom/jeremykenedy/firetv/ui/SavedSetupsRow;'].read_text()
-        self.assertIn('MenuBackgroundAction;-><init>', setup_rows)
-        self.assertIn('SavedSetupsAction;-><init>', setup_rows)
-        self.assertIn('"Backgrounds and overlays"', setup_rows)
-        self.assertIn('"Saved setups"', setup_rows)
-        self.assertIn('"Theme Mode_SavedSetups"', setup_rows)
-        self.assertIn('"Theme Mode_Screensaver"', setup_rows)
-        self.assertIn('move-object/from16 v8, p3', setup_rows)
-        self.assertIn('move-object v6, p1', setup_rows)
-        manifest = ET.parse(decoded / 'AndroidManifest.xml').getroot()
-        android = '{http://schemas.android.com/apk/res/android}'
-        saved_activity = next(a for a in manifest.find('application').findall('activity')
-                              if a.get(android + 'name') == 'com.jeremykenedy.firetv.ui.SavedSetupsActivity')
-        self.assertEqual(saved_activity.get(android + 'exported'), 'false')
-        for callback in ('v21', 'v22', 'v23'):
-            self.assertIn('check-cast ' + callback + ', Ln4/a;', row)
 
-    def test_grouped_cards_keep_positions_and_backgrounds_keep_main_lifecycle_hooks(self):
-        decoded = ROOT / '.build/decoded'
-        if not decoded.exists():
-            self.skipTest('Build the launcher before verifying actual native integration.')
-        built = classes(decoded)
-        rotation = built['LQ3/h8;'].read_text()
-        self.assertNotIn('LQ3/T3;->U(I)V', rotation)
-        self.assertNotIn('LQ3/T3;->t0:LN/g0;', rotation)
-        row = built['LQ3/r3;'].read_text()
-        self.assertLess(row.index('FeaturedGroupBridge;->current'), row.index('new-instance v9, LN4/k;'),
-                        'Both rendering and the existing click action must receive the current child.')
-        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
-        bridge = built['Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;'].read_text()
-        self.assertIn('FeaturedGroups;->feedKey(Ljava/lang/String;J)', bridge)
-        self.assertIn('FeaturedGroups;->current(Ljava/lang/Object;Ljava/lang/String;)', bridge)
-        self.assertIn('FeaturedGroupBridge;->start', main)
-        self.assertIn('FeaturedCardClock;->stop', main)
-        self.assertIn('MenuBackgroundView;->resumed(Z)V', main)
-        resume = main[main.index('.method public final onResume()V'):]
-        resume = resume[:resume.index('.end method')]
-        self.assertLess(resume.index('\n    :resume_idle_reset_done\n'), resume.index('FeaturedGroupBridge;->start'),
-                        'Cold Main has no model until Compose assigns it; its clock must still start.')
-        self.assertLess(resume.index('\n    :resume_idle_reset_done\n'), resume.index('MenuBackgroundView;->resumed'),
-                        'Native backgrounds must start on the first resume too.')
-        background = built['LQ3/T5;'].read_text()
-        self.assertIn('MenuBackgroundLayer;->draw', background)
-        self.assertIn('if-nez v14, :goto_3', background)
-        manifest = (decoded / 'AndroidManifest.xml').read_text()
-        self.assertIn('MenuBackgroundActivity', manifest)
 
-    def test_featured_setup_keeps_required_base_navigation_callbacks(self):
-        decoded = ROOT / '.build/decoded'
-        if not decoded.exists():
-            self.skipTest('Build the native launcher to check navigation callback wiring.')
-        built = classes(decoded)
-        base = built['LA3/a;'].read_text()
-        self.assertIn('const-string v3, "onSelect"', base)
-        self.assertIn('const-string v3, "onNavigateLeft"', base)
-        setup = built['Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;'].read_text()
-        manager = built['Lcom/jeremykenedy/firetv/ui/ChannelManageRow;'].read_text()
-        for row in (setup, manager):
-            self.assertIn('move-object v6, p2', row,
-                          'Every added row must receive the actual nonnull left-navigation callback.')
-            self.assertNotIn('const/4 v6, 0x0', row)
-            self.assertNotIn('const/4 v4, 0x0', row, 'The focus requester is required too.')
-        launcher = built['LQ3/M7;'].read_text()
-        setup_call = 'invoke-static {v13, v10, v6, v12}, Lcom/jeremykenedy/firetv/ui/FeaturedCardSetupRow;->draw'
-        self.assertIn(setup_call, launcher)
-        self.assertIn('move-object/from16 v12, p50', launcher)
-        self.assertIn('"Cards_Sources"', built['LQ3/b5;'].read_text(),
-                      'Entering Cards should focus the first control, not skip the new rows.')
-        self.assertIn('move-object/from16 v5, p3', setup,
-                      'Channel Cards must keep the original manager callback.')
-        for label in ('Channel Cards', 'Card timers', 'Cards_Channels', 'Cards_Timers'):
-            self.assertIn(label, setup)
-        old_row = launcher.split('const-string v0, "Appearance_ChannelManager"', 1)[1]
-        old_row = old_row.split('const-string v0, "Appearance_Icons"', 1)[0]
-        self.assertNotIn('LA3/a;->A(', old_row, 'Only the Cards entry should render.')
-        self.assertNotIn('"Channel Manager"', launcher)
-        self.assertIn('"Channel Cards"', launcher)
-        self.assertNotIn('Appearance_ChannelManager', built['LQ3/A3;'].read_text())
-        self.assertNotIn('Appearance_ChannelManager', built['LQ3/A4;'].read_text())
-        self.assertIn('CardTimersActivity', (decoded / 'AndroidManifest.xml').read_text())
-        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
-        dispatch = main.split('.method public final dispatchKeyEvent(', 1)[1].split('.end method', 1)[0]
-        modal = dispatch.index('LQ3/T3;->K0:LN/g0;')
-        settings = dispatch.index('LQ3/T3;->m0:LN/g0;')
-        self.assertLess(modal, settings,
-                        'The manager must receive Back before the underlying settings handler.')
-        modal_handler = dispatch[modal:settings]
-        self.assertIn('if-ne v2, v1, :settings_key_consumed', modal_handler,
-                      'Consume key-down without dismissing so key-up cannot close settings too.')
-        self.assertIn('LQ3/S3;->a()Ljava/lang/Object;', modal_handler)
-        self.assertIn('goto :settings_key_consumed', modal_handler)
-        dismiss = built['LQ3/S3;'].read_text()
-        self.assertIn('ChannelCardsFocus;->restore()V', dismiss,
-                      'Save and Back share the existing dismiss callback and return focus.')
-        self.assertIn('ChannelCardsFocus;->remember(Le0/p;)V', setup)
-        self.assertIn('move-object/from16 v73, p4', launcher,
-                      'Manage cards must navigate left using the existing onDismiss callback.')
 
-    def test_featured_card_copy_preserves_the_producer_source_and_visibility(self):
-        decoded = ROOT / '.build/decoded'
-        if not decoded.exists():
-            self.skipTest('Build the native launcher to check its featured card copy.')
-        classes_by_name = classes(decoded)
-        card = classes_by_name['LQ3/S8;'].read_text()
-        start = card.index('.method public static a(LQ3/S8;)LQ3/S8;')
-        copy = card[start:card.index('.end method', start)]
-        self.assertIn('iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;', copy)
-        self.assertNotIn('const-string v2, "Watch Next"', copy)
-        self.assertIn('iget-boolean v6, p0, LQ3/S8;->f:Z', copy)
-        mapper = classes_by_name['Landroid/support/v4/media/session/b;'].read_text()
-        start = mapper.index('.method public static M(Ljava/util/List;Ljava/util/List;)Ljava/util/ArrayList;')
-        mapper = mapper[start:mapper.index('.end method', start)]
-        self.assertIn('FeaturedProgramMapper;->map', mapper)
-        programs = classes_by_name['Lcom/jeremykenedy/firetv/ui/FeaturedProgramMapper;'].read_text()
-        self.assertIn('const/4 v6, 0x1', programs, 'Keep the verified preview inclusion behavior unchanged.')
-        self.assertNotIn('const/16 v3, 0xa', programs, 'One app must not consume a global ten-item cap.')
 
-    def test_idle_uses_selected_saver_and_reviewed_preview_mappings(self):
-        entries = json.loads((ROOT / 'app/screensavers.json').read_text())
-        mapped = {item['id']: item for item in entries if 'preview' in item}
-        self.assertEqual(len(mapped), 28)
-        private_or_missing = {'androsaver', 'aquarium-4k', 'aquarium-live', 'contour-flow',
-                              'nebula-drift', 'skyburst-nocturne', 'snoozy', 'split-flap-drift'}
-        self.assertFalse(private_or_missing.intersection(mapped))
-        controls = {item['id']: item['previewControls'] for item in entries if 'previewControls' in item}
-        self.assertEqual(controls, {
-            'contour-flow': 'com.jeremykenedy.contourflow/.ContourFlowActivity',
-            'nebula-drift': 'com.jeremykenedy.nebuladrift/.NebulaActivity',
-            'split-flap-drift': 'com.jeremykenedy.splitflapdrift/.SplitFlapActivity',
-        })
-        self.assertEqual(mapped['aerial']['preview'],
-                         'com.neilturner.aerialviews/com.neilturner.aerialviews.ui.screensaver.TestActivity')
-        for entry in mapped.values():
-            self.assertEqual(entry['preview'].split('/', 1)[0], entry['package'])
-        decoded = ROOT / '.build/decoded'
-        if decoded.exists():
-            idle = classes(decoded)['LQ3/T6;'].read_text()
-            self.assertIn('IdleScreensaver;->start', idle)
-            self.assertNotIn('com.neilturner.aerialviews', idle)
-            self.assertIn('LQ3/T3;->V(Z)V', idle)
-            self.assertIn('LQ3/T3;->S(J)V', idle)
 
     def test_prism_published_contract_and_physical_preview(self):
         entries = json.loads((ROOT / 'app/screensavers.json').read_text())
@@ -288,19 +96,8 @@ class BuildChecks(unittest.TestCase):
                       (ROOT / 'app/previews/licenses/lumen-breaker-NOTICE.txt').read_text())
         self.assertTrue((ROOT / 'app/previews/licenses/lumen-breaker-APACHE-2.0.txt').is_file())
 
-    def test_pinned_base(self):
-        config = json.loads((ROOT / 'build.json').read_text())
-        self.assertEqual(hashlib.sha256((ROOT / 'vendor/launcher-base.apk').read_bytes()).hexdigest(),
-                         config['base_sha256'])
 
-    def test_unknown_input_fails_closed(self):
-        for value in ('unexpected', 'anchor anchor'):
-            with self.assertRaises(ValueError):
-                replace_once(value, 'anchor', 'new')
 
-    def test_menu_hash_is_java_compatible(self):
-        self.assertEqual(java_hash('Premium'), 0x503d6637)
-        self.assertEqual(java_hash('Help'), 0x224361)
 
     def test_preview_components_and_assets(self):
         self.assertEqual(full_component('com.tv/.Dream'), 'com.tv/com.tv.Dream')
@@ -531,61 +328,7 @@ class BuildChecks(unittest.TestCase):
             self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), record['source_sha256'])
             self.assertEqual(hashlib.sha256(preview.read_bytes()).hexdigest(), record['preview_sha256'])
 
-    def test_manifest_and_features(self):
-        path = ROOT / '.build/decoded/AndroidManifest.xml'
-        if not path.exists():
-            self.skipTest('Build the APK for artifact checks')
-        android = '{http://schemas.android.com/apk/res/android}'
-        root = ET.parse(path).getroot()
-        self.assertEqual(root.get('package'), 'com.jeremykenedy.firetv.ui')
-        self.assertEqual(root.find('application').get(android + 'label'), 'Fire TV UI')
-        permissions = {node.get(android + 'name') for node in root.findall('uses-permission')}
-        self.assertIn('android.permission.WRITE_SECURE_SETTINGS', permissions)
-        self.assertIn('android.permission.QUERY_ALL_PACKAGES', permissions)
-        self.assertNotIn('com.android.vending.BILLING', permissions)
-        self.assertIn('android.permission.INTERNET', permissions)
-        self.assertIn('android.permission.ACCESS_NETWORK_STATE', permissions)
-        for child in root.find('application'):
-            self.assertNotIn('datatransport', child.get(android + 'name', ''))
-            self.assertNotIn('billingclient', child.get(android + 'name', ''))
-        self.assertTrue(any(node.get(android + 'name') == 'com.amazon.ftv.screensaver'
-                            for node in root.find('queries').findall('package')))
-        self.assertTrue(any(node.get(android + 'name') == 'com.amazon.tv.settings.v2'
-                            for node in root.find('queries').findall('package')))
-        self.assertTrue(any('ScreensaverActivity' in node.get(android + 'name', '')
-                            for node in root.find('application').findall('activity')))
-        receiver = next(node for node in root.find('application').findall('receiver')
-                        if node.get(android + 'name', '').endswith('.ScreensaverSelectionReceiver'))
-        self.assertEqual(receiver.get(android + 'exported'), 'true')
-        self.assertEqual(receiver.get(android + 'permission'),
-                         'android.permission.WRITE_SECURE_SETTINGS')
-        self.assertTrue(any(action.get(android + 'name')
-                            == 'com.jeremykenedy.firetv.ui.SELECT_SCREENSAVER'
-                            for action in receiver.findall('intent-filter/action')))
 
-    def test_help_and_feature_state(self):
-        decoded = ROOT / '.build/decoded'
-        if not decoded.exists():
-            self.skipTest('Build the APK for artifact checks')
-        paths = classes(decoded)
-        main = paths['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
-        self.assertIn('DeviceSettings;->initialize', main)
-        self.assertNotIn('->getBoolean(Ljava/lang/String;Z)Z', main)
-        self.assertNotIn('app_launch_count', main)
-        self.assertNotIn('app_launch_count', paths['LQ3/T3;'].read_text())
-        telemetry = paths['Lcom/google/android/datatransport/cct/CctBackendFactory;'].read_text()
-        self.assertNotIn('new-instance', telemetry.split('.method public create')[1])
-        settings = paths['LQ3/M7;'].read_text()
-        self.assertIn('ScreensaverAction;', settings)
-        self.assertNotIn('Choose installed TV screensaver', settings)
-        self.assertNotIn('Premium', settings)
-        self.assertNotIn('one-time purchase', settings)
-        self.assertNotIn('AT4K', settings)
-        self.assertNotIn('View project', settings)
-        for feature in ('Custom Video Wallpaper', 'Clock and Weather', 'Year Progress',
-                        'Custom Multiple Images Slideshow', 'ICON PACKS & CUSTOM ICONS'):
-            self.assertIn(feature, settings)
-        self.assertEqual(paths['LQ3/r8;'].read_text().count('Support via BuyMeACoffee'), 0)
 
 
 if __name__ == '__main__':

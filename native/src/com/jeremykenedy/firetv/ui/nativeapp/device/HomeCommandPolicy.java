@@ -13,12 +13,20 @@ public final class HomeCommandPolicy {
         boolean journal(Map<String, Boolean> before);
         boolean clearJournal();
     }
+    private static boolean applying;
     private HomeCommandPolicy() {}
 
     public static synchronized void recover(Store store) {
-        Map<String, Boolean> pending = store.pending();
-        if (pending != null && (!store.write(pending) || !store.clearJournal())) {
-            throw new IllegalStateException("Interrupted Home settings could not be restored.");
+        // Main-thread preference listeners can reenter while a commit or recovery is still active.
+        if (applying) return;
+        applying = true;
+        try {
+            Map<String, Boolean> pending = store.pending();
+            if (pending != null && (!store.write(pending) || !store.clearJournal())) {
+                throw new IllegalStateException("Interrupted Home settings could not be restored.");
+            }
+        } finally {
+            applying = false;
         }
     }
 
@@ -47,6 +55,20 @@ public final class HomeCommandPolicy {
             changes.put(HomeSetupPolicy.HOME_KEYS, enable);
             changes.put(HomeSetupPolicy.HOME_WINDOWS, enable);
         }
+        commit(store, changes, full ? enable : null);
+        return "ok";
+    }
+
+    public static synchronized void saveChoices(Store store, boolean keys, boolean windows) {
+        recover(store);
+        Map<String, Boolean> changes = new LinkedHashMap<>();
+        changes.put(HomeSetupPolicy.HOME_KEYS, keys);
+        changes.put(HomeSetupPolicy.HOME_WINDOWS, windows);
+        changes.put(HomeSetupPolicy.LEGACY_HOME, keys || windows);
+        commit(store, changes, null);
+    }
+
+    private static void commit(Store store, Map<String, Boolean> changes, Boolean route) {
         Map<String, Boolean> before = new LinkedHashMap<>();
         Map<String, ?> current = store.preferences();
         for (String key : changes.keySet()) {
@@ -57,16 +79,18 @@ public final class HomeCommandPolicy {
             before.put(key, (Boolean) value);
         }
         if (!store.journal(before)) throw new IllegalStateException("Home recovery state could not be saved.");
+        applying = true;
         try {
             if (!store.write(changes)) throw new IllegalStateException("Home settings could not be saved.");
-            if (full && !store.routeMatches(enable)) throw new IllegalStateException("The Home route changed before commit.");
+            if (route != null && !store.routeMatches(route)) throw new IllegalStateException("The Home route changed before commit.");
             if (!store.clearJournal()) throw new IllegalStateException("Home recovery state could not be completed.");
         } catch (RuntimeException failed) {
             if (!store.write(before) || !store.clearJournal()) {
                 throw new IllegalStateException("Home settings could not be restored; recovery remains pending.", failed);
             }
             throw failed;
+        } finally {
+            applying = false;
         }
-        return "ok";
     }
 }

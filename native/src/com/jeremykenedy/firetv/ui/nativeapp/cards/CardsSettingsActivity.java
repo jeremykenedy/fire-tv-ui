@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 public final class CardsSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private static final int[] PRESETS = {0, 5, 8, 15, 30};
     private RecommendationLoader recommendations;
     private List<TvRecommendations.Feed> feeds = Collections.emptyList();
@@ -32,6 +33,7 @@ public final class CardsSettingsActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         if (state != null) { section = state.getString("section", "cards"); selectedFeed = state.getString("feed"); }
         options = CardPreferences.load(this);
         render(null);
@@ -45,6 +47,7 @@ public final class CardsSettingsActivity extends Activity {
     }
 
     @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; }
         super.onResume();
         options = CardPreferences.load(this);
         if (content != null) render(focusTag);
@@ -52,20 +55,24 @@ public final class CardsSettingsActivity extends Activity {
     }
 
     @Override protected void onPause() {
+        if (startupBlocked) { super.onPause(); return; }
         focusTag = currentFocusTag();
         recommendations.stop();
         super.onPause();
     }
 
-    @Override protected void onDestroy() { recommendations.close(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } recommendations.close(); super.onDestroy(); }
 
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         state.putString("section", section);
         state.putString("feed", selectedFeed);
         super.onSaveInstanceState(state);
     }
 
     @Override public void onBackPressed() {
+        if (startupBlocked) { super.onBackPressed(); return; }
         if (section.equals("cards")) super.onBackPressed();
         else if (section.equals("items")) { section = "channels"; render(selectedFeed); }
         else {
@@ -98,6 +105,18 @@ public final class CardsSettingsActivity extends Activity {
                 @Override public void onClick(View view) { section = "hidden"; render(null); }
             });
         } else if (section.equals("channels")) {
+            action("Artwork: " + (CardPreferences.artworkFits(this) ? "Fit entire image" : "Fill and crop"),
+                    "artwork-fit", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    try {
+                        CardPreferences.setArtworkFit(CardsSettingsActivity.this,
+                                !CardPreferences.artworkFits(CardsSettingsActivity.this));
+                        render("artwork-fit");
+                    } catch (IllegalStateException failed) {
+                        Toast.makeText(CardsSettingsActivity.this, failed.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
             action("Card size, channel order and visibility", "layout", new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     focusTag = "layout";
@@ -167,13 +186,13 @@ public final class CardsSettingsActivity extends Activity {
         for (int index = 0; index < programs.size(); index++) {
             final int position = index;
             final TvRecommendations.Program program = programs.get(index);
-            boolean itemHidden = options.isHidden(program.source, program.key);
+            boolean itemHidden = CardPreferences.itemHidden(options, program);
             boolean seriesHidden = options.isSeriesHidden(program.source, program.seriesKey);
             content.addView(Pages.text(this, (index + 1) + ". " + program.title + "\n"
                     + (itemHidden ? "Item hidden" : seriesHidden ? "Hidden by series" : "Shown"), 19));
             action(itemHidden ? "Restore this item" : "Hide this item", program.key + ":item", new View.OnClickListener() {
                 @Override public void onClick(View view) {
-                    save(options.isHidden(program.source, program.key) ? options.restore(program.source, program.key)
+                    save(CardPreferences.itemHidden(options, program) ? CardPreferences.restoreItem(options, program)
                             : options.hide(program.source, program.key, program.title), program.key + ":item");
                 }
             });

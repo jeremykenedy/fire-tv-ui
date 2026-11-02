@@ -1,0 +1,24 @@
+{
+  "source": "sanitized native UI/export observation of public 1.17.0 on disposable API31 TV",
+  "legacy_preferences": {
+    "folders": "{\"1700000000000\":{\"name\":\"Probe Two\",\"isLocked\":true,\"apps\":[\"com.jeremykenedy.firetv.migrationprobe.beta\",\"com.jeremykenedy.firetv.migrationprobe.alpha\"]}}",
+    "display_order": "com.android.tv.settings,folder://1700000000000,com.google.android.tv.remote.service"
+  },
+  "pin_contract": {
+    "type": "String",
+    "length": 4,
+    "equals_created_synthetic_code": true,
+    "value_deliberately_omitted": true
+  },
+  "proved": {
+    "rename_retains_id": true,
+    "native_restore_preserves_entire_typed_snapshot": true,
+    "restored_folder_requires_pin": true,
+    "original_synthetic_pin_opens_restored_folder": true
+  },
+  "not_proved": [
+    "Other legacy schema versions",
+    "Global mixed ordering in native replacement",
+    "Actual owner account or PIN migration"
+  ]
+}

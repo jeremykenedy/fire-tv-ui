@@ -55,6 +55,8 @@ public final class IconInstrumentation extends Instrumentation {
             check(packed instanceof BitmapDrawable && ((BitmapDrawable) packed).getBitmap().getWidth() <= 512,
                     "Installed pack component artwork must render at a bounded size.");
             check(IconPackStore.resolve(context, second, factory) == factory, "Unmapped components must retain factory artwork.");
+            checkMutedArtwork(context);
+            result.putBoolean("muted_artwork_pixels_verified", true);
             check(IconPackStore.select(context, IconPackStore.CLEAN), "Built in clean style must be selectable.");
             check(!IconPackStore.select(context, "uninstalled.pack"), "Unavailable icon packs must be rejected.");
             check(IconPackStore.CLEAN.equals(IconPackStore.selected(context)), "Rejected pack must preserve previous selection.");
@@ -143,6 +145,25 @@ public final class IconInstrumentation extends Instrumentation {
             if(imported!=null) IconSelectionStore.discardPreparedImage(context,imported);
         }
         finish(0,result);
+    }
+
+    private static void checkMutedArtwork(Context context) {
+        ColorDrawable red = new ColorDrawable(Color.RED);
+        red.setBounds(3, 5, 83, 45);
+        check(IconPackStore.select(context, IconPackStore.CLEAN), "Select clean style for rendered color comparison.");
+        Bitmap clean = ((BitmapDrawable) IconPackStore.resolve(context, "proof.color/.Main", red)).getBitmap();
+        check(clean.getPixel(256, 144) == Color.RED, "Clean line must preserve original artwork color.");
+        check(IconPackStore.select(context, IconPackStore.MUTED), "Select muted style for rendered color comparison.");
+        Bitmap muted = ((BitmapDrawable) IconPackStore.resolve(context, "proof.color/.Main", red)).getBitmap();
+        int pixel = muted.getPixel(256, 144);
+        check(Math.abs(Color.red(pixel) - 145) <= 2 && Math.abs(Color.green(pixel) - 30) <= 2
+                && Math.abs(Color.blue(pixel) - 30) <= 2 && Color.alpha(pixel) == 255,
+                "Muted solid must render subdued artwork, not only add a background plate.");
+        Bitmap gray = ((BitmapDrawable) IconPackStore.resolve(context, "proof.gray/.Main", new ColorDrawable(0xff808080))).getBitmap();
+        check(gray.getPixel(256, 144) == 0xff808080, "Muted artwork must preserve neutral gray brightness.");
+        check(red.getColor() == Color.RED && red.getBounds().equals(new android.graphics.Rect(3, 5, 83, 45)),
+                "Style rendering must preserve the source drawable and its bounds.");
+        clean.recycle(); muted.recycle(); gray.recycle();
     }
 
     private void onMain(final Runnable action) {

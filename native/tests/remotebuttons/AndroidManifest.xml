@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.remotebuttonproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Remote button proof" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.device.remotebuttons.RemoteButtonsInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

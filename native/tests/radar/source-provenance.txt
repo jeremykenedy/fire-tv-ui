@@ -1,0 +1,4 @@
+Catalog verified 2026-11-02T02:09:57.746742+00:00 from https://radar.weather.gov/ridge/standard/ . 16 region products and 156 station products. CONUS-LARGE intentionally excluded from the bounded image widget. Catalog presence does not imply a station is operational. No downloaded imagery is bundled with the application.
+Official standard-image documentation: https://www.weather.gov/radarfaq
+NWS data reuse terms: https://www.weather.gov/disclaimer
+Original complete images retain embedded source identifiers, logos, legend and timestamps. App attribution does not imply NOAA/NWS endorsement.

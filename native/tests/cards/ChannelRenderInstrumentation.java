@@ -3,6 +3,8 @@ package com.jeremykenedy.firetv.ui.nativeapp.providers;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,13 +16,14 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.ArtworkLoader;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.ChannelCardView;
+import com.jeremykenedy.firetv.ui.nativeapp.cards.CardPreferences;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** Emulator-only renderer checks; no provider fixture, credentials or preferences are changed. */
+/** Emulator-only renderer checks with exact artwork preference restoration. */
 public final class ChannelRenderInstrumentation extends Instrumentation {
     private Activity activity;
     private ChannelCardView card;
@@ -31,7 +34,11 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
 
     @Override public void onStart() {
         Bundle result = new Bundle();
+        final SharedPreferences preferences = getTargetContext().getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE);
+        final Object originalFit = preferences.getAll().get("featured_artwork_fit");
         try {
+            check(originalFit == null || originalFit instanceof Boolean, "Artwork setting must have a valid original type.");
+            CardPreferences.setArtworkFit(getTargetContext(), true);
             activity = startActivitySync(new Intent().setClassName(getTargetContext(),
                     "com.jeremykenedy.firetv.ui.nativeapp.MainActivity")
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
@@ -66,6 +73,14 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                     ImageView image = image(card);
                     check(image != null && image.getScaleType() == ImageView.ScaleType.FIT_CENTER,
                             "Artwork must fit with its proportions preserved.");
+                    CardPreferences.setArtworkFit(activity, false);
+                    card.updateFeed(feed);
+                    check(image.getScaleType() == ImageView.ScaleType.CENTER_CROP,
+                            "Saved Fill choice crops artwork without replacing its drawable or focus target.");
+                    CardPreferences.setArtworkFit(activity, true);
+                    card.updateFeed(feed);
+                    check(image.getScaleType() == ImageView.ScaleType.FIT_CENTER,
+                            "Switching back to Fit restores the entire image.");
                     check(card.hasFocus() && card.findFocus() == card, "Only the stable outer card takes focus.");
                     card.showNextProgram();
                     check(card.currentProgram() == second && card.isFocused(), "Manual advance preserves card focus.");
@@ -146,6 +161,15 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                     activity.finish();
                 }
             });
+            if (originalFit == null || originalFit instanceof Boolean) {
+                SharedPreferences.Editor restore = preferences.edit();
+                if (originalFit == null) restore.remove("featured_artwork_fit");
+                else restore.putBoolean("featured_artwork_fit", (Boolean) originalFit);
+                if (!restore.commit() || !java.util.Objects.equals(originalFit, preferences.getAll().get("featured_artwork_fit"))) {
+                    result.putString("status", "FAIL");
+                    result.putString("reason", "Artwork preference restoration failed.");
+                }
+            }
         }
         finish(0, result);
     }

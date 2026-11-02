@@ -3,6 +3,9 @@ package com.jeremykenedy.firetv.ui.nativeapp.locks;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public final class LockTest {
     public static void main(String[] args) throws Exception {
@@ -49,7 +52,33 @@ public final class LockTest {
         catch (IOException expected) { }
         rejects(new Action() { public void run() { LockState.key("app label"); } });
         rejects(new Action() { public void run() { LockState.key("folder:../../other"); } });
+        privateImport();
         System.out.println("Lock behavior/security regressions passed.");
+    }
+
+    private static void privateImport() throws Exception {
+        final LockState imported = new LockState();
+        final Set<String> targets = new LinkedHashSet<>(Arrays.asList("folder:42", "package:com.example", "com.example/.Main"));
+        check(imported.importLegacyPin("1357".toCharArray(), targets), "Private import must enroll the existing PIN and complete lock set together.");
+        check(imported.isLocked("folder:42") && imported.isLocked("com.example/.Main")
+                && imported.isLocked("com.example/com.example.FutureAlias"), "Imported package locks must protect current and future aliases.");
+        check(!imported.isLocked("com.example.other/.Main"), "Package lock must not match a prefix-neighbor package.");
+        check(imported.verify("1357".toCharArray(), 1000) == LockResult.GRANTED, "The existing four-digit PIN must remain usable.");
+        for (int i = 0; i < 5; i++) imported.verify("0000".toCharArray(), 1000);
+        final byte[] throttled = imported.encode();
+        check(!new String(throttled, StandardCharsets.ISO_8859_1).contains("1357"), "Private import must never serialize the raw legacy PIN.");
+        check(!imported.importLegacyPin("1357".toCharArray(), targets), "An identical private retry must be idempotent.");
+        check(Arrays.equals(throttled, imported.encode()), "Idempotent import must not reset retry counters, salt or any existing lock state.");
+        rejects(new Action() { public void run() throws Exception { imported.importLegacyPin("2468".toCharArray(), targets); } });
+        rejects(new Action() { public void run() throws Exception { imported.importLegacyPin("1357".toCharArray(), Collections.singleton("folder:99")); } });
+        check(Arrays.equals(throttled, imported.encode()), "Conflicting PIN or targets must preserve existing private state byte for byte.");
+        LockState reloaded = LockState.decode(throttled);
+        check(reloaded.isLocked("com.example/.FutureAlias") && reloaded.verify("1357".toCharArray(), 2000) == LockResult.THROTTLED,
+                "Package scope and throttling must survive import reload.");
+        final LockState fresh = new LockState();
+        rejects(new Action() { public void run() throws Exception { fresh.importLegacyPin("13579".toCharArray(), targets); } });
+        rejects(new Action() { public void run() throws Exception { fresh.importLegacyPin("1357".toCharArray(), Collections.singleton("package:com.example/other")); } });
+        check(!fresh.hasPin() && fresh.targets.isEmpty(), "Invalid private import must not partially enroll or lock.");
     }
 
     private interface Action { void run() throws Exception; }

@@ -202,6 +202,18 @@
       "imageSha256": "1733a0bfa4a96e2356b121de6fff912ca074188f6a1a7ded3f7a3e31e1a50712",
       "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
       "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Harman_Kardon_logo.svg"
+    },
+    {
+      "id": "denon",
+      "name": "Denon",
+      "resource": "icon_denon.png",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/7/75/Denon_(logo).svg",
+      "sourceFile": "native/icons/sources/denon.svg",
+      "sourceSha256": "a79dbbc4921273905e92a7ff0497acda30c000d74f505aa59324a30778bd3dcb",
+      "imageSha256": "11bc79ea81c1c3bd59b33edfc0fd052d282f5bc84dc686ebddaac9fa05f36b76",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Denon_(logo).svg&oldid=1117877107",
+      "replacesLegacySourceSha256": "16af880fe3be9dae1604419a58e1263f5c276b35d3c806510924155e37f5adcb"
     }
   ],
   "upstreamLicense": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/LICENSE.md"

@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class FolderActivity extends Activity {
+    private boolean startupBlocked;
     public static final String EXTRA_FOLDER_ID = "folder_id";
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private List<AppInventory.App> apps = new ArrayList<>();
@@ -39,6 +40,7 @@ public final class FolderActivity extends Activity {
     }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         direct = getIntent().getStringExtra(EXTRA_FOLDER_ID) != null;
         final String requested = state == null ? getIntent().getStringExtra(EXTRA_FOLDER_ID) : state.getString("folder");
         final String restoredFocus = state == null ? null : state.getString("focus", "create");
@@ -56,12 +58,16 @@ public final class FolderActivity extends Activity {
             }
         });
     }
-    @Override protected void onResume() { super.onResume(); if (body != null) render(); }
+    @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; } super.onResume(); if (body != null) render(); }
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         super.onSaveInstanceState(state); state.putString("folder", folderId); state.putString("focus", focusKey);
     }
-    @Override protected void onDestroy() { loader.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } loader.shutdownNow(); super.onDestroy(); }
     @Override public void onBackPressed() {
+        if (startupBlocked) { super.onBackPressed(); return; }
         if (folderId != null && !direct) {
             focusKey = "folder:" + folderId; folderId = null; render();
         } else super.onBackPressed();
@@ -160,7 +166,7 @@ public final class FolderActivity extends Activity {
         });
     }
     private void folderActions(final FolderOptions.Folder folder) {
-        menu(folder.name, new String[] {"Rename", "Move earlier", "Move later", "Lock controls", "Remove folder"},
+        menu(folder.name, new String[] {"Rename", "Move earlier on Home", "Move later on Home", "Lock controls", "Remove folder"},
                 new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         if (which == 0) name(folder);
@@ -168,7 +174,11 @@ public final class FolderActivity extends Activity {
                                 folder.name, new Runnable() { @Override public void run() { render(); } });
                         else if (which == 4) confirmRemove(folder);
                         else {
-                            try { save(FolderPreferences.load(FolderActivity.this).move(folder.id, which == 1 ? -1 : 1)); }
+                            try {
+                                com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTileActions.move(
+                                        FolderActivity.this, "folder:" + folder.id, which == 1 ? -1 : 1);
+                                render();
+                            }
                             catch (IllegalArgumentException | IllegalStateException error) { toast(error.getMessage()); }
                         }
                     }

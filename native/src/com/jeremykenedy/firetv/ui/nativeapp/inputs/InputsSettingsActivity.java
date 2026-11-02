@@ -11,19 +11,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class InputsSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private int generation;
     private String focusedId;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         if (state != null) focusedId = state.getString("focused_input");
     }
-    @Override public void onResume() { super.onResume(); refresh(); }
+    @Override public void onResume() {
+        if (startupBlocked) { super.onResume(); return; } super.onResume(); refresh(); }
     @Override public void onSaveInstanceState(Bundle out) {
+        if (startupBlocked) { super.onSaveInstanceState(out); return; }
         out.putString("focused_input", focusedId);
         super.onSaveInstanceState(out);
     }
-    @Override public void onDestroy() { generation++; worker.shutdownNow(); super.onDestroy(); }
+    @Override public void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } generation++; worker.shutdownNow(); super.onDestroy(); }
     public void refresh() {
         final int request = ++generation;
         worker.execute(new Runnable() {
@@ -52,7 +57,7 @@ public final class InputsSettingsActivity extends Activity {
         View restore = null;
         for (final InputEntry input : snapshot.inputs) {
             Button button = new Button(this);
-            button.setText(input.displayName + "  |  " + input.message());
+            button.setText(input.displayName + (input.hidden ? " (hidden from Home)" : "") + "  |  " + input.message());
             button.setTag(input.artworkKey());
             button.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override public void onFocusChange(View view, boolean focused) { if (focused) focusedId = input.id; }
@@ -66,6 +71,20 @@ public final class InputsSettingsActivity extends Activity {
             if (first == null) first = button;
             if (input.id.equals(focusedId)) restore = button;
         }
+        Button showAll = new Button(this);
+        showAll.setText("Show all inputs on Home");
+        showAll.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                try {
+                    InputPreferences saved = new InputPreferences(InputsSettingsActivity.this);
+                    saved.saveOptions(saved.options().showAll());
+                    refresh();
+                } catch (Exception failure) {
+                    android.widget.Toast.makeText(InputsSettingsActivity.this, failure.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+        body.addView(showAll);
         Button refresh = new Button(this);
         refresh.setText("Refresh inputs");
         refresh.setOnClickListener(new View.OnClickListener() {

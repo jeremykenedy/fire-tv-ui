@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class AppGridSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private List<AppInventory.App> apps = new ArrayList<>();
     private LinearLayout body;
@@ -25,6 +26,7 @@ public final class AppGridSettingsActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         render();
         loader.execute(new Runnable() {
             @Override public void run() {
@@ -93,7 +95,10 @@ public final class AppGridSettingsActivity extends Activity {
                 AppGridOptions old = AppGridPreferences.load(AppGridSettingsActivity.this).discover(AppInventory.keys(apps));
                 if (which == 0) save(old.toggleHidden(app.key()));
                 else if (which == 1) save(old.toggleFavorite(app.key()));
-                else save(old.move(app.key(), which == 2 ? -1 : 1, AppInventory.keys(apps)));
+                else {
+                    try { HomeTileActions.move(AppGridSettingsActivity.this, app.key(), which == 2 ? -1 : 1); render(); }
+                    catch (RuntimeException failed) { Toast.makeText(AppGridSettingsActivity.this, failed.getMessage(), Toast.LENGTH_LONG).show(); }
+                }
             }
         }).setNegativeButton("Cancel", null).show();
         actions.getListView().requestFocus();
@@ -135,5 +140,6 @@ public final class AppGridSettingsActivity extends Activity {
         });
         dialog.show();
     }
-    @Override protected void onDestroy() { loader.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } loader.shutdownNow(); super.onDestroy(); }
 }

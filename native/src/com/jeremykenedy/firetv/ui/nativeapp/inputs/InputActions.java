@@ -1,5 +1,6 @@
 package com.jeremykenedy.firetv.ui.nativeapp.inputs;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -11,9 +12,12 @@ import android.media.tv.TvContract;
 import java.util.List;
 import java.util.ArrayList;
 import com.jeremykenedy.firetv.ui.nativeapp.device.DeviceRoutes;
+import com.jeremykenedy.firetv.ui.nativeapp.locks.LauncherLocks;
+import com.jeremykenedy.firetv.ui.nativeapp.locks.LockStore;
 
 public final class InputActions {
-    public enum Result { STARTED, UNAVAILABLE, FAILED }
+    public enum Result { STARTED, UNAVAILABLE, FAILED, LOCKED }
+    public interface Callback { void complete(Result result); }
     private InputActions() {}
     public static Intent resolve(Context context, InputEntry input) {
         if (input == null || !input.canOpen()) return null;
@@ -43,13 +47,39 @@ public final class InputActions {
         } catch (RuntimeException unavailable) { return null; }
         return null;
     }
-    public static Result open(Context context, InputEntry input) {
+    private static Intent currentIntent(Context context, InputEntry input) {
         // Re-read platform state so a stale connected tile cannot tune a removed input.
-        InputEntry current = null;
         for (InputEntry candidate : InputRepository.load(context).inputs)
-            if (input != null && candidate.id.equals(input.id)) { current = candidate; break; }
-        Intent intent = resolve(context, current);
+            if (input != null && candidate.id.equals(input.id)) return resolve(context, candidate);
+        return null;
+    }
+
+    /** Non-interactive callers cannot bypass a launcher lock. */
+    public static Result open(Context context, InputEntry input) {
+        Intent intent = currentIntent(context, input);
         if (intent == null) return Result.UNAVAILABLE;
+        try {
+            if (new LockStore(context).isLocked(intent.getComponent().flattenToString())) return Result.LOCKED;
+        } catch (Exception unavailable) { return Result.FAILED; }
+        return dispatch(context, intent);
+    }
+
+    public static void open(final Activity activity, final InputEntry input, final Callback callback) {
+        final Intent intent = currentIntent(activity, input);
+        if (intent == null) { callback.complete(Result.UNAVAILABLE); return; }
+        LauncherLocks.guard(activity, intent.getComponent().flattenToString(), new Runnable() {
+            @Override public void run() {
+                Intent current = currentIntent(activity, input);
+                if (current == null || !intent.getComponent().equals(current.getComponent())) {
+                    callback.complete(Result.UNAVAILABLE);
+                    return;
+                }
+                callback.complete(dispatch(activity, current));
+            }
+        });
+    }
+
+    private static Result dispatch(Context context, Intent intent) {
         DeviceRoutes.Result result = DeviceRoutes.openSystemIntent(context, intent);
         return result == DeviceRoutes.Result.STARTED ? Result.STARTED
                 : result == DeviceRoutes.Result.UNAVAILABLE ? Result.UNAVAILABLE : Result.FAILED;

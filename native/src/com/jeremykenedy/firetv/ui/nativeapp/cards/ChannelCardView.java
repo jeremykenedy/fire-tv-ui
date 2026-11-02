@@ -231,6 +231,7 @@ public final class ChannelCardView extends LinearLayout {
         if (program != null) selectedKey = program.key;
         String title = program == null ? "No visible items" : program.title;
         tile.setTitle(title);
+        tile.setArtworkFit(CardPreferences.artworkFits(getContext()));
         setContentDescription(feed.title + ": " + title);
         Uri nextArtwork = program == null ? null : program.artwork;
         int edge = Math.max(getWidth(), getHeight());

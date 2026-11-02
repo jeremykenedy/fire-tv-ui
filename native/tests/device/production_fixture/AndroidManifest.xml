@@ -4,4 +4,5 @@
     <application android:label="Home permission boundary fixture" android:allowBackup="false">
         <receiver android:name="com.jeremykenedy.firetv.ui.homepermissionfixture.UnprivilegedSender" android:exported="true" />
     </application>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.homepermissionfixture.HomeUiFixture" android:targetPackage="com.jeremykenedy.firetv.ui.homepermissionfixture" />
 </manifest>

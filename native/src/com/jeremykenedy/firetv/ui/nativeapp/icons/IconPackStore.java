@@ -12,6 +12,8 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
@@ -185,6 +187,11 @@ public final class IconPackStore {
         paint.setStyle(outline ? Paint.Style.STROKE : Paint.Style.FILL); paint.setStrokeWidth(3);
         canvas.drawRoundRect(5, 5, 507, 283, 16, 16, paint);
         paint.setStyle(Paint.Style.FILL);
+        if (!outline) {
+            ColorMatrix colors = new ColorMatrix();
+            colors.setSaturation(0.45f);
+            paint.setColorFilter(new ColorMatrixColorFilter(colors));
+        }
         canvas.drawBitmap(image, null, new Rect(24, 14, 488, 274), paint);
         image.recycle();
         return new BitmapDrawable(context.getResources(), result);

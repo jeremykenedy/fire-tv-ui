@@ -19,6 +19,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 public final class FocusSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private FocusOptions options;
     private FocusTileView preview;
     private TextView summary;
@@ -27,6 +28,7 @@ public final class FocusSettingsActivity extends Activity {
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         options = FocusPreferences.load(this);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);

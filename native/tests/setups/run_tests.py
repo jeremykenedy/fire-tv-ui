@@ -51,8 +51,9 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-setups-') as temporary:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(value)
         stubs.append(path)
-    dependencies = [SOURCE / 'migration/PreferenceSnapshot.java', SOURCE / 'migration/LegacyPresentationMapper.java',
-                    SOURCE / 'migration/LegacyJson.java', SOURCE / 'migration/LegacyAppearanceMapper.java', SOURCE / 'migration/LauncherMigration.java', SOURCE / 'migration/PresentationMappingContext.java', SOURCE / 'appgrid/AppGridOptions.java',
+    dependencies = [SOURCE / 'accessibility/AccessibilityPreferences.java', SOURCE / 'holidays/HolidayScenes.java', SOURCE / 'migration/PreferenceSnapshot.java', SOURCE / 'migration/PrivateMediaReference.java',
+                    SOURCE / 'inputs/InputEntry.java', SOURCE / 'inputs/InputOptions.java', SOURCE / 'migration/LegacyPresentationMapper.java',
+                    SOURCE / 'migration/LegacyJson.java', SOURCE / 'migration/LegacyFolderMigration.java', SOURCE / 'migration/LegacyAppearanceMapper.java', SOURCE / 'migration/LauncherMigration.java', SOURCE / 'migration/PresentationMappingContext.java', SOURCE / 'appgrid/AppGridOptions.java', SOURCE / 'appgrid/HomeTileOrder.java',
                     SOURCE / 'focus/FocusOptions.java', SOURCE / 'cards/CardOptions.java',
                     SOURCE / 'layout/LayoutItem.java', SOURCE / 'layout/LayoutOptions.java',
                     SOURCE / 'folders/FolderOptions.java', SOURCE / 'folders/FolderPreferences.java',
@@ -65,7 +66,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-setups-') as temporary:
     subprocess.run(['java', '-cp', str(target) + os.pathsep + str(jar),
                     'com.jeremykenedy.firetv.ui.nativeapp.setups.SetupTest', str(target)], check=True)
     android = Path.home() / 'Library/Android/sdk/platforms/android-36/android.jar'
-    subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', str(android),
-                    '-d', str(target / 'android'), *map(str, dependencies + list((SOURCE / 'setups').glob('*.java'))),
+    subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', str(android), '-classpath', str(NATIVE / '.build/classes'),
+                    '-d', str(target / 'android'), *map(str, dependencies + [SOURCE / 'migration/AndroidPresentationInventory.java', SOURCE / 'migration/IdentityInventory.java', SOURCE / 'migration/AndroidPrivateMedia.java'] + [SOURCE / ('providers/' + name) for name in ('RecommendationKeys.java', 'OwnedPlexIdentity.java', 'LegacyRecommendationIdentities.java', 'AndroidRecommendationIdentityInventory.java', 'TvRecommendations.java')] + list((SOURCE / 'setups').glob('*.java'))),
                     str(target / 'com/jeremykenedy/firetv/ui/preview/R.java'), str(HERE / 'SetupInstrumentation.java')], check=True)
 print('Saved setup host checks and isolated Android API 36 manager compilation passed.')

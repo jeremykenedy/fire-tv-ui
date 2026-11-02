@@ -64,21 +64,9 @@ Source Preview 2.0.0-alpha.1/code 2, captured from the verified signed alpha int
 
 ## Installation
 
-Install the signed APK from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases), or build it locally. Fire TV and Android TV have physical checks; see the [device verification matrix](docs/verification.md) for their scope.
+Stable Fire TV UI 1.17.0 and the isolated Source Preview 2.0.0-alpha.1 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview uses a separate package and settings; see the [preview guide](docs/source-preview.md).
 
-Download the signed APK and its checksum from the published release, verify the checksum, then use the repository installer:
-
-```bash
-shasum -a 256 -c fire-tv-ui-1.17.0.apk.sha256
-adb connect YOUR_TV_IP:5555
-python3 scripts/install.py --serial YOUR_TV_IP:5555 --apk /path/to/fire-tv-ui-1.17.0.apk
-```
-
-The installer grants the required screensaver, backup, storage and package-install access, restores existing Home routing, and copies the shared icons. To build locally first, run `python3 scripts/build.py`. See [installation and updates](docs/installation.md) for backup and transfer steps.
-
-Fire TV UI has its own package identity. It can be installed alongside an existing launcher. Subsequent updates must use the same signing key; `adb install -r` keeps Fire TV UI's settings.
-
-For wireless ADB, Home-button setup, and transferring settings from an existing launcher, see [Installation and updates](docs/installation.md).
+The repository installer is currently unavailable. The source-native production build is a candidate and is not a verified upgrade; keep the existing installation and its data. See [Installation and updates](docs/installation.md) for the current status and backup guidance.
 
 ## Quick Start
 
@@ -113,9 +101,9 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 
 ## Input icons
 
-The [48 HD icons](docs/icons.md) cover audio brands, consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The repository installer copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
+The [48 HD icons](docs/icons.md) cover audio brands, consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The standalone icon script copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
 
-The APK also recovers missing shared icons when storage access is available. Open **Settings > Updates** for access status and retry; existing custom files are preserved. The release icon ZIP and repository installer remain available; see the [icon guide](docs/icons.md).
+The APK also recovers missing shared icons when storage access is available. Open **Settings > Updates** for access status and retry; existing custom files are preserved. The release icon ZIP and standalone icon script remain available; see the [icon guide](docs/icons.md).
 
 Long press the app or input tile, choose **Change Icon**, then select an image. For LTvLauncher, use **Set Custom Banner** on an app. See the [icon guide](docs/icons.md) for the full catalog and standalone installation.
 
@@ -126,26 +114,21 @@ Use the preferences icon to open the remote-friendly Settings menu. [Configurati
 
 ## Building
 
-Physical verification covers Fire TV and Android 9 / API 28 hardware, with additional API 34 TV emulator checks. Physical Google TV behavior remains unverified; see the device matrix for individual feature limits.
+Build an unsigned production-package candidate from the maintained native source:
 
 ```bash
-python3 scripts/build.py
+python3 scripts/build.py --unsigned --output-dir /tmp/fire-tv-production
 ```
 
-The build verifies its base APK and tool checksums, applies the maintained launcher changes, compiles the added Android code, aligns the APK, signs it, and verifies the signature. Output and SHA-256 files are written to `dist/`.
-
-The signing key is kept outside the repository at `~/.android/keys/fire-tv-ui.jks`. Back up this key and its `.pass` file for future updates. See [Build and source layout](docs/building.md) for unsigned review builds and custom signing keys.
+The output is unsigned and cannot be installed as a production update. Signing, migration, parity and device acceptance remain separate gates. See [Build and source layout](docs/building.md) for toolchain and signing requirements.
 
 ## Testing
 
 ```bash
-python3 scripts/build.py --unsigned
 bash scripts/test.sh
 ```
 
-The local checks cover screensaver component matching, sorting, duplicate services, missing selections, patch safety, package identity, the settings entry, included features, and removal of purchase messaging from Help. They also verify release hashes, preview provenance, and each new app's settings route on an Android TV emulator. Run the local suite before publishing; device-only checks require an explicitly selected test device.
-
-Device testing is described in [Verification](docs/verification.md).
+The script builds an isolated unsigned preview and runs the source-native host and production contract checks. Native device checks and physical-TV acceptance require separate verification; see [Verification](docs/verification.md).
 
 ## Documentation
 

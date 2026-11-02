@@ -18,7 +18,15 @@ public final class HolidayScenes {
     public static final Scene[] ALL = {
         new Scene("halloween", "Halloween", "leaves"),
         new Scene("christmas", "Christmas", "snowflakes"),
-        new Scene("winter", "Winter landscape", "snow")
+        new Scene("winter", "Winter landscape", "snow"),
+        new Scene("hanukkah", "Hanukkah candlelight", "snowflakes"),
+        new Scene("diwali", "Diwali courtyard", "lanterns"),
+        new Scene("eid_fitr", "Eid al-Fitr courtyard", "lanterns"),
+        new Scene("lunar_new_year", "Lunar New Year garden", "petals"),
+        new Scene("valentine", "Valentine's garden", "hearts_floating"),
+        new Scene("st_patrick", "St. Patrick's valley", "particles"),
+        new Scene("easter", "Easter garden", "petals"),
+        new Scene("thanksgiving", "Thanksgiving harvest", "leaves")
     };
 
     private HolidayScenes() {}

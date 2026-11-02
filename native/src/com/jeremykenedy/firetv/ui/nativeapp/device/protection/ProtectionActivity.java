@@ -12,15 +12,18 @@ import android.widget.TextView;
 import android.widget.EditText;
 import android.text.InputType;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
+import com.jeremykenedy.firetv.ui.nativeapp.SourceStartup;
 import com.jeremykenedy.firetv.ui.nativeapp.device.DeviceRoutes;
 
 public final class ProtectionActivity extends Activity {
+    private boolean startupBlocked;
     private Button awake;
     private TextView status;
     private TextView details;
     private Button sleep;
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         LinearLayout page = Pages.page(this);
         page.addView(Pages.text(this, "Sleep and protection", 28));
         awake = Pages.button(this, "", new View.OnClickListener() {
@@ -44,7 +47,17 @@ public final class ProtectionActivity extends Activity {
         settings.setTag("protection:settings");
         page.addView(settings);
         Button refresh = Pages.button(this, "Refresh system status", new View.OnClickListener() {
-            @Override public void onClick(View view) { refresh(); }
+            @Override public void onClick(View view) {
+                final boolean retrying = SourceStartup.protectionError(ProtectionActivity.this) != null;
+                SourceStartup.startProtection(ProtectionActivity.this, new Runnable() {
+                    @Override public void run() {
+                        if (isFinishing() || isDestroyed()) return;
+                        if (retrying && SourceStartup.protectionError(ProtectionActivity.this) == null)
+                            status.setText("Saved device protection start requested.");
+                        refresh();
+                    }
+                });
+            }
         });
         refresh.setTag("protection:refresh");
         page.addView(refresh);
@@ -58,8 +71,17 @@ public final class ProtectionActivity extends Activity {
         page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         awake.requestFocus();
     }
-    @Override protected void onResume() { super.onResume(); refresh(); }
+    @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; }
+        super.onResume();
+        refresh();
+        SourceStartup.startProtection(this, new Runnable() {
+            @Override public void run() { if (!isFinishing() && !isDestroyed()) refresh(); }
+        });
+    }
     private void refresh() {
+        String protectionError = SourceStartup.protectionError(this);
+        if (protectionError != null) status.setText(protectionError);
         awake.setText("Keep Home screen awake: " + (ProtectionPreferences.keepLauncherAwake(this) ? "On" : "Off"));
         details.setText(SleepStatus.read(this) + (SystemSleepTimer.available(this) ? "\n\nSystem sleep timeout editing is available with the TV's existing permission."
                 : "\n\nDirect sleep timeout editing is unavailable. It requires an existing system setting and a permission already granted by the TV."));

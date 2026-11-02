@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.layoutscheduleproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Dashboard layout verification" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.DashboardHomeInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

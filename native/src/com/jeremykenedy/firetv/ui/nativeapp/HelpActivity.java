@@ -13,8 +13,9 @@ import android.widget.Toast;
 import com.jeremykenedy.firetv.ui.nativeapp.help.HelpTopics;
 import com.jeremykenedy.firetv.ui.nativeapp.help.RemoteDiagram;
 
-/** Original, remote-navigable guidance for the implemented source preview. */
+/** Original, remote-navigable guidance for the launcher. */
 public final class HelpActivity extends Activity {
+    private boolean startupBlocked;
     private static final int TOPIC_ID = 0x5000;
     private static final int CONTENT_ID = 0x5100;
     private int topic;
@@ -28,6 +29,7 @@ public final class HelpActivity extends Activity {
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         if (saved != null) {
             topic = HelpTopics.indexOf(saved.getString("topic"));
             scrollY = saved.getInt("scroll", 0);
@@ -84,7 +86,7 @@ public final class HelpActivity extends Activity {
         if ("remote".equals(selected.key)) {
             detail.addView(new RemoteDiagram(this), new LinearLayout.LayoutParams(-1, Pages.dp(this, 150)));
         }
-        String[] paragraphs = selected.body.split("\n\n");
+        String[] paragraphs = HelpTopics.bodyForPackage(selected, getPackageName()).split("\n\n");
         for (int i = 0; i < paragraphs.length; i++) {
             TextView text = Pages.text(this, paragraphs[i], 20);
             text.setId(CONTENT_ID + i);
@@ -142,12 +144,14 @@ public final class HelpActivity extends Activity {
     }
 
     @Override protected void onPause() {
+        if (startupBlocked) { super.onPause(); return; }
         rememberPosition();
         restoreOnResume = true;
         super.onPause();
     }
 
     @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; }
         super.onResume();
         if (restoreOnResume) {
             restoreOnResume = false;
@@ -156,6 +160,7 @@ public final class HelpActivity extends Activity {
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         rememberPosition();
         state.putString("topic", HelpTopics.at(topic).key);
         state.putInt("scroll", scrollY);

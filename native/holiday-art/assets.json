@@ -49,6 +49,78 @@
       "rows": 2,
       "frames": 6,
       "alpha": true
+    },
+    {
+      "id": "hanukkah",
+      "path": "native/res/drawable-nodpi/holiday_scene_hanukkah.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2436051,
+      "sha256": "a3e5b2199196559aeb1d5de0a3760862ef5dfc00e9dcaa464c55490b20db9f91",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "diwali",
+      "path": "native/res/drawable-nodpi/holiday_scene_diwali.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2545172,
+      "sha256": "c6ebf983f2ffa37db43284e9a729f8bf92dfad6ade26d6ec3e8b45b64862cd7d",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "eid_fitr",
+      "path": "native/res/drawable-nodpi/holiday_scene_eid_fitr.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2543961,
+      "sha256": "45210427edb2d2039fd9cbc88fff65c5c84e7ee4ee26ef7941c19edb09d1440b",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "lunar_new_year",
+      "path": "native/res/drawable-nodpi/holiday_scene_lunar_new_year.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2357789,
+      "sha256": "6d90cf719fc5d2e77dcb523e88dbd7185fdf821579283e216b3dfb605237cf78",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "valentine",
+      "path": "native/res/drawable-nodpi/holiday_scene_valentine.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2565651,
+      "sha256": "9c0b6efa3cacb4d51a5475085619c54bb584b06d5885efa08ebe2c3be6c733e3",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "st_patrick",
+      "path": "native/res/drawable-nodpi/holiday_scene_st_patrick.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2638610,
+      "sha256": "0aa9b69e1acfc55f17281b97e2eff3321bd6d2d1b3510d7c814cfaa1a0ca0e43",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "easter",
+      "path": "native/res/drawable-nodpi/holiday_scene_easter.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2996307,
+      "sha256": "183d95faae8d3614af6037685270069a7d3a1c049bff0807349efa875af3c64c",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "thanksgiving",
+      "path": "native/res/drawable-nodpi/holiday_scene_thanksgiving.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2551674,
+      "sha256": "4c37a3716a25b3b56d62741b7b262e45f25508e7ddaa803f0858e9a7ca1f0f16",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
     }
   ]
 }

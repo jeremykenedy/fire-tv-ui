@@ -1,5 +1,6 @@
 package com.jeremykenedy.firetv.ui.nativeapp.providers;
 
+import com.jeremykenedy.firetv.ui.nativeapp.SourceStartup;
 import android.app.ActivityOptions;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -25,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class NotificationRecommendations extends NotificationListenerService {
     private static final String FILE = "native_notification_recommendations";
     private static volatile NotificationRecommendations connected;
+    private boolean active;
     private static final List<Runnable> listeners = new CopyOnWriteArrayList<>();
     public static final class Result {
         public final TvRecommendations.SourceStatus status;
@@ -58,11 +60,18 @@ public final class NotificationRecommendations extends NotificationListenerServi
     static void removeListener(Runnable listener) { listeners.remove(listener); }
     private static void changed() { for (Runnable listener : listeners) listener.run(); }
 
-    @Override public void onListenerConnected() { connected = this; changed(); }
-    @Override public void onListenerDisconnected() { if (connected == this) connected = null; changed(); }
+    @Override public void onListenerConnected() {
+        active = true;
+        SourceStartup.start(this, new Runnable() {
+            @Override public void run() { if (active && SourceStartup.ready(NotificationRecommendations.this)) {
+                connected = NotificationRecommendations.this; changed();
+            } }
+        });
+    }
+    @Override public void onListenerDisconnected() { active = false; if (connected == this) connected = null; changed(); }
     @Override public void onDestroy() { onListenerDisconnected(); super.onDestroy(); }
-    @Override public void onNotificationPosted(StatusBarNotification notification) { if (enabled(this)) changed(); }
-    @Override public void onNotificationRemoved(StatusBarNotification notification) { if (enabled(this)) changed(); }
+    @Override public void onNotificationPosted(StatusBarNotification notification) { if (SourceStartup.ready(this) && enabled(this)) changed(); }
+    @Override public void onNotificationRemoved(StatusBarNotification notification) { if (SourceStartup.ready(this) && enabled(this)) changed(); }
 
     public static Result read(Context context, CancellationSignal cancellation) {
         List<TvRecommendations.Feed> feeds = new ArrayList<>();

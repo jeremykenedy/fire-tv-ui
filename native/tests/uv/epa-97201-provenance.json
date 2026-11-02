@@ -1,0 +1,9 @@
+{
+  "url": "https://data.epa.gov/dmapservice/getEnvirofactsUVHOURLY/ZIP/97201/JSON",
+  "responseDate": "Mon, 02 Nov 2026 01:55:24 GMT",
+  "status": 200,
+  "capturedFrom": "Exact parsed JSON printed in earlier direct urllib tool result, copied after later probes returned404",
+  "rawBytesPreserved": false,
+  "cacheValidatorsObserved": [],
+  "restriction": "Historical parser sample only; does not establish current service availability. No fields added."
+}

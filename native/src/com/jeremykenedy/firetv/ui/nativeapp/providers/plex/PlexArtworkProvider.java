@@ -1,6 +1,7 @@
 package com.jeremykenedy.firetv.ui.nativeapp.providers.plex;
 
 import android.content.ContentProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.SourceStartup;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -48,8 +49,9 @@ public final class PlexArtworkProvider extends ContentProvider {
         }
         return Uri.parse("content://" + context.getPackageName() + ".plex-art/" + name + ".img");
     }
-    @Override public boolean onCreate() { return true; }
+    @Override public boolean onCreate() { SourceStartup.start(getContext(), new Runnable() { @Override public void run() {} }); return true; }
     @Override public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
+        if (!SourceStartup.ready(getContext())) throw new FileNotFoundException("Launcher settings are being prepared.");
         if (!"r".equals(mode) || uri.getQuery() != null || uri.getFragment() != null
                 || uri.getPath() == null || !uri.getPath().matches("/[0-9a-f]{64}\\.img"))
             throw new FileNotFoundException("Plex artwork unavailable.");

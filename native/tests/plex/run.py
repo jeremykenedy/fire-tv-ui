@@ -28,9 +28,9 @@ with tempfile.TemporaryDirectory(prefix='source-plex-tests-') as directory:
                         'com.jeremykenedy.firetv.ui.nativeapp.providers.plex.' + name], check=True)
     integration = work / 'integration'
     integration.mkdir()
-    files = list((SOURCE / 'providers/plex').glob('*.java')) + [
-        SOURCE / 'providers/TvRecommendations.java', SOURCE / 'providers/RecommendationKeys.java',
+    files = list((SOURCE / 'providers/plex').glob('*.java')) + [SOURCE / 'providers/discovery' / (name + '.java') for name in ('DiscoveryItem', 'PlexDiscoveryMetadata')] + [
+        SOURCE / 'providers/TvRecommendations.java', SOURCE / 'providers/RecommendationKeys.java', SOURCE / 'providers/OwnedPlexIdentity.java',
         SOURCE / 'layout/LayoutItem.java', SOURCE / 'Pages.java', Path(__file__).parent / 'PlexFixture.java']
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
-                    '-bootclasspath', str(ANDROID), '-d', str(integration), *map(str, files)], check=True)
+                    '-bootclasspath', str(ANDROID), '-classpath', str(ROOT / '.build/classes'), '-d', str(integration), *map(str, files), *map(str, (SOURCE / 'accessibility').glob('*.java'))], check=True)
     print('Plex isolated integration compilation passed')

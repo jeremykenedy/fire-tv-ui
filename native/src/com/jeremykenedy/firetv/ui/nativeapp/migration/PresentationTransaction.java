@@ -58,10 +58,11 @@ public final class PresentationTransaction {
         boolean committed = true;
         List<String> reverse = new ArrayList<>(files); Collections.reverse(reverse);
         for (String file : reverse) {
+            if (!snapshot.stores.containsKey(file)) continue;
             try { if (!store.replace(file, snapshot.stores.get(file))) committed = false; }
             catch (IOException | RuntimeException failed) { committed = false; }
         }
-        try { return committed && snapshot.sameValues(store.read()); }
+        try { return committed && snapshot.matches(store.read()); }
         catch (IOException | RuntimeException failed) { return false; }
     }
     private static List<String> writeOrder() {

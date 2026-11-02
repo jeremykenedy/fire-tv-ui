@@ -25,6 +25,7 @@ public final class TvRecommendations {
 
     public static final class Program {
         public final String key;
+        public final String compatibilityKey;
         public final String source;
         public final String title;
         public final Uri artwork;
@@ -47,7 +48,12 @@ public final class TvRecommendations {
         }
         Program(String key, String source, String title, Uri artwork, String intentUri,
                 String seriesKey, String seriesTitle, String detailsIntentUri, String playIntentUri, String notificationKey) {
+            this(key, source, title, artwork, intentUri, seriesKey, seriesTitle, detailsIntentUri, playIntentUri, notificationKey, null);
+        }
+        Program(String key, String source, String title, Uri artwork, String intentUri,
+                String seriesKey, String seriesTitle, String detailsIntentUri, String playIntentUri, String notificationKey, String compatibilityKey) {
             this.key = key;
+            this.compatibilityKey = compatibilityKey;
             this.source = source;
             this.title = title;
             this.artwork = artwork;
@@ -169,6 +175,7 @@ public final class TvRecommendations {
             withSeries[columns.length] = "series_id";
             columns = withSeries;
         }
+        boolean incomplete = false;
         Map<String, List<Program>> groups = new LinkedHashMap<>();
         Map<String, String> titles = new LinkedHashMap<>();
         Map<String, String> sources = new LinkedHashMap<>();
@@ -197,12 +204,21 @@ public final class TvRecommendations {
                 if (programs.size() >= MAX_PROGRAMS) continue;
                 String title = text(rows, "title", 512);
                 String id = text(rows, "internal_provider_id", 2048);
-                String key = RecommendationKeys.program(feedId, rowId, id);
+                String oldKey = RecommendationKeys.program(feedId, rowId, id);
+                String intent = text(rows, "intent_uri", 16384);
+                String plexId = OwnedPlexIdentity.canonical(context, rows, source);
+                if (source.equals(context.getPackageName()) && plexId == null
+                        && !OwnedPlexIdentity.notification(context, rows, source)) {
+                    incomplete = true;
+                    continue;
+                }
+                String key = plexId == null ? oldKey : "plex:" + plexId;
                 boolean duplicate = false;
                 for (Program program : programs) if (program.key.equals(key)) duplicate = true;
                 if (!duplicate) programs.add(new Program(key, source, title.isEmpty() ? "Untitled item" : title,
-                        artwork(context, source, text(rows, "poster_art_uri", 8192)), text(rows, "intent_uri", 16384),
-                        RecommendationKeys.series(source, Build.VERSION.SDK_INT >= 29 ? text(rows, "series_id", 2048) : ""), null));
+                        artwork(context, source, text(rows, "poster_art_uri", 8192)), intent,
+                        RecommendationKeys.series(source, Build.VERSION.SDK_INT >= 29 ? text(rows, "series_id", 2048) : ""),
+                        null, null, null, null, plexId == null ? null : oldKey));
             }
         } catch (OperationCanceledException canceled) { throw canceled; }
         catch (RuntimeException inaccessible) { return true; }
@@ -210,7 +226,7 @@ public final class TvRecommendations {
             if (!group.getValue().isEmpty()) output.add(new Feed(group.getKey(), titles.get(group.getKey()),
                     sources.get(group.getKey()), group.getValue()));
         }
-        return false;
+        return incomplete;
     }
 
     private static String appLabel(Context context, String source) {

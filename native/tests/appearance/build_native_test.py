@@ -17,12 +17,14 @@ def run(*args):
     subprocess.run([str(arg) for arg in args], check=True)
 
 run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-    '-cp', ROOT / '.build/classes', '-d', WORK / 'classes', HERE / 'AppearanceInstrumentation.java')
+    '-cp', ROOT / '.build/classes', '-d', WORK / 'classes', HERE / 'AppearanceInstrumentation.java', HERE / 'WallpaperInstrumentation.java', HERE / 'AppearanceMediaProvider.java')
 run(TOOLS / 'd8', '--release', '--lib', ANDROID, '--min-api', '27', '--output', WORK / 'dex',
     *sorted((WORK / 'classes').rglob('*.class')))
 run(TOOLS / 'aapt2', 'link', '-I', ANDROID, '--manifest', HERE / 'AndroidManifest.xml', '-o', WORK / 'base.apk')
 with ZipFile(WORK / 'base.apk', 'a') as output:
     output.write(WORK / 'dex/classes.dex', 'classes.dex')
+    for fixture in ('image.png', 'motion.mp4'):
+        output.write(HERE / 'fixtures' / fixture, 'assets/appearance-fixtures/' + fixture)
 run(TOOLS / 'zipalign', '-P', '16', '-f', '4', WORK / 'base.apk', WORK / 'aligned.apk')
 run(TOOLS / 'apksigner', 'sign', '--ks', ROOT / '.build/preview.jks', '--ks-pass', 'pass:android',
     '--ks-key-alias', 'preview', '--v4-signing-enabled', 'false', '--out', WORK / 'appearance-proof.apk', WORK / 'aligned.apk')

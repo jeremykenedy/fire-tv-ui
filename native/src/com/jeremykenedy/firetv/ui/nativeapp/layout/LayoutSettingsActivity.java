@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 public final class LayoutSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private LayoutOptions options;
     private List<LayoutItem> available;
     private LinearLayout rows;
@@ -46,6 +47,7 @@ public final class LayoutSettingsActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         widgetPage = state == null ? getIntent().getBooleanExtra("widgets", false) : state.getBoolean("widgets", false);
         permissionDenied = state != null && state.getBoolean("listings_denied", false);
         available = HomeSlots.available();
@@ -124,16 +126,19 @@ public final class LayoutSettingsActivity extends Activity {
     }
 
     @Override public void onBackPressed() {
+        if (startupBlocked) { super.onBackPressed(); return; }
         if (widgetPage) showWidgets(false);
         else super.onBackPressed();
     }
 
     @Override protected void onStart() {
+        if (startupBlocked) { super.onStart(); return; }
         super.onStart();
         refreshFeeds();
     }
 
     @Override protected void onResume() {
+        if (startupBlocked) { super.onResume(); return; }
         super.onResume();
         if (rows != null) {
             View focus = getCurrentFocus();
@@ -142,6 +147,7 @@ public final class LayoutSettingsActivity extends Activity {
     }
 
     @Override public void onWindowFocusChanged(boolean hasFocus) {
+        if (startupBlocked) { super.onWindowFocusChanged(hasFocus); return; }
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus && rows != null) {
             View focus = getCurrentFocus();
@@ -150,12 +156,14 @@ public final class LayoutSettingsActivity extends Activity {
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         state.putBoolean("listings_denied", permissionDenied);
         state.putBoolean("widgets", widgetPage);
         super.onSaveInstanceState(state);
     }
 
     @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; }
         readGeneration++;
         reader.shutdownNow();
         super.onDestroy();
@@ -209,6 +217,7 @@ public final class LayoutSettingsActivity extends Activity {
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        if (startupBlocked) { super.onRequestPermissionsResult(requestCode, permissions, results); return; }
         super.onRequestPermissionsResult(requestCode, permissions, results);
         if (requestCode != LISTINGS_REQUEST) return;
         permissionDenied = results.length == 0 || results[0] != PackageManager.PERMISSION_GRANTED;

@@ -10,6 +10,11 @@ import android.graphics.drawable.shapes.PathShape;
 import android.graphics.Path;
 import android.os.Bundle;
 import android.view.View;
+import android.view.KeyEvent;
+import com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityStyle;
+import com.jeremykenedy.firetv.ui.nativeapp.device.remotebuttons.RemoteButtonDispatcher;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTileOrder;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTilePreferences;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.HorizontalScrollView;
@@ -38,12 +43,16 @@ import com.jeremykenedy.firetv.ui.nativeapp.device.protection.LauncherAwakeContr
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppInventory;
+import com.jeremykenedy.firetv.ui.nativeapp.allapps.AllAppsActivity;
+import com.jeremykenedy.firetv.ui.nativeapp.allapps.AllAppsPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
 import com.jeremykenedy.firetv.ui.nativeapp.icons.IconPickerActivity;
 import com.jeremykenedy.firetv.ui.nativeapp.icons.IconSelectionStore;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule;
+import com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleController;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +66,7 @@ public final class MainActivity extends Activity {
     private final List<FocusTileView> tiles = new ArrayList<>();
     private LinearLayout appArea;
     private Button settings;
+    private Button allApps;
     private HomeContentView homeContent;
     private ScrollView slotViewport;
     private BackgroundLayer background;
@@ -69,13 +79,88 @@ public final class MainActivity extends Activity {
     private String focusedApp;
     private boolean restoringGridFocus;
     private int generation;
+    private RemoteButtonDispatcher remoteButtons;
+    private LayoutScheduleController dashboard;
+    private boolean homeReady;
+    private boolean activityResumed;
+    private boolean contentStarted;
+    private Bundle startupState;
+    private final android.os.Handler startupHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable startupTimeout = new Runnable() {
+        @Override public void run() { if (!homeReady && !isFinishing() && !isDestroyed()) showStartup(true); }
+    };
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        startupState = saved;
+        if (SourceStartup.ready(this)) { startHome(); return; }
+        showStartup(false);
+        beginStartup();
+    }
+
+    private void beginStartup() {
+        showStartup(false);
+        startupHandler.removeCallbacks(startupTimeout);
+        startupHandler.postDelayed(startupTimeout, 15000);
+        SourceStartup.start(this, new Runnable() {
+            @Override public void run() {
+                startupHandler.removeCallbacks(startupTimeout);
+                if (isFinishing() || isDestroyed() || homeReady) return;
+                if (!SourceStartup.ready(MainActivity.this)) { showStartup(true); return; }
+                startHome();
+                if (activityResumed) resumeHome();
+            }
+        });
+    }
+
+    private void showStartup(boolean failed) {
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(48, 48, 48, 48);
+        body.setBackgroundColor(0xff101523);
+        TextView message = new TextView(this);
+        message.setTextColor(0xffffffff);
+        message.setTextSize(22);
+        String error = SourceStartup.error(this);
+        message.setText(!failed ? "Preparing your saved settings..." : error == null
+                ? "Preparing your settings is taking longer than expected. You can retry or open device Home."
+                : "Your saved settings could not be prepared. They have been kept.\n" + error);
+        body.addView(message);
+        if (failed) {
+            Button retry = new Button(this);
+            retry.setText("Retry");
+            retry.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) { beginStartup(); }
+            });
+            body.addView(retry);
+            Button exit = new Button(this);
+            exit.setText("Open device Home");
+            exit.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    Intent factory = DeviceRoutes.resolve(MainActivity.this, DeviceRoutes.Destination.FACTORY_UI);
+                    try { if (factory != null) startActivity(factory); else Toast.makeText(MainActivity.this,
+                            "Device Home is unavailable.", Toast.LENGTH_LONG).show(); }
+                    catch (RuntimeException unavailable) { Toast.makeText(MainActivity.this,
+                            "Device Home is unavailable.", Toast.LENGTH_LONG).show(); }
+                }
+            });
+            body.addView(exit);
+            retry.requestFocus();
+        }
+        setContentView(body);
+    }
+
+    private void startHome() {
+        if (homeReady) return;
+        homeReady = true;
+        Bundle saved = startupState;
+        startupState = null;
+        remoteButtons = new RemoteButtonDispatcher(this);
         if (saved != null) focusedApp = saved.getString("focused_app");
         restoringGridFocus = focusedApp != null;
         LinearLayout body = Pages.page(this);
-        body.addView(Pages.text(this, "Fire TV UI Preview", 30));
+        body.addView(Pages.text(this, "com.jeremykenedy.firetv.ui".equals(getPackageName())
+                ? getApplicationInfo().loadLabel(getPackageManager()).toString() : "Fire TV UI Preview", 30));
         LinearLayout actions = new LinearLayout(this);
         settings = Pages.button(this, "Settings", new View.OnClickListener() {
             @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, SettingsActivity.class)); }
@@ -86,12 +171,19 @@ public final class MainActivity extends Activity {
             @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, HelpActivity.class)); }
         });
         help.setId(0x1002); actions.addView(help); body.addView(actions);
+        allApps = Pages.button(this, "All apps", new View.OnClickListener() {
+            @Override public void onClick(View view) { startActivity(AllAppsActivity.intent(MainActivity.this)); }
+        });
+        allApps.setId(0x1003); allApps.setTag("home:all-apps");
+        allApps.setVisibility(AllAppsPreferences.enabled(this) ? View.VISIBLE : View.GONE);
+        actions.addView(allApps);
         View.OnFocusChangeListener headerFocus = new View.OnFocusChangeListener() {
             @Override public void onFocusChange(View view, boolean focused) {
                 if (focused && resumed) { focusedApp = null; restoringGridFocus = false; }
             }
         };
         settings.setOnFocusChangeListener(headerFocus); help.setOnFocusChangeListener(headerFocus);
+        allApps.setOnFocusChangeListener(headerFocus);
         cardStatus = Pages.text(this, "Checking channel cards…", 14);
         cardStatus.setTag("home:card-status");
         cardStatus.setMaxLines(2);
@@ -110,6 +202,18 @@ public final class MainActivity extends Activity {
                         ? CardsSettingsActivity.class : com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity.class));
             }
         });
+        dashboard = new LayoutScheduleController(this, new LayoutScheduleController.Listener() {
+            @Override public void onDashboard(LayoutSchedule.Decision decision) {
+                if (decision.status == LayoutSchedule.Status.READY) homeContent.setDashboardLayout(decision.profile.layout);
+                else if (decision.status == LayoutSchedule.Status.BASE_LAYOUT) homeContent.setDashboardLayout(null);
+                else Toast.makeText(MainActivity.this, "Dashboard settings need attention. Open Settings, Home layout, Dashboards and schedules.", Toast.LENGTH_LONG).show();
+                startHomeContent();
+            }
+            @Override public void onDashboardUnavailable() {
+                Toast.makeText(MainActivity.this, "Dashboard settings could not be read. Open Settings, Home layout, Dashboards and schedules to retry.", Toast.LENGTH_LONG).show();
+                startHomeContent();
+            }
+        });
         homeContent.restoreState(saved);
         slotViewport = new ScrollView(this);
         slotViewport.setClipChildren(false); slotViewport.setClipToPadding(false);
@@ -122,6 +226,7 @@ public final class MainActivity extends Activity {
         recommendations = new RecommendationLoader(this, new RecommendationLoader.Listener() {
             @Override public void onRecommendations(TvRecommendations.Result result) {
                 if (!homeContent.applyResult(feedRequest, result)) return;
+                AccessibilityStyle.apply(MainActivity.this, getWindow().getDecorView());
                 int omitted = HomeSlots.omittedCount(LayoutPreferences.load(MainActivity.this, HomeSlots.defaults()), result.feeds);
                 String capacity = omitted == 0 ? "" : "Home layout limit reached: " + omitted + " new items were not added. ";
                 cardStatus.setText(capacity + result.message()
@@ -131,7 +236,9 @@ public final class MainActivity extends Activity {
         appArea = new LinearLayout(this); appArea.setOrientation(LinearLayout.VERTICAL);
         body.addView(appArea, new LinearLayout.LayoutParams(-1, 0, 1));
         appArea.addView(Pages.text(this, "Loading apps…", 18));
-        settings.requestFocus();
+        View savedHeader = saved == null ? null : findViewById(saved.getInt("focused_header", 0));
+        if (savedHeader != null && savedHeader.getVisibility() == View.VISIBLE) savedHeader.requestFocus();
+        else settings.requestFocus();
         background = BackgroundLayer.attach(this, body);
         awake = new LauncherAwakeController(body);
     }
@@ -170,7 +277,8 @@ public final class MainActivity extends Activity {
                 final List<InputEntry> inputs = new ArrayList<>();
                 try {
                     InputRepository.Snapshot found = InputRepository.load(getApplicationContext());
-                    inputs.addAll(found.inputs);
+                    inputs.addAll(found.visibleInputs);
+                    if (found.capability == InputRepository.Capability.UNAVAILABLE) messages.add(found.message);
                     for (InputEntry input : inputs) artwork.put(input.artworkKey(), InputViews.artwork(getApplicationContext(), input));
                 } catch (RuntimeException unavailable) { messages.add("TV inputs could not be refreshed. Saved choices are kept."); }
                 runOnUiThread(new Runnable() {
@@ -231,59 +339,60 @@ public final class MainActivity extends Activity {
         }
         Map<String, AppInventory.App> byKey = new HashMap<>();
         for (AppInventory.App app : apps) byKey.put(app.key(), app);
+        Map<String, FolderOptions.Folder> foldersByKey = new HashMap<>();
+        for (FolderOptions.Folder folder : folders.folders) foldersByKey.put("folder:" + folder.id, folder);
+        Map<String, InputEntry> inputsByKey = new HashMap<>();
+        for (InputEntry input : inputs) inputsByKey.put(input.artworkKey(), input);
+        List<String> visible;
+        try {
+            visible = HomeTilePreferences.load(this).visible(options, AppInventory.keys(apps), folders, inputs);
+        } catch (RuntimeException unreadable) {
+            messages.add("Saved Home order could not be read. Its stored data has been kept.");
+            visible = new HomeTileOrder(java.util.Collections.<String>emptyList())
+                    .visible(options, AppInventory.keys(apps), folders, inputs);
+        }
         FocusTileView restore = null;
-        for (String key : options.visible(AppInventory.keys(apps))) {
+        for (final String key : visible) {
             final AppInventory.App app = byKey.get(key);
-            final FocusTileView tile = new FocusTileView(this);
-            tile.setTitle(app.label); tile.setIcon(artwork.get(key)); tile.setTag(key);
-            tile.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) {
-                    focusedApp = app.key();
-                    LauncherLocks.guard(MainActivity.this, app.key(), new Runnable() {
-                        @Override public void run() {
-                            try {
-                                startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
-                                        .setComponent(app.component).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                            } catch (RuntimeException unavailable) {
-                                Toast.makeText(MainActivity.this, "This app is currently unavailable.", Toast.LENGTH_SHORT).show();
+            final FolderOptions.Folder folder = foldersByKey.get(key);
+            final InputEntry input = inputsByKey.get(key);
+            FocusTileView tile;
+            if (app != null) {
+                tile = new FocusTileView(this);
+                tile.setTitle(app.label); tile.setIcon(artwork.get(key)); tile.setTag(key);
+                tile.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        focusedApp = app.key();
+                        LauncherLocks.guard(MainActivity.this, app.key(), new Runnable() {
+                            @Override public void run() {
+                                try { startActivity(app.launchIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); }
+                                catch (RuntimeException unavailable) {
+                                    Toast.makeText(MainActivity.this, "This app is currently unavailable.", Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        }
-                    });
-                }
-            });
-            tile.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override public boolean onLongClick(View view) { focusedApp = app.key(); appActions(app); return true; }
-            });
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = tileWidth; params.height = tileHeight;
-            grid.addView(tile, params); tiles.add(tile);
-            if (key.equals(focusedApp)) restore = tile;
-        }
-        for (final FolderOptions.Folder folder : folders.folders) {
-            final String key = "folder:" + folder.id;
-            FocusTileView tile = new FocusTileView(this);
-            tile.setTitle(folder.name); tile.setIcon(artwork.get(key)); tile.setTag(key);
-            tile.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) {
-                    focusedApp = key;
-                    // FolderActivity guards its direct-open boundary, so a locked folder prompts once.
-                    startActivity(FolderActivity.intent(MainActivity.this, folder.id));
-                }
-            });
-            tile.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override public boolean onLongClick(View view) { focusedApp = key; folderActions(folder); return true; }
-            });
-            addGridTile(grid, tile, tileWidth, tileHeight);
-            if (key.equals(focusedApp)) restore = tile;
-        }
-        for (final InputEntry input : inputs) {
-            final String key = input.artworkKey();
-            FocusTileView tile = InputViews.tile(this, input, artwork.get(key), new Runnable() {
-                @Override public void run() { focusedApp = key; loadApps(); }
-            });
-            tile.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override public void onFocusChange(View view, boolean focused) { if (focused) focusedApp = key; }
-            });
+                        });
+                    }
+                });
+                tile.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override public boolean onLongClick(View view) { focusedApp = key; appActions(app); return true; }
+                });
+            } else if (folder != null) {
+                tile = new FocusTileView(this);
+                tile.setTitle(folder.name); tile.setIcon(artwork.get(key)); tile.setTag(key);
+                tile.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View view) {
+                        focusedApp = key;
+                        startActivity(FolderActivity.intent(MainActivity.this, folder.id));
+                    }
+                });
+                tile.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override public boolean onLongClick(View view) { focusedApp = key; folderActions(folder); return true; }
+                });
+            } else if (input != null) {
+                tile = InputViews.tile(this, input, artwork.get(key), new Runnable() {
+                    @Override public void run() { focusedApp = key; loadApps(); }
+                });
+            } else continue;
             addGridTile(grid, tile, tileWidth, tileHeight);
             if (key.equals(focusedApp)) restore = tile;
         }
@@ -295,6 +404,7 @@ public final class MainActivity extends Activity {
             else { settings.requestFocus(); focusedApp = null; }
         }
         restoringGridFocus = false;
+        AccessibilityStyle.apply(this, getWindow().getDecorView());
     }
 
     private void addGridTile(GridLayout grid, FocusTileView tile, int width, int height) {
@@ -306,11 +416,12 @@ public final class MainActivity extends Activity {
     private void folderActions(final FolderOptions.Folder folder) {
         final String key = "folder:" + folder.id;
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle(folder.name)
-                .setItems(new String[]{"Open folder", "Manage folders", "Lock / unlock"}, new DialogInterface.OnClickListener() {
+                .setItems(new String[]{"Open folder", "Manage folders", "Lock / unlock", "Move earlier", "Move later"}, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface ignored, int which) {
                         if (which == 0) startActivity(FolderActivity.intent(MainActivity.this, folder.id));
                         else if (which == 1) startActivity(new Intent(MainActivity.this, FolderActivity.class));
-                        else LauncherLocks.showControls(MainActivity.this, key, folder.name, null);
+                        else if (which == 2) LauncherLocks.showControls(MainActivity.this, key, folder.name, null);
+                        else moveHomeTile(key, which == 3 ? -1 : 1);
                     }
                 }).setNegativeButton("Cancel", null).show();
         dialog.getListView().requestFocus(); dialog.getListView().setSelection(0);
@@ -327,15 +438,33 @@ public final class MainActivity extends Activity {
                 if (which == 5) {
                     LauncherLocks.showControls(MainActivity.this, app.key(), app.label, null); return;
                 }
+                if (which == 2 || which == 3) { moveHomeTile(app.key(), which == 2 ? -1 : 1); return; }
                 AppGridOptions current = AppGridPreferences.load(MainActivity.this);
                 if (which == 1) current = current.toggleFavorite(app.key());
                 else if (which == 4) current = current.toggleHidden(app.key());
-                else current = current.move(app.key(), which == 2 ? -1 : 1, AppInventory.keys(apps));
                 AppGridPreferences.save(MainActivity.this, current); loadApps();
             }
         }).setNegativeButton("Cancel", null).show();
         actions.getListView().requestFocus();
         actions.getListView().setSelection(0);
+    }
+
+    private void moveHomeTile(String key, int delta) {
+        try {
+            com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTileActions.move(this, key, delta);
+            loadApps();
+        } catch (RuntimeException failure) {
+            Toast.makeText(this, failure.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override public boolean dispatchKeyEvent(KeyEvent event) {
+        return remoteButtons != null && remoteButtons.dispatch(event, false) || super.dispatchKeyEvent(event);
+    }
+
+    @Override public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (!hasFocus && remoteButtons != null) remoteButtons.clear();
     }
 
     private void configureCard(ChannelCardView card, CardOptions options) {
@@ -419,29 +548,57 @@ public final class MainActivity extends Activity {
     @Override protected void onSaveInstanceState(Bundle state) {
         View focus = getCurrentFocus();
         if (focus instanceof FocusTileView) state.putString("focused_app", String.valueOf(focus.getTag()));
-        homeContent.saveState(state);
-        state.putInt("slot_scroll_y", slotViewport.getScrollY());
+        if (focus != null && (focus.getId() == 0x1001 || focus.getId() == 0x1002 || focus.getId() == 0x1003))
+            state.putInt("focused_header", focus.getId());
+        if (homeReady) {
+            homeContent.saveState(state);
+            state.putInt("slot_scroll_y", slotViewport.getScrollY());
+        }
         super.onSaveInstanceState(state);
     }
     @Override protected void onPause() {
+        activityResumed = false;
+        if (!homeReady) { super.onPause(); return; }
+        remoteButtons.clear();
         DeviceRoutes.launcherVisibility(this, false);
         resumed = false;
         generation++;
         awake.onPause();
-        recommendations.stop(); homeContent.onHostPause(); background.setResumed(false);
+        dashboard.onPause();
+        if (contentStarted) { recommendations.stop(); homeContent.onHostPause(); contentStarted = false; }
+        background.setResumed(false);
         super.onPause();
     }
-    @Override protected void onDestroy() { awake.onPause(); recommendations.close(); loader.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() { startupHandler.removeCallbacks(startupTimeout); if (homeReady) { awake.onPause(); dashboard.close(); recommendations.close(); } loader.shutdownNow(); super.onDestroy(); }
     @Override protected void onResume() {
         super.onResume();
+        activityResumed = true;
+        if (homeReady) resumeHome();
+    }
+    private void resumeHome() {
         DeviceRoutes.launcherVisibility(this, true);
+        SourceStartup.startProtection(this, new Runnable() {
+            @Override public void run() {
+                String error = SourceStartup.protectionError(MainActivity.this);
+                if (error != null && resumed && !isFinishing() && !isDestroyed()) Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
+            }
+        });
         resumed = true;
+        AccessibilityStyle.apply(this, getWindow().getDecorView());
+        boolean showAllApps = AllAppsPreferences.enabled(this);
+        if (!showAllApps && allApps.isFocused()) settings.requestFocus();
+        allApps.setVisibility(showAllApps ? View.VISIBLE : View.GONE);
         View focus = getCurrentFocus();
         if (!restoringGridFocus && !(focus instanceof FocusTileView) && focus != null
-                && (focus.getId() == 0x1001 || focus.getId() == 0x1002)) focusedApp = null;
+                && (focus.getId() == 0x1001 || focus.getId() == 0x1002 || focus.getId() == 0x1003)) focusedApp = null;
         awake.onResume(this);
-        background.setResumed(true); homeContent.onHostResume();
-        feedRequest = homeContent.beginRefresh(); recommendations.start();
+        background.setResumed(true); dashboard.onResume();
         loadApps();
+    }
+    private void startHomeContent() {
+        if (!resumed || contentStarted) return;
+        contentStarted = true;
+        homeContent.onHostResume();
+        feedRequest = homeContent.beginRefresh(); recommendations.start();
     }
 }

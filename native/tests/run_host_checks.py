@@ -19,6 +19,11 @@ SUITES = (
     'notes/run.py', 'astronomy/run.py', 'quickactions/run.py',
     'reminders/run.py', 'photos/run.py', 'breathing/run.py',
     'release/test_build.py', 'state_guard/run.py',
+    'accessibility/run.py', 'allapps/run.py', 'ambient/run.py', 'calendar/run.py',
+    'commands/run.py', 'dailycontent/run.py', 'discovery/run.py', 'feeds/run.py',
+    'livetv/run.py', 'nowplaying/run.py', 'puzzles/run.py', 'radar/run.py',
+    'status/run.py', 'uv/run.py', 'weather/run.py', 'remotebuttons/run_host.py',
+    'layoutschedule/run_tests.py',
 )
 DEVICE_TESTS = ('HomeRoutingPolicyTest', 'HomeSetupPolicyTest', 'HomeCommandPolicyTest')
 
@@ -76,7 +81,7 @@ def main():
         for suite in SUITES:
             print('Host checks: ' + suite, flush=True)
             run(sys.executable, NATIVE / 'tests' / suite)
-    print('All 29 reviewed host suites passed. Native/device behavior is a separate qualification gate.')
+    print(f'All {len(SUITES) + 1} reviewed host suites passed. Native/device behavior is a separate qualification gate.')
 
 
 if __name__ == '__main__':

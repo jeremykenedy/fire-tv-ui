@@ -1,0 +1,74 @@
+[
+  {
+    "ORDER": 5,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 07 AM",
+    "UV_VALUE": 0
+  },
+  {
+    "ORDER": 6,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 08 AM",
+    "UV_VALUE": 0
+  },
+  {
+    "ORDER": 7,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 09 AM",
+    "UV_VALUE": 1
+  },
+  {
+    "ORDER": 8,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 10 AM",
+    "UV_VALUE": 1
+  },
+  {
+    "ORDER": 9,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 11 AM",
+    "UV_VALUE": 2
+  },
+  {
+    "ORDER": 10,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 12 PM",
+    "UV_VALUE": 2
+  },
+  {
+    "ORDER": 11,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 01 PM",
+    "UV_VALUE": 2
+  },
+  {
+    "ORDER": 12,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 02 PM",
+    "UV_VALUE": 1
+  },
+  {
+    "ORDER": 13,
+    "ZIP": "97201",
+    "CITY": "Portland",
+    "STATE": "OR",
+    "DATE_TIME": "Nov/01/2026 03 PM",
+    "UV_VALUE": 1
+  }
+]

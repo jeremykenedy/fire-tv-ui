@@ -4,11 +4,7 @@ The `icons/` folder contains 48 PNG images at 1920x1080. Logos are centered, kee
 
 ## Install on the TV
 
-The regular installer installs both the APK and the icon pack:
-
-```bash
-python3 scripts/install.py --serial YOUR_TV_IP:5555
-```
+The repository APK installer is currently unavailable. The separate icon script can copy the icon pack to a selected device.
 
 To copy only the icons from this repository:
 

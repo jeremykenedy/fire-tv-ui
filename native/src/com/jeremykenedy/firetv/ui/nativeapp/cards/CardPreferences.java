@@ -13,6 +13,22 @@ public final class CardPreferences {
     private static final String FILE = "native_cards";
     private CardPreferences() {}
 
+    public static boolean artworkFits(Context context) {
+        Object value = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
+                .getAll().get("featured_artwork_fit");
+        return !(value instanceof Boolean) || (Boolean) value;
+    }
+
+    public static void setArtworkFit(Context context, boolean fit) {
+        SharedPreferences preferences = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE);
+        Object previous = preferences.getAll().get("featured_artwork_fit");
+        if (preferences.edit().putBoolean("featured_artwork_fit", fit).commit()) return;
+        SharedPreferences.Editor rollback = preferences.edit();
+        put(rollback, "featured_artwork_fit", previous);
+        rollback.commit();
+        throw new IllegalStateException("The artwork setting could not be saved. Please try again.");
+    }
+
     public static CardOptions load(Context context) {
         CardOptions defaults = CardOptions.defaults();
         Map<String, ?> stored = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getAll();
@@ -39,8 +55,18 @@ public final class CardPreferences {
     public static List<TvRecommendations.Program> visiblePrograms(CardOptions options, TvRecommendations.Feed feed) {
         List<TvRecommendations.Program> result = new ArrayList<>();
         for (TvRecommendations.Program program : orderedPrograms(options, feed))
-            if (!options.isHidden(program.source, program.key, program.seriesKey)) result.add(program);
+            if (!itemHidden(options, program) && !options.isSeriesHidden(program.source, program.seriesKey)) result.add(program);
         return Collections.unmodifiableList(result);
+    }
+
+    public static boolean itemHidden(CardOptions options, TvRecommendations.Program program) {
+        return options.isHidden(program.source, program.key) || (program.compatibilityKey != null
+                && options.isHidden(program.source, program.compatibilityKey));
+    }
+
+    public static CardOptions restoreItem(CardOptions options, TvRecommendations.Program program) {
+        CardOptions restored = options.restore(program.source, program.key);
+        return program.compatibilityKey == null ? restored : restored.restore(program.source, program.compatibilityKey);
     }
 
     public static void restore(Context context, Map<String, ?> backup) {

@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 
 /** Pairing and profile changes require explicit TV actions. Merely opening setup is local. */
 public final class PlexSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private LinearLayout body;
     private TextView status;
@@ -30,6 +31,7 @@ public final class PlexSettingsActivity extends Activity {
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         LinearLayout page = Pages.page(this);
         ScrollView scroll = new ScrollView(this);
         body = new LinearLayout(this);
@@ -260,6 +262,7 @@ public final class PlexSettingsActivity extends Activity {
         } });
     }
     @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; }
         PlexSession.cancel(request);
         worker.shutdownNow();
         super.onDestroy();

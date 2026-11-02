@@ -19,6 +19,7 @@ import java.util.Map;
 /** Native fixture/name/reset checks; never tunes a real port or alters hardware settings. */
 public final class InputInstrumentation extends Instrumentation {
     private static final String ID = "com.jeremykenedy.firetv.ui.inputfixture/.FixtureInputService";
+    private static final String UNKNOWN = "com.jeremykenedy.firetv.ui.inputfixture/.NeverSeenInput";
     private static final String REMOVED = "com.jeremykenedy.firetv.ui.inputfixture/.RemovedInput";
     private Activity activity;
     private boolean cleanup;
@@ -32,10 +33,17 @@ public final class InputInstrumentation extends Instrumentation {
         SharedPreferences prefs = getTargetContext().getSharedPreferences(InputPreferences.FILE, Context.MODE_PRIVATE);
         if (cleanup) {
             SharedPreferences.Editor edit = prefs.edit();
-            for (String id : new String[]{ID, REMOVED})
+            for (String id : new String[]{ID, REMOVED, UNKNOWN})
                 for (String prefix : new String[]{"known:", "factory:", "name:"}) edit.remove(prefix + id);
+            java.util.List<String> order = new java.util.ArrayList<>(InputOptions.parseOrder(prefs.getString("order", "")));
+            order.remove(ID);
+            order.remove(REMOVED);
+            order.remove(UNKNOWN);
+            String orderValue = new InputOptions(order, new java.util.LinkedHashSet<String>()).savedOrder();
+            if (orderValue.isEmpty()) edit.remove("order"); else edit.putString("order", orderValue);
+            edit.remove("hidden:" + ID).remove("hidden:" + REMOVED).remove("hidden:" + UNKNOWN);
             boolean cleaned = edit.commit();
-            for (String id : new String[]{ID, REMOVED})
+            for (String id : new String[]{ID, REMOVED, UNKNOWN})
                 for (String prefix : new String[]{"known:", "factory:", "name:"}) cleaned &= !prefs.contains(prefix + id);
             result.putString("status", cleaned ? "PASS" : "FAIL");
             result.putBoolean("fixture_input_metadata_removed", cleaned);
@@ -54,6 +62,16 @@ public final class InputInstrumentation extends Instrumentation {
             InputEntry removed = find(InputRepository.load(target), REMOVED);
             check(removed != null && removed.state == InputEntry.State.MISSING && removed.displayName.equals("Retained name"), "Removed input and name must remain visible.");
             check(InputActions.resolve(target, removed) == null, "Missing input cannot be dispatched.");
+            names.saveOptions(new InputOptions(java.util.Arrays.asList(REMOVED, UNKNOWN, ID),
+                    new java.util.LinkedHashSet<String>(java.util.Arrays.asList(ID))));
+            InputRepository.Snapshot organized = InputRepository.load(target);
+            check(organized.inputs.get(0).id.equals(REMOVED), "Saved order retains missing input position.");
+            check(find(organized, UNKNOWN) != null && find(organized, UNKNOWN).state == InputEntry.State.MISSING,
+                    "Unknown saved order identity must remain as a missing input.");
+            check(find(organized, ID).hidden, "Hidden input remains available in management.");
+            boolean visible = false;
+            for (InputEntry entry : organized.visibleInputs) if (entry.id.equals(ID)) visible = true;
+            check(!visible, "Hidden input must be absent from Home inventory.");
             Context denied = new ContextWrapper(target) {
                 @Override public Object getSystemService(String name) {
                     if (Context.TV_INPUT_SERVICE.equals(name)) throw new SecurityException("Fixture denial");
@@ -96,6 +114,16 @@ public final class InputInstrumentation extends Instrumentation {
             check(find(InputRepository.load(target), ID).displayName.equals("Living room console"), "Invalid name must preserve prior choice.");
             names.rename(ID, null);
             check(find(InputRepository.load(target), ID).displayName.equals("Fixture tuner"), "Factory name reset must restore service label.");
+            check(names.options().hidden.contains(ID) && names.options().order.get(0).equals(REMOVED),
+                    "Name reset must preserve input visibility/order.");
+            onMain(new Runnable() { @Override public void run() {
+                Button showAll = findButton(activity.getWindow().getDecorView(), "Show all inputs on Home");
+                check(showAll != null, "Hidden inputs need a native recovery action.");
+                showAll.performClick();
+            } });
+            awaitLabel("input:" + ID, "Fixture tuner");
+            check(!names.options().hidden.contains(ID), "Show-all action must persist visibility recovery.");
+            check(names.options().order.get(0).equals(REMOVED), "Show-all must preserve missing input order.");
             result.putString("status", "PASS");
             result.putBoolean("real_platform_discovery", true);
             result.putBoolean("missing_and_denied_preservation", true);
@@ -156,6 +184,14 @@ public final class InputInstrumentation extends Instrumentation {
     }
     private static InputEntry find(InputRepository.Snapshot snapshot, String id) {
         for (InputEntry entry : snapshot.inputs) if (id.equals(entry.id)) return entry;
+        return null;
+    }
+    private static Button findButton(View view, String label) {
+        if (view instanceof Button && ((Button) view).getText().toString().equals(label)) return (Button) view;
+        if (view instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+            Button found = findButton(((ViewGroup) view).getChildAt(i), label);
+            if (found != null) return found;
+        }
         return null;
     }
     private static <T> T findType(View view, Class<T> type) {

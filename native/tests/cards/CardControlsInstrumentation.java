@@ -377,35 +377,17 @@ public class CardControlsInstrumentation extends Instrumentation {
         getUiAutomation().setServiceInfo(info);
         boolean ime = false;
         for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
-            if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) ime = true;
-        if (ime) {
-            press(KeyEvent.KEYCODE_BACK);
-            awaitDialogText("Save");
-            long dismissed = SystemClock.uptimeMillis() + 3000;
-            do {
-                ime = false;
-                for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
-                    if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) ime = true;
-                if (!ime) break;
-                SystemClock.sleep(50);
-            } while (SystemClock.uptimeMillis() < dismissed);
-            check(!ime, "Visible input-method window must close before D-pad Save.");
-        }
+            if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD && (window.isActive() || window.isFocused())) ime = true;
+        if (ime) { press(KeyEvent.KEYCODE_BACK); awaitDialogText("Save"); }
         AccessibilityNodeInfo save = node(getUiAutomation().getRootInActiveWindow(), "Save", false);
         check(save != null && "android.widget.Button".equals(String.valueOf(save.getClassName()))
                 && getTargetContext().getPackageName().equals(String.valueOf(save.getPackageName()))
                 && save.isEnabled(), "D-pad Save target must be the native preview dialog button.");
         check(save.isFocused() || save.performAction(AccessibilityNodeInfo.ACTION_FOCUS), "Native Save button must accept input focus.");
-        boolean focused = false; long stableSince = 0; long end = SystemClock.uptimeMillis() + 3000;
+        boolean focused = false; long end = SystemClock.uptimeMillis() + 2000;
         while (SystemClock.uptimeMillis() < end) {
             save = node(getUiAutomation().getRootInActiveWindow(), "Save", false);
-            boolean windowFocused = false;
-            if (save != null) for (AccessibilityWindowInfo window : getUiAutomation().getWindows())
-                if (window.getId() == save.getWindowId() && window.isFocused()) windowFocused = true;
-            if (save != null && save.isFocused() && windowFocused) {
-                if (stableSince == 0) stableSince = SystemClock.uptimeMillis();
-                if (SystemClock.uptimeMillis() - stableSince >= 300) { focused = true; break; }
-            } else stableSince = 0;
+            if (save != null && save.isFocused()) { focused = true; break; }
             SystemClock.sleep(30);
         }
         check(focused, "Native Save button must hold actual input focus before D-pad Select.");

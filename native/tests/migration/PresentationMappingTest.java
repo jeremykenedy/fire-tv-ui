@@ -11,8 +11,42 @@ public final class PresentationMappingTest {
     private static final String ALPHA = "fixture.alpha/fixture.alpha.Main", BETA = "fixture.beta/fixture.beta.Main";
     private static final String INPUT_ALIAS = "tvinput_name:HDMI 1", INPUT_ID = "fixture.input/.Service/HDMI1000001";
     public static void main(String[] args) throws Exception {
-        actualMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery();
+        actualMapping(); plexAliasMapping(); focusOwnedDefaults(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate();
         System.out.println("Native presentation mappings, unsupported-value rejection and interrupted multi-store recovery passed.");
+    }
+    private static void plexAliasMapping() throws Exception {
+        String sourceKey = repeat('1');
+        String plexKey = "plex:" + sourceKey + ":12";
+        Map<String, PresentationMappingContext.Item> items = new LinkedHashMap<>();
+        items.put(ITEM_A, new PresentationMappingContext.Item("fixture.owner", "program:12", "Episode", false,
+                "com.plexapp.android", plexKey));
+        PresentationMappingContext context = new PresentationMappingContext(Collections.emptyMap(), Collections.emptyMap(), items, Collections.emptyMap());
+        Map<String, Object> original = Collections.singletonMap("hidden_featured_cards", set(ITEM_A));
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(original), context, Collections.emptyMap());
+        Map<String, Object> values = new LinkedHashMap<>(CardOptions.defaults().backupValues());
+        values.putAll(plan.after.get(LegacyPresentationMapper.CARDS).values());
+        CardOptions cards = CardOptions.fromBackup(values);
+        check(cards.isHidden("fixture.owner", "program:12") && cards.isHidden("com.plexapp.android", plexKey),
+                "Both representations of the same legacy hidden episode stay hidden.");
+        check(!cards.isHidden("com.plexapp.android", "plex:" + sourceKey + ":13"), "An unrelated episode remains visible.");
+        check(plan.after.get(LauncherMigration.PREFERENCES).values().get("hidden_featured_cards").equals(set(ITEM_A)),
+                "Original legacy records survive mapping.");
+        reject(() -> LegacyPresentationMapper.plan(snapshot(original), PresentationMappingContext.empty(), Collections.emptyMap()));
+        items.put(ITEM_B, new PresentationMappingContext.Item("fixture.owner", "program:13", "Other", false,
+                "com.plexapp.android", plexKey));
+        reject(() -> new PresentationMappingContext(Collections.emptyMap(), Collections.emptyMap(), items, Collections.emptyMap()));
+    }
+    private static void focusOwnedDefaults() {
+        for (String style : Arrays.asList("border", "fill")) {
+            LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(
+                    snapshot(Collections.singletonMap("icon_focus_style", style)), identities(), Collections.emptyMap());
+            Map<String, Object> focus = plan.after.get(LegacyPresentationMapper.FOCUS).values();
+            check(focus.get("border_rgb").equals(0xffffff) && focus.get("fill_rgb").equals(0x263a5c),
+                    "Owned legacy color defaults survive when colors were never explicitly saved.");
+            check(focus.get("border_opacity").equals(100) && focus.get("fill_opacity").equals(100),
+                    "Owned legacy colors force opaque alpha.");
+            check(focus.get("fill_enabled").equals(style.equals("fill")), "Explicit style selects the expected fill behavior.");
+        }
     }
     private static PresentationMappingContext identities() {
         Map<String, String> components = new LinkedHashMap<>(); components.put("fixture.alpha", ALPHA); components.put("fixture.beta", BETA);
@@ -58,7 +92,7 @@ public final class PresentationMappingTest {
         Map<String, Object> focus = plan.after.get(LegacyPresentationMapper.FOCUS).values();
         check(focus.get("fill_enabled").equals(false) && focus.get("border_enabled").equals(true), "Border style overrides legacy white_border false as original rules do.");
         check(focus.get("border_rgb").equals(0x123456) && focus.get("fill_rgb").equals(0x345678), "Legacy forced-opaque colors become native RGB without altering color.");
-        check(!focus.containsKey("duration_millis") && !focus.containsKey("growth_percent") && !focus.containsKey("border_opacity"), "New controls keep their own defaults, no invented legacy values.");
+        check(!focus.containsKey("duration_millis") && !focus.containsKey("growth_percent") && focus.get("border_opacity").equals(100), "Unverified timing and geometry stay untouched; original border remains opaque.");
         Map<String, Object> cardValues = new LinkedHashMap<>(CardOptions.defaults().backupValues());
         cardValues.putAll(plan.after.get(LegacyPresentationMapper.CARDS).values());
         CardOptions cards = CardOptions.fromBackup(cardValues);
@@ -84,15 +118,66 @@ public final class PresentationMappingTest {
         byte[] damaged = all.encode(); damaged[damaged.length / 2] ^= 1;
         reject(() -> PresentationSnapshot.decode(damaged));
     }
+    private static void inputOrderAndVisibility() throws Exception {
+        Map<String, Object> legacy = new LinkedHashMap<>();
+        legacy.put("display_order", "fixture.beta,tvinput_name:HDMI 1,fixture.alpha");
+        legacy.put("app_visibility", "{\"tvinput_name:HDMI 1\":{\"hidden\":true},\"fixture.alpha\":{\"hidden\":false}}");
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(legacy), identities(), Collections.emptyMap());
+        check(plan.patches.get(LegacyPresentationMapper.GRID).values().get("order").equals(BETA + "\n" + ALPHA), "Mixed input/app order retains relative app order.");
+        Map<String, Object> inputs = plan.patches.get(LegacyPresentationMapper.INPUTS).values();
+        check(inputs.get("order").equals(INPUT_ID) && inputs.get("hidden:" + INPUT_ID).equals(true) && inputs.get("known:" + INPUT_ID).equals(true), "Input order and hidden state use the exact platform ID and retain missing identities.");
+        check(plan.unmappedLegacyKeys.isEmpty() && plan.patches.get(LegacyPresentationMapper.GRID).values().get("home_order").equals(BETA + "\ninput:" + INPUT_ID + "\n" + ALPHA), "Unified Home ordering preserves exact app/input interleaving.");
+        check(plan.after.get(LauncherMigration.PREFERENCES).values().get("display_order").equals(legacy.get("display_order")), "Full mixed original ordering remains unchanged for later unified migration.");
+        legacy.put("app_visibility", "{\"tvinput_name:HDMI 1\":{\"hidden\":false}}");
+        LegacyPresentationMapper.Plan shown = LegacyPresentationMapper.plan(snapshot(legacy), identities(), Collections.emptyMap());
+        check(shown.patches.get(LegacyPresentationMapper.INPUTS).values().get("hidden:" + INPUT_ID).equals(false), "An explicitly shown input remains an explicit false.");
+        legacy.put("display_order", "tvinput_name:HDMI 1,tvinput_name:HDMI 1");
+        reject(() -> LegacyPresentationMapper.plan(snapshot(legacy), identities(), Collections.emptyMap()));
+        LegacyPresentationMapper.Plan allApps = LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("show_all_apps_button", false)), identities(), Collections.emptyMap());
+        check(allApps.patches.get(LegacyPresentationMapper.GRID).values().get("show_all_apps_button").equals(false), "Explicit optional All apps setting maps without enabling it by default.");
+        reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("show_all_apps_button", "false")), identities(), Collections.emptyMap()));
+    }
+    private static void privateMediaMapping() throws Exception {
+        java.nio.file.Path temp = java.nio.file.Files.createTempDirectory("migration-private-media-");
+        try {
+            java.nio.file.Path files = java.nio.file.Files.createDirectory(temp.resolve("files"));
+            java.nio.file.Path noBackup = java.nio.file.Files.createDirectory(temp.resolve("no-backup"));
+            java.nio.file.Path cache = java.nio.file.Files.createDirectory(temp.resolve("cache"));
+            java.nio.file.Path privateVideo = java.nio.file.Files.write(files.resolve("fixture video.mp4"), new byte[]{1, 2, 3});
+            String uri = privateVideo.toUri().toString();
+            PrivateMediaReference approved = PrivateMediaReference.verify(uri, files.toFile(), noBackup.toFile(), cache.toFile());
+            PresentationMappingContext standard = identities();
+            PresentationMappingContext verified = new PresentationMappingContext(standard.components, standard.feeds, standard.items,
+                    standard.icons, standard.inputs, standard.advertisedIconPacks, Arrays.asList(approved));
+            Map<String, Object> legacy = new LinkedHashMap<>(); legacy.put("mode", "customv"); legacy.put("custom_video_uri", uri);
+            LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(legacy), verified, Collections.emptyMap());
+            check(plan.after.get(LegacyPresentationMapper.APPEARANCE).values().get("wallpaper_video_uri").equals(uri)
+                    && plan.after.get(LegacyPresentationMapper.APPEARANCE).values().get("wallpaper_mode").equals("video"), "Verified app-private video keeps its exact reference and active mode.");
+            check(Arrays.equals(java.nio.file.Files.readAllBytes(privateVideo), new byte[]{1, 2, 3}), "Verification and mapping do not copy or alter media.");
+            reject(() -> LegacyPresentationMapper.plan(snapshot(legacy), standard, Collections.emptyMap()));
+            java.nio.file.Path outside = java.nio.file.Files.write(temp.resolve("outside.mp4"), new byte[]{4});
+            reject(() -> PrivateMediaReference.verify(outside.toUri().toString(), files.toFile(), noBackup.toFile(), cache.toFile()));
+            reject(() -> PrivateMediaReference.verify(files.toUri().toString(), files.toFile(), noBackup.toFile(), cache.toFile()));
+            reject(() -> PrivateMediaReference.verify(uri + "?query=not-a-file", files.toFile(), noBackup.toFile(), cache.toFile()));
+            reject(() -> PrivateMediaReference.verify("file://remote.invalid" + privateVideo, files.toFile(), noBackup.toFile(), cache.toFile()));
+            java.nio.file.Path escaping = java.nio.file.Files.createSymbolicLink(files.resolve("outside-link.mp4"), outside);
+            reject(() -> PrivateMediaReference.verify(escaping.toUri().toString(), files.toFile(), noBackup.toFile(), cache.toFile()));
+            java.nio.file.Files.delete(privateVideo);
+            reject(() -> LegacyPresentationMapper.plan(snapshot(legacy), verified, Collections.emptyMap()));
+            check(legacy.get("custom_video_uri").equals(uri), "A disappeared media file leaves the original typed reference untouched.");
+        } finally {
+            try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.walk(temp)) {
+                for (java.nio.file.Path path : (Iterable<java.nio.file.Path>) paths.sorted(Comparator.reverseOrder())::iterator) java.nio.file.Files.deleteIfExists(path);
+            }
+        }
+    }
     private static void contentModeMapping() throws Exception {
-        for (Object[] choice : new Object[][]{{false, true, "BOTH"}, {false, false, "CARDS_ONLY"}, {true, true, "WIDGETS_ONLY"}}) {
+        for (Object[] choice : new Object[][]{{false, true, "BOTH"}, {false, false, "CARDS_ONLY"}, {true, true, "WIDGETS_ONLY"}, {true, false, "NONE"}}) {
             Map<String, Object> legacy = new LinkedHashMap<>(); legacy.put("hide_watch_next", choice[0]); legacy.put("enable_widgets", choice[1]);
             LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(legacy), identities(), Collections.emptyMap());
             check(plan.after.get(LegacyPresentationMapper.LAYOUT).values().get("mode").equals(choice[2]), "Explicit card and widget visibility maps to stable content mode.");
             check(plan.unmappedLegacyKeys.isEmpty(), "Only both explicit flags establish a complete content-mode mapping.");
         }
-        Map<String, Object> bothOff = new LinkedHashMap<>(); bothOff.put("hide_watch_next", true); bothOff.put("enable_widgets", false);
-        reject(() -> LegacyPresentationMapper.plan(snapshot(bothOff), identities(), Collections.emptyMap()));
         LegacyPresentationMapper.Plan unknownDefault = LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("hide_watch_next", false)), identities(), Collections.emptyMap());
         check(unknownDefault.patches.isEmpty() && unknownDefault.unmappedLegacyKeys.equals(set("hide_watch_next")), "Absent widget default is not guessed.");
     }
@@ -104,6 +189,11 @@ public final class PresentationMappingTest {
         check(selected.after.get(LegacyPresentationMapper.ICON_PACKS).values().get("package").equals("fixture.icons"), "An explicitly verified installed pack keeps its original package identity.");
         LegacyPresentationMapper.Plan empty = LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "  ")), packs, Collections.emptyMap());
         check(empty.after.get(LegacyPresentationMapper.ICON_PACKS).values().get("package").equals("original"), "Explicit blank legacy pack maps to original, matching maintained whitespace handling.");
+        for (String[] builtin : new String[][]{{"builtin:clean_line", "clean-line"}, {"builtin:muted_solid", "muted-solid"}}) {
+            LegacyPresentationMapper.Plan mapped = LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", builtin[0])), standard, Collections.emptyMap());
+            check(mapped.after.get(LegacyPresentationMapper.ICON_PACKS).values().get("package").equals(builtin[1]), "Maintained built-in pack identifiers preserve the named native style choice.");
+        }
+        reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "builtin:holiday:christmas")), standard, Collections.emptyMap()));
         reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "fixture.icons")), standard, Collections.emptyMap()));
         reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "unavailable.pack")), packs, Collections.emptyMap()));
     }
@@ -126,7 +216,7 @@ public final class PresentationMappingTest {
         check(nativeValues.get("wallpaper_mode").equals("video") && nativeValues.get("wallpaper_video_uri").equals(background.get("custom_video_uri"))
                 && nativeValues.get("wallpaper_image_uri").equals(background.get("custom_wallpaper_uri")), "Verified video mode and unavailable dormant references retained exactly without opening media.");
         check(nativeValues.get("overlay_palette").equals("valentine") && plan.unmappedLegacyKeys.isEmpty(), "Reviewed palette identity survives without dropping source value.");
-        for (Object[] bad : new Object[][]{{"menu_animation", "not-a-style"}, {"menu_overlay_palette", "not-a-palette"}, {"menu_overlay", "aurora"},
+        for (Object[] bad : new Object[][]{{"menu_animation", "not-a-style"}, {"menu_overlay_palette", "not-a-palette"}, {"menu_overlay", "not-an-overlay"},
                 {"menu_animation_speed", 101}, {"menu_overlay_opacity", -1}, {"menu_animation_frozen", 1},
                 {"custom_video_uri", "file:///fixture-private/unsupported-active-video"}}) {
             Map<String, Object> changed = new LinkedHashMap<>(background); changed.put((String) bad[0], bad[1]);
@@ -151,14 +241,15 @@ public final class PresentationMappingTest {
         check(defaults.patches.get(LegacyPresentationMapper.FOCUS).values().get("border_enabled").equals(false), "Explicit false remains present.");
         Map<String, Set<String>> owned = LegacyPresentationMapper.ownedNativeKeys(set("apps_per_row", "input_names", "app_visibility"), identities());
         check(owned.get(LegacyPresentationMapper.GRID).equals(set("columns", "hidden")), "Absence/reset ownership is selective.");
-        check(owned.get(LegacyPresentationMapper.INPUTS).equals(set("name:" + INPUT_ID)), "Resetting a saved input label preserves factory/known metadata.");
+        check(owned.get(LegacyPresentationMapper.INPUTS).equals(set("name:" + INPUT_ID, "hidden:" + INPUT_ID)), "Reviewed name/visibility ownership excludes factory/known metadata.");
+        check(LegacyPresentationMapper.ownedNativeKeys(set("input_names"), identities()).get(LegacyPresentationMapper.INPUTS).equals(set("name:" + INPUT_ID)), "Resetting a saved input label preserves factory/known and visibility metadata.");
         check(owned.get(LegacyPresentationMapper.ICONS).contains("input:" + INPUT_ID), "Icon resets include exact known input identity.");
     }
     private static void unsupportedAndConflicts() throws Exception {
         for (Object[] invalid : new Object[][]{{"apps_per_row", 1}, {"apps_per_row", 13}, {"apps_per_row", 7L},
                 {"app_max_rows", 7}, {"app_scroll_direction", "diagonal"}, {"display_order", "fixture.alpha,fixture.alpha"},
                 {"display_order", "fixture.unknown"}, {"display_order", "fixture.alpha,"},
-                {"display_order", "fixture.alpha,tvinput_name:HDMI 1"}, {"featured_rotation_seconds", -1},
+                {"display_order", "fixture.alpha,tvinput_name:Unknown input"}, {"featured_rotation_seconds", -1},
                 {"featured_rotation_seconds", 86401}, {"white_border", "false"}, {"icon_focus_border", 123L},
                 {"featured_feed_rotation_seconds", set(FEED_A + ":7", FEED_A + ":8")},
                 {"featured_feed_rotation_seconds", set(FEED_A + ":86401")},
@@ -241,19 +332,167 @@ public final class PresentationMappingTest {
             check(new PresentationSnapshot(plan.before).sameValues(restarted.read()), "A new process restores exact complete state from the retained journal after any interrupted write.");
         }
     }
+    private static void upgradeLifecycle() throws Exception {
+        LegacyPresentationMapper.Plan plan = plan();
+        FixtureDisk disk = new FixtureDisk(new PresentationSnapshot(plan.before));
+        FixtureStore first = new FixtureStore(disk);
+        PresentationUpgrade.Result result = PresentationUpgrade.apply(first, identities());
+        check(result.migrated && !result.recovered && result.unmappedLegacyKeys.contains("unknown_future"), "Upgrade reports actual mapping and preserved unknown domains.");
+        check(disk.journal == null, "Successful upgrade resolves private journal before ordinary writers run.");
+        Map<String, Object> changed = new LinkedHashMap<>(disk.files.get(LegacyPresentationMapper.GRID).values());
+        changed.put("columns", 8); disk.files.put(LegacyPresentationMapper.GRID, snapshot(changed));
+        check(!PresentationUpgrade.apply(new FixtureStore(disk), identities()).migrated, "Next startup does not reapply old legacy choices.");
+        check(disk.files.get(LegacyPresentationMapper.GRID).values().get("columns").equals(8), "Choices made after migration survive future starts.");
+        for (int death = 1; death <= 7; death++) {
+            FixtureDisk interrupted = new FixtureDisk(new PresentationSnapshot(plan.before));
+            FixtureStore process = new FixtureStore(interrupted); process.dieAt = death;
+            try { PresentationUpgrade.apply(process, identities()); throw new AssertionError("Process did not interrupt."); }
+            catch (ProcessDeath expected) {}
+            PresentationUpgrade.Result resumed = PresentationUpgrade.apply(new FixtureStore(interrupted), identities());
+            check(resumed.recovered && resumed.migrated && interrupted.journal == null, "Interrupted upgrade restores original typed state then retries and resolves.");
+            check(new PresentationSnapshot(plan.after).sameValues(new FixtureStore(interrupted).read()), "Restart reaches verified complete native values.");
+        }
+        FixtureDisk unresolved = new FixtureDisk(new PresentationSnapshot(plan.before));
+        FixtureStore fails = new FixtureStore(unresolved); fails.failResolution = true;
+        reject(() -> PresentationUpgrade.apply(fails, identities()));
+        check(unresolved.journal != null, "Failed journal removal keeps recovery and blocks writer startup.");
+        check(PresentationUpgrade.apply(new FixtureStore(unresolved), identities()).recovered, "Restart handles death after source marker but before journal resolution.");
+        Map<String, PreferenceSnapshot> freshFiles = new LinkedHashMap<>();
+        for (String file : LegacyPresentationMapper.FILES) freshFiles.put(file, snapshot(Collections.emptyMap()));
+        FixtureDisk fresh = new FixtureDisk(new PresentationSnapshot(freshFiles));
+        check(!PresentationUpgrade.apply(new FixtureStore(fresh), identities()).migrated
+                && fresh.files.get(LauncherMigration.PREFERENCES).values().isEmpty() && fresh.journal == null,
+                "Fresh install preserves exact legacy absence without creating marker or defaults.");
+        for (Object unsupportedVersion : Arrays.<Object>asList(2, -1, "1", 1L)) {
+            Map<String, PreferenceSnapshot> unsupportedFiles = new LinkedHashMap<>(freshFiles);
+            unsupportedFiles.put(LauncherMigration.PREFERENCES, snapshot(Collections.singletonMap(LegacyPresentationMapper.VERSION_KEY, unsupportedVersion)));
+            FixtureDisk unsupportedDisk = new FixtureDisk(new PresentationSnapshot(unsupportedFiles));
+            reject(() -> PresentationUpgrade.apply(new FixtureStore(unsupportedDisk), identities()));
+            check(unsupportedDisk.journal == null && unsupportedDisk.events.isEmpty(), "Invalid version is rejected before journaling or writing.");
+        }
+        FixtureDisk corrupt = new FixtureDisk(new PresentationSnapshot(plan.before)); corrupt.journal = new byte[]{1};
+        reject(() -> PresentationUpgrade.apply(new FixtureStore(corrupt), identities()));
+        check(new PresentationSnapshot(plan.before).sameValues(new FixtureStore(corrupt).read()), "Corrupt recovery prevents writes.");
+    }
+    private static void folderPublication() throws Exception {
+        Map<String, Object> legacy = new LinkedHashMap<>();
+        legacy.put("folders", "{\"123\":{\"name\":\"Kids \\\"TV\\\"\",\"isLocked\":false,\"apps\":[\"fixture.beta\",\"fixture.alpha\"]}}");
+        legacy.put("display_order", "fixture.alpha,folder://123,fixture.beta");
+        PreferenceSnapshot source = snapshot(legacy);
+        Map<String, List<String>> packages = new LinkedHashMap<>();
+        packages.put("fixture.alpha", Arrays.asList(ALPHA)); packages.put("fixture.beta", Arrays.asList(BETA));
+        LegacyFolderMigration.Plan folders = LegacyFolderMigration.decode(source, packages);
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(source, identities(), Collections.emptyMap(), folders, false);
+        Map<String, Object> values = plan.after.get(LegacyPresentationMapper.FOLDERS).values();
+        check(values.get("folders").equals("[{\"id\":\"123\",\"name\":\"Kids \\\"TV\\\"\",\"components\":[\"" + BETA + "\",\"" + ALPHA + "\"]}]"),
+                "Folder id, escaped name and member order are preserved in the native store.");
+        check(plan.after.get(LegacyPresentationMapper.GRID).values().get("home_order").equals(ALPHA + "\nfolder:123\n" + BETA),
+                "Folder position remains interleaved with Home app order.");
+        Map<String, PreferenceSnapshot> conflict = new LinkedHashMap<>();
+        conflict.put(LegacyPresentationMapper.FOLDERS, snapshot(Collections.singletonMap("folders", "[]")));
+        reject(() -> LegacyPresentationMapper.plan(source, identities(), conflict, folders, false));
+        for (int death = 1; death <= 3; death++) {
+            FixtureDisk disk = new FixtureDisk(new PresentationSnapshot(plan.before));
+            FixtureStore interrupted = new FixtureStore(disk); interrupted.dieAt = death;
+            try { PresentationUpgrade.apply(interrupted, identities(), folders, false); throw new AssertionError("Process did not interrupt."); }
+            catch (ProcessDeath expected) {}
+            PresentationSnapshot original = PresentationSnapshot.decode(disk.journal);
+            PresentationTransaction.recover(new FixtureStore(disk), original);
+            check(original.sameValues(new FixtureStore(disk).read()), "Interrupted folder publication restores every store.");
+            new FixtureStore(disk).resolveRecovery(original, original);
+            check(PresentationUpgrade.apply(new FixtureStore(disk), identities(), folders, false).migrated,
+                    "Recovered folder publication retries safely.");
+            check(new PresentationSnapshot(plan.after).sameValues(new FixtureStore(disk).read()), "Retry publishes verified folder and Home order together.");
+        }
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        DataOutputStream output = new DataOutputStream(bytes);
+        output.writeInt(0x46545053); output.writeInt(1); output.writeInt(LegacyPresentationMapper.FILES.size() - 1);
+        for (String file : LegacyPresentationMapper.FILES) if (!file.equals(LegacyPresentationMapper.FOLDERS)) {
+            byte[] encoded = plan.before.get(file).encode();
+            output.writeUTF(file); output.writeInt(encoded.length); output.write(encoded);
+        }
+        output.flush(); output.write(java.security.MessageDigest.getInstance("SHA-256").digest(bytes.toByteArray()));
+        PresentationSnapshot oldJournal = PresentationSnapshot.decode(bytes.toByteArray());
+        Map<String, PreferenceSnapshot> current = new LinkedHashMap<>(plan.after);
+        current.put(LegacyPresentationMapper.FOLDERS, snapshot(Collections.singletonMap("folders", "[owner data]")));
+        FixtureDisk oldDisk = new FixtureDisk(new PresentationSnapshot(current));
+        PresentationTransaction.recover(new FixtureStore(oldDisk), oldJournal);
+        check(oldJournal.matches(new FixtureStore(oldDisk).read())
+                && oldDisk.files.get(LegacyPresentationMapper.FOLDERS).values().get("folders").equals("[owner data]"),
+                "Older recovery journals restore only the stores they captured and leave later folders intact.");
+    }
+    private static void productionGate() throws Exception {
+        Map<String, PreferenceSnapshot> emptyFiles = new LinkedHashMap<>();
+        for (String file : LegacyPresentationMapper.FILES) emptyFiles.put(file, snapshot(Collections.emptyMap()));
+        FixtureDisk fresh = new FixtureDisk(new PresentationSnapshot(emptyFiles));
+        ProductionMigrationGate.markFresh(new FixtureStore(fresh), new FixtureStore(fresh).read());
+        check(ProductionMigrationGate.completed(new FixtureStore(fresh).read()) && fresh.journal == null,
+                "Proven fresh installation records completion transactionally for later starts.");
+        Map<String, PreferenceSnapshot> notEmpty = new LinkedHashMap<>(emptyFiles);
+        notEmpty.put(LegacyPresentationMapper.GRID, snapshot(Collections.singletonMap("columns", 7)));
+        FixtureDisk existing = new FixtureDisk(new PresentationSnapshot(notEmpty));
+        reject(() -> ProductionMigrationGate.markFresh(new FixtureStore(existing), new FixtureStore(existing).read()));
+        check(existing.events.isEmpty(), "Fresh marker never overwrites existing settings.");
+        Map<String, Object> source = new LinkedHashMap<>(); source.put("apps_per_row", 7);
+        source.put("is_premium", true); source.put("fire_tv_ui_home_enabled", false);
+        source.put("app_launch_count", 4); source.put("rate_app_shown", true);
+        source.put("use_24h_clock", true);
+        source.put("featured_artwork_fit", false);
+        source.put("start_on_boot", false); source.put("override_home_button", false); source.put("better_home_detection", true);
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        PresentationSnapshot before = new PresentationSnapshot(plan.before);
+        FixtureDisk disk = new FixtureDisk(before);
+        ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null);
+        check(ProductionMigrationGate.completed(new FixtureStore(disk).read()) && disk.journal == null,
+                "Complete marker is committed with verified native settings and resolved recovery.");
+        for (String key : Arrays.asList("is_premium", "app_launch_count", "rate_app_shown", "use_24h_clock", "featured_artwork_fit", "fire_tv_ui_home_enabled", "start_on_boot", "override_home_button", "better_home_detection"))
+            check(source.get(key).equals(disk.files.get(LauncherMigration.PREFERENCES).values().get(key)), "Directly consumed compatibility choice remains intact.");
+        Map<String, Object> malformedClock = new LinkedHashMap<>(source); malformedClock.put("use_24h_clock", "true");
+        LegacyPresentationMapper.Plan invalidClock = LegacyPresentationMapper.plan(snapshot(malformedClock), identities(), Collections.emptyMap());
+        reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(invalidClock.before), identities(), null));
+        Map<String, Object> malformedArt = new LinkedHashMap<>(source); malformedArt.put("featured_artwork_fit", "false");
+        LegacyPresentationMapper.Plan invalidArt = LegacyPresentationMapper.plan(snapshot(malformedArt), identities(), Collections.emptyMap());
+        reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(invalidArt.before), identities(), null));
+        source.put("unknown_future", true);
+        LegacyPresentationMapper.Plan unsupported = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        FixtureDisk blocked = new FixtureDisk(new PresentationSnapshot(unsupported.before));
+        reject(() -> ProductionMigrationGate.commit(new FixtureStore(blocked), new FixtureStore(blocked).read(), identities(), null));
+        check(blocked.events.isEmpty(), "Unknown saved data blocks before journal or preference writes.");
+        source.remove("unknown_future"); source.put(LegacyPresentationMapper.VERSION_KEY, 1);
+        LegacyPresentationMapper.Plan partial = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(partial.before), identities(), null));
+        String plexKey = "plex:" + repeat('9') + ":123";
+        Map<String, PresentationMappingContext.Item> hiddenItems = new LinkedHashMap<>();
+        hiddenItems.put(ITEM_A, new PresentationMappingContext.Item("com.jeremykenedy.firetv.ui", plexKey, "Fixture", false,
+                "com.plexapp.android", plexKey));
+        PresentationMappingContext stable = new PresentationMappingContext(Collections.emptyMap(), Collections.emptyMap(), hiddenItems, Collections.emptyMap());
+        Map<String, Object> hiddenSource = Collections.<String, Object>singletonMap("hidden_featured_cards", set(ITEM_A));
+        LegacyPresentationMapper.Plan hiddenPlan = LegacyPresentationMapper.plan(snapshot(hiddenSource), stable, Collections.emptyMap());
+        ProductionMigrationGate.preflight(new PresentationSnapshot(hiddenPlan.before), stable, null);
+        hiddenItems.put(ITEM_A, new PresentationMappingContext.Item("fixture.alpha", "program:one", "Fixture", false));
+        PresentationMappingContext transientIdentity = new PresentationMappingContext(Collections.emptyMap(), Collections.emptyMap(), hiddenItems, Collections.emptyMap());
+        reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(hiddenPlan.before), transientIdentity, null));
+    }
     private static final class FixtureDisk {
         final Map<String, PreferenceSnapshot> files;
         final List<String> events = new ArrayList<>();
         byte[] journal;
         FixtureDisk(PresentationSnapshot initial) { files = new LinkedHashMap<>(initial.stores); }
     }
-    private static final class FixtureStore implements PresentationTransaction.Store {
+    private static final class FixtureStore implements PresentationUpgrade.Store {
         final FixtureDisk disk;
         int writes, failAt, dieAt;
-        boolean failRecovery, failRollback, corruptAfterWrite, changeDuringRecovery;
+        boolean failRecovery, failRollback, corruptAfterWrite, changeDuringRecovery, failResolution;
         FixtureStore(FixtureDisk disk) { this.disk = disk; }
         @Override public Object lock() { return disk; }
         @Override public PresentationSnapshot read() { return new PresentationSnapshot(disk.files); }
+        @Override public boolean hasRecovery() { return disk.journal != null; }
+        @Override public PresentationSnapshot readRecovery() throws IOException { return PresentationSnapshot.decode(disk.journal); }
+        @Override public void resolveRecovery(PresentationSnapshot original, PresentationSnapshot current) throws IOException {
+            if (failResolution || !original.sameValues(readRecovery()) || !current.matches(read()))
+                throw new IOException("Fixture resolution failed.");
+            disk.journal = null;
+        }
         @Override public void saveRecovery(PresentationSnapshot snapshot) throws IOException {
             if (failRecovery || disk.journal != null) throw new IOException("Fixture journal failure.");
             disk.journal = snapshot.encode();

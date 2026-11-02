@@ -8,12 +8,18 @@ import android.view.View;
 import android.widget.*;
 
 import org.json.JSONObject;
+import com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidPresentationInventory;
+import com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext;
+import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
+import java.util.Map;
+import java.util.Collections;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Local setup management using standard TV focusable controls. */
 public final class SavedSetupsActivity extends Activity {
+    private boolean startupBlocked;
     private SavedSetupManager manager;
     private LinearLayout rows;
     private boolean includeIcons = true;
@@ -23,6 +29,7 @@ public final class SavedSetupsActivity extends Activity {
 
     @Override
     public void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; }
         destroyed = true;
         if (pending != null) pending.dismiss();
         worker.shutdown();
@@ -32,6 +39,7 @@ public final class SavedSetupsActivity extends Activity {
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         manager = new SavedSetupManager(this);
         refresh();
     }
@@ -114,9 +122,13 @@ public final class SavedSetupsActivity extends Activity {
                                                                         @Override
                                                                         public void run()
                                                                                 throws Exception {
-                                                                            manager.apply(
-                                                                                    id,
-                                                                                    includeIcons);
+                                                                            PresentationMappingContext identities = PresentationMappingContext.empty();
+                                                                            if (!item.has("native")) {
+                                                                                Map<String, Object> legacy = LegacySetupSettings.validate(item.getJSONObject("settings"));
+                                                                                legacy.values().removeAll(Collections.singleton(null));
+                                                                                identities = AndroidPresentationInventory.read(SavedSetupsActivity.this, new PreferenceSnapshot(legacy));
+                                                                            }
+                                                                            manager.apply(id, includeIcons, identities);
                                                                         }
                                                                     },
                                                                     "Setup applied");

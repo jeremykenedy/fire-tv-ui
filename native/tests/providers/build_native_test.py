@@ -32,10 +32,11 @@ for name, manifest, sources, dependencies, key in (
     ('provider-proof', HERE / 'AndroidManifest.xml', [HERE / 'ProviderInstrumentation.java', HERE / 'NotificationInstrumentation.java'],
      list((ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/providers').rglob('*.java'))
      + [ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp' / source for source in (
-         'Pages.java', 'layout/LayoutItem.java', 'layout/LayoutOptions.java', 'layout/LayoutPreferences.java',
+         'Pages.java', 'SourceStartup.java', 'migration/PresentationMappingContext.java', 'migration/PrivateMediaReference.java', 'layout/LayoutItem.java', 'layout/LayoutOptions.java', 'layout/LayoutPreferences.java',
          'cards/CardOptions.java', 'cards/CardPreferences.java',
          'appgrid/AppGridOptions.java', 'appgrid/AppGridPreferences.java',
-         'locks/LauncherLocks.java', 'locks/LockStore.java', 'locks/LockState.java', 'locks/LockResult.java')], SIGNER),
+         'locks/LauncherLocks.java', 'locks/LockStore.java', 'locks/LockState.java', 'locks/LockResult.java')]
+     + list((ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/accessibility').glob('*.java')), SIGNER),
 ):
     build = WORK / name
     if build.exists():

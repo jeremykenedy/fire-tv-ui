@@ -3,4 +3,8 @@
     <application android:label="Migration proof" android:debuggable="true" android:allowBackup="false" />
     <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.migration.MigrationCrashInstrumentation"
         android:targetPackage="com.jeremykenedy.firetv.migrationproof" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.PlexIdentityInstrumentation"
+        android:targetPackage="com.jeremykenedy.firetv.migrationproof" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.device.protection.DeviceProtectionInstrumentation"
+        android:targetPackage="com.jeremykenedy.firetv.migrationproof" />
 </manifest>

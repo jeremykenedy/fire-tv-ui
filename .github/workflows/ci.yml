@@ -1,4 +1,4 @@
-name: Native build and checks
+name: Source-native production build and checks
 on:
   push:
     branches: [main]
@@ -8,7 +8,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -21,12 +21,19 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install Android build tools
+        shell: bash
         run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"
-      - name: Build unsigned native review APK and icon bundle
-        run: python3 scripts/build.py --unsigned
-      - name: Check native source, catalog and built artifacts
-        run: bash scripts/test.sh
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdkmanager" --licenses >/dev/null || test "${PIPESTATUS[1]}" -eq 0
+          "$sdkmanager" "platforms;android-36" "build-tools;36.0.0"
+      - name: Build unsigned source-native production candidate
+        run: python3 scripts/build.py --unsigned --output-dir "$RUNNER_TEMP/native-production"
+      - name: Check production build and manifest contracts
+        run: |
+          python3 -m unittest discover -s tests/production_release -v
+          python3 -m unittest discover -s tests -p test_installer.py -v
+          python3 -m unittest discover -s tests -p test_build.py -v
+          python3 native/tests/device/production_contract_test.py
+          python3 native/tests/device/run.py
       - name: Check whitespace
         run: git diff --check

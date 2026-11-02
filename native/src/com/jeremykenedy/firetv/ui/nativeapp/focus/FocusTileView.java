@@ -63,6 +63,10 @@ public final class FocusTileView extends FrameLayout {
 
     public void setIcon(Drawable value) { icon.setImageDrawable(value); }
 
+    public void setArtworkFit(boolean fit) {
+        icon.setScaleType(fit ? ImageView.ScaleType.FIT_CENTER : ImageView.ScaleType.CENTER_CROP);
+    }
+
     public void setCompact(boolean compact) {
         if (this.compact == compact) return;
         this.compact = compact;

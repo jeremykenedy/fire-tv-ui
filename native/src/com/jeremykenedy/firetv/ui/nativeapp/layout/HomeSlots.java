@@ -10,6 +10,15 @@ import com.jeremykenedy.firetv.ui.nativeapp.widget.photos.PhotoWidgetProvider;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.breathing.BreathingWidgetProvider;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.timers.CountdownWidgetProvider;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.timers.TimerWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.status.NetworkStatusWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.status.TvAudioStatusWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.puzzles.DailyPuzzleWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.calendar.CalendarWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.ambient.AmbientWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.livetv.LiveTvWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.nowplaying.NowPlayingWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.feeds.FeedWidgetProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +43,18 @@ public final class HomeSlots {
         widgets.add(new BreathingWidgetProvider());
         widgets.add(new CountdownWidgetProvider());
         widgets.add(new TimerWidgetProvider());
+        widgets.add(new NetworkStatusWidgetProvider());
+        widgets.add(new TvAudioStatusWidgetProvider());
+        widgets.add(new DailyPuzzleWidgetProvider());
+        widgets.add(new CalendarWidgetProvider());
+        widgets.add(new AmbientWidgetProvider());
+        widgets.add(new LiveTvWidgetProvider());
+        widgets.add(new NowPlayingWidgetProvider());
+        widgets.add(new WeatherWidgetProvider());
+        widgets.add(new com.jeremykenedy.firetv.ui.nativeapp.widget.radar.RadarWidgetProvider());
+        widgets.add(new com.jeremykenedy.firetv.ui.nativeapp.widget.uv.UvWidgetProvider());
+        widgets.add(new FeedWidgetProvider());
+        widgets.addAll(com.jeremykenedy.firetv.ui.nativeapp.widget.dailycontent.DailyContentWidgets.providers());
         return Collections.unmodifiableList(widgets);
     }
 

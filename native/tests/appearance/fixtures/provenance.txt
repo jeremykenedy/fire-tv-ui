@@ -1,0 +1,1 @@
+Original synthetic verification media. image.png is a 320x180 two-color image generated with Python zlib/struct. motion.mp4 is a two-second 320x180 24fps FFmpeg testsrc2 pattern encoded as H.264 Baseline without audio. No owner media or external artwork is included. Used only by the isolated appearance proof provider.

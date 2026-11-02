@@ -58,6 +58,16 @@ public final class AppearanceInstrumentation extends Instrumentation {
             AppearanceOptions saved=AppearancePreferences.load(getTargetContext());
             check(saved.overlayFrozen&&saved.overlayOpacity==80&&saved.base.equals("off"),"Selected state persists without unrelated changes");
             check(saved.imageUri.equals("content://owner/preserved-image")&&saved.videoUri.equals("content://owner/preserved-video"),"Wallpaper references retained");
+            onMain(new Runnable() { @Override public void run() {
+                editor.getWindow().getDecorView().findViewWithTag("appearance:overlay_frozen").performClick();
+                AppearanceView overlay=(AppearanceView)editor.getWindow().getDecorView().findViewWithTag("appearance:overlay");
+                check(overlay.isFrameScheduled(),"Individual animated choice resumes");
+                editor.getWindow().getDecorView().findViewWithTag("appearance:reduced_motion").performClick();
+                check(!overlay.isFrameScheduled(),"Reduced motion cancels overlay callback");
+                check(!AppearancePreferences.load(getTargetContext()).overlayFrozen,"Reduced motion keeps individual choice");
+                editor.getWindow().getDecorView().findViewWithTag("appearance:reduced_motion").performClick();
+                check(overlay.isFrameScheduled(),"Disabling reduced motion restores individual animated choice");
+            } });
             result.putString("result","PASS: native overlay transparency, opacity, independent motion, actual settings and preview routes, pause and Back");
         } catch(Throwable failure) { result.putString("failure",failure.toString()); }
         finally {
@@ -84,7 +94,24 @@ public final class AppearanceInstrumentation extends Instrumentation {
         AppearancePreferences.number(context,"overlay_opacity",20); pixels.eraseColor(0);
         view.setOptions(AppearancePreferences.load(context)); view.draw(new Canvas(pixels));
         check(alpha(pixels)<high/2,"Opacity visibly changes rendered alpha");
-        AppearancePreferences.number(context,"overlay_opacity",80); pixels.recycle();
+        AppearancePreferences.number(context,"overlay_opacity",80);
+        int[] rendered=new int[960*540];
+        for(String style:AppearanceOptions.OVERLAYS) {
+            pixels.eraseColor(0);
+            view.setOptions(new AppearanceOptions("off",false,50,50,50,style,true,50,70,80,"","",""));
+            view.draw(new Canvas(pixels)); pixels.getPixels(rendered,0,960,0,0,960,540);
+            int visible=0,clear=0;
+            for(int pixel:rendered) { if((pixel>>>24)==0)clear++; else visible++; }
+            check(clear>0,"Transparent backing retained for "+style);
+            check(style.equals("off")?visible==0:visible>0,"Selected overlay actually renders: "+style);
+        }
+        pixels.recycle();
+        Bitmap source=Bitmap.createBitmap(3,2,Bitmap.Config.ARGB_8888);
+        source.setPixel(0,0,0xffff0000); source.setPixel(2,0,0xff00ff00); source.setPixel(0,1,0xff0000ff);
+        Bitmap rotated=WallpaperImages.orient(source,android.media.ExifInterface.ORIENTATION_ROTATE_90);
+        check(rotated.getWidth()==2&&rotated.getHeight()==3,"Portrait EXIF rotates dimensions");
+        check(rotated.getPixel(1,0)==0xffff0000&&rotated.getPixel(1,2)==0xff00ff00&&rotated.getPixel(0,0)==0xff0000ff,"Portrait EXIF preserves pixel orientation");
+        rotated.recycle();
     }
     private long alpha(Bitmap pixels) { long sum=0; for(int y=0;y<pixels.getHeight();y++)for(int x=0;x<pixels.getWidth();x++)sum+=pixels.getPixel(x,y)>>>24; return sum; }
     private Activity open(final Activity source,final String label,String target) {

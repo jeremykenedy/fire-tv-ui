@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 
 /** Curated artwork is the default; personal media is an explicit separate action. */
 public final class IconPickerActivity extends Activity {
+    private boolean startupBlocked;
     public static final String EXTRA_TILE_KEY = "tile_key";
     public static final String EXTRA_TILE_LABEL = "tile_label";
     private static final int IMAGE_REQUEST = 21;
@@ -34,6 +35,7 @@ public final class IconPickerActivity extends Activity {
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         tileKey = getIntent().getStringExtra(EXTRA_TILE_KEY);
         if (!IconSelectionStore.isValidTileKey(tileKey)) {
             finish();
@@ -132,6 +134,7 @@ public final class IconPickerActivity extends Activity {
     }
 
     @Override protected void onActivityResult(int request, int result, Intent data) {
+        if (startupBlocked) { super.onActivityResult(request, result, data); return; }
         super.onActivityResult(request, result, data);
         if (request != IMAGE_REQUEST || result != RESULT_OK || data == null || data.getData() == null) return;
         final Uri uri = data.getData();
@@ -191,6 +194,7 @@ public final class IconPickerActivity extends Activity {
     private int dp(int size) { return Math.round(size * getResources().getDisplayMetrics().density); }
 
     @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; }
         worker.shutdownNow();
         super.onDestroy();
     }

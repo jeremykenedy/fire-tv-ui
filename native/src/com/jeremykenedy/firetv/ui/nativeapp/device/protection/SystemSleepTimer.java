@@ -18,7 +18,17 @@ public final class SystemSleepTimer {
         return supported(store(context));
     }
     public static Result setMinutes(Context context, String minutes) {
-        return write(store(context), milliseconds(minutes));
+        int value = milliseconds(minutes);
+        if ("com.jeremykenedy.firetv.ui".equals(context.getPackageName())) {
+            try {
+                android.content.Intent command = new android.content.Intent().putExtra("operation", "setting")
+                        .putExtra("namespace", "secure").putExtra("key", "sleep_timeout")
+                        .putExtra("value", String.valueOf(value));
+                com.jeremykenedy.firetv.ui.nativeapp.device.commands.SettingCommandHandler.execute(context, command);
+                return Result.SAVED;
+            } catch (RuntimeException failed) { return Result.RECOVERY_REQUIRED; }
+        }
+        return write(store(context), value);
     }
     static int milliseconds(String minutes) {
         if (minutes == null || !minutes.matches("[0-9]{1,5}"))

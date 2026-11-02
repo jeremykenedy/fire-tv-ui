@@ -51,6 +51,11 @@ public final class MigrationTest {
         catch (UnsupportedOperationException expected) {}
         try { ((Set<?>) snapshot.values().get("factory_icon_packages")).clear(); throw new AssertionError("Mutable set."); }
         catch (UnsupportedOperationException expected) {}
+        String longInputKey = "hidden:" + String.join("", Collections.nCopies(2042, "i"));
+        PreferenceSnapshot longInput = new PreferenceSnapshot(Collections.singletonMap(longInputKey, false));
+        check(longInput.values().equals(PreferenceSnapshot.decode(longInput.encode()).values()), "Valid 2049-character input metadata keys round-trip without truncation.");
+        Map<String, Object> oversizedKey = Collections.singletonMap(String.join("", Collections.nCopies(PreferenceSnapshot.MAX_KEY_LENGTH + 1, "k")), true);
+        reject(() -> new PreferenceSnapshot(oversizedKey));
         PreferenceSnapshot decoded = PreferenceSnapshot.decode(snapshot.encode());
         check(snapshot.values().equals(decoded.values()), "Every supported type round-trips exactly.");
         check(decoded.values().get("unknown_future_value") instanceof Long, "Long remains Long.");

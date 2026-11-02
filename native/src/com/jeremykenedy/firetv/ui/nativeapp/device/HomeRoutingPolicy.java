@@ -39,7 +39,10 @@ public final class HomeRoutingPolicy {
     public synchronized boolean homePressed() { return handoff(false); }
     public synchronized void launcherVisibility(boolean visible) {
         homeVisible = visible;
-        if (visible && handoff) handoff(false);
+        if (visible) {
+            lastLaunch = -1;
+            if (handoff) handoff(false);
+        }
     }
     public synchronized boolean shouldOpen(boolean enabled, long now) {
         return enabled && !handoff && !homeVisible

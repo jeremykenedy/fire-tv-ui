@@ -36,6 +36,13 @@ public final class HomeSetupPolicy {
         return new HomeSetupPolicy(!review && !masterOff && keys, !review && !masterOff && windows, review);
     }
 
+    public static boolean launchOnBoot(String applicationId, Map<String, ?> values) {
+        if (!HomeRoutingPolicy.PRODUCTION_PACKAGE.equals(applicationId)
+                || !Boolean.TRUE.equals(values.get("start_on_boot"))) return false;
+        HomeSetupPolicy choices = read(values);
+        return !choices.needsReview && (choices.keys || choices.windows);
+    }
+
     private static boolean value(Map<String, ?> values, String key, boolean fallback) {
         return values.containsKey(key) ? Boolean.TRUE.equals(values.get(key)) : fallback;
     }

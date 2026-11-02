@@ -123,6 +123,11 @@ public final class SavedSetupManager {
     }
 
     public void apply(String id, boolean icons) throws Exception {
+        apply(id, icons, PresentationMappingContext.empty());
+    }
+
+    public void apply(String id, boolean icons, PresentationMappingContext identities) throws Exception {
+        if (identities == null) throw new IllegalArgumentException("Missing migration identities.");
         synchronized (LOCK) {
             JSONObject data = read();
             JSONArray items = data.getJSONArray("setups");
@@ -134,7 +139,7 @@ public final class SavedSetupManager {
                             ? decodeNative(item.getJSONObject("native"))
                             : prepareLegacy(
                                     item.getJSONObject("settings"),
-                                    PresentationMappingContext.empty(),
+                                    identities,
                                     icons);
             Map<String, Object> legacy = target.get("launcher_prefs").values();
             verifyVideo(legacy);
@@ -156,6 +161,16 @@ public final class SavedSetupManager {
         Map<String, Object> saved = LegacySetupSettings.validate(settings);
         Map<String, Object> present = new LinkedHashMap<>(saved);
         present.values().removeAll(Collections.singleton(null));
+        if (!icons) {
+            present.remove("icon_pack_package");
+            present.remove("factory_icon_packages");
+            if (present.containsKey("app_visibility")) {
+                JSONObject visibility = new JSONObject((String) present.get("app_visibility"));
+                for (Iterator<String> ids = visibility.keys(); ids.hasNext(); )
+                    visibility.getJSONObject(ids.next()).remove("customIconUri");
+                present.put("app_visibility", visibility.toString());
+            }
+        }
         Map<String, PreferenceSnapshot> empty = new LinkedHashMap<>();
         for (String file : LegacyPresentationMapper.FILES)
             if (!file.equals("launcher_prefs"))
@@ -173,7 +188,7 @@ public final class SavedSetupManager {
         for (Map.Entry<String, Set<String>> file : owned.entrySet()) {
             if (!target.containsKey(file.getKey()))
                 throw new IOException("Unsupported legacy target.");
-            if (!icons && file.getKey().equals("native_icons")) continue;
+            if (!icons && (file.getKey().equals("native_icons") || file.getKey().equals("native_icon_packs"))) continue;
             Map<String, Object> values = new LinkedHashMap<>(target.get(file.getKey()).values());
             for (String key : file.getValue()) values.remove(key);
             PreferenceSnapshot patch = plan.patches.get(file.getKey());
@@ -463,6 +478,8 @@ public final class SavedSetupManager {
             result.put(
                     key, PreferenceSnapshot.decode(Base64.decode((String) value, Base64.NO_WRAP)));
         }
+        if (!result.containsKey("source_accessibility"))
+            result.put("source_accessibility", new PreferenceSnapshot(Collections.emptyMap()));
         PresentationState.validate(result);
         return result;
     }

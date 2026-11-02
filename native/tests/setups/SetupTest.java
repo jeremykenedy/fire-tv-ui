@@ -180,6 +180,22 @@ public final class SetupTest {
         check(
                 legacyPlan.get("launcher_prefs").values().get("menu_overlay_frozen").equals(false),
                 "legacy subset preserves unrelated presentation keys");
+        JSONObject excludedIcons = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("icon_pack_package", "factory_icon_packages", "app_visibility")))
+                .put("values", new JSONObject()
+                        .put("icon_pack_package", "unavailable.fixture.pack")
+                        .put("factory_icon_packages", new JSONArray(Arrays.asList("missing.fixture.app")))
+                        .put("app_visibility", "{\"missing.fixture.app\":{\"customIconUri\":\"file:/missing-private-image\"}}"));
+        prefs(context, "native_icon_packs").values.put("package", "clean-line");
+        Map<String, PreferenceSnapshot> noIcons = manager.prepareLegacy(excludedIcons,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), false);
+        check(noIcons.get("native_icon_packs").values().get("package").equals("clean-line"),
+                "legacy icon exclusion retains current native pack without requiring unavailable pack or image identities");
+        check(noIcons.get("native_icons").values().equals(PresentationState.capture(context).get("native_icons").values()),
+                "legacy icon exclusion retains every current native icon");
+        rejects(() -> manager.prepareLegacy(excludedIcons,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true),
+                "included legacy icons still require verified identities");
         JSONObject unsupported =
                 new JSONObject()
                         .put("keys", new JSONArray(Arrays.asList("folders")))
@@ -278,6 +294,70 @@ public final class SetupTest {
         rejects(() -> manager.save("Too many", null), "24 setup bound enforced");
         manager.rename(id, "Evening renamed");
         check(manager.list().get(0).getString("name").equals("Evening renamed"), "rename persists");
+        prefs(context, "source_appearance").values.clear();
+        prefs(context, "native_app_grid").values.put("show_all_apps_button", false);
+        prefs(context, "native_inputs")
+                .values
+                .put("order", "vendor/.Input/HDMI2\nvendor/.Input/HDMI1");
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI1", false);
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI2", true);
+        final Map<String, PreferenceSnapshot> organized = PresentationState.capture(context);
+        check(
+                Boolean.FALSE.equals(
+                        organized.get("native_app_grid").values().get("show_all_apps_button")),
+                "explicit All apps false retained");
+        check(
+                Boolean.FALSE.equals(
+                        organized.get("native_inputs").values().get("hidden:vendor/.Input/HDMI1")),
+                "explicit input shown false retained");
+        check(
+                organized
+                        .get("native_inputs")
+                        .values()
+                        .get("order")
+                        .equals("vendor/.Input/HDMI2\nvendor/.Input/HDMI1"),
+                "exact input order retained");
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI1", true);
+        prefs(context, "native_inputs").values.put("order", "");
+        prefs(context, "native_app_grid").values.put("show_all_apps_button", true);
+        PresentationState.apply(context, organized, true);
+        check(
+                same(organized, PresentationState.capture(context)),
+                "input organization and All apps restored transactionally");
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI1", "false");
+        rejects(() -> PresentationState.capture(context), "wrong input hidden type rejected");
+        prefs(context, "native_inputs").values.put("hidden:vendor/.Input/HDMI1", false);
+        prefs(context, "native_inputs")
+                .values
+                .put("order", "vendor/.Input/HDMI1\nvendor/.Input/HDMI1");
+        rejects(() -> PresentationState.capture(context), "duplicate input order rejected");
+        prefs(context, "native_inputs").values.put("order", "");
+        prefs(context, "native_app_grid").values.put("show_all_apps_button", "false");
+        rejects(() -> PresentationState.capture(context), "wrong All apps flag type rejected");
+        prefs(context, "native_app_grid").values.put("show_all_apps_button", false);
+        StringBuilder longIdBuilder = new StringBuilder();
+        for (int i = 0; i < 2042; i++) longIdBuilder.append('a');
+        String longId = longIdBuilder.toString();
+        prefs(context, "native_inputs").values.put("hidden:" + longId, false);
+        prefs(context, "native_icons").values.put("input:" + longId, "factory");
+        Map<String, PreferenceSnapshot> longSnapshot = PresentationState.capture(context);
+        check(
+                Boolean.FALSE.equals(
+                        SavedSetupManager.decodeNative(SavedSetupManager.encodeNative(longSnapshot))
+                                .get("native_inputs")
+                                .values()
+                                .get("hidden:" + longId)),
+                "maximum platform input identity survives typed encoding");
+        check(
+                "factory".equals(longSnapshot.get("native_icons").values().get("input:" + longId)),
+                "maximum platform input artwork key retained");
+        prefs(context, "native_icons").values.remove("input:" + longId);
+        prefs(context, "native_icons").values.put("input:\n", "factory");
+        rejects(
+                () -> PresentationState.capture(context),
+                "malformed input artwork identity rejected explicitly");
+        prefs(context, "native_icons").values.remove("input:\n");
+        prefs(context, "native_inputs").values.remove("hidden:" + longId);
         File oversized = new File(context.files, "oversized.png");
         try (RandomAccessFile file = new RandomAccessFile(oversized, "rw")) {
             file.setLength(20L * 1024 * 1024 + 1);
@@ -327,6 +407,26 @@ public final class SetupTest {
         check(
                 prefs(legacyContext, "native_app_grid").values.get("columns").equals(8),
                 "existing version 1 setup applies reviewed mapped scalar");
+        prefs(legacyContext, "source_accessibility").values.put("text_percent", 120);
+        prefs(legacyContext, "source_accessibility").values.put("high_contrast", false);
+        prefs(legacyContext, "source_accessibility").values.put("future_private", "kept");
+        Map<String, PreferenceSnapshot> readable = PresentationState.capture(legacyContext);
+        check(readable.get("source_accessibility").values().get("text_percent").equals(120)
+                && readable.get("source_accessibility").values().get("high_contrast").equals(false)
+                && !readable.get("source_accessibility").values().containsKey("future_private"),
+                "readability capture retains exact explicit choices and excludes unrelated fields");
+        Map<String, PreferenceSnapshot> olderPortable = new LinkedHashMap<>(readable);
+        olderPortable.remove("source_accessibility");
+        PresentationState.validatePortable(olderPortable);
+        check(!olderPortable.containsKey("source_accessibility"), "older portable presentation validates without mutating its original store map");
+        JSONObject olderNative = SavedSetupManager.encodeNative(readable);
+        olderNative.remove("source_accessibility");
+        Map<String, PreferenceSnapshot> olderDecoded = SavedSetupManager.decodeNative(olderNative);
+        check(olderDecoded.get("source_accessibility").values().isEmpty(), "older native setup absence remains readable as absent optional readability fields");
+        PresentationState.apply(legacyContext, olderDecoded, true);
+        check(!prefs(legacyContext, "source_accessibility").values.containsKey("text_percent")
+                && prefs(legacyContext, "source_accessibility").values.get("future_private").equals("kept"),
+                "applying older setup removes owned readability choices while preserving unknown data");
         System.out.println("Saved setups: " + checks + " checks passed.");
     }
 }

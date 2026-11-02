@@ -29,5 +29,5 @@ with tempfile.TemporaryDirectory() as folder:
     subprocess.run(['java', '-cp', folder,
                     'com.jeremykenedy.firetv.ui.nativeapp.device.screensavers.CatalogArtifactTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
-                    '-bootclasspath', SDK, '-d', folder,
+                    '-bootclasspath', SDK, '-classpath', str(ROOT / '.build/classes'), '-d', folder,
                     ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/Pages.java', *sorted(MODULE.glob('*.java')), *sorted((ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/updates').glob('*.java')), Path(__file__).with_name('ScreensaverInstrumentation.java')], check=True)

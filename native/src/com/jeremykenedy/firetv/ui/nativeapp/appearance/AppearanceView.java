@@ -17,7 +17,7 @@ public final class AppearanceView extends View {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
     private final Paint ground = new Paint(Paint.DITHER_FLAG);
     private final Path shape = new Path();
-    private boolean resumed, attached, scheduled;
+    private boolean resumed, attached, scheduled, reducedMotion;
     private long previous, elapsed;
     private final Runnable frame = new Runnable() {
         @Override public void run() {
@@ -31,10 +31,11 @@ public final class AppearanceView extends View {
     };
     public AppearanceView(Context context, boolean overlay) { super(context); this.overlay = overlay; setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO); }
     public void setOptions(AppearanceOptions value) { options = value; gradient(); invalidate(); update(); }
+    public void setReducedMotion(boolean value) { reducedMotion = value; invalidate(); update(); }
     public void setResumed(boolean value) { resumed = value; update(); }
     public boolean isFrameScheduled() { return scheduled; }
     public long animationMillis() { return elapsed; }
-    private boolean running() { return attached && resumed && hasWindowFocus() && isShown() && getWindowVisibility() == VISIBLE
+    private boolean running() { return !reducedMotion && attached && resumed && hasWindowFocus() && isShown() && getWindowVisibility() == VISIBLE
             && (overlay ? options.overlayAnimated() : options.baseAnimated()); }
     private void schedule() { if (!scheduled && running()) { scheduled = true; postDelayed(frame, 33); } }
     private void update() { if (!running()) { removeCallbacks(frame); scheduled = false; previous = 0; } else schedule(); }
@@ -65,7 +66,7 @@ public final class AppearanceView extends View {
         if (!overlay) { canvas.drawRect(0,0,getWidth(),getHeight(),ground); paint.setColor(Color.BLACK); paint.setAlpha(Math.round((100-strength)*1.5f)); canvas.drawRect(0,0,getWidth(),getHeight(),paint); }
         if (style.startsWith("still_") || density == 0 || (overlay && strength == 0)) return;
         float scale = Math.max(0.5f, getHeight()/1080f);
-        if (!overlay && (style.equals("aurora") || style.equals("waves") || style.equals("silk") || style.equals("prism") || style.equals("rays") || style.equals("orbits"))) {
+        if ((style.equals("aurora") || style.equals("waves") || style.equals("silk") || style.equals("prism") || style.equals("rays") || style.equals("orbits"))) {
             ribbons(canvas, style, seconds*speed, density, scale); return;
         }
         int count = style.equals("snowflakes") ? 18+density*3/4 : 24+density*2;
@@ -124,10 +125,10 @@ public final class AppearanceView extends View {
     }
     private void ribbons(Canvas canvas, String style, double time, int density, float scale) {
         int count=3+density/20;
-        PaletteRecipes.Theme recipe=PaletteRecipes.find(options.basePalette);
+        PaletteRecipes.Theme recipe=PaletteRecipes.find(overlay ? options.overlayPalette : options.basePalette);
         for(int i=0;i<count;i++) {
             paint.setColor(recipe==null ? (i%2==0 ? 0xff72b5b4 : 0xff8994d0) : (i%2==0 ? recipe.light : recipe.accent));
-            paint.setAlpha(18+i*3);
+            paint.setAlpha(Math.round((18+i*3)*(overlay ? options.overlayOpacity/100f : 1f)));
             float width=getWidth(), height=getHeight();
             float y=(float)((i+1.0)/(count+1)*height+Math.sin(time*.15+i)*height*.07);
             if(style.equals("orbits")) {

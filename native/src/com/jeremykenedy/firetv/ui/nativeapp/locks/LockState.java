@@ -28,8 +28,9 @@ final class LockState {
 
     static String key(String value) {
         if (value == null || value.length() > 512 || !(value.matches("[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+")
-                || value.matches("folder:[A-Za-z0-9_-]{1,128}"))) {
-            throw new IllegalArgumentException("A stable app component or folder identity is required.");
+                || value.matches("folder:[A-Za-z0-9_-]{1,128}")
+                || value.matches("package:[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+"))) {
+            throw new IllegalArgumentException("A stable app component, package or folder identity is required.");
         }
         int slash = value.indexOf('/');
         if (slash > 0 && value.charAt(slash + 1) == '.') {
@@ -38,6 +39,27 @@ final class LockState {
             return normalized;
         }
         return value;
+    }
+
+    boolean isLocked(String value) {
+        String target = key(value);
+        int slash = target.indexOf('/');
+        return targets.contains(target) || (slash > 0 && targets.contains("package:" + target.substring(0, slash)));
+    }
+
+    boolean importLegacyPin(char[] pin, Set<String> importedTargets) throws GeneralSecurityException {
+        validatePin(pin);
+        if (pin.length != 4) throw new IllegalArgumentException("Unsupported legacy PIN format.");
+        if (importedTargets == null || importedTargets.size() > 512) throw new IllegalArgumentException("Invalid imported lock targets.");
+        Set<String> imported = new LinkedHashSet<>();
+        for (String target : importedTargets) if (!imported.add(key(target))) throw new IllegalArgumentException("Duplicate imported lock identity.");
+        if (hasPin()) {
+            if (!targets.equals(imported) || !matchesPin(pin)) throw new IllegalStateException("Existing launcher locks conflict with this private migration.");
+            return false;
+        }
+        createPin(pin);
+        targets.addAll(imported);
+        return true;
     }
 
     void createPin(char[] pin) throws GeneralSecurityException {
@@ -73,13 +95,7 @@ final class LockState {
             blockedUntil = Math.min(blockedUntil, Math.max(0, now) + 300000L);
             return LockResult.THROTTLED;
         }
-        boolean matches = false;
-        if (pin != null && pin.length >= 4 && pin.length <= 12) {
-            byte[] candidate = derive(pin, salt);
-            matches = MessageDigest.isEqual(verifier, candidate);
-            Arrays.fill(candidate, (byte) 0);
-        }
-        if (matches) {
+        if (matchesPin(pin)) {
             failures = 0;
             blockedUntil = 0;
             return LockResult.GRANTED;
@@ -135,5 +151,12 @@ final class LockState {
         PBEKeySpec spec = new PBEKeySpec(pin, salt, ITERATIONS, 256);
         try { return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded(); }
         finally { spec.clearPassword(); }
+    }
+
+    private boolean matchesPin(char[] pin) throws GeneralSecurityException {
+        if (pin == null || pin.length < 4 || pin.length > 12) return false;
+        byte[] candidate = derive(pin, salt);
+        try { return MessageDigest.isEqual(verifier, candidate); }
+        finally { Arrays.fill(candidate, (byte) 0); }
     }
 }

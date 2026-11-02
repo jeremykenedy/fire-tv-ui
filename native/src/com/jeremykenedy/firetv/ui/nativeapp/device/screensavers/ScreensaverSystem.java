@@ -57,6 +57,10 @@ public final class ScreensaverSystem {
 
     public static void enabled(Context context, boolean enabled) {
         if (!canSelect(context)) throw new IllegalStateException("Change screensaver On or Off in the TV's own settings.");
+        if (production(context)) {
+            com.jeremykenedy.firetv.ui.nativeapp.device.commands.SettingCommandHandler.execute(context, "secure", ENABLED, enabled ? "1" : "0");
+            return;
+        }
         if (!Settings.Secure.putInt(context.getContentResolver(), ENABLED, enabled ? 1 : 0)
                 || enabled(context) != enabled) throw new IllegalStateException("The TV did not save the screensaver setting.");
     }
@@ -68,6 +72,10 @@ public final class ScreensaverSystem {
     public static void idleDelay(Context context, int milliseconds) {
         if (milliseconds <= 0) throw new IllegalArgumentException("Choose a positive idle delay.");
         if (!Settings.System.canWrite(context)) throw new IllegalStateException("Allow system settings access to change the shared idle delay.");
+        if (production(context)) {
+            com.jeremykenedy.firetv.ui.nativeapp.device.commands.SettingCommandHandler.execute(context, "system", Settings.System.SCREEN_OFF_TIMEOUT, String.valueOf(milliseconds));
+            return;
+        }
         if (!Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, milliseconds)
                 || idleDelay(context) != milliseconds) throw new IllegalStateException("The TV did not save the idle delay.");
     }
@@ -77,6 +85,21 @@ public final class ScreensaverSystem {
         for (ScreensaverEntry entry : installed(context)) if (entry.component.equals(ScreensaverEntry.normalize(component))) installed = true;
         if (!installed) throw new IllegalStateException("This screensaver is no longer installed or available.");
         if (!canSelect(context)) throw new IllegalStateException("Choose this saver in the TV's screensaver settings. Direct selection is unavailable to this app.");
+        if (production(context)) {
+            synchronized (com.jeremykenedy.firetv.ui.nativeapp.device.protection.LegacyDeviceProtection.LOCK) {
+                LegacyDreamSelection.select(new LegacyDreamSelection.Store() {
+                    @Override public String component() { return Settings.Secure.getString(context.getContentResolver(), COMPONENTS); }
+                    @Override public int enabled() { return Settings.Secure.getInt(context.getContentResolver(), ENABLED, 0); }
+                    @Override public void component(String value) {
+                        com.jeremykenedy.firetv.ui.nativeapp.device.commands.SettingCommandHandler.execute(context, "secure", COMPONENTS, value == null ? "null" : value);
+                    }
+                    @Override public void enable() {
+                        com.jeremykenedy.firetv.ui.nativeapp.device.commands.SettingCommandHandler.execute(context, "secure", ENABLED, "1");
+                    }
+                }, component);
+            }
+            return;
+        }
         String previous = Settings.Secure.getString(context.getContentResolver(), COMPONENTS);
         int wasEnabled = Settings.Secure.getInt(context.getContentResolver(), ENABLED, 0);
         try {
@@ -93,6 +116,8 @@ public final class ScreensaverSystem {
             throw failed;
         }
     }
+
+    private static boolean production(Context context) { return "com.jeremykenedy.firetv.ui".equals(context.getPackageName()); }
 
     public static Intent configuration(Context context, String component) {
         ComponentName dream = ComponentName.unflattenFromString(component);

@@ -9,12 +9,12 @@ public final class AppearancePreferences {
     public static final java.util.List<String> KEYS = java.util.Collections.unmodifiableList(java.util.Arrays.asList(
             "base", "base_frozen", "base_speed", "base_intensity", "base_brightness", "base_palette",
             "overlay", "overlay_frozen", "overlay_speed", "overlay_intensity", "overlay_opacity", "overlay_palette",
-            "scene", "wallpaper_image_uri", "wallpaper_video_uri", "wallpaper_mode"));
+            "reduced_motion", "scene", "wallpaper_image_uri", "wallpaper_video_uri", "wallpaper_mode", "wallpaper_video_frozen"));
     public static void validateSnapshot(Map<String, ?> values) {
         for (String key : KEYS) {
             if (!values.containsKey(key)) continue;
             Object value = values.get(key);
-            if (key.endsWith("_frozen")) {
+            if (key.endsWith("_frozen") || key.equals("reduced_motion")) {
                 if (!(value instanceof Boolean)) throw new IllegalArgumentException("Invalid appearance motion value.");
             } else if (key.endsWith("_speed") || key.endsWith("_intensity") || key.equals("base_brightness") || key.equals("overlay_opacity")) {
                 if (!(value instanceof Integer) || (Integer)value < 0 || (Integer)value > 100) throw new IllegalArgumentException("Invalid appearance level.");
@@ -24,13 +24,33 @@ public final class AppearancePreferences {
                 if (key.equals("base") && !AppearanceOptions.known(AppearanceOptions.BASES,text).equals(text)) throw new IllegalArgumentException("Unknown background.");
                 if (key.equals("overlay") && !AppearanceOptions.known(AppearanceOptions.OVERLAYS,text).equals(text)) throw new IllegalArgumentException("Unknown overlay.");
                 if (key.endsWith("_palette") && !text.isEmpty() && PaletteRecipes.find(text)==null) throw new IllegalArgumentException("Unknown palette recipe.");
-                if (key.equals("scene") && !text.isEmpty() && !text.equals("halloween") && !text.equals("christmas") && !text.equals("winter")) throw new IllegalArgumentException("Unknown scene.");
+                if (key.equals("scene") && !text.isEmpty() && com.jeremykenedy.firetv.ui.nativeapp.holidays.HolidayScenes.find(text) == null) throw new IllegalArgumentException("Unknown scene.");
                 if (key.equals("wallpaper_mode") && !text.equals("system") && !text.equals("image") && !text.equals("video")) throw new IllegalArgumentException("Unknown wallpaper source.");
             }
         }
     }
     private AppearancePreferences() {}
     public static SharedPreferences file(Context context) { return context.getSharedPreferences(FILE, Context.MODE_PRIVATE); }
+    public static String wallpaperMode(Context context) {
+        Object value = file(context).getAll().get("wallpaper_mode");
+        return "image".equals(value) || "video".equals(value) ? (String) value : "system";
+    }
+
+    public static boolean reducedMotion(Context context) {
+        return Boolean.TRUE.equals(file(context).getAll().get("reduced_motion"));
+    }
+
+    public static boolean videoFrozen(Context context) {
+        return Boolean.TRUE.equals(file(context).getAll().get("wallpaper_video_frozen"));
+    }
+
+    public static void selectWallpaper(Context context, String mode) {
+        if (!mode.equals("system") && !mode.equals("image") && !mode.equals("video")) {
+            throw new IllegalArgumentException("Unknown wallpaper source.");
+        }
+        string(context, "wallpaper_mode", mode);
+    }
+
     public static AppearanceOptions load(Context context) {
         Map<String, ?> values = file(context).getAll();
         return new AppearanceOptions(string(values, "base", "off"), flag(values, "base_frozen"),

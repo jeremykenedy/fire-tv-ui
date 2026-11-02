@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 
 /** Explicit document selection only. No production preferences or external directory scanning. */
 public final class BackupActivity extends Activity {
+    private boolean startupBlocked;
     private static final int EXPORT = 71, IMPORT = 72;
     static final PortableBackup.Validator VALIDATOR = new PortableBackup.Validator() {
         @Override public void validate(Map<String, PreferenceSnapshot> stores) throws Exception {
@@ -44,6 +45,7 @@ public final class BackupActivity extends Activity {
     }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         LinearLayout page = Pages.page(this);
         ScrollView scroll = new ScrollView(this);
         LinearLayout body = new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL);
@@ -85,6 +87,7 @@ public final class BackupActivity extends Activity {
         catch (SecurityException denied) { finishWork("The document picker could not be opened."); }
     }
     @Override protected void onActivityResult(int request, int result, Intent data) {
+        if (startupBlocked) { super.onActivityResult(request, result, data); return; }
         super.onActivityResult(request, result, data);
         if ((request != EXPORT && request != IMPORT) || !preview()) return;
         if (result != RESULT_OK) { finishWork("Canceled. Presentation settings were not changed."); return; }
@@ -199,5 +202,6 @@ public final class BackupActivity extends Activity {
         setBusy(false); status.setText(message);
         recoveryButton.setVisibility(hasRecovery() ? View.VISIBLE : View.GONE);
     }
-    @Override protected void onDestroy() { destroyed = true; worker.shutdown(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (startupBlocked) { super.onDestroy(); return; } destroyed = true; worker.shutdown(); super.onDestroy(); }
 }

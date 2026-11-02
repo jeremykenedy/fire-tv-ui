@@ -11,7 +11,7 @@ public final class ClockWidgetProvider implements WidgetProvider {
     @Override public boolean defaultVisible() { return true; }
     @Override public String title() { return "Clock"; }
     @Override public State state(Context context) { return State.READY; }
-    @Override public String message(Context context) { return "Uses this TV's time zone and 12/24-hour setting."; }
+    @Override public String message(Context context) { return "Uses this TV's time zone and an explicitly saved launcher time format when present. Otherwise it follows the TV's 12/24-hour setting."; }
     @Override public int widthDp() { return 320; }
     @Override public int heightDp() { return 160; }
     @Override public View createView(Context context) { return new ClockWidgetView(context); }

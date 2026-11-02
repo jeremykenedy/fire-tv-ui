@@ -19,6 +19,7 @@ public final class IconCatalog {
     }
 
     public static final List<Entry> ALL = Collections.unmodifiableList(Arrays.asList(
+            new Entry("denon", "Denon", "Audio", R.drawable.icon_denon),
             new Entry("harman-kardon", "Harman Kardon", "Audio", R.drawable.icon_harman_kardon),
             new Entry("jbl", "JBL", "Audio", R.drawable.icon_jbl),
             new Entry("kenwood", "Kenwood", "Audio", R.drawable.icon_kenwood),

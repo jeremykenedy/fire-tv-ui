@@ -561,5 +561,21 @@
       "decision": "hold",
       "reason": "Source URL and owned source hash reviewed. No redistribution license recorded for this specific artwork. Official hosting alone is not a license."
     }
+  ],
+  "approvedReplacements": [
+    {
+      "id": "denon",
+      "sourceFile": "native/icons/sources/denon.svg",
+      "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/7/75/Denon_(logo).svg",
+      "sourceSha256": "a79dbbc4921273905e92a7ff0497acda30c000d74f505aa59324a30778bd3dcb",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Denon_(logo).svg&oldid=1117877107",
+      "reviewed": "2026-11-01",
+      "reason": "Reviewed the specific Denon file, its licensing section and rendered wordmark against the retained Denon source. This is a separate public-domain depiction, not approval of the held official-site SVG. Trademark rights remain with Denon.",
+      "renderer": "scripts/build_icons.py",
+      "rendererSha256": "7277a519f37a40e0eeed8498f601be92bfaed1a2940f8a19c14eb47de809ac8a",
+      "renderAccent": "#ae704a",
+      "sourceFileDate": "2010-04-17"
+    }
   ]
 }

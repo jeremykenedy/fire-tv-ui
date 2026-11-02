@@ -41,11 +41,16 @@ public final class HomeContentView extends HorizontalScrollView {
     private TvRecommendations.Status status = TvRecommendations.Status.EMPTY;
     private boolean resumed;
     private boolean checking = true;
+    private LayoutOptions dashboardLayout;
+    private boolean preserveDashboardSlots;
     private long generation;
     private String focusedKey;
     private String restoreFocus;
     private int restoreScroll;
     private boolean restorePending;
+    private final Runnable widgetRefresh = new Runnable() {
+        @Override public void run() { if (resumed) refreshPreferences(); }
+    };
 
     public HomeContentView(Activity activity, ChannelCardView.Listener cardListener, Listener listener) {
         super(activity);
@@ -79,11 +84,19 @@ public final class HomeContentView extends HorizontalScrollView {
         return true;
     }
 
+    /** A null layout restores the ordinary Home layout without changing saved preferences. */
+    public void setDashboardLayout(LayoutOptions layout) {
+        dashboardLayout = layout;
+        if (layout != null) preserveDashboardSlots = true;
+        if (resumed) refreshPreferences();
+    }
+
     public void refreshPreferences() {
         LayoutOptions previous = LayoutPreferences.load(activity, HomeSlots.defaults());
         LayoutOptions layout = HomeSlots.discover(previous, feeds);
-        if (!previous.order.equals(layout.order) || !previous.hidden.equals(layout.hidden))
+        if (dashboardLayout == null && (!previous.order.equals(layout.order) || !previous.hidden.equals(layout.hidden)))
             LayoutPreferences.saveDiscovery(activity, previous, layout);
+        if (dashboardLayout != null) layout = HomeSlots.discover(dashboardLayout, feeds);
         CardOptions options = CardPreferences.load(activity);
         Map<String, TvRecommendations.Feed> byKey = new LinkedHashMap<>();
         for (TvRecommendations.Feed feed : feeds) byKey.put(feed.item.key(), feed);
@@ -121,12 +134,14 @@ public final class HomeContentView extends HorizontalScrollView {
                 if (slot.getParent() == row) row.removeView(slot);
             }
         }
-        // Drop only explicitly reset identities; missing producers remain in the saved order.
-        for (String key : new ArrayList<>(slots.keySet())) {
-            if (!layout.order.contains(key)) { slots.remove(key); selections.remove(key); }
+        // Dashboard snapshots can temporarily omit slots that another snapshot will restore.
+        if (!preserveDashboardSlots) {
+            for (String key : new ArrayList<>(slots.keySet())) {
+                if (!layout.order.contains(key)) { slots.remove(key); selections.remove(key); }
+            }
+            selections.keySet().retainAll(layout.order);
+            titles.keySet().retainAll(layout.order);
         }
-        selections.keySet().retainAll(layout.order);
-        titles.keySet().retainAll(layout.order);
         if (previouslyFocused != null && previouslyFocused.getParent() == row) previouslyFocused.requestFocus();
         else if (previouslyFocused != null && row.getChildCount() > 0) row.getChildAt(0).requestFocus();
         requestLayout();
@@ -151,6 +166,7 @@ public final class HomeContentView extends HorizontalScrollView {
     public void onHostPause() {
         resumed = false;
         generation++;
+        removeCallbacks(widgetRefresh);
         for (Slot slot : slots.values()) slot.stop();
     }
 
@@ -222,6 +238,7 @@ public final class HomeContentView extends HorizontalScrollView {
     }
 
     @Override protected void onDetachedFromWindow() {
+        removeCallbacks(widgetRefresh);
         for (Slot slot : slots.values()) slot.stop();
         super.onDetachedFromWindow();
     }
@@ -249,6 +266,8 @@ public final class HomeContentView extends HorizontalScrollView {
         View widget;
         boolean ready;
         boolean started;
+        boolean observing;
+        AutoCloseable observation;
         String title;
 
         Slot(final LayoutItem item) {
@@ -310,14 +329,14 @@ public final class HomeContentView extends HorizontalScrollView {
                 ready = true;
             } else if (provider != null) {
                 title = provider.title();
-                ready = provider.state(activity) == WidgetProvider.State.READY;
+                ready = provider.canRender(provider.state(activity));
                 if (ready && widget == null) {
                     widget = provider.createView(activity);
                     widget.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
                     addView(widget, new FrameLayout.LayoutParams(-1, -1));
                 }
             } else ready = false;
-            if (!ready) stop();
+            if (!ready) stopContent();
             if (card != null) card.setVisibility(ready ? VISIBLE : GONE);
             if (widget != null) widget.setVisibility(ready ? VISIBLE : GONE);
             if (widget != null && ready && started) provider.onStart(widget);
@@ -348,13 +367,34 @@ public final class HomeContentView extends HorizontalScrollView {
         }
 
         void start() {
-            if (!resumed || !ready || started || !nearViewport()) return;
+            if (!resumed || !isAttachedToWindow() || !nearViewport()) return;
+            if (provider != null && !observing) {
+                observing = true;
+                observation = provider.observe(activity, new Runnable() {
+                    @Override public void run() {
+                        if (!observing || !resumed) return;
+                        removeCallbacks(widgetRefresh);
+                        post(widgetRefresh);
+                    }
+                });
+            }
+            if (!ready || started) return;
             if (card != null) card.onHostResume();
             if (widget != null) provider.onStart(widget);
             started = true;
         }
 
         void stop() {
+            observing = false;
+            if (observation != null) {
+                try { observation.close(); }
+                catch (Exception unavailable) { /* A source failure must not interrupt other slots' cleanup. */ }
+                observation = null;
+            }
+            stopContent();
+        }
+
+        private void stopContent() {
             rememberSelection();
             if (card != null && started) card.onHostPause();
             if (widget != null && started) provider.onStop(widget);
@@ -365,7 +405,10 @@ public final class HomeContentView extends HorizontalScrollView {
             if (ready && card != null && cardListener != null) {
                 if (longPress) cardListener.onLongPress(card.feed(), card.currentProgram());
                 else cardListener.onSelect(card.feed(), card.currentProgram());
-            } else if (provider != null) provider.configure(activity);
+            } else if (provider != null) {
+                if (longPress) provider.configure(activity);
+                else provider.activate(activity, widget);
+            }
             else if (listener != null) listener.onUnavailable(item);
         }
 

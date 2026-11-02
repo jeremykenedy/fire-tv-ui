@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class PhotoSettingsActivity extends Activity {
+    private boolean startupBlocked;
     private static final int PICK_PHOTOS = 41;
     private LinearLayout body;
     private TextView status;
@@ -34,18 +35,22 @@ public final class PhotoSettingsActivity extends Activity {
     private String replacement, focusKey = "add";
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         if (state != null) { replacement = state.getString("replacement"); focusKey = state.getString("focus", "add"); }
         render();
     }
     @Override protected void onSaveInstanceState(Bundle state) {
+        if (startupBlocked) { super.onSaveInstanceState(state); return; }
         super.onSaveInstanceState(state); state.putString("replacement", replacement); state.putString("focus", focusKey);
     }
     @Override protected void onStart() {
+        if (startupBlocked) { super.onStart(); return; }
         super.onStart(); foreground = true;
         if (canceledImport && status != null) { status.setText("Photo selection cancelled. Your previous selections have been kept."); canceledImport = false; }
         if (preview != null) preview.start();
     }
     @Override protected void onStop() {
+        if (startupBlocked) { super.onStop(); return; }
         foreground = false; generation++; canceledImport = importing; importing = false;
         if (cancellation != null) cancellation.cancel();
         if (worker != null) worker.shutdownNow(); worker = null;
@@ -126,6 +131,7 @@ public final class PhotoSettingsActivity extends Activity {
         catch (RuntimeException unavailable) { replacement = null; status.setText("No document image picker is available. Install a compatible document picker to select photos."); }
     }
     @Override protected void onActivityResult(int request, int result, Intent data) {
+        if (startupBlocked) { super.onActivityResult(request, result, data); return; }
         super.onActivityResult(request, result, data);
         if (request != PICK_PHOTOS) return;
         final String replaceId = replacement; replacement = null;

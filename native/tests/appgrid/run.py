@@ -18,6 +18,11 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-appgrid-') as folder:
     subprocess.run(['javac', '-d', work, *[work / name for name in stubs],
                     root / 'src/com/jeremykenedy/firetv/ui/nativeapp/appgrid/AppGridOptions.java',
                     root / 'src/com/jeremykenedy/firetv/ui/nativeapp/appgrid/AppGridPreferences.java',
+                    root / 'src/com/jeremykenedy/firetv/ui/nativeapp/appgrid/HomeTileOrder.java',
+                    root / 'src/com/jeremykenedy/firetv/ui/nativeapp/appgrid/HomeTilePreferences.java',
+                    root / 'src/com/jeremykenedy/firetv/ui/nativeapp/folders/FolderOptions.java',
+                    root / 'src/com/jeremykenedy/firetv/ui/nativeapp/inputs/InputEntry.java',
+                    root / 'tests/appgrid/HomeTileOrderTest.java',
                     root / 'tests/appgrid/AppGridTest.java', root / 'tests/appgrid/AppGridPreferencesTest.java'], check=True)
-    for name in ('AppGridTest', 'AppGridPreferencesTest'):
+    for name in ('AppGridTest', 'AppGridPreferencesTest', 'HomeTileOrderTest'):
         subprocess.run(['java', '-cp', work, 'com.jeremykenedy.firetv.ui.nativeapp.appgrid.' + name], check=True)

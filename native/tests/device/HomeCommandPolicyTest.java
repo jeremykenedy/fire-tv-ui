@@ -46,6 +46,29 @@ public final class HomeCommandPolicyTest {
         restarted.recovery.put(HomeSetupPolicy.LEGACY_HOME, null);
         check("home-preference=unset".equals(HomeCommandPolicy.execute(restarted, "home-preference-state")), "Interrupted transaction restores absent master before new commands");
         check("still here".equals(restarted.values.get("unrelated")), "Recovery is scoped to journaled flags");
+        Store setup = new Store();
+        setup.values.put("start_on_boot", false);
+        setup.values.put("unrelated", "unchanged");
+        HomeCommandPolicy.saveChoices(setup, false, true);
+        check(Boolean.TRUE.equals(setup.values.get(HomeSetupPolicy.HOME_WINDOWS))
+                && Boolean.FALSE.equals(setup.values.get(HomeSetupPolicy.HOME_KEYS)), "Setup saves independent Home modes");
+        check(Boolean.FALSE.equals(setup.values.get("start_on_boot")), "Setup preserves boot opt-out");
+        Map<String, Object> beforeSetup = new LinkedHashMap<>(setup.values);
+        setup.failNextWrite = true;
+        try { HomeCommandPolicy.saveChoices(setup, true, false); throw new AssertionError("Failure expected"); }
+        catch (IllegalStateException expected) { }
+        check(beforeSetup.equals(setup.values) && setup.recovery == null,
+                "Setup shares durable transaction rollback and preserves unrelated preferences");
+        setup.recoverDuringWrite = true;
+        HomeCommandPolicy.saveChoices(setup, true, false);
+        check(Boolean.TRUE.equals(setup.values.get(HomeSetupPolicy.HOME_KEYS))
+                && Boolean.FALSE.equals(setup.values.get(HomeSetupPolicy.HOME_WINDOWS)) && setup.recovery == null,
+                "Synchronous preference listeners cannot recover an unfinished live transaction");
+        setup.recovery = new LinkedHashMap<>();
+        setup.recovery.put(HomeSetupPolicy.HOME_WINDOWS, true);
+        HomeCommandPolicy.recover(setup);
+        check(Boolean.TRUE.equals(setup.values.get(HomeSetupPolicy.HOME_WINDOWS)) && setup.recovery == null,
+                "Recovery tolerates its own synchronous preference listeners");
         store.values.put(HomeSetupPolicy.HOME_KEYS, "invalid");
         before = new LinkedHashMap<>(store.values);
         failure(store, "home-off");
@@ -59,11 +82,13 @@ public final class HomeCommandPolicyTest {
         boolean route;
         boolean failNextWrite;
         boolean routeChangesAfterWrite;
+        boolean recoverDuringWrite;
         @Override public Map<String, ?> preferences() { return new LinkedHashMap<>(values); }
         @Override public boolean write(Map<String, Boolean> changes) {
             for (Map.Entry<String, Boolean> change : changes.entrySet()) {
                 if (change.getValue() == null) values.remove(change.getKey()); else values.put(change.getKey(), change.getValue());
             }
+            if (recoverDuringWrite) HomeCommandPolicy.recover(this);
             if (failNextWrite) { failNextWrite = false; return false; }
             if (routeChangesAfterWrite) route = !route;
             return true;
