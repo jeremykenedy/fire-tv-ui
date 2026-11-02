@@ -32,6 +32,7 @@ public final class HomeContentView extends HorizontalScrollView {
     public interface Listener {
         void onSlotFocused(String key);
         void onUnavailable(LayoutItem item);
+        default void onArtworkChanged(ChannelCardView card, android.graphics.Bitmap artwork) {}
     }
 
     private final Activity activity;
@@ -54,6 +55,7 @@ public final class HomeContentView extends HorizontalScrollView {
     private String restoreChild;
     private int restoreScroll;
     private boolean restorePending;
+    private String widgetColors;
     private final Runnable widgetRefresh = new Runnable() {
         @Override public void run() { if (resumed) refreshPreferences(); }
     };
@@ -118,10 +120,13 @@ public final class HomeContentView extends HorizontalScrollView {
         CardOptions options = CardPreferences.load(activity);
         Map<String, TvRecommendations.Feed> byKey = new LinkedHashMap<>();
         for (TvRecommendations.Feed feed : feeds) byKey.put(feed.item.key(), feed);
+        List<TvRecommendations.Feed> knownFeeds = new ArrayList<>(feeds);
+        for (Slot slot : slots.values()) if (slot.card != null) knownFeeds.add(slot.card.feed());
+        java.util.Set<String> packageHidden = CardPreferences.hiddenFeedKeys(activity, knownFeeds);
         List<LayoutItem> ordered = new ArrayList<>();
         for (String key : layout.order) {
             LayoutItem item = item(key);
-            if (layout.includes(item.kind) && !layout.hidden.contains(key)) ordered.add(item);
+            if (layout.includes(item.kind) && !layout.hidden.contains(key) && !packageHidden.contains(key)) ordered.add(item);
         }
         LinkedHashSet<String> retained = new LinkedHashSet<>();
         Slot previouslyFocused = focusedSlot();
@@ -185,6 +190,20 @@ public final class HomeContentView extends HorizontalScrollView {
 
     public void onHostResume() {
         resumed = true;
+        java.util.Map<String, ?> preferences = activity.getSharedPreferences("launcher_prefs", android.content.Context.MODE_PRIVATE).getAll();
+        String colors = String.valueOf(preferences.get("color_widget_bg_color_argb")) + ":"
+                + preferences.get("color_widget_bg_color_opacity") + ":"
+                + preferences.get("color_widget_text_color_argb") + ":" + preferences.get("color_widget_text_color_opacity");
+        if (!colors.equals(widgetColors)) {
+            for (Slot slot : slots.values()) {
+                if (slot.groups != null) slot.groupsRaw = null;
+                if (slot.widget instanceof com.jeremykenedy.firetv.ui.nativeapp.widget.ClockWidgetView
+                        || slot.widget instanceof com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherView) {
+                    slot.stopContent(); slot.removeView(slot.widget); slot.widget = null;
+                }
+            }
+            widgetColors = colors;
+        }
         refreshPreferences();
     }
 
@@ -364,7 +383,8 @@ public final class HomeContentView extends HorizontalScrollView {
         }
 
         void updateWidgetBacking() {
-            if (provider != null && widgetReadability) {
+            if (provider != null && widgetReadability
+                    && !item.key().equals("widget:clock") && !item.key().equals("widget:weather")) {
                 android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
                 surface.setColor(0xd9101523);
                 surface.setCornerRadius(dp(14));
@@ -380,6 +400,11 @@ public final class HomeContentView extends HorizontalScrollView {
                 List<TvRecommendations.Program> visible = CardPreferences.visiblePrograms(options, feed);
                 if (card == null) {
                     card = new ChannelCardView(activity, feed, cardListener);
+                    card.setArtworkListener(new ChannelCardView.ArtworkListener() {
+                        @Override public void onArtworkChanged(ChannelCardView card, android.graphics.Bitmap artwork) {
+                            if (listener != null) listener.onArtworkChanged(card, artwork);
+                        }
+                    });
                     card.setFocusable(false);
                     card.setClickable(false);
                     card.setLongClickable(false);
@@ -395,6 +420,9 @@ public final class HomeContentView extends HorizontalScrollView {
                 ready = provider.canRender(provider.state(activity));
                 if (ready && widget == null) {
                     widget = provider.createView(activity);
+                    if (widget instanceof com.jeremykenedy.firetv.ui.nativeapp.widget.ClockWidgetView
+                            || widget instanceof com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherView)
+                        com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.apply(widget);
                     widget.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
                     addView(widget, new FrameLayout.LayoutParams(-1, -1));
                 }

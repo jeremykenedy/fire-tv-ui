@@ -1,6 +1,6 @@
 # Documentation
 
-- [Source Preview 2.0.0-alpha.1](source-preview.md): separate preview installation, included first-cut scope and qualification limits.
+- [Source Preview 2.0.0-alpha.2](source-preview.md): separate preview installation, included first-cut scope and qualification limits.
 
 The guides below describe the retained stable 1.x product unless explicitly labeled otherwise.
 
@@ -53,3 +53,5 @@ The guides below describe the retained stable 1.x product unless explicitly labe
 - [Fresh installation defaults](fresh-defaults.md)
 
 - [Fire TV UI 1.9.0](releases/v1.9.0.md)
+
+- [Source Preview alpha.2 release notes](releases/v2.0.0-alpha.2.md)

@@ -23,8 +23,7 @@ public final class StatusBarSettings {
         AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Status bar")
                 .setItems(labels, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface ignored, int which) {
-                        if (which == 0) choose(activity, prefs, "Status bar", "minimal_status_bar",
-                                new String[]{"Off", "Full", "Minimal"}, new Object[]{null, false, true});
+                        if (which == 0) chooseMode(activity, prefs);
                         else if (which == 1) choose(activity, prefs, "Position", "status_bar_position",
                                 new String[]{"Default", "Left", "Right"}, new Object[]{null, "Left", "Right"});
                         else if (which == 2) choose(activity, prefs, "Hide unless focused", "hide_status_bar_unless_focused",
@@ -36,6 +35,42 @@ public final class StatusBarSettings {
                     }
                 }).setNegativeButton("Done", null).show();
         dialog.getListView().requestFocus();
+    }
+
+    private static void chooseMode(final Activity activity, final SharedPreferences prefs) {
+        AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Status bar")
+                .setItems(new String[]{"Off", "Full", "Minimal"}, new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface ignored, int which) {
+                        try { saveMode(prefs, which); }
+                        catch (RuntimeException failure) {
+                            Toast.makeText(activity, "Status bar setting could not be saved. Try again.", Toast.LENGTH_LONG).show();
+                        }
+                        show(activity);
+                    }
+                }).setNegativeButton("Back", new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface ignored, int which) { show(activity); }
+                }).show();
+        dialog.getListView().requestFocus();
+    }
+
+    private static void saveMode(SharedPreferences prefs, int mode) {
+        Object previousMode = prefs.getAll().get("minimal_status_bar");
+        Object previousOff = prefs.getAll().get(StatusBarOptions.OFF_KEY);
+        if ((previousMode != null && !(previousMode instanceof Boolean))
+                || (previousOff != null && !(previousOff instanceof Boolean)))
+            throw new IllegalStateException("Stored setting has an unexpected type.");
+        SharedPreferences.Editor edit = prefs.edit();
+        if (mode == 0) edit.putBoolean(StatusBarOptions.OFF_KEY, true);
+        else {
+            edit.remove(StatusBarOptions.OFF_KEY);
+            edit.putBoolean("minimal_status_bar", mode == 2);
+        }
+        if (edit.commit()) return;
+        SharedPreferences.Editor restore = prefs.edit();
+        put(restore, "minimal_status_bar", previousMode);
+        put(restore, StatusBarOptions.OFF_KEY, previousOff);
+        restore.commit();
+        throw new IllegalStateException("Setting could not be saved.");
     }
 
     private static void choose(final Activity activity, final SharedPreferences prefs, String title,
@@ -88,7 +123,7 @@ public final class StatusBarSettings {
         catch (ClassCastException invalid) { return "Unavailable"; }
     }
     private static String mode(SharedPreferences prefs) {
-        try { return !prefs.contains("minimal_status_bar") ? "Off"
+        try { return prefs.getBoolean(StatusBarOptions.OFF_KEY, false) ? "Off"
                 : prefs.getBoolean("minimal_status_bar", false) ? "Minimal" : "Full"; }
         catch (ClassCastException invalid) { return "Unavailable"; }
     }

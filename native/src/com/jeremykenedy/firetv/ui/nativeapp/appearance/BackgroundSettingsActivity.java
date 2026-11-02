@@ -27,12 +27,63 @@ public final class BackgroundSettingsActivity extends Activity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; } options=AppearancePreferences.load(this);
-        LinearLayout root=Pages.page(this); root.setPadding(0,0,0,0);
-        LinearLayout columns=new LinearLayout(this); root.addView(columns,new LinearLayout.LayoutParams(-1,-1));
-        ScrollView scroll=new ScrollView(this); columns.addView(scroll,new LinearLayout.LayoutParams(0,-1,3));
-        LinearLayout controls=new LinearLayout(this); controls.setOrientation(1); controls.setPadding(dp(32),dp(24),dp(24),dp(24)); controls.setBackgroundColor(0xdc101523); scroll.addView(controls);
-        controls.addView(Pages.text(this,"Backgrounds and overlays",28));
-        controls.addView(Pages.text(this,"Choose a background and a separate transparent effect. Your wallpaper stays saved.",17));
+        getWindow().getDecorView().setSystemUiVisibility(5894);
+        android.widget.FrameLayout root=new android.widget.FrameLayout(this);
+        root.setBackgroundColor(0xff1c1037);
+        setContentView(root);
+        ScrollView scroll=new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.setVerticalScrollBarEnabled(false);
+        android.graphics.drawable.GradientDrawable panel=new android.graphics.drawable.GradientDrawable();
+        panel.setColor(0xff383838); panel.setCornerRadius(dp(18));
+        scroll.setBackground(panel); scroll.setClipToOutline(true);
+        android.widget.FrameLayout.LayoutParams bounds=new android.widget.FrameLayout.LayoutParams(-1,-1);
+        bounds.setMargins(dp(32),dp(24),dp(32),dp(24)); root.addView(scroll,bounds);
+        LinearLayout controls=new LinearLayout(this); controls.setOrientation(LinearLayout.VERTICAL);
+        controls.setPadding(dp(24),dp(14),dp(24),dp(24)); scroll.addView(controls);
+        TextView heading=Pages.text(this,"Backgrounds and overlays",28);
+        heading.setTypeface(null,android.graphics.Typeface.BOLD);
+        heading.setPadding(0,dp(6),0,dp(2)); controls.addView(heading);
+        TextView description=Pages.text(this,"Keep your wallpaper and add a transparent overlay, or choose a full background. Each layer has its own motion and colors. The preview uses a neutral base.",18);
+        description.setPadding(0,dp(6),0,dp(10)); controls.addView(description);
+        layer=new BackgroundLayer(this);
+        android.graphics.drawable.GradientDrawable previewBackground=new android.graphics.drawable.GradientDrawable();
+        previewBackground.setColor(0xff202733); previewBackground.setCornerRadius(dp(8));
+        layer.setBackground(previewBackground); layer.setClipToOutline(true);
+        LinearLayout.LayoutParams previewBounds=new LinearLayout.LayoutParams(dp(320),dp(180));
+        previewBounds.bottomMargin=dp(10); controls.addView(layer,previewBounds);
+        Button full=editorButton("Full screen preview",new View.OnClickListener() { @Override public void onClick(View view) { startActivity(new Intent(BackgroundSettingsActivity.this,BackgroundPreviewActivity.class)); } });
+        full.setTag("appearance:preview");
+        row(controls,"holiday_theme","Holiday themes",new View.OnClickListener() { @Override public void onClick(View view) { chooseHolidayTheme(); } });
+        row(controls,"base","",new View.OnClickListener() { @Override public void onClick(View view) { choose("Background","base",AppearanceOptions.BASES,AppearanceOptions.BASE_LABELS,options.base); } });
+        section(controls,"Transparent overlay");
+        controls.addView(Pages.text(this,"Off removes only the overlay. Your background, wallpaper and app layout remain as they are.",16));
+        row(controls,"overlay","",new View.OnClickListener() { @Override public void onClick(View view) { choose("Transparent overlay","overlay",AppearanceOptions.OVERLAYS,AppearanceOptions.OVERLAY_LABELS,options.overlay); } });
+        row(controls,"overlay_frozen","",new View.OnClickListener() { @Override public void onClick(View view) { flag("overlay_frozen",!options.overlayFrozen); } });
+        number(controls,"overlay_speed","Overlay speed"); number(controls,"overlay_intensity","Overlay intensity"); number(controls,"overlay_opacity","Overlay opacity");
+        palette(controls,"overlay_palette","Overlay palette recipe");
+        row(controls,"recommended","Use recommended overlay values",new View.OnClickListener() { @Override public void onClick(View view) {
+            try { AppearancePreferences.update(BackgroundSettingsActivity.this,new String[]{"overlay_speed","overlay_intensity","overlay_opacity"},new Object[]{50,70,80}); refresh(); } catch(IllegalStateException failure) { error(failure); }
+        } });
+        section(controls,"Background options");
+        row(controls,"legacy_gradient","",new View.OnClickListener() { @Override public void onClick(View view) {
+            choose("Saved gradient", "legacy_gradient", LegacyGradients.IDS, LegacyGradients.LABELS, options.legacyGradient);
+        } });
+        row(controls,"base_frozen","",new View.OnClickListener() { @Override public void onClick(View view) { flag("base_frozen",!options.baseFrozen); } });
+        number(controls,"base_speed","Background speed"); number(controls,"base_intensity","Background intensity"); number(controls,"base_brightness","Background brightness");
+        palette(controls,"base_palette","Background palette recipe");
+        section(controls,"Holiday scenery");
+        row(controls,"scene","",new View.OnClickListener() { @Override public void onClick(View view) { chooseScene(); } });
+        row(controls,"scene_overlay","Use this scene's suggested overlay",new View.OnClickListener() { @Override public void onClick(View view) {
+            try { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) { com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(BackgroundSettingsActivity.this); HolidaySelection.apply(AppearancePreferences.file(BackgroundSettingsActivity.this),options.scene,HolidaySelection.Mode.OVERLAY); } refresh(); }
+            catch(IllegalStateException failure) { error(failure); }
+        } });
+        controls.addView(Pages.text(this,"Scene selection changes only the scenery. Choose a transparent overlay separately, or use the scene's suggestion. Off returns to your saved background and wallpaper.",16));
+        section(controls,"Motion");
+        row(controls,"reduced_motion","",new View.OnClickListener() { @Override public void onClick(View view) {
+            flag("reduced_motion",!AppearancePreferences.reducedMotion(BackgroundSettingsActivity.this));
+        } });
+        controls.addView(Pages.text(this,"Reduced motion holds backgrounds, holiday scenes, overlays and personal video still. Your individual motion choices stay saved.",16));
         section(controls,"Wallpaper");
         controls.addView(Pages.text(this,"Set Background to Off to show your wallpaper. Changing its source keeps your background and overlay choices.",16));
         row(controls,"wallpaper_mode","Wallpaper source",new View.OnClickListener() {
@@ -49,49 +100,16 @@ public final class BackgroundSettingsActivity extends Activity {
                 flag("wallpaper_video_frozen",!AppearancePreferences.videoFrozen(BackgroundSettingsActivity.this));
             }
         });
-        section(controls,"Motion");
-        row(controls,"reduced_motion","",new View.OnClickListener() { @Override public void onClick(View view) {
-            flag("reduced_motion",!AppearancePreferences.reducedMotion(BackgroundSettingsActivity.this));
-        } });
-        controls.addView(Pages.text(this,"Reduced motion holds backgrounds, holiday scenes, overlays and personal video still. Your individual motion choices stay saved.",16));
-        section(controls,"Holiday scenery");
-        row(controls,"holiday_theme","Holiday themes",new View.OnClickListener() { @Override public void onClick(View view) { chooseHolidayTheme(); } });
-        row(controls,"scene","",new View.OnClickListener() { @Override public void onClick(View view) { chooseScene(); } });
-        row(controls,"scene_overlay","Use this scene's suggested overlay",new View.OnClickListener() { @Override public void onClick(View view) {
-            try { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) { com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(BackgroundSettingsActivity.this); HolidaySelection.apply(AppearancePreferences.file(BackgroundSettingsActivity.this),options.scene,HolidaySelection.Mode.OVERLAY); } refresh(); }
-            catch(IllegalStateException failure) { error(failure); }
-        } });
-        controls.addView(Pages.text(this,"Scene selection changes only the scenery. Choose a transparent overlay separately, or use the scene's suggestion. Off returns to your saved background and wallpaper.",16));
-        section(controls,"Background");
-        row(controls,"base","",new View.OnClickListener() { @Override public void onClick(View view) { choose("Background","base",AppearanceOptions.BASES,AppearanceOptions.BASE_LABELS,options.base); } });
-        row(controls,"legacy_gradient","",new View.OnClickListener() { @Override public void onClick(View view) {
-            choose("Saved gradient", "legacy_gradient", LegacyGradients.IDS, LegacyGradients.LABELS, options.legacyGradient);
-        } });
-        row(controls,"base_frozen","",new View.OnClickListener() { @Override public void onClick(View view) { flag("base_frozen",!options.baseFrozen); } });
-        number(controls,"base_speed","Background speed"); number(controls,"base_intensity","Background intensity"); number(controls,"base_brightness","Background brightness");
-        palette(controls,"base_palette","Background palette recipe");
-        section(controls,"Transparent overlay");
-        row(controls,"overlay","",new View.OnClickListener() { @Override public void onClick(View view) { choose("Transparent overlay","overlay",AppearanceOptions.OVERLAYS,AppearanceOptions.OVERLAY_LABELS,options.overlay); } });
-        row(controls,"overlay_frozen","",new View.OnClickListener() { @Override public void onClick(View view) { flag("overlay_frozen",!options.overlayFrozen); } });
-        number(controls,"overlay_speed","Overlay speed"); number(controls,"overlay_intensity","Overlay intensity"); number(controls,"overlay_opacity","Overlay opacity");
-        palette(controls,"overlay_palette","Overlay palette recipe");
-        row(controls,"recommended","Use recommended overlay values",new View.OnClickListener() { @Override public void onClick(View view) {
-            try { AppearancePreferences.update(BackgroundSettingsActivity.this,new String[]{"overlay_speed","overlay_intensity","overlay_opacity"},new Object[]{50,70,80}); refresh(); } catch(IllegalStateException failure) { error(failure); }
-        } });
-        LinearLayout sample=new LinearLayout(this); sample.setOrientation(1); sample.setPadding(dp(24),dp(30),dp(32),dp(24));
-        columns.addView(sample,new LinearLayout.LayoutParams(0,-1,2));
-        TextView preview=Pages.text(this,"Live preview",24); preview.setBackgroundColor(0x99101523); sample.addView(preview);
-        TextView note=Pages.text(this,"The selected wallpaper, background, scene and overlay appear here in the same order as Home.",17); note.setBackgroundColor(0x99101523); sample.addView(note);
-        Button full=Pages.button(this,"Full screen preview",new View.OnClickListener() { @Override public void onClick(View view) { startActivity(new Intent(BackgroundSettingsActivity.this,BackgroundPreviewActivity.class)); } }); full.setTag("appearance:preview"); sample.addView(full);
-        layer=BackgroundLayer.attach(this,root); root.setBackgroundColor(0);
+        controls.addView(full);
         layer.setMediaListener(new BackgroundLayer.MediaListener() {
             @Override public void changed(BackgroundLayer.MediaState state,String message) {
                 mediaStatus.setText(message);
                 rows.get("retry_media").setEnabled(state==BackgroundLayer.MediaState.UNAVAILABLE);
             }
         });
-        refresh(); rows.get("wallpaper_mode").requestFocus();
+        refresh(); rows.get("base").requestFocus();
     }
+
     private void chooseScene() {
         String[] values=new String[HolidayScenes.ALL.length+1], labels=new String[values.length];
         values[0]=""; labels[0]="Off: use saved background and wallpaper";
@@ -160,7 +178,17 @@ public final class BackgroundSettingsActivity extends Activity {
         } });
     }
     private void section(LinearLayout parent,String title) { TextView text=Pages.text(this,title,21); text.setPadding(0,dp(20),0,dp(6)); parent.addView(text); }
-    private void row(LinearLayout parent,String key,String label,View.OnClickListener listener) { Button row=Pages.button(this,label,listener); row.setTag("appearance:"+key); row.setMinHeight(dp(48)); rows.put(key,row); parent.addView(row,new LinearLayout.LayoutParams(-1,-2)); }
+    private Button editorButton(String label, View.OnClickListener listener) {
+        Button button=Pages.menuButton(this,label,listener);
+        button.setOnFocusChangeListener(null);
+        button.setTextSize(18); button.setTypeface(null,android.graphics.Typeface.NORMAL);
+        button.setPadding(dp(14),0,dp(14),0);
+        LinearLayout.LayoutParams bounds=new LinearLayout.LayoutParams(-1,dp(42)); bounds.bottomMargin=dp(6);
+        button.setLayoutParams(bounds);
+        com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityStyle.apply(this,button);
+        return button;
+    }
+    private void row(LinearLayout parent,String key,String label,View.OnClickListener listener) { Button row=editorButton(label,listener); row.setTag("appearance:"+key); rows.put(key,row); parent.addView(row); }
     private void number(LinearLayout parent,String key,String label) { row(parent,key,label,new View.OnClickListener() { @Override public void onClick(View view) {
         final android.widget.SeekBar bar=new android.widget.SeekBar(BackgroundSettingsActivity.this); bar.setMax(100); bar.setKeyProgressIncrement(1); bar.setProgress(value(key)); bar.setPadding(dp(24),dp(16),dp(24),dp(16)); bar.setContentDescription(label);
         final TextView caption=Pages.text(BackgroundSettingsActivity.this,label+": "+value(key)+"%",20);

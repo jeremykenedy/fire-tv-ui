@@ -8,7 +8,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.widget.ClockWidgetView;
 
 public final class ClockWidgetProvider implements WidgetProvider {
     @Override public LayoutItem item() { return HomeSlots.CLOCK; }
-    @Override public boolean defaultVisible() { return true; }
+    @Override public boolean defaultVisible() { return false; }
     @Override public String title() { return "Clock"; }
     @Override public State state(Context context) { return State.READY; }
     @Override public String message(Context context) { return "Uses this TV's time zone and an explicitly saved launcher time format when present. Otherwise it follows the TV's 12/24-hour setting."; }

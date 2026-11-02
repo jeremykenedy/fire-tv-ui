@@ -39,7 +39,10 @@ public final class WeatherView extends LinearLayout {
         title.setText("Hourly weather"); status.setText("Checking forecast...");
     }
     private TextView text(int size) {
-        TextView view = new TextView(getContext()); view.setTextColor(Color.WHITE); view.setTextSize(size);
+        TextView view = new TextView(getContext());
+        view.setTextColor(com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.hasText(getContext())
+                ? com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.color(getContext(), true) : Color.WHITE);
+        view.setTextSize(size);
         view.setEllipsize(TextUtils.TruncateAt.END); return view;
     }
     void start() {

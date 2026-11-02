@@ -28,7 +28,8 @@ public final class LegacyYearProgressView extends View {
         setContentDescription("Year " + value.percent + "%");
         float width = getWidth(), height = getHeight();
         float pad = Math.max(8, width * .05f);
-        paint.setColor(Color.WHITE); paint.setTextSize(Math.min(width * .11f, height * .16f));
+        int textColor = WidgetAppearance.hasText(getContext()) ? WidgetAppearance.color(getContext(), true) : Color.WHITE;
+        paint.setColor(textColor); paint.setTextSize(Math.min(width * .11f, height * .16f));
         canvas.drawText("Year", pad, pad + paint.getTextSize(), paint);
         String percent = value.percent + "%";
         canvas.drawText(percent, width - pad - paint.measureText(percent), pad + paint.getTextSize(), paint);
@@ -37,7 +38,7 @@ public final class LegacyYearProgressView extends View {
         float xStep = (right - left) / 10f, yStep = (bottom - top) / 4f;
         float radius = Math.max(2, Math.min(xStep, yStep) * .22f);
         for (int i = 0; i < LegacyYearProgressModel.DOTS; i++) {
-            paint.setColor(i < value.filledDots ? Color.WHITE : 0x66888888);
+            paint.setColor(i < value.filledDots ? textColor : 0x66888888);
             canvas.drawCircle(left + (i % 11) * xStep, top + (i / 11) * yStep, radius, paint);
         }
     }

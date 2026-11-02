@@ -110,6 +110,7 @@ public final class LegacyPresentationMapper {
             if (key.equals("display_order")) { result.get(GRID).add("order"); result.get(GRID).add("home_order"); result.get(INPUTS).add("order"); }
             if (key.equals("app_visibility")) {
                 result.get(GRID).add("hidden");
+                result.get(CARDS).add("hidden_packages");
                 for (String id : identities.inputs.values()) result.get(INPUTS).add("hidden:" + id);
             }
             if (key.equals("show_all_apps_button")) result.get(GRID).add("show_all_apps_button");
@@ -306,7 +307,9 @@ public final class LegacyPresentationMapper {
                 : Collections.<String>emptySet();
         Map<String, String> customIcons = new LinkedHashMap<>();
         Set<String> hidden = new LinkedHashSet<>(lines(before.get(GRID).values().get("hidden"), 2048));
-        boolean changedHidden = false, completeVisibility = true;
+        boolean changedHidden = false, changedCardPackages = false, completeVisibility = true;
+        Set<String> hiddenCardPackages = new LinkedHashSet<>(currentCards().hiddenPackages);
+        Map<String, Boolean> resolvedCardPackages = new LinkedHashMap<>();
         Map<String, Boolean> resolvedVisibility = new LinkedHashMap<>();
         if (legacy.containsKey("app_visibility")) {
             Map<String, Object> visibility = LegacyJson.object(string("app_visibility"));
@@ -330,6 +333,14 @@ public final class LegacyPresentationMapper {
                             if ((Boolean) choice.getValue()) hidden.add(component); else hidden.remove(component);
                             changedHidden = true;
                         }
+                    } else if (choice.getKey().equals("hideWatchNext") && !entry.getKey().startsWith("tvinput_name:")) {
+                        if (!(choice.getValue() instanceof Boolean)) throw invalid();
+                        String source = cardPackage(entry.getKey());
+                        if (resolvedCardPackages.containsKey(source)
+                                && !resolvedCardPackages.get(source).equals(choice.getValue())) throw invalid();
+                        resolvedCardPackages.put(source, (Boolean) choice.getValue());
+                        if ((Boolean) choice.getValue()) hiddenCardPackages.add(source); else hiddenCardPackages.remove(source);
+                        changedCardPackages = true;
                     } else if (choice.getKey().equals("customIconUri")) {
                         if (!(choice.getValue() instanceof String)) throw invalid();
                         String uri = (String) choice.getValue();
@@ -339,7 +350,7 @@ public final class LegacyPresentationMapper {
                         String component = identities.tile(entry.getKey());
                         if (customIcons.put(component, selected) != null) throw invalid();
                     } else {
-                        // hideWatchNext and unknown properties need future-source visibility support, not a one-time guess.
+                        // Unknown properties remain in legacy recovery until their behavior is supported.
                         completeVisibility = false;
                     }
                 }
@@ -347,6 +358,7 @@ public final class LegacyPresentationMapper {
             if (completeVisibility) mapped.add("app_visibility");
         }
         if (changedHidden) put(GRID, "hidden", String.join("\n", hidden));
+        if (changedCardPackages) put(CARDS, "hidden_packages", CardOptions.encodePackages(hiddenCardPackages));
         for (Map.Entry<String, String> entry : customIcons.entrySet()) put(ICONS, entry.getKey(), entry.getValue());
         if (present("factory_icon_packages")) {
             Set<String> seen = new HashSet<>();
@@ -424,6 +436,15 @@ public final class LegacyPresentationMapper {
         }
         new InputOptions(order, hidden);
         if (known.size() > InputOptions.MAX_INPUTS) throw invalid();
+    }
+    private static String cardPackage(String identity) {
+        int slash = identity.indexOf('/');
+        if (slash >= 0) {
+            if (!com.jeremykenedy.firetv.ui.nativeapp.folders.FolderOptions.validComponent(identity)) throw invalid();
+            identity = identity.substring(0, slash);
+        }
+        CardOptions.validatePackage(identity);
+        return identity;
     }
     private CardOptions currentCards() { return cardOptions(before.get(CARDS)); }
     private static CardOptions cardOptions(PreferenceSnapshot snapshot) {

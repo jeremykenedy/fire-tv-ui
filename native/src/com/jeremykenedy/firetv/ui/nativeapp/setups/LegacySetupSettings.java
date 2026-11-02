@@ -61,6 +61,7 @@ final class LegacySetupSettings {
                 "keep_dock_bottom",
                 "mini_mode",
                 "minimal_status_bar",
+                "source_status_bar_off",
                 "poster_mode",
                 "show_all_apps_button",
                 "text_outside_cards",

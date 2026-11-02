@@ -28,7 +28,7 @@ public final class StatusBarInstrumentation extends Instrumentation {
         };
         Activity home = null;
         try {
-            check(!StatusBarOptions.load(fixture).configured, "Absent setting changes default Home");
+            check(StatusBarOptions.load(fixture).configured && !StatusBarOptions.load(fixture).minimal, "Absent setting should show the full status bar");
             String main = "com.jeremykenedy.firetv.ui.nativeapp.MainActivity";
             ActivityMonitor monitor = addMonitor(main, null, false);
             target.startActivity(new Intent().setClassName(target, main)

@@ -38,7 +38,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-device-') as folder:
                     *map(str, sorted(SOURCE.glob('*.java'))),
                     *[str(ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/accessibility' / name) for name in ('AccessibilityStyle.java', 'AccessibilityPreferences.java')],
                     *map(str, sorted((SOURCE / 'commands').glob('*.java'))),
-                    *[str(SOURCE / 'remotebuttons' / name) for name in ('RemoteButtonDispatcher.java', 'RemoteButtonPreferences.java', 'RemoteButtonPolicy.java')],
+                    *[str(SOURCE / 'remotebuttons' / name) for name in ('RemoteButtonsActivity.java', 'RemoteButtonDispatcher.java', 'RemoteButtonPreferences.java', 'RemoteButtonPolicy.java')],
                     str(SOURCE / 'protection/LegacyDeviceProtection.java'),
                     *[str(SOURCE / 'screensavers' / name) for name in ('ScreensaverEntry.java', 'ScreensaverSystem.java', 'ReviewedPreviews.java', 'LegacyDreamSelection.java')], str(ROOT / 'tests/device/DeviceInstrumentation.java'), *map(str, adapters),
                     str(ROOT / 'tests/device/fixture/RoutingFixture.java')], check=True)

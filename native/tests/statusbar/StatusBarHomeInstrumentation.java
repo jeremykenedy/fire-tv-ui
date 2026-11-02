@@ -24,7 +24,7 @@ public final class StatusBarHomeInstrumentation extends Instrumentation {
     private Activity home;
     private static final String MAIN = "com.jeremykenedy.firetv.ui.nativeapp.MainActivity";
     private static final String SETTINGS = "com.jeremykenedy.firetv.ui.nativeapp.SettingsActivity";
-    private static final String[] KEYS = {"minimal_status_bar", "hide_status_bar_unless_focused", "status_bar_position", "tinted_status_bar"};
+    private static final String[] KEYS = {"minimal_status_bar", "hide_status_bar_unless_focused", "status_bar_position", "tinted_status_bar", StatusBarOptions.OFF_KEY};
     @Override public void onCreate(Bundle args) { super.onCreate(args); arguments = args == null ? new Bundle() : new Bundle(args); start(); }
     @Override public void onStart() {
         Bundle result = new Bundle();
@@ -51,16 +51,17 @@ public final class StatusBarHomeInstrumentation extends Instrumentation {
             waitHome();
             runOnMainSync(new Runnable() { @Override public void run() {
                 View container = home.getWindow().getDecorView().findViewWithTag("home:statusbar-container");
-                check(container != null && container.getVisibility() == View.GONE
-                        && home.findViewById(0x1001) != null && home.findViewById(0x1002) != null,
-                        "Absent legacy keys must retain the original Home header");
+                check(container != null && container.getVisibility() == View.VISIBLE
+                        && container.findViewWithTag("statusbar:clock") != null
+                        && container.findViewWithTag("statusbar:preferences") != null,
+                        "Absent legacy keys must show the full status bar");
                 home.finish();
             }});
             long destroyDeadline = SystemClock.uptimeMillis() + 5000;
             while (!home.isDestroyed() && SystemClock.uptimeMillis() < destroyDeadline) SystemClock.sleep(40);
             check(home.isDestroyed(), "Default Home must finish before reopening");
             home = null;
-            result.putBoolean("absent_keys_keep_default_header", true);
+            result.putBoolean("absent_keys_show_default_bar", true);
             fixture = true;
             check(prefs.edit().putBoolean("minimal_status_bar", true).putBoolean("hide_status_bar_unless_focused", true)
                     .putString("status_bar_position", "Right").putBoolean("tinted_status_bar", true).commit(), "Could not save fixture");
@@ -176,9 +177,10 @@ public final class StatusBarHomeInstrumentation extends Instrumentation {
             check(!prefs.getBoolean("minimal_status_bar", true), "Status bar Full choice did not persist");
             clickNode("Status bar: Full");
             clickNode("Off");
-            check(!prefs.contains("minimal_status_bar"), "Off must remove the explicit mode key");
+            check(prefs.getBoolean(StatusBarOptions.OFF_KEY, false) && !prefs.getBoolean("minimal_status_bar", true), "Off keeps the selected mode and sets an explicit marker");
             clickNode("Status bar: Off");
             clickNode("Full");
+            check(!prefs.contains(StatusBarOptions.OFF_KEY), "Full clears the off marker");
             clickNode("Hide unless focused: On");
             clickNode("Default");
             check(!prefs.contains("hide_status_bar_unless_focused"), "Default must remove the explicit hide key");

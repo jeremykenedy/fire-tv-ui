@@ -1,6 +1,6 @@
 # Independent native review target
 
-This document records the source-preview build and native test workflow. See the [source preview guide](../docs/source-preview.md) for the current alpha scope. Every release requires a verified primary-branch build and publication qualification.
+This document records the source-preview build and native test workflow. The current release configuration targets 2.0.0-alpha.2, version code 3. See the [source preview guide](../docs/source-preview.md) for scope and availability and the [draft alpha.2 release notes](../docs/releases/v2.0.0-alpha.2.md) for pending qualification. Every release requires a verified primary-branch build and publication qualification.
 
 This target builds from maintained Java and Android resources. It does not read the parent project's supplied launcher APK, decoded resources, Smali adapters or patch scripts.
 
@@ -16,17 +16,19 @@ python3 native/build.py --debug
 
 The debug build uses a separate local review key with Android's conventional public debug password. It never reads the production signing key. Omit `--debug` for an unsigned artifact. Outputs are in `native/dist/`; `build-manifest.json` lists every native source/resource input and its digest.
 
+Versioned release candidates instead use `native/preview-release.json` and the existing maintained preview key. Follow [Source preview release build](../docs/building.md#source-preview-release-build) for the unsigned checks, explicit environment-based signing and generated release artifacts. The alpha.2 certificate remains `c64ca640cab78e75fd52a6bb43bcbf145aa1b951f0c719b471df241bf70669c6`; a lab key does not provide an update path from public alpha.1.
+
 To demonstrate independence, copy only the `native` directory into an empty temporary directory, exclude `.build`, `dist` and `__pycache__`, then run its `build.py`. No parent repository or vendor directory is needed.
 
 ## Implemented preview surface
 
-The [source preview guide](../docs/source-preview.md#what-is-included) defines the frozen alpha feature scope, including app organization, inputs, cards, local widgets, appearance controls, saved setups, portable backup, device pages and original Help. Preview data remains separate from production. New widgets start hidden, private connections require explicit setup and platform capability failures stay visible.
+The [source preview guide](../docs/source-preview.md#what-is-included) describes app organization, inputs, cards, local widgets, appearance controls, saved setups, portable backup, device pages and original Help. Alpha.2 restores the Home tray and Settings side panel, with Apps, App Icons, Widgets and Cards controls under UI settings. Preview data remains separate from production. New widgets start hidden, private connections require explicit setup and platform capability failures stay visible.
 
 The preview registers no production Home or accessibility service and applies no production preference migration. Supported app/title handoffs do not establish entitlement, exact playback or physical-device behavior.
 
 ## Not a replacement yet
 
-The production candidate implements Home/key routing, but complete 1.x parity, production upgrade and recovery behavior, real-service playback and physical-device acceptance remain open. The alpha includes folders, reviewed appearance controls and screensaver administration, as described in the preview guide. Exact-alpha card controls pass, including D-pad custom-timer Save; the tested TV provider supplies item identity without series identity. Typed migration interruption/recovery passes at three write boundaries using an isolated synthetic fixture; this does not prove a production upgrade or corrective-build recovery. The full production parity and migration inventory is maintained in private delivery records. Public preview scope and limits are documented in the [source preview guide](../docs/source-preview.md). Do not publish or deploy this review shell as the production UI.
+The production candidate implements Home/key routing, but complete 1.x parity, production upgrade and recovery behavior, real-service playback and physical-device acceptance remain open. The alpha includes folders, appearance controls and screensaver administration, as described in the preview guide. Earlier preview card and synthetic migration checks do not qualify the final alpha.2 APK, a populated preview update or a production upgrade. Final alpha.2 results remain pending in its release notes until the corresponding receipts are reviewed. The full production parity and migration inventory is maintained in private delivery records. Public preview scope and limits are documented in the [source preview guide](../docs/source-preview.md). Do not publish or deploy this review shell as the production UI.
 
 The default build now produces a source-native production candidate. Use `python3 scripts/build.py --unsigned --output-dir /tmp/fire-tv-production` for an unsigned, nondeployable candidate. Production signing and native acceptance remain separate gates. Historical attribution and third-party notices remain in the repository.
 

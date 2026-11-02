@@ -52,8 +52,52 @@ public final class CardTest {
         TvRecommendations.Feed feed = new TvRecommendations.Feed("tv:one", "Channel", "com.first.app", Arrays.asList(a,b,c));
         check(CardPreferences.visiblePrograms(ordered.hideSeries("com.first.app", "series:one", "Series"), feed).equals(Arrays.asList(c,b)), "Render helper applies title order then trusted series filtering.");
         Map<String,Object> legacy = new HashMap<>(value.backupValues());
-        legacy.remove("schema_version"); legacy.remove("hidden_series"); legacy.remove("item_order");
+        legacy.remove("schema_version"); legacy.remove("hidden_series"); legacy.remove("item_order"); legacy.remove("hidden_packages");
         check(CardOptions.fromBackup(legacy).globalSeconds == value.globalSeconds && CardOptions.fromBackup(legacy).isHidden("com.first.app", "item-2"), "Existing v1 settings retain timers and item hides.");
+        Map<String, Object> version2 = new HashMap<>(value.backupValues());
+        version2.put("schema_version", 2); version2.remove("hidden_packages");
+        check(CardOptions.fromBackup(version2).globalSeconds == value.globalSeconds, "Version two card snapshots remain readable.");
+        Context packageContext = new Context();
+        packageContext.prefs.values.put("unknown_future", "keep");
+        check(CardPreferences.hiddenPackages(packageContext).isEmpty() && packageContext.prefs.values.size() == 1,
+                "Reading absent package choices does not materialize defaults.");
+        CardPreferences.setPackageHidden(packageContext, "com.first.app", true);
+        check(packageContext.prefs.values.size() == 2 && "keep".equals(packageContext.prefs.values.get("unknown_future")),
+                "Package visibility writes only its own preference.");
+        TvRecommendations.Feed one = new TvRecommendations.Feed("tv:one", "One", "com.first.app", Collections.emptyList());
+        TvRecommendations.Feed future = new TvRecommendations.Feed("notify:future", "Future", "com.first.app", Collections.emptyList());
+        TvRecommendations.Feed other = new TvRecommendations.Feed("plex:other", "Other", "com.other.app", Collections.emptyList());
+        check(CardPreferences.hiddenFeedKeys(packageContext, Arrays.asList(one, future, other))
+                .equals(new java.util.LinkedHashSet<>(Arrays.asList("channel:tv:one", "channel:notify:future"))),
+                "A hidden package suppresses existing and future feeds while other apps remain visible.");
+        Map<String, Boolean> packageChanges = new HashMap<>(); packageChanges.put("com.other.app", true);
+        CardPreferences.setPackagesHidden(packageContext, packageChanges);
+        check(CardPreferences.isPackageHidden(packageContext, "com.first.app") && CardPreferences.isPackageHidden(packageContext, "com.other.app"),
+                "A batch update preserves packages missing from the manager changes.");
+        CardPreferences.setPackageHidden(packageContext, "com.first.app", false);
+        check(!CardPreferences.isPackageHidden(packageContext, "com.first.app") && CardPreferences.isPackageHidden(packageContext, "com.other.app"),
+                "Showing one package preserves independent choices.");
+        CardOptions packageSnapshot = CardPreferences.load(packageContext);
+        check(packageSnapshot.hiddenPackages.contains("com.other.app")
+                && CardOptions.fromBackup(packageSnapshot.withGlobalSeconds(15).backupValues()).hiddenPackages.contains("com.other.app"),
+                "Card edits and backup round trip preserve package visibility.");
+        Map<String, Object> packageBefore = new HashMap<>(packageContext.prefs.values);
+        packageContext.prefs.fail = true;
+        try { CardPreferences.setPackageHidden(packageContext, "com.first.app", true); throw new AssertionError("Failed package save accepted"); }
+        catch (IllegalStateException expected) { check(packageBefore.equals(packageContext.prefs.values), "Failed package save restores exact previous choices."); }
+        packageContext.prefs.fail = false;
+        try { CardPreferences.setPackageHidden(packageContext, "com.first.app/.Main", true); throw new AssertionError("Component accepted as package"); }
+        catch (IllegalArgumentException expected) { check(packageBefore.equals(packageContext.prefs.values), "Invalid package cannot change saved choices."); }
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.writeBlocked = true;
+        try { CardPreferences.setPackageHidden(packageContext, "com.first.app", true); throw new AssertionError("Pending recovery write accepted"); }
+        catch (IllegalStateException expected) { check(packageBefore.equals(packageContext.prefs.values), "Pending recovery leaves package choices untouched."); }
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.writeBlocked = false;
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.readBlocked = true;
+        try { CardPreferences.hiddenPackages(packageContext); throw new AssertionError("Pending recovery read accepted"); }
+        catch (IllegalStateException expected) {}
+        check(CardPreferences.hiddenFeedKeys(packageContext, Arrays.asList(one, other)).size() == 2,
+                "Blocked renderer reads suppress cards without exposing partial settings or throwing.");
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.readBlocked = false;
         Context context = new Context();
         check(CardPreferences.artworkFits(context), "Absent artwork choice preserves Fit default.");
         CardPreferences.setArtworkFit(context, false);
@@ -90,7 +134,10 @@ public final class CardTest {
         for (String invalid : new String[]{"com.first.app\ttv:one\ta\ta", "com.first.app\ttv:one\ta\ncom.first.app\ttv:one\tb", "bad-source\ttv:one\ta"}) {
             Map<String, Object> backup = new HashMap<>(value.backupValues()); backup.put("item_order", invalid); reject(context, backup, before);
         }
-        Map<String,Object> wrongVersion = new HashMap<>(value.backupValues()); wrongVersion.put("schema_version", 3); reject(context, wrongVersion, before);
+        for (String invalid : new String[]{"com.first.app\ncom.first.app", "com.first.app\n", "com.first.app/.Main"}) {
+            Map<String, Object> backup = new HashMap<>(value.backupValues()); backup.put("hidden_packages", invalid); reject(context, backup, before);
+        }
+        Map<String,Object> wrongVersion = new HashMap<>(value.backupValues()); wrongVersion.put("schema_version", 4); reject(context, wrongVersion, before);
         CardOptions bounded = CardOptions.defaults();
         for (int i = 0; i < 512; i++) bounded = bounded.hide("com.first.app", "item" + i, "Title");
         try { bounded.hide("com.first.app", "extra", "Title"); throw new AssertionError("Unbounded hides accepted."); }

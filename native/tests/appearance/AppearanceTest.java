@@ -5,7 +5,11 @@ import android.content.Context;
 public final class AppearanceTest {
     public static void main(String[] args) {
         Context context=new Context();
-        check(AppearancePreferences.load(context).base.equals("off"),"Default preserves wallpaper");
+        AppearanceOptions initial = AppearancePreferences.load(context);
+        check(initial.base.equals("still_legacy_gradient") && initial.legacyGradient.equals("electric_indigo"),
+                "Fresh Home matches the existing Electric Indigo background");
+        check(context.prefs.values.isEmpty(), "Reading defaults does not write appearance choices");
+        AppearancePreferences.string(context,"base","off");
         AppearancePreferences.string(context,"wallpaper_image_uri","content://owner/image");
         AppearancePreferences.string(context,"wallpaper_video_uri","content://owner/video");
         AppearancePreferences.number(context,"overlay_opacity",17);

@@ -17,6 +17,21 @@ public final class LayoutPreferences {
         catch (IllegalArgumentException invalid) { return defaults; }
     }
 
+    public static boolean widgetsEnabled(Context context, LayoutOptions options) {
+        if (!options.includes(LayoutItem.Kind.WIDGET)) return false;
+        if (context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getAll().containsKey("mode")) return true;
+        for (String key : options.order) {
+            if (key.startsWith("widget:") && !options.hidden.contains(key)) return true;
+        }
+        return false;
+    }
+
+    public static LayoutOptions.Mode toggleWidgetsMode(Context context, LayoutOptions options) {
+        boolean cards = options.includes(LayoutItem.Kind.CHANNEL_CARD);
+        return widgetsEnabled(context, options) ? (cards ? LayoutOptions.Mode.CARDS_ONLY : LayoutOptions.Mode.NONE)
+                : (cards ? LayoutOptions.Mode.BOTH : LayoutOptions.Mode.WIDGETS_ONLY);
+    }
+
     public static void restore(Context context, Map<String, ?> backup) {
         save(context, LayoutOptions.fromBackup(backup));
     }

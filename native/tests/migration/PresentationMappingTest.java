@@ -11,8 +11,24 @@ public final class PresentationMappingTest {
     private static final String ALPHA = "fixture.alpha/fixture.alpha.Main", BETA = "fixture.beta/fixture.beta.Main";
     private static final String INPUT_ALIAS = "tvinput_name:HDMI 1", INPUT_ID = "fixture.input/.Service/HDMI1000001";
     public static void main(String[] args) throws Exception {
-        actualMapping(); menuTransitionGate(); savedGridColumns(); plexAliasMapping(); focusOwnedDefaults(); legacyAppFocusMode(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate(); protectionPreflight();
+        actualMapping(); packageCardVisibility(); menuTransitionGate(); savedGridColumns(); plexAliasMapping(); focusOwnedDefaults(); legacyAppFocusMode(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate(); protectionPreflight();
         System.out.println("Native presentation mappings, unsupported-value rejection and interrupted multi-store recovery passed.");
+    }
+    private static void packageCardVisibility() throws Exception {
+        Map<String, PreferenceSnapshot> existing = new LinkedHashMap<>();
+        existing.put(LegacyPresentationMapper.CARDS, snapshot(Collections.singletonMap("global_seconds", 23)));
+        Map<String, Object> legacy = Collections.singletonMap("app_visibility",
+                "{\"fixture.alpha\":{\"hideWatchNext\":false},\"fixture.future\":{\"hideWatchNext\":true},\"fixture.beta/.Main\":{\"hideWatchNext\":true}}");
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(legacy), identities(), existing);
+        Set<String> hidden = CardOptions.decodePackages((String) plan.after.get(LegacyPresentationMapper.CARDS).values().get("hidden_packages"));
+        check(hidden.equals(set("fixture.future", "fixture.beta")), "Package choices include future sources and support component aliases.");
+        check(plan.after.get(LegacyPresentationMapper.CARDS).values().get("global_seconds").equals(23), "Mapping preserves unrelated native card choices.");
+        existing.put(LegacyPresentationMapper.CARDS, snapshot(Collections.singletonMap("hidden_packages", "fixture.retained")));
+        reject(() -> LegacyPresentationMapper.plan(snapshot(legacy), identities(), existing));
+        check(plan.unmappedLegacyKeys.isEmpty() && plan.after.get(LauncherMigration.PREFERENCES).values().get("app_visibility").equals(legacy.get("app_visibility")), "Mapped package visibility preserves the original typed record.");
+        for (String bad : Arrays.asList("{\"fixture.alpha\":{\"hideWatchNext\":\"true\"}}",
+                "{\"fixture.alpha\":{\"hideWatchNext\":true},\"fixture.alpha/.Main\":{\"hideWatchNext\":false}}"))
+            reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("app_visibility", bad)), identities(), Collections.emptyMap()));
     }
     private static void menuTransitionGate() throws Exception {
         for (String style : Arrays.asList("default", "none", "fade", "slide")) {
@@ -347,6 +363,7 @@ public final class PresentationMappingTest {
         check(owned.get(LegacyPresentationMapper.GRID).equals(set("columns", "hidden")), "Absence/reset ownership is selective.");
         check(owned.get(LegacyPresentationMapper.INPUTS).equals(set("name:" + INPUT_ID, "hidden:" + INPUT_ID)), "Reviewed name/visibility ownership excludes factory/known metadata.");
         check(LegacyPresentationMapper.ownedNativeKeys(set("input_names"), identities()).get(LegacyPresentationMapper.INPUTS).equals(set("name:" + INPUT_ID)), "Resetting a saved input label preserves factory/known and visibility metadata.");
+        check(owned.get(LegacyPresentationMapper.CARDS).equals(set("hidden_packages")), "Saved visibility reset owns package card choices only.");
         check(owned.get(LegacyPresentationMapper.ICONS).contains("input:" + INPUT_ID), "Icon resets include exact known input identity.");
     }
     private static void unsupportedAndConflicts() throws Exception {
@@ -373,7 +390,7 @@ public final class PresentationMappingTest {
         Map<String, Object> unknown = new LinkedHashMap<>();
         unknown.put("icon_focus_style", "default"); unknown.put("icon_focus_border", 0xff123456);
         unknown.put("app_order", "opaque-owned-serializer-unavailable"); unknown.put("folders", "opaque-folder-data");
-        unknown.put("app_visibility", "{\"fixture.alpha\":{\"hideWatchNext\":true}}");
+        unknown.put("app_visibility", "{\"fixture.alpha\":{\"futureVisibility\":true}}");
         LegacyPresentationMapper.Plan partial = LegacyPresentationMapper.plan(snapshot(unknown), identities(), Collections.emptyMap());
         check(partial.patches.isEmpty() && partial.unmappedLegacyKeys.equals(unknown.keySet()), "Unsupported domain semantics remain explicit and raw, never guessed.");
         Map<String, PresentationMappingContext.Feed> duplicateFeeds = new LinkedHashMap<>();

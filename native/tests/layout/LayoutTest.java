@@ -73,8 +73,8 @@ public final class LayoutTest {
         check(HomeSlots.widget(HomeSlots.CLOCK.key()) != null && HomeSlots.widget("widget:missing") == null,
                 "Only implemented local widgets resolve through the registry.");
         LayoutOptions firstDiscovery = HomeSlots.discover(HomeSlots.defaults(), feeds);
-        check(firstDiscovery.visible(discovered).equals(Arrays.asList(HomeSlots.CLOCK, feed.item)),
-                "New opt-in widgets do not change the original visible Home defaults.");
+        check(firstDiscovery.visible(discovered).equals(Arrays.asList(feed.item)),
+                "Widgets start hidden, matching the existing launcher default.");
         for (WidgetProvider widget : HomeSlots.widgets()) {
             if (widget.defaultVisible()) continue;
             check(firstDiscovery.hidden.contains(widget.item().key()), "New opt-in widgets start hidden.");
@@ -132,6 +132,22 @@ public final class LayoutTest {
                     "Failed discovery rolls back only its changed keys and preserves exact explicit and absent values.");
         }
         Context context = new Context();
+        Context toggleContext = new Context();
+        LayoutOptions freshWidgets = HomeSlots.discover(HomeSlots.defaults(), Collections.<TvRecommendations.Feed>emptyList());
+        check(!LayoutPreferences.widgetsEnabled(toggleContext, freshWidgets), "Implicit fresh layout with hidden widgets shows Off.");
+        check(LayoutPreferences.toggleWidgetsMode(toggleContext, freshWidgets) == LayoutOptions.Mode.BOTH, "First enable preserves cards and writes an explicit mode.");
+        LayoutPreferences.save(toggleContext, freshWidgets.withMode(LayoutOptions.Mode.BOTH));
+        check(LayoutPreferences.widgetsEnabled(toggleContext, freshWidgets), "Explicit Both remains enabled even with individually hidden widgets.");
+        check(LayoutPreferences.toggleWidgetsMode(toggleContext, freshWidgets) == LayoutOptions.Mode.CARDS_ONLY, "Disabling widgets preserves cards.");
+        toggleContext.prefs.values.remove("mode");
+        LayoutOptions oldVisible = freshWidgets.setVisible(HomeSlots.CLOCK.key(), true);
+        check(LayoutPreferences.widgetsEnabled(toggleContext, oldVisible), "An older implicit layout with a visible widget remains enabled.");
+        check(LayoutPreferences.toggleWidgetsMode(toggleContext, oldVisible) == LayoutOptions.Mode.CARDS_ONLY, "Disabling an older visible widget preserves cards.");
+        check(!LayoutPreferences.widgetsEnabled(toggleContext, oldVisible.withMode(LayoutOptions.Mode.NONE)), "An excluded widget is Off even if individually visible.");
+        check(LayoutPreferences.toggleWidgetsMode(toggleContext, oldVisible.withMode(LayoutOptions.Mode.NONE)) == LayoutOptions.Mode.WIDGETS_ONLY, "Enabling from None preserves disabled cards.");
+        toggleContext.prefs.values.put("mode", "WIDGETS_ONLY");
+        check(LayoutPreferences.widgetsEnabled(toggleContext, freshWidgets.withMode(LayoutOptions.Mode.WIDGETS_ONLY)), "Explicit widgets-only remains enabled with hidden widgets.");
+        check(LayoutPreferences.toggleWidgetsMode(toggleContext, freshWidgets.withMode(LayoutOptions.Mode.WIDGETS_ONLY)) == LayoutOptions.Mode.NONE, "Disabling widgets-only keeps cards disabled.");
         context.prefs.values.put("unrelated", "keep");
         LayoutPreferences.save(context, options);
         check(LayoutPreferences.load(context, LayoutOptions.defaults(250, 150)).backupValues().equals(options.backupValues()), "Saved layout survives reload.");

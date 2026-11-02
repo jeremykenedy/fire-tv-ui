@@ -7,6 +7,15 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/cards'
 STUBS = {
+    'com/jeremykenedy/firetv/ui/nativeapp/setups/PresentationState.java': '''package com.jeremykenedy.firetv.ui.nativeapp.setups; public final class PresentationState {}''',
+    'com/jeremykenedy/firetv/ui/nativeapp/setups/HolidayPresetTransaction.java': '''package com.jeremykenedy.firetv.ui.nativeapp.setups;
+import android.content.Context;
+public final class HolidayPresetTransaction {
+ public static boolean readBlocked, writeBlocked;
+ public static void assertReadable(Context context) { monitor(); if(readBlocked)throw new IllegalStateException("Pending recovery"); }
+ public static void assertWritable(Context context) { monitor(); if(writeBlocked)throw new IllegalStateException("Pending recovery"); }
+ private static void monitor(){if(!Thread.holdsLock(PresentationState.class))throw new AssertionError("Presentation monitor must be held");}
+}''',
     'com/jeremykenedy/firetv/ui/nativeapp/providers/TvRecommendations.java': '''package com.jeremykenedy.firetv.ui.nativeapp.providers;
 import java.util.*;
 public final class TvRecommendations {
@@ -14,7 +23,7 @@ public final class TvRecommendations {
   public final String key,source,title,seriesKey,seriesTitle,compatibilityKey;
   public Program(String k,String s,String t,Object a,String intent,String sk,String st){key=k;source=s;title=t;seriesKey=sk;seriesTitle=st;compatibilityKey=null;}
  }
- public static final class Item { public final String id; Item(String v){id=v;} }
+ public static final class Item { public final String id; Item(String v){id=v;} public String key(){return "channel:"+id;} }
  public static final class Feed {
   public final Item item; public final String source,title; public final List<Program> programs;
   public Feed(String id,String t,String s,List<Program> p){item=new Item(id);title=t;source=s;programs=p;}

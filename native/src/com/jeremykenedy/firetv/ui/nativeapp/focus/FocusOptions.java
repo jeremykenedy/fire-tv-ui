@@ -40,7 +40,7 @@ public final class FocusOptions {
 
     public static boolean hasExplicitSettings(java.util.Map<String, ?> values) {
         for (String key : new String[]{"duration_millis", "growth_percent", "border_enabled", "border_rgb",
-                "border_opacity", "fill_enabled", "fill_rgb", "fill_opacity"})
+                "border_opacity", "fill_enabled", "fill_rgb", "fill_opacity", "app_focus_style"})
             if (values.containsKey(key)) return true;
         return false;
     }

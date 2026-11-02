@@ -3,6 +3,12 @@ package com.jeremykenedy.firetv.ui.nativeapp.focus;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.graphics.Color;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.ColorFilter;
+import android.graphics.drawable.Drawable;
 import android.graphics.Path;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.PathShape;
@@ -17,9 +23,16 @@ import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Button;
+import android.widget.Toast;
+import com.jeremykenedy.firetv.ui.nativeapp.Pages;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.icons.IconPackStore;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance;
 
 public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
+    private boolean advanced;
     private FocusOptions options;
     private FocusTileView preview;
     private TextView summary;
@@ -30,30 +43,34 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
+        showIconsPanel();
+    }
+
+    private void showAdvanced() {
+        advanced = true;
         options = FocusPreferences.load(this);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        LinearLayout root = column();
-        root.setPadding(dp(32), dp(24), dp(32), dp(24));
-        root.setBackgroundColor(0xff100d28);
+        LinearLayout root = Pages.sidePanel(this);
         root.addView(text("Focus and motion", 30, Color.WHITE));
         TextView intro = text("Choose how apps respond as you move with the remote.", 17, 0xffc8bfdc);
         intro.setPadding(0, dp(6), 0, dp(18));
         root.addView(intro);
-        importedNotice = text("Apps use an imported focus style. The preview and controls show a new style; changing a setting replaces the imported style.", 16, 0xffe5dff0);
+        importedNotice = text("Apps use the standard focus style. Changing a control applies your custom style.", 16, 0xffe5dff0);
         importedNotice.setPadding(0, 0, 0, dp(12));
         importedNotice.setVisibility(FocusPreferences.legacyDefaultAppMode(this) ? View.VISIBLE : View.GONE);
         root.addView(importedNotice);
         LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.VERTICAL);
         root.addView(row, new LinearLayout.LayoutParams(-1, 0, 1));
         ScrollView scroll = new ScrollView(this);
-        row.addView(scroll, new LinearLayout.LayoutParams(0, -1, 3));
+        row.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         LinearLayout controls = column();
         controls.setPadding(0, 0, dp(28), dp(16));
         scroll.addView(controls);
         LinearLayout sample = column();
         sample.setGravity(Gravity.CENTER);
-        row.addView(sample, new LinearLayout.LayoutParams(0, -1, 2));
+        controls.addView(sample, new LinearLayout.LayoutParams(-1, -2));
         sample.addView(text("Focused appearance", 20, Color.WHITE));
         preview = new FocusTileView(this);
         preview.setTitle("Preview tile");
@@ -68,8 +85,9 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
         artwork.setIntrinsicWidth(128);
         artwork.setIntrinsicHeight(128);
         preview.setIcon(artwork);
+        preview.useLegacyDefaultAppPresentation(dp(230));
         preview.setPreviewFocused(true);
-        sample.addView(preview, new LinearLayout.LayoutParams(-1, dp(180)));
+        sample.addView(preview, new LinearLayout.LayoutParams(-1, dp(120)));
         summary = text("", 16, 0xffc8bfdc);
         summary.setGravity(Gravity.CENTER);
         sample.addView(summary);
@@ -77,23 +95,19 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
         choices(controls, new String[]{"Instant", "Fast", "Normal", "Slow"},
                 new int[]{0, 100, 180, 280}, options.durationMillis, new Choice() {
                     @Override public void selected(int value) {
-                        save(new FocusOptions(value, options.growthPercent, options.borderEnabled,
-                                options.borderRgb, options.borderOpacity, options.fillEnabled, options.fillRgb, options.fillOpacity));
+                        saveMotion("duration_millis", value);
                     }
                 });
         section(controls, "Focus growth");
         growthChoices = choices(controls, new String[]{"None", "3%", "6%", "10%"},
                 new int[]{0, 3, 6, 10}, options.growthPercent, new Choice() {
                     @Override public void selected(int value) {
-                        if (value == options.growthPercent) return;
-                        save(new FocusOptions(options.durationMillis, value, options.borderEnabled,
-                                options.borderRgb, options.borderOpacity, options.fillEnabled, options.fillRgb, options.fillOpacity));
+                        saveMotion("growth_percent", value);
                     }
                 });
         growthSlider = slider(controls, "Custom growth", options.growthPercent, FocusOptions.MAX_GROWTH, "%", new Choice() {
             @Override public void selected(int value) {
-                save(new FocusOptions(options.durationMillis, value, options.borderEnabled,
-                        options.borderRgb, options.borderOpacity, options.fillEnabled, options.fillRgb, options.fillOpacity));
+                saveMotion("growth_percent", value);
             }
         });
         section(controls, "Focus border");
@@ -145,8 +159,123 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
         TextView note = text("Turn off focus fill for a border-only highlight. Fill stays behind artwork; each layer has its own color and opacity.", 16, 0xffc8bfdc);
         note.setPadding(0, dp(12), 0, 0);
         controls.addView(note);
-        setContentView(root);
         updateSummary();
+    }
+
+    private interface ToggleSetting {
+        boolean get();
+        void set(boolean value);
+    }
+
+    private void showIconsPanel() {
+        advanced = false;
+        LinearLayout page = Pages.sidePanel(this);
+        TextView heading = new TextView(this);
+        heading.setText("Icons"); heading.setTextSize(26); heading.setTextColor(0xff8d8d8d);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setPadding(0, dp(4), 0, dp(26)); page.addView(heading);
+        ScrollView scroll = new ScrollView(this);
+        scroll.setClipChildren(false); scroll.setClipToPadding(false); scroll.setVerticalScrollBarEnabled(false);
+        final LinearLayout controls = column(); controls.setClipChildren(false); controls.setClipToPadding(false);
+        controls.setPadding(0, dp(4), 0, dp(8)); scroll.addView(controls);
+        page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        Button first = toggleRow(controls, "Mini favorites mode", new ToggleSetting() {
+            public boolean get() { return HomeVisualOptions.isMini(FocusSettingsActivity.this); }
+            public void set(boolean value) { HomeVisualOptions.setMini(FocusSettingsActivity.this, value); }
+        });
+        toggleRow(controls, "Enable icon focus border", new ToggleSetting() {
+            public boolean get() { return FocusPreferences.appBorder(FocusSettingsActivity.this); }
+            public void set(boolean value) { FocusPreferences.setAppBorder(FocusSettingsActivity.this, value); }
+        });
+        toggleRow(controls, "Enable icon focus shadow", new ToggleSetting() {
+            public boolean get() { return FocusPreferences.iconShadow(FocusSettingsActivity.this); }
+            public void set(boolean value) { FocusPreferences.saveIconOption(FocusSettingsActivity.this, "icon_shadow", value); }
+        });
+        toggleRow(controls, "Wallpaper blur on scroll", new ToggleSetting() {
+            public boolean get() { return HomeVisualOptions.isBlurOnScroll(FocusSettingsActivity.this); }
+            public void set(boolean value) { HomeVisualOptions.setBlurOnScroll(FocusSettingsActivity.this, value); }
+        });
+        final Button radius = Pages.menuButton(this, "", null);
+        radius.setTag("icons:radius");
+        final Runnable updateRadius = new Runnable() {
+            @Override public void run() {
+                try { radius.setText("Icon radius scale: " + FocusPreferences.iconRadius(FocusSettingsActivity.this)); }
+                catch (IllegalStateException unavailable) { radius.setText("Icon radius scale: Unavailable"); }
+            }
+        };
+        radius.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View ignored) {
+                try {
+                    int current = FocusPreferences.iconRadius(FocusSettingsActivity.this);
+                    FocusPreferences.saveIconOption(FocusSettingsActivity.this, "icon_radius", current >= 20 ? 0 : Math.min(20, current + 2));
+                    updateRadius.run();
+                } catch (RuntimeException failed) { Toast.makeText(FocusSettingsActivity.this, "Icon radius could not be saved.", Toast.LENGTH_LONG).show(); }
+            }
+        });
+        controls.addView(radius); updateRadius.run();
+        FocusStyleControls.addOriginalColorControl(this, controls, "Icon Focus Background Color", true);
+        FocusStyleControls.addOriginalColorControl(this, controls, "Icon Focus Border Color", false);
+        Button background = Pages.menuButton(this, "Icon Background Color", new View.OnClickListener() {
+            @Override public void onClick(View ignored) {
+                WidgetAppearance.choose(FocusSettingsActivity.this, "Icon Background", "color_back_color_argb",
+                        "color_back_color_opacity", Color.WHITE, 0, null);
+            }
+        });
+        background.setTag("icons:background"); controls.addView(background);
+        Button packs = Pages.menuButton(this, "Icon Pack", new View.OnClickListener() {
+            @Override public void onClick(View ignored) { IconPackStore.showPicker(FocusSettingsActivity.this, null); }
+        });
+        controls.addView(packs);
+        Button extra = Pages.menuButton(this, "Advanced focus", new View.OnClickListener() {
+            @Override public void onClick(View ignored) { showAdvanced(); }
+        });
+        controls.addView(extra); first.requestFocus();
+    }
+
+    private Button toggleRow(LinearLayout controls, final String label, final ToggleSetting setting) {
+        final Button button = Pages.menuButton(this, label, null);
+        button.setTag("icons:" + label);
+        final Runnable update = new Runnable() {
+            @Override public void run() {
+                try {
+                    boolean checked = setting.get();
+                    button.setCompoundDrawablesWithIntrinsicBounds(null, null, checked ? new CheckMark() : null, null);
+                    button.setContentDescription(label + (checked ? ": On" : ": Off"));
+                } catch (RuntimeException unavailable) { button.setContentDescription(label + ": Unavailable"); }
+            }
+        };
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View ignored) {
+                try { setting.set(!setting.get()); update.run(); }
+                catch (RuntimeException failed) { Toast.makeText(FocusSettingsActivity.this, label + " could not be saved.", Toast.LENGTH_LONG).show(); }
+            }
+        });
+        controls.addView(button); update.run(); return button;
+    }
+
+    private final class CheckMark extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        @Override public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+            boolean focused = false;
+            for (int state : getState()) if (state == android.R.attr.state_focused) focused = true;
+            paint.setColor(focused ? 0xff000000 : 0xffd3d3d3); paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(dp(2)); paint.setStrokeCap(Paint.Cap.ROUND); paint.setStrokeJoin(Paint.Join.ROUND);
+            Path path = new Path(); path.moveTo(bounds.left + dp(3), bounds.top + dp(10));
+            path.lineTo(bounds.left + dp(8), bounds.top + dp(15)); path.lineTo(bounds.left + dp(17), bounds.top + dp(4));
+            canvas.drawPath(path, paint);
+        }
+        @Override public int getIntrinsicWidth() { return dp(22); }
+        @Override public boolean isStateful() { return true; }
+        @Override protected boolean onStateChange(int[] states) { invalidateSelf(); return true; }
+        @Override public int getIntrinsicHeight() { return dp(20); }
+        @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); }
+        @Override public void setColorFilter(ColorFilter filter) { paint.setColorFilter(filter); }
+        @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+    }
+
+    @Override public void onBackPressed() {
+        if (advanced) showIconsPanel(); else super.onBackPressed();
     }
 
     private void color(LinearLayout parent, String label, final int shift, final boolean fill) {
@@ -183,7 +312,7 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
 
     private RadioGroup choices(LinearLayout parent, String[] labels, int[] values, int selected, final Choice action) {
         final RadioGroup group = new RadioGroup(this);
-        group.setOrientation(LinearLayout.HORIZONTAL);
+        group.setOrientation(LinearLayout.VERTICAL);
         for (int i = 0; i < labels.length; i++) {
             RadioButton button = new RadioButton(this);
             button.setId(View.generateViewId());
@@ -191,18 +320,29 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
             button.setTextSize(16);
             button.setTextColor(0xffe5dff0);
             button.setTag(values[i]);
+            final int choice = values[i];
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) { action.selected(choice); }
+            });
             button.setMinHeight(dp(48));
-            group.addView(button, new RadioGroup.LayoutParams(0, -2, 1));
+            group.addView(button, new RadioGroup.LayoutParams(-1, -2));
             if (values[i] == selected) group.check(button.getId());
         }
-        group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override public void onCheckedChanged(RadioGroup owner, int id) {
-                View selected = owner.findViewById(id);
-                if (selected != null) action.selected((Integer) selected.getTag());
-            }
-        });
         parent.addView(group);
         return group;
+    }
+
+    private void saveMotion(String key, int value) {
+        try {
+            FocusPreferences.saveMotion(this, key, value);
+            options = FocusPreferences.load(this);
+            importedNotice.setVisibility(FocusPreferences.legacyDefaultAppMode(this) ? View.VISIBLE : View.GONE);
+            preview.refreshPreferences();
+            updateSummary();
+        } catch (IllegalStateException failure) {
+            new AlertDialog.Builder(this).setTitle("Settings not saved")
+                    .setMessage(failure.getMessage()).setPositiveButton("OK", null).show();
+        }
     }
 
     private void save(FocusOptions value) {

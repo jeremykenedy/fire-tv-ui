@@ -36,11 +36,11 @@ public final class PresentationState {
         add(
                 "native_focus",
                 "duration_millis growth_percent border_enabled border_rgb border_opacity"
-                        + " fill_enabled fill_rgb fill_opacity legacy_app_default");
+                        + " fill_enabled fill_rgb fill_opacity legacy_app_default app_focus_style");
         add("native_layout", "card_width_dp card_height_dp order hidden mode");
         add(
                 "native_cards",
-                "schema_version global_seconds feed_seconds hidden_items hidden_series item_order");
+                "schema_version global_seconds feed_seconds hidden_items hidden_series item_order hidden_packages");
         add("native_folders", "schema_version folders");
         add("native_world_clocks", "clocks");
         add(AccessibilityPreferences.FILE, "text_percent high_contrast");
@@ -162,6 +162,8 @@ public final class PresentationState {
         if (f.containsKey(FocusOptions.LEGACY_APP_DEFAULT)
                 && !(f.get(FocusOptions.LEGACY_APP_DEFAULT) instanceof Boolean))
             throw new IOException("Invalid legacy app focus presentation.");
+        if (f.containsKey("app_focus_style") && !Arrays.asList("default", "border", "color").contains(f.get("app_focus_style")))
+            throw new IOException("Invalid app focus style.");
         FocusOptions d = FocusOptions.defaults();
         new FocusOptions(
                 integer(f, "duration_millis", d.durationMillis),

@@ -15,6 +15,7 @@ public final class ClockWidgetView extends LinearLayout {
     private final TextClock time;
     private final TextClock date;
     private final SharedPreferences preferences;
+    private boolean compact;
     private boolean managed;
     private boolean active;
     private boolean observing;
@@ -49,6 +50,11 @@ public final class ClockWidgetView extends LinearLayout {
         setPadding(0, 0, 0, 0);
         date.setVisibility(GONE);
         time.setTextSize(18);
+        time.setGravity(Gravity.CENTER);
+        time.setTextColor(0xff777288);
+        time.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        compact = true;
+        applyTimeFormat();
     }
 
     public void setGroupedSmall() {
@@ -79,6 +85,15 @@ public final class ClockWidgetView extends LinearLayout {
 
     private void applyTimeFormat() {
         try {
+            if (compact) {
+                boolean use24 = preferences.contains("use_24h_clock")
+                        ? preferences.getBoolean("use_24h_clock", false)
+                        : DateFormat.is24HourFormat(getContext());
+                String pattern = use24 ? "HH:mm" : "h:mm";
+                time.setFormat12Hour(pattern);
+                time.setFormat24Hour(pattern);
+                return;
+            }
             if (preferences.contains("use_24h_clock")) {
                 boolean use24 = preferences.getBoolean("use_24h_clock", false);
                 String pattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), use24 ? "Hm" : "hm");

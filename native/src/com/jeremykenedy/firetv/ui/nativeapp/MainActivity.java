@@ -66,30 +66,39 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Independent review shell. It neither selects Home nor imports production settings. */
+/** Home for the independently maintained launcher. */
 public final class MainActivity extends Activity {
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private final List<FocusTileView> tiles = new ArrayList<>();
     private LinearLayout appArea;
     private LinearLayout homeBody;
-    private TextView homeTitle;
     private boolean homeTextContrast;
     private final java.util.WeakHashMap<TextView, TextShadow> homeShadows = new java.util.WeakHashMap<>();
     private LinearLayout statusBarArea;
     private String statusBarState;
-    private Button settings;
+    private View settings;
     private Button allApps;
     private HomeContentView homeContent;
     private ScrollView slotViewport;
     private BackgroundLayer background;
+    private ChannelCardView artworkOwner;
+    private final java.util.List<View> appScrolls = new java.util.ArrayList<>();
+    private final android.content.SharedPreferences.OnSharedPreferenceChangeListener appearanceChanged =
+            new android.content.SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override public void onSharedPreferenceChanged(android.content.SharedPreferences preferences, String key) {
+                    if (homeReady && SourceStartup.ready(MainActivity.this)) {
+                        refreshHomeAppearance(); refreshStatusBar();
+                    }
+                }
+            };
     private LauncherAwakeController awake;
     private RecommendationLoader recommendations;
     private long feedRequest;
-    private TextView cardStatus;
     private boolean resumed;
     private List<AppInventory.App> apps = new ArrayList<>();
     private String focusedApp;
     private boolean restoringGridFocus;
+    private boolean focusInitialApp;
     private int generation;
     private RemoteButtonDispatcher remoteButtons;
     private LayoutScheduleController dashboard;
@@ -170,52 +179,34 @@ public final class MainActivity extends Activity {
         remoteButtons = new RemoteButtonDispatcher(this);
         if (saved != null) focusedApp = saved.getString("focused_app");
         restoringGridFocus = focusedApp != null;
+        focusInitialApp = saved == null;
         LinearLayout body = Pages.page(this);
         homeBody = body;
+        body.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32), Pages.dp(this, 96));
         statusBarArea = new LinearLayout(this);
         statusBarState = null;
         statusBarArea.setTag("home:statusbar-container");
-        body.addView(statusBarArea, new LinearLayout.LayoutParams(-1, -2));
+        body.addView(statusBarArea, new LinearLayout.LayoutParams(-1, Pages.dp(this, 44)));
         refreshStatusBar();
-        homeTitle = Pages.text(this, "com.jeremykenedy.firetv.ui".equals(getPackageName())
-                ? getApplicationInfo().loadLabel(getPackageManager()).toString() : "Fire TV UI Preview", 30);
-        body.addView(homeTitle);
-        LinearLayout actions = new LinearLayout(this);
-        settings = Pages.button(this, "Settings", new View.OnClickListener() {
-            @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, SettingsActivity.class)); }
-        });
-        settings.setId(0x1001);
-        actions.addView(settings);
-        Button help = Pages.button(this, "Help", new View.OnClickListener() {
-            @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, HelpActivity.class)); }
-        });
-        help.setId(0x1002); actions.addView(help); body.addView(actions);
         allApps = Pages.button(this, "All apps", new View.OnClickListener() {
             @Override public void onClick(View view) { startActivity(AllAppsActivity.intent(MainActivity.this)); }
         });
         allApps.setId(0x1003); allApps.setTag("home:all-apps");
         allApps.setVisibility(AllAppsPreferences.enabled(this) ? View.VISIBLE : View.GONE);
-        actions.addView(allApps);
-        View.OnFocusChangeListener headerFocus = new View.OnFocusChangeListener() {
-            @Override public void onFocusChange(View view, boolean focused) {
-                if (focused && resumed) { focusedApp = null; restoringGridFocus = false; }
-            }
-        };
-        settings.setOnFocusChangeListener(headerFocus); help.setOnFocusChangeListener(headerFocus);
-        allApps.setOnFocusChangeListener(headerFocus);
-        cardStatus = Pages.text(this, "Checking channel cards…", 14);
-        cardStatus.setTag("home:card-status");
-        cardStatus.setMaxLines(2);
-        cardStatus.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        cardStatus.setPadding(Pages.dp(this, 16), 0, 0, 0);
-        LinearLayout.LayoutParams statusLayout = new LinearLayout.LayoutParams(0, -2, 1);
-        statusLayout.gravity = android.view.Gravity.CENTER_VERTICAL;
-        actions.addView(cardStatus, statusLayout);
+        body.addView(allApps);
         homeContent = new HomeContentView(this, new ChannelCardView.Listener() {
             @Override public void onSelect(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
             @Override public void onLongPress(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
         }, new HomeContentView.Listener() {
             @Override public void onSlotFocused(String key) { focusedApp = null; }
+            @Override public void onArtworkChanged(ChannelCardView card, android.graphics.Bitmap artwork) {
+                if (background == null) return;
+                if (!com.jeremykenedy.firetv.ui.nativeapp.cards.CardDisplayPreferences.bigPicture(MainActivity.this)) {
+                    artworkOwner = null; background.setFeaturedArtwork(null); return;
+                }
+                if (artwork != null) { artworkOwner = card; background.setFeaturedArtwork(artwork); }
+                else if (artworkOwner == card) { artworkOwner = null; background.setFeaturedArtwork(null); }
+            }
             @Override public void onUnavailable(LayoutItem item) {
                 startActivity(new Intent(MainActivity.this, item.kind == LayoutItem.Kind.CHANNEL_CARD
                         ? CardsSettingsActivity.class : com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity.class));
@@ -237,7 +228,7 @@ public final class MainActivity extends Activity {
         slotViewport = new ScrollView(this);
         slotViewport.setClipChildren(false); slotViewport.setClipToPadding(false);
         slotViewport.addView(homeContent);
-        body.addView(slotViewport, new LinearLayout.LayoutParams(-1, Pages.dp(this, 190)));
+        body.addView(slotViewport, new LinearLayout.LayoutParams(-1, 0, 1));
         if (saved != null) {
             final int scrollY = saved.getInt("slot_scroll_y", 0);
             slotViewport.post(new Runnable() { @Override public void run() { slotViewport.scrollTo(0, scrollY); } });
@@ -246,29 +237,44 @@ public final class MainActivity extends Activity {
             @Override public void onRecommendations(TvRecommendations.Result result) {
                 if (!homeContent.applyResult(feedRequest, result)) return;
                 AccessibilityStyle.apply(MainActivity.this, getWindow().getDecorView());
-                int omitted = HomeSlots.omittedCount(LayoutPreferences.load(MainActivity.this, HomeSlots.defaults()), result.feeds);
-                String capacity = omitted == 0 ? "" : "Home layout limit reached: " + omitted + " new items were not added. ";
-                cardStatus.setText(capacity + result.message()
-                        + (result.status == TvRecommendations.Status.PERMISSION_REQUIRED ? " Open Settings, Cards to allow access." : ""));
+
             }
         });
         appArea = new LinearLayout(this); appArea.setOrientation(LinearLayout.VERTICAL);
-        body.addView(appArea, new LinearLayout.LayoutParams(-1, 0, 1));
+        appArea.setPadding(Pages.dp(this, 10), Pages.dp(this, 14), Pages.dp(this, 10), Pages.dp(this, 14));
+        android.graphics.drawable.GradientDrawable tray = new android.graphics.drawable.GradientDrawable();
+        tray.setColor(0x55000000);
+        tray.setCornerRadius(Pages.dp(this, 22));
+        tray.setStroke(Pages.dp(this, 1), 0x226d657e);
+        appArea.setBackground(tray);
+        appArea.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if (background != null && (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom))
+                    refreshHomeAppearance();
+            }
+        });
+        body.addView(appArea, new LinearLayout.LayoutParams(-1, Pages.dp(this, 113)));
         appArea.addView(Pages.text(this, "Loading apps…", 18));
         View savedHeader = saved == null ? null : findViewById(saved.getInt("focused_header", 0));
         if (savedHeader != null && savedHeader.getVisibility() == View.VISIBLE) savedHeader.requestFocus();
-        else settings.requestFocus();
         background = BackgroundLayer.attach(this, body);
+        background.setContentChangedListener(new Runnable() {
+            @Override public void run() { refreshHomeAppearance(); }
+        });
+        AppearancePreferences.file(this).registerOnSharedPreferenceChangeListener(appearanceChanged);
         awake = new LauncherAwakeController(body);
     }
 
     private void refreshStatusBar() {
         StatusBarOptions options = StatusBarOptions.load(this);
         String state = options.configured + ":" + options.minimal + ":" + options.position
-                + ":" + options.hideUnlessFocused + ":" + options.tinted;
+                + ":" + options.hideUnlessFocused + ":" + options.tinted
+                + ":" + AppearancePreferences.load(this).base;
         if (state.equals(statusBarState)) return;
         statusBarState = state;
         statusBarArea.removeAllViews();
+        settings = null;
         if (!options.configured) {
             statusBarArea.setVisibility(View.GONE);
             return;
@@ -279,7 +285,10 @@ public final class MainActivity extends Activity {
                 new Runnable() { @Override public void run() { openStatusDestination(DeviceRoutes.Destination.SYSTEM_SETTINGS); } },
                 new Runnable() { @Override public void run() { startActivity(new Intent(MainActivity.this, SettingsActivity.class)); } },
                 new Runnable() { @Override public void run() { StatusBarQuickPanel.show(MainActivity.this); } });
-        statusBarArea.addView(row, new LinearLayout.LayoutParams(-1, -2));
+        statusBarArea.addView(row, new LinearLayout.LayoutParams(-1, -1));
+        settings = row.findViewWithTag("statusbar:preferences");
+        if (settings == null) settings = row.findViewWithTag("statusbar:clock");
+        if (settings != null) settings.setId(0x1001);
     }
 
     private void openStatusDestination(DeviceRoutes.Destination destination) {
@@ -289,6 +298,7 @@ public final class MainActivity extends Activity {
 
     private void loadApps() {
         final int request = ++generation;
+        final boolean mini = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isMini(this);
         final List<AppInventory.App> previous = new ArrayList<>(apps);
         loader.execute(new Runnable() {
             @Override public void run() {
@@ -306,7 +316,7 @@ public final class MainActivity extends Activity {
                 final Map<String, Drawable> artwork = new HashMap<>();
                 boolean artworkFailed = false;
                 for (AppInventory.App app : loaded) {
-                    try { artwork.put(app.key(), IconSelectionStore.resolve(getApplicationContext(), app.key(), app.artwork, null)); }
+                    try { artwork.put(app.key(), IconSelectionStore.resolve(getApplicationContext(), app.key(), mini ? com.jeremykenedy.firetv.ui.nativeapp.appgrid.MiniDockArtwork.load(getApplicationContext(), app.component, app.artwork) : app.artwork, null)); }
                     catch (RuntimeException unavailable) { artwork.put(app.key(), app.artwork); artworkFailed = true; }
                 }
                 if (artworkFailed) messages.add("Some app artwork could not be loaded. Factory artwork is shown where available.");
@@ -357,29 +367,46 @@ public final class MainActivity extends Activity {
         View oldFocus = getCurrentFocus();
         boolean restoreTile = oldFocus instanceof FocusTileView || focusedApp != null;
         if (oldFocus instanceof FocusTileView) focusedApp = String.valueOf(oldFocus.getTag());
-        appArea.removeAllViews(); tiles.clear();
+        appArea.removeAllViews(); tiles.clear(); appScrolls.clear();
         AppGridOptions options = AppGridPreferences.load(this);
         if (options.unrememberedCount(AppInventory.keys(apps)) > 0)
             messages.add("App order limit reached. New apps remain usable, but their order cannot be saved.");
         GridLayout grid = new GridLayout(this);
         grid.setClipChildren(false); grid.setClipToPadding(false);
-        int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 64);
-        int tileWidth = Math.max(1, width / options.columns);
+        int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 84);
+        boolean mini = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isMini(this);
+        float density = getResources().getDisplayMetrics().density;
+        LinearLayout.LayoutParams trayBounds = (LinearLayout.LayoutParams) appArea.getLayoutParams();
+        trayBounds.width = mini ? com.jeremykenedy.firetv.ui.nativeapp.appgrid.MiniDockLayout.width(width, density) : -1;
+        trayBounds.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        int tileWidth = mini ? com.jeremykenedy.firetv.ui.nativeapp.appgrid.MiniDockLayout.cell(density) : Math.max(1, width / options.columns);
         boolean legacyAppFocus = com.jeremykenedy.firetv.ui.nativeapp.focus.FocusPreferences.legacyDefaultAppMode(this);
-        int tileHeight = Math.max(Pages.dp(this, 96), Math.round(tileWidth * 9f / 16f) + Pages.dp(this, 46));
-        if (options.horizontal) {
-            int availableHeight = Math.max(tileHeight, appArea.getHeight());
-            int rows = options.rows == 0 ? Math.max(1, availableHeight / tileHeight) : options.rows;
+        int tileHeight = legacyAppFocus ? Math.round(tileWidth * 9f / 16f) + Pages.dp(this, 3)
+                : Math.max(Pages.dp(this, 96), Math.round(tileWidth * 9f / 16f) + Pages.dp(this, 46));
+        if (mini) tileHeight = tileWidth;
+        int rows = mini ? 1 : options.rows == 0 ? 1 : options.rows;
+        int maxHeight = Math.round(getResources().getDisplayMetrics().heightPixels * 0.45f);
+        appArea.getLayoutParams().height = mini ? com.jeremykenedy.firetv.ui.nativeapp.appgrid.MiniDockLayout.height(density)
+                : Math.min(maxHeight, rows * tileHeight + Pages.dp(this, 28));
+        appArea.setPadding(Pages.dp(this, mini ? 4 : 10), Pages.dp(this, mini ? 6 : 14),
+                Pages.dp(this, mini ? 4 : 10), Pages.dp(this, mini ? 6 : 14));
+        homeBody.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32),
+                Pages.dp(this, com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(this) ? 40 : 96));
+        appArea.requestLayout();
+        if (mini || options.horizontal) {
+            int availableHeight = Math.max(tileHeight, appArea.getLayoutParams().height - Pages.dp(this, 28));
             grid.setOrientation(GridLayout.VERTICAL); grid.setRowCount(rows);
             HorizontalScrollView scroll = new HorizontalScrollView(this);
-            scroll.setClipChildren(legacyAppFocus); scroll.setClipToPadding(legacyAppFocus);
+            watchAppScroll(scroll);
+            scroll.setClipChildren(false); scroll.setClipToPadding(false);
             scroll.addView(grid);
             if (rows * tileHeight > availableHeight) {
-                ScrollView vertical = new ScrollView(this); vertical.addView(scroll); appArea.addView(vertical);
+                ScrollView vertical = new ScrollView(this); watchAppScroll(vertical); vertical.addView(scroll); appArea.addView(vertical);
             } else appArea.addView(scroll);
         } else {
             grid.setColumnCount(options.columns);
-            ScrollView scroll = new ScrollView(this); scroll.setClipChildren(legacyAppFocus); scroll.setClipToPadding(legacyAppFocus);
+            ScrollView scroll = new ScrollView(this); scroll.setClipChildren(false); scroll.setClipToPadding(false);
+            watchAppScroll(scroll);
             scroll.addView(grid); appArea.addView(scroll);
         }
         Map<String, AppInventory.App> byKey = new HashMap<>();
@@ -404,7 +431,9 @@ public final class MainActivity extends Activity {
             FocusTileView tile;
             if (app != null) {
                 tile = new FocusTileView(this);
-                tile.useLegacyDefaultAppPresentation(com.jeremykenedy.firetv.ui.nativeapp.focus.FocusOptions.legacyAppArtworkWidth(tileWidth));
+                tile.useLegacyDefaultAppPresentation(mini ? com.jeremykenedy.firetv.ui.nativeapp.appgrid.MiniDockLayout.artwork(density)
+                        : com.jeremykenedy.firetv.ui.nativeapp.focus.FocusOptions.legacyAppArtworkWidth(tileWidth));
+                tile.setMiniAppPresentation(mini);
                 tile.setTitle(app.label); tile.setIcon(artwork.get(key)); tile.setTag(key);
                 tile.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
@@ -444,13 +473,29 @@ public final class MainActivity extends Activity {
         }
         for (String message : messages) grid.addView(homeMessage(message, 16));
         if (tiles.isEmpty()) grid.addView(homeMessage("No visible apps. Show apps in Settings → Home layout → Apps grid.", 18));
-        if (restoreTile) {
+        if (restoreTile || oldFocus == null || focusInitialApp) {
             if (restore != null) restore.requestFocus();
             else if (!tiles.isEmpty()) { tiles.get(0).requestFocus(); focusedApp = String.valueOf(tiles.get(0).getTag()); }
-            else { settings.requestFocus(); focusedApp = null; }
+            else { if (settings != null) settings.requestFocus(); focusedApp = null; }
         }
         restoringGridFocus = false;
+        focusInitialApp = false;
+        updateScrollBlur();
         AccessibilityStyle.apply(this, getWindow().getDecorView());
+    }
+
+    private void watchAppScroll(View view) {
+        appScrolls.add(view);
+        view.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override public void onScrollChange(View changed, int x, int y, int oldX, int oldY) { updateScrollBlur(); }
+        });
+    }
+
+    private void updateScrollBlur() {
+        if (background == null) return;
+        boolean scrolled = false;
+        for (View view : appScrolls) if (view.getScrollX() != 0 || view.getScrollY() != 0) scrolled = true;
+        background.setScrollBlur(scrolled && com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isBlurOnScroll(this));
     }
 
     private TextView homeMessage(String message, int size) {
@@ -491,11 +536,30 @@ public final class MainActivity extends Activity {
         AppearanceOptions options = AppearancePreferences.load(this);
         boolean clearLegacyGradient = options.base.equals("still_legacy_gradient") && options.scene.isEmpty()
                 && LegacyGradients.index(options.legacyGradient) >= 0;
-        homeBody.setBackgroundColor(clearLegacyGradient ? 0x00000000 : 0x66101523);
+        homeBody.setBackgroundColor(0x00000000);
+        boolean lightTheme = options.base.equals("still_light") && options.scene.isEmpty();
+        android.graphics.drawable.GradientDrawable tray = new android.graphics.drawable.GradientDrawable();
+        String trayMode = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.favoritesBackgroundMode(this);
+        int trayColor = lightTheme ? 0x33ffffff : 0x55000000;
+        if ("Color".equals(trayMode)) {
+            trayColor = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.favoritesBackgroundColor(this, 0xff000000) & 0xffffff;
+            trayColor |= Math.round(com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.favoritesBackgroundOpacity(this) * 255f / 100f) << 24;
+        }
+        tray.setColor(trayColor);
+        tray.setCornerRadius(Pages.dp(this, 22));
+        tray.setStroke(Pages.dp(this, 1), lightTheme ? 0x44ffffff : 0x226d657e);
+        if ("Hide".equals(trayMode)) appArea.setBackground(null);
+        else if (background != null && appArea.getWidth() > 0
+                && com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isFavoritesBackgroundBlurred(this)) {
+            int[] position = new int[2], origin = new int[2];
+            appArea.getLocationOnScreen(position); background.getLocationOnScreen(origin);
+            android.graphics.Rect region = new android.graphics.Rect(position[0] - origin[0], position[1] - origin[1],
+                    position[0] - origin[0] + appArea.getWidth(), position[1] - origin[1] + appArea.getHeight());
+            android.graphics.Bitmap blurred = background.blurredRegion(region);
+            appArea.setBackground(new com.jeremykenedy.firetv.ui.nativeapp.appearance.FavoritesBackdrop(blurred, trayColor, Pages.dp(this, 22)));
+        } else appArea.setBackground(tray);
         homeTextContrast = clearLegacyGradient || !options.scene.isEmpty();
         homeContent.setWidgetReadability(homeTextContrast);
-        setHomeTextContrast(homeTitle);
-        setHomeTextContrast(cardStatus);
         View clock = statusBarArea.findViewWithTag("statusbar:clock");
         if (clock != null) setStatusClockContrast(clock);
     }
@@ -558,6 +622,11 @@ public final class MainActivity extends Activity {
     }
 
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
+        if (homeReady && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+            if (event.getAction() == KeyEvent.ACTION_UP)
+                startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
         return remoteButtons != null && remoteButtons.dispatch(event, false) || super.dispatchKeyEvent(event);
     }
 
@@ -645,6 +714,12 @@ public final class MainActivity extends Activity {
             Toast.makeText(this, "This action is unavailable. Try opening the source app.", Toast.LENGTH_SHORT).show();
     }
 
+    @Override public void onBackPressed() {
+        Object override = getSharedPreferences("launcher_prefs", MODE_PRIVATE).getAll().get("override_back_button");
+        if (homeReady && !Boolean.FALSE.equals(override)) return;
+        super.onBackPressed();
+    }
+
     @Override protected void onSaveInstanceState(Bundle state) {
         View focus = getCurrentFocus();
         if (focus instanceof FocusTileView) state.putString("focused_app", String.valueOf(focus.getTag()));
@@ -670,7 +745,7 @@ public final class MainActivity extends Activity {
         background.setResumed(false);
         super.onPause();
     }
-    @Override protected void onDestroy() { HomeDialogBuilder.release(this); startupHandler.removeCallbacks(startupTimeout); if (homeReady) { awake.onPause(); dashboard.close(); recommendations.close(); } loader.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() { AppearancePreferences.file(this).unregisterOnSharedPreferenceChangeListener(appearanceChanged); HomeDialogBuilder.release(this); startupHandler.removeCallbacks(startupTimeout); if (homeReady) { awake.onPause(); dashboard.close(); recommendations.close(); } loader.shutdownNow(); super.onDestroy(); }
     @Override protected void onResume() {
         super.onResume();
         activityResumed = true;
@@ -697,7 +772,7 @@ public final class MainActivity extends Activity {
         resumed = true;
         AccessibilityStyle.apply(this, getWindow().getDecorView());
         boolean showAllApps = AllAppsPreferences.enabled(this);
-        if (!showAllApps && allApps.isFocused()) settings.requestFocus();
+        if (!showAllApps && allApps.isFocused() && settings != null) settings.requestFocus();
         allApps.setVisibility(showAllApps ? View.VISIBLE : View.GONE);
         View focus = getCurrentFocus();
         if (!restoringGridFocus && !(focus instanceof FocusTileView) && focus != null

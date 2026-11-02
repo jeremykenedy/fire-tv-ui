@@ -1,6 +1,10 @@
 # Installation and updates
 
-Stable Fire TV UI 1.17.0 and Source Preview 2.0.0-alpha.1 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview has a separate package and settings; see the [preview guide](source-preview.md).
+Stable Fire TV UI 1.17.0 remains the latest stable release. The current source targets Source Preview 2.0.0-alpha.2, a separate application with separate settings. Use [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases) for available downloads and the [preview guide](source-preview.md) for its qualified installation path. A draft or local candidate is not a published release.
+
+The preview package is `com.jeremykenedy.firetv.ui.preview`; it does not replace stable Fire TV UI, import its private data or register as the TV's Home app. Alpha.2 uses version code 3 and retains the maintained preview signing certificate from public alpha.1. This permits an Android update only when the installed preview has the same certificate. A local lab build may use another signer. A matching signer alone does not qualify preservation of a populated preview installation; that result must be recorded for the final release.
+
+Before changing an existing preview, export supported settings and retain selected personal files separately. Do not uninstall it to bypass a signer mismatch: uninstalling deletes its private data. Preview exports do not restore account credentials, Android URI grants or production settings. To stop using the preview, return to the existing Home app; no production downgrade is needed.
 
 The repository installer is currently unavailable. The source-native production candidate is not a verified upgrade, and its unsigned build must not be installed. Keep the existing app and its data while migration and device acceptance are pending. For the previously published 1.17.0 instructions, use the [1.17.0 release notes](releases/v1.17.0.md) and the installer from that release's tagged source.
 

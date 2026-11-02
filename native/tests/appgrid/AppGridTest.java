@@ -10,7 +10,7 @@ public final class AppGridTest {
         String a = "a.app/.Main", b = "b.app/.Main", c = "c.app/.Main";
         List<String> available = Arrays.asList(a, b, c);
         AppGridOptions options = AppGridOptions.defaults().discover(available);
-        check(options.columns == 5 && options.rows == 0 && !options.horizontal, "Current default grid retained");
+        check(options.columns == 6 && options.rows == 1 && !options.horizontal, "Existing launcher defaults to six apps per row with vertical scrolling");
         options = options.move(c, -1, available);
         check(options.visible(available).equals(Arrays.asList(a, c, b)), "Move changes selected position");
         check(options.visible(Arrays.asList(a, b)).equals(Arrays.asList(a, b)), "Missing app disappears without fabricated tile");

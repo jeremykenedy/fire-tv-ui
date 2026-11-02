@@ -23,9 +23,9 @@
 | Version | Use it for | Start here |
 | --- | --- | --- |
 | Stable 1.17.0 | The existing Fire TV UI installation and supported 1.x updates. | [Stable download](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.17.0) |
-| Source Preview 2.0.0-alpha.1 | Testing the new native interface in a separate alpha app. | [Source preview guide](docs/source-preview.md) |
+| Source Preview 2.0.0-alpha.2 | Try the independently built launcher in a separate app. | [Source preview guide](docs/source-preview.md) |
 
-Stable 1.17.0 remains the latest stable release. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. The alpha is an early preview with the scope and limits described below. See the [source preview guide](docs/source-preview.md) for scope and limits.
+Stable 1.17.0 remains the latest stable release. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. See the [source preview guide](docs/source-preview.md) for included features and limits.
 
 The installation, feature guides and screenshots below describe stable 1.17 unless explicitly labeled as source preview.
 
@@ -48,9 +48,11 @@ The installation, feature guides and screenshots below describe stable 1.17 unle
 
 ## Source preview
 
-The separately installed alpha provides a native Home interface, app organization, cards/widgets, appearance controls and local presentation setups. It keeps production Home routing and production migration outside the preview contract. Provider content and system actions depend on platform support and explicit permissions.
+The independently built preview restores the existing Home tray, wallpaper menu, App Manager and Settings layout. It includes app organization, mixed cards and widgets, appearance controls and named local setups. It keeps production Home routing and production migration outside the preview contract. Provider content and system actions depend on platform support and explicit permissions.
 
-Use the [source preview guide](docs/source-preview.md) for installation, included features, data boundaries and known limits. Optional work beyond the frozen first cut is excluded.
+Use the [source preview guide](docs/source-preview.md) for installation, included features, data boundaries and known limits. External service additions remain deferred.
+
+[![Source Preview 2.0.0-alpha.2 Home captured on Android TV](art/screenshots/source-alpha2-home-api34.png)](docs/source-preview.md#screenshots)
 
 
 ## Requirements
@@ -61,7 +63,7 @@ Use the [source preview guide](docs/source-preview.md) for installation, include
 
 ## Installation
 
-Stable Fire TV UI 1.17.0 and the isolated Source Preview 2.0.0-alpha.1 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview uses a separate package and settings; see the [preview guide](docs/source-preview.md).
+Stable Fire TV UI 1.17.0 and the isolated Source Preview 2.0.0-alpha.2 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview uses a separate package and settings; see the [preview guide](docs/source-preview.md).
 
 The repository installer is currently unavailable. The source-native production build is a candidate and is not a verified upgrade; keep the existing installation and its data. See [Installation and updates](docs/installation.md) for the current status and backup guidance.
 
@@ -129,7 +131,7 @@ The script builds an isolated unsigned preview and runs the source-native host a
 
 ## Documentation
 
-- [Source Preview 2.0.0-alpha.1 guide](docs/source-preview.md)
+- [Source Preview 2.0.0-alpha.2 guide](docs/source-preview.md)
 - [Documentation index](docs/index.md)
 - [Configuration](docs/configuration.md)
 - [Full screenshot gallery](docs/screenshots.md)

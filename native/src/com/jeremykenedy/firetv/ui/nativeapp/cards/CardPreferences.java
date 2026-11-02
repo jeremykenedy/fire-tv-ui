@@ -3,15 +3,77 @@ package com.jeremykenedy.firetv.ui.nativeapp.cards;
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
+import com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState;
+import com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 public final class CardPreferences {
     private static final String FILE = "native_cards";
     private CardPreferences() {}
+
+    public static Set<String> hiddenPackages(Context context) {
+        synchronized (PresentationState.class) {
+            HolidayPresetTransaction.assertReadable(context);
+            Object value = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getAll().get("hidden_packages");
+            try {
+                if (value != null && !(value instanceof String)) throw new IllegalArgumentException();
+                return CardOptions.decodePackages(value == null ? "" : (String) value);
+            } catch (IllegalArgumentException invalid) {
+                throw new IllegalStateException("Saved card source choices could not be read. Existing settings were kept.", invalid);
+            }
+        }
+    }
+
+    public static boolean isPackageHidden(Context context, String source) {
+        CardOptions.validatePackage(source);
+        return hiddenPackages(context).contains(source);
+    }
+
+    public static void setPackageHidden(Context context, String source, boolean hidden) {
+        setPackagesHidden(context, Collections.singletonMap(source, hidden));
+    }
+
+    public static void setPackagesHidden(Context context, Map<String, Boolean> changes) {
+        synchronized (PresentationState.class) {
+            HolidayPresetTransaction.assertWritable(context);
+            if (changes == null) throw new IllegalArgumentException("Choose an application.");
+            Set<String> hidden = new LinkedHashSet<>(hiddenPackages(context));
+            for (Map.Entry<String, Boolean> entry : changes.entrySet()) {
+                CardOptions.validatePackage(entry.getKey());
+                if (entry.getValue() == null) throw new IllegalArgumentException("Choose whether cards are hidden.");
+                if (entry.getValue()) hidden.add(entry.getKey()); else hidden.remove(entry.getKey());
+            }
+            String encoded = CardOptions.encodePackages(hidden);
+            SharedPreferences preferences = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
+            Object previous = preferences.getAll().get("hidden_packages");
+            if (encoded.equals(previous) || previous == null && encoded.isEmpty()) return;
+            if (preferences.edit().putString("hidden_packages", encoded).commit()) return;
+            SharedPreferences.Editor rollback = preferences.edit();
+            put(rollback, "hidden_packages", previous);
+            if (!rollback.commit() || !java.util.Objects.equals(previous, preferences.getAll().get("hidden_packages")))
+                throw new IllegalStateException("Card source choice recovery could not be verified.");
+            throw new IllegalStateException("Card source choices could not be saved. Existing settings were kept.");
+        }
+    }
+
+    public static Set<String> hiddenFeedKeys(Context context, List<TvRecommendations.Feed> feeds) {
+        Set<String> hidden;
+        try { hidden = hiddenPackages(context); }
+        catch (IllegalStateException unreadable) {
+            Set<String> all = new LinkedHashSet<>();
+            for (TvRecommendations.Feed feed : feeds) all.add(feed.item.key());
+            return all;
+        }
+        Set<String> result = new LinkedHashSet<>();
+        for (TvRecommendations.Feed feed : feeds) if (hidden.contains(feed.source)) result.add(feed.item.key());
+        return result;
+    }
 
     public static boolean artworkFits(Context context) {
         Object value = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)

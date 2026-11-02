@@ -38,6 +38,10 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
     private TextView orderHeading;
     private Button widgetSettings;
     private boolean widgetPage;
+    private boolean enteredWidgets;
+    private Button enableWidgets;
+    private Button widgetBackground;
+    private Button widgetText;
     private TextView size;
     private TextView mode;
     private TextView providerStatus;
@@ -52,12 +56,15 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
-        widgetPage = state == null ? getIntent().getBooleanExtra("widgets", false) : state.getBoolean("widgets", false);
+        enteredWidgets = state == null ? getIntent().getBooleanExtra("widgets", false) : state.getBoolean("entered_widgets", false);
+        widgetPage = state == null ? enteredWidgets : state.getBoolean("widgets", false);
         permissionDenied = state != null && state.getBoolean("listings_denied", false);
         available = availableItems();
         options = HomeSlots.discover(LayoutPreferences.load(this, HomeSlots.defaults()), feeds).discover(available);
-        LinearLayout page = Pages.page(this);
-        heading = Pages.text(this, "", 30);
+        LinearLayout page = Pages.sidePanel(this);
+        heading = Pages.text(this, "", 26);
+        heading.setTextColor(0xff8d8d8d);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
         explanation = Pages.text(this, "", 17);
         page.addView(heading);
         page.addView(explanation);
@@ -65,19 +72,34 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
         page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         LinearLayout content = column();
         scroll.addView(content);
-        widgetSettings = Pages.button(this, "Widget settings", new View.OnClickListener() {
+        widgetSettings = Pages.menuButton(this, "Widget settings", new View.OnClickListener() {
             @Override public void onClick(View view) { showWidgets(!widgetPage); }
         });
         widgetSettings.setTag("layout:widget-settings");
+        enableWidgets = Pages.menuButton(this, "Enable widgets", new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                save(options.withMode(LayoutPreferences.toggleWidgetsMode(LayoutSettingsActivity.this, options)),
+                        "layout:enable-widgets");
+            }
+        });
+        enableWidgets.setTag("layout:enable-widgets");
+        content.addView(enableWidgets);
+        widgetBackground = Pages.menuButton(this, "Widget Background Color", new View.OnClickListener() {
+            @Override public void onClick(View view) { com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.choose(LayoutSettingsActivity.this, false); }
+        });
+        widgetText = Pages.menuButton(this, "Widget Text Color", new View.OnClickListener() {
+            @Override public void onClick(View view) { com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.choose(LayoutSettingsActivity.this, true); }
+        });
+        content.addView(widgetBackground); content.addView(widgetText);
         content.addView(widgetSettings);
-        Button addGroup = Pages.button(this, "Add widget column", new View.OnClickListener() {
+        Button addGroup = Pages.menuButton(this, "Add widget column", new View.OnClickListener() {
             @Override public void onClick(View view) { addWidgetColumn(); }
         });
         addGroup.setTag("layout:add-widget-column");
         content.addView(addGroup);
         general = column();
         content.addView(general);
-        Button statusBar = Pages.button(this, "Status bar", new View.OnClickListener() {
+        Button statusBar = Pages.menuButton(this, "Status bar", new View.OnClickListener() {
             @Override public void onClick(View view) {
                 com.jeremykenedy.firetv.ui.nativeapp.statusbar.StatusBarSettings.show(LayoutSettingsActivity.this);
             }
@@ -88,23 +110,23 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
         mode = Pages.text(this, "", 18);
         mode.setTag("layout:mode-status");
         general.addView(mode);
-        LinearLayout modes = new LinearLayout(this);
+        LinearLayout modes = column();
         mode(modes, "Cards and widgets", LayoutOptions.Mode.BOTH);
         mode(modes, "Cards only", LayoutOptions.Mode.CARDS_ONLY);
         mode(modes, "Widgets only", LayoutOptions.Mode.WIDGETS_ONLY);
         general.addView(modes);
-        LinearLayout hideContent = new LinearLayout(this);
+        LinearLayout hideContent = column();
         mode(hideContent, "Hide cards and widgets", LayoutOptions.Mode.NONE);
         general.addView(hideContent);
         general.addView(Pages.text(this, "Changing this mode keeps every item's saved order and Show/Hide choice.", 16));
         general.addView(Pages.text(this, "Channel card size", 22));
         size = Pages.text(this, "", 18);
         general.addView(size);
-        LinearLayout presets = new LinearLayout(this);
+        LinearLayout presets = column();
         preset(presets, "Compact", 240, 135);
         preset(presets, "Standard", 320, 180);
         preset(presets, "Large", 400, 225);
-        presets.addView(Pages.button(this, "Custom size", new View.OnClickListener() {
+        presets.addView(Pages.menuButton(this, "Custom size", new View.OnClickListener() {
             @Override public void onClick(View view) { customSize(); }
         }));
         general.addView(presets);
@@ -112,7 +134,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
         providerStatus = Pages.text(this, "Checking TV recommendations…", 17);
         providerStatus.setTag("layout:provider-status");
         general.addView(providerStatus);
-        providerAction = Pages.button(this, "Refresh channel cards", new View.OnClickListener() {
+        providerAction = Pages.menuButton(this, "Refresh channel cards", new View.OnClickListener() {
             @Override public void onClick(View view) {
                 if (status == TvRecommendations.Status.PERMISSION_REQUIRED) requestListings();
                 else refreshFeeds();
@@ -167,7 +189,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
 
     @Override public void onBackPressed() {
         if (startupBlocked) { super.onBackPressed(); return; }
-        if (widgetPage) showWidgets(false);
+        if (widgetPage && !enteredWidgets) showWidgets(false);
         else super.onBackPressed();
     }
 
@@ -199,6 +221,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
         if (startupBlocked) { super.onSaveInstanceState(state); return; }
         state.putBoolean("listings_denied", permissionDenied);
         state.putBoolean("widgets", widgetPage);
+        state.putBoolean("entered_widgets", enteredWidgets);
         super.onSaveInstanceState(state);
     }
 
@@ -265,7 +288,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
     }
 
     private void mode(LinearLayout row, String label, final LayoutOptions.Mode value) {
-        Button button = Pages.button(this, label, new View.OnClickListener() {
+        Button button = Pages.menuButton(this, label, new View.OnClickListener() {
             @Override public void onClick(View view) { save(options.withMode(value), "layout:mode:" + value.name()); }
         });
         button.setTag("layout:mode:" + value.name());
@@ -273,13 +296,18 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
     }
 
     private void preset(LinearLayout row, String label, final int width, final int height) {
-        row.addView(Pages.button(this, label, new View.OnClickListener() {
+        row.addView(Pages.menuButton(this, label, new View.OnClickListener() {
             @Override public void onClick(View view) { save(options.resizeCards(width, height), null); }
         }));
     }
 
     private void render(String focusTag) {
-        heading.setText(widgetPage ? "Widget settings" : "Your cards and widgets");
+        heading.setText(widgetPage ? "Widgets" : "Your cards and widgets");
+        enableWidgets.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
+        widgetBackground.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
+        widgetText.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
+        enableWidgets.setText("Enable widgets: " + (LayoutPreferences.widgetsEnabled(this, options) ? "On" : "Off"));
+        explanation.setVisibility(widgetPage ? View.GONE : View.VISIBLE);
         explanation.setText(widgetPage ? "Configure your local widgets and choose which ones appear on Home. Set shared order in Your cards and widgets."
                 : "Keep cards and widgets together in the order you choose.");
         widgetSettings.setText(widgetPage ? "Your cards and widgets" : "Widget settings");
@@ -304,19 +332,19 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
             if (widget != null) status += "\n" + stateLabel(widget.state(this)) + ": " + widget.message(this);
             String title = key.equals(WidgetGroupsView.ITEM.key()) ? "Grouped widgets" : HomeSlots.title(key, feeds);
             item.addView(Pages.text(this, (index + 1) + ". " + title + "\n" + status, 19));
-            LinearLayout actions = new LinearLayout(this);
-            Button visibility = Pages.button(this, options.hidden.contains(key) ? "Show" : "Hide", new View.OnClickListener() {
+            LinearLayout actions = column();
+            Button visibility = Pages.menuButton(this, options.hidden.contains(key) ? "Show" : "Hide", new View.OnClickListener() {
                 @Override public void onClick(View view) { save(options.setVisible(key, options.hidden.contains(key)), key + ":visibility"); }
             });
             visibility.setTag(key + ":visibility");
             actions.addView(visibility);
-            Button up = Pages.button(this, "Move up", new View.OnClickListener() {
+            Button up = Pages.menuButton(this, "Move up", new View.OnClickListener() {
                 @Override public void onClick(View view) { save(options.moveBefore(key, options.order.get(position - 1)), key + ":up"); }
             });
             up.setEnabled(index > 0);
             up.setTag(key + ":up");
             if (!widgetPage) actions.addView(up);
-            Button down = Pages.button(this, "Move down", new View.OnClickListener() {
+            Button down = Pages.menuButton(this, "Move down", new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     String before = position + 2 < options.order.size() ? options.order.get(position + 2) : null;
                     save(options.moveBefore(key, before), key + ":down");
@@ -327,7 +355,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
             if (!widgetPage) actions.addView(down);
             item.addView(actions);
             if (widget != null) {
-                Button configure = Pages.button(this, "Configure " + widget.title(), new View.OnClickListener() {
+                Button configure = Pages.menuButton(this, "Configure " + widget.title(), new View.OnClickListener() {
                     @Override public void onClick(View view) { widget.configure(LayoutSettingsActivity.this); }
                 });
                 configure.setTag(key + ":configure");
