@@ -40,7 +40,7 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
         TextView intro = text("Choose how apps respond as you move with the remote.", 17, 0xffc8bfdc);
         intro.setPadding(0, dp(6), 0, dp(18));
         root.addView(intro);
-        importedNotice = text("Apps use an imported focus style. The preview and controls show a new style; changing a setting replaces the imported style.", 16, 0xffe5dff0);
+        importedNotice = text("Apps use the standard focus style. Changing a control applies your custom style.", 16, 0xffe5dff0);
         importedNotice.setPadding(0, 0, 0, dp(12));
         importedNotice.setVisibility(FocusPreferences.legacyDefaultAppMode(this) ? View.VISIBLE : View.GONE);
         root.addView(importedNotice);

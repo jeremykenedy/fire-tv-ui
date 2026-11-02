@@ -49,7 +49,7 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
         add("columns", "Apps per row: " + options.columns, new Runnable() {
             @Override public void run() { chooseColumns(); }
         });
-        add("direction", "Scroll: " + (options.horizontal ? "Horizontal" : "Vertical (default)"), new Runnable() {
+        add("direction", "Scroll: " + (options.horizontal ? "Horizontal (default)" : "Vertical"), new Runnable() {
             @Override public void run() {
                 AppGridOptions old = AppGridPreferences.load(AppGridSettingsActivity.this);
                 save(old.grid(old.columns, old.rows, !old.horizontal));
@@ -61,7 +61,8 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
         add("reset", "Restore default grid dimensions", new Runnable() {
             @Override public void run() {
                 AppGridOptions old = AppGridPreferences.load(AppGridSettingsActivity.this);
-                save(old.grid(5, 0, false));
+                AppGridOptions defaults = AppGridOptions.defaults();
+                save(old.grid(defaults.columns, defaults.rows, defaults.horizontal));
             }
         });
         body.addView(Pages.text(this, "Installed apps", 22));
@@ -107,7 +108,7 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
 
     private void chooseColumns() {
         new AlertDialog.Builder(this).setTitle("Apps per row").setItems(new String[] {
-            "3", "4", "5 (default)", "6", "7", "8", "Custom (2–12)"
+            "3", "4", "5", "6 (default)", "7", "8", "Custom (2–12)"
         }, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int which) {
                 if (which == 6) { number(true); return; }
