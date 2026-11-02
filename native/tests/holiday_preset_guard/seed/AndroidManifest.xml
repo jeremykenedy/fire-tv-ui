@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui" android:versionCode="1" android:versionName="0.1-seed">
+ <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36"/>
+ <application android:label="Disposable migration seed" android:debuggable="true" android:allowBackup="false"/>
+ <instrumentation android:name="com.jeremykenedy.firetv.ui.seed.SeedInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui"/>
+</manifest>

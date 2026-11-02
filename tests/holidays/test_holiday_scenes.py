@@ -18,6 +18,9 @@ class HolidaySceneChecks(unittest.TestCase):
             stub.write_text('''package android.content; import java.util.Map;
 public interface SharedPreferences { Map<String,?> getAll(); Editor edit();
  interface Editor { Editor putString(String key,String value); Editor remove(String key); boolean commit(); }}''')
+            monitor = root / 'com/jeremykenedy/firetv/ui/nativeapp/setups/PresentationState.java'
+            monitor.parent.mkdir(parents=True)
+            monitor.write_text('package com.jeremykenedy.firetv.ui.nativeapp.setups; public class PresentationState {}')
             test = root / 'HolidayTest.java'
             test.write_text('''import android.content.SharedPreferences; import java.util.*;
 import com.jeremykenedy.firetv.ui.nativeapp.holidays.*;
@@ -59,7 +62,7 @@ public class HolidayTest {
  }
 }''')
             subprocess.run(['javac', '-d', folder, str(stub), str(test),
-                            str(PACKAGE / 'HolidayScenes.java'), str(PACKAGE / 'HolidaySelection.java')], check=True)
+                            str(monitor), str(PACKAGE / 'HolidayScenes.java'), str(PACKAGE / 'HolidaySelection.java')], check=True)
             subprocess.run(['java', '-cp', folder, 'HolidayTest'], check=True)
 
     def test_animation_cycle_speed_and_delayed_frames_remain_bounded(self):

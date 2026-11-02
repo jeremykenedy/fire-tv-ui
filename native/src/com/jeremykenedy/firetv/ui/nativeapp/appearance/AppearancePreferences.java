@@ -52,21 +52,23 @@ public final class AppearancePreferences {
         string(context, "wallpaper_mode", mode);
     }
 
-    public static AppearanceOptions load(Context context) {
+    public static AppearanceOptions load(Context context) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertReadable(context);
         Map<String, ?> values = file(context).getAll();
         return new AppearanceOptions(string(values, "base", "off"), flag(values, "base_frozen"),
                 number(values, "base_speed"), number(values, "base_intensity"), number(values, "base_brightness"),
                 string(values, "overlay", "off"), flag(values, "overlay_frozen"), number(values, "overlay_speed"),
                 number(values, "overlay_intensity"), number(values, "overlay_opacity"), string(values, "scene", ""),
                 string(values, "wallpaper_image_uri", ""), string(values, "wallpaper_video_uri", ""), string(values,"base_palette",""), string(values,"overlay_palette",""), string(values,"legacy_gradient",""));
-    }
+    } }
     private static String string(Map<String, ?> values, String key, String fallback) { Object value = values.get(key); return value instanceof String ? (String) value : fallback; }
     private static int number(Map<String, ?> values, String key) { Object value = values.get(key); return value instanceof Integer ? (Integer) value : 50; }
     private static boolean flag(Map<String, ?> values, String key) { return Boolean.TRUE.equals(values.get(key)); }
-    public static void string(Context context, String key, String value) { commit(file(context), key, value); }
-    public static void number(Context context, String key, int value) { if (value < 0 || value > 100) throw new IllegalArgumentException("Use a value from 0 to 100."); commit(file(context), key, value); }
-    public static void flag(Context context, String key, boolean value) { commit(file(context), key, value); }
-    static void update(Context context, String[] keys, Object[] values) {
+    public static void string(Context context, String key, String value) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) { com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(context); commit(file(context), key, value); } }
+    public static void number(Context context, String key, int value) { if (value < 0 || value > 100) throw new IllegalArgumentException("Use a value from 0 to 100."); synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) { com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(context); commit(file(context), key, value); } }
+    public static void flag(Context context, String key, boolean value) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) { com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(context); commit(file(context), key, value); } }
+    static void update(Context context, String[] keys, Object[] values) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(context);
         SharedPreferences prefs = file(context);
         Map<String, ?> previous = prefs.getAll();
         SharedPreferences.Editor edit = prefs.edit();
@@ -76,13 +78,13 @@ public final class AppearancePreferences {
         for (String key : keys) put(rollback,key,previous.get(key));
         rollback.commit();
         throw new IllegalStateException("Appearance settings could not be saved. Try again.");
-    }
-    private static void commit(SharedPreferences prefs, String key, Object value) {
+    } }
+    private static void commit(SharedPreferences prefs, String key, Object value) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
         Object previous = prefs.getAll().get(key);
         if (put(prefs.edit(), key, value).commit()) return;
         put(prefs.edit(), key, previous).commit();
         throw new IllegalStateException("Appearance settings could not be saved. Try again.");
-    }
+    } }
     private static SharedPreferences.Editor put(SharedPreferences.Editor edit, String key, Object value) {
         if (value instanceof String) return edit.putString(key, (String) value);
         if (value instanceof Integer) return edit.putInt(key, (Integer) value);

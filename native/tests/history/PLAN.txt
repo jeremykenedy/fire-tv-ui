@@ -13,6 +13,9 @@ and arguments `quiescent=true`, `operation=capture`, a unique `case_id` and
 `roots=shared_prefs,files,no_backup`. Preserve the returned manifest SHA-256.
 Require `VERIFIED`, `matches=true` and an empty keystore. If capture refuses,
 retain the guard and stop; do not fabricate an earlier state.
+Run `operation=verify` with the same case, roots and manifest hash before the
+fixture. Save both outputs and the baseline in an immutable private receipt;
+record its SHA-256 separately from the guard manifest hash.
 
 Run component com.jeremykenedy.firetv.ui.historyhomeproof/com.jeremykenedy.firetv.ui.nativeapp.widget.historyproof.HistoryHomeInstrumentation
 with `state_guard_case_id` and `state_guard_manifest_sha256` set to the captured

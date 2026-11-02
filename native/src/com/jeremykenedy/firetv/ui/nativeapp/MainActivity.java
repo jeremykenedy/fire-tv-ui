@@ -173,6 +173,7 @@ public final class MainActivity extends Activity {
         LinearLayout body = Pages.page(this);
         homeBody = body;
         statusBarArea = new LinearLayout(this);
+        statusBarState = null;
         statusBarArea.setTag("home:statusbar-container");
         body.addView(statusBarArea, new LinearLayout.LayoutParams(-1, -2));
         refreshStatusBar();
@@ -673,6 +674,13 @@ public final class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         activityResumed = true;
+        if (homeReady && !SourceStartup.ready(this)) {
+            HomeDialogBuilder.release(this);
+            remoteButtons.clear(); awake.onPause(); dashboard.close(); recommendations.close();
+            homeReady = false;
+            showStartup(true);
+            return;
+        }
         if (homeReady) resumeHome();
     }
     private void resumeHome() {

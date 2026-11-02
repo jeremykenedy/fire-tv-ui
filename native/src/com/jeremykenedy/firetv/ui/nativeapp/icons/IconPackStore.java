@@ -16,6 +16,7 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Xml;
@@ -29,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.xmlpull.v1.XmlPullParser;
+import com.jeremykenedy.firetv.ui.nativeapp.appearance.PaletteRecipes;
 
 /** Reads only explicitly advertised icon packs and their component mappings. */
 public final class IconPackStore {
@@ -43,9 +45,10 @@ public final class IconPackStore {
     private static Map<String, String> cachedMappings;
     private IconPackStore() {}
 
-    public static String selected(Context context) {
+    public static String selected(Context context) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertReadable(context);
         return context.getSharedPreferences("native_icon_packs", 0).getString("package", ORIGINAL);
-    }
+    } }
 
     public static List<Pack> available(Context context) {
         Map<String, Pack> found = new LinkedHashMap<>();
@@ -65,15 +68,18 @@ public final class IconPackStore {
         result.add(0, new Pack(MUTED, "Muted solid"));
         result.add(0, new Pack(CLEAN, "Clean line"));
         result.add(0, new Pack(ORIGINAL, "None (original artwork)"));
+        for (PaletteRecipes.Theme theme : PaletteRecipes.ALL)
+            result.add(new Pack(PaletteRecipes.holidayPack(theme.id), theme.name + " colors"));
         return result;
     }
 
-    public static boolean select(Context context, String id) {
+    public static boolean select(Context context, String id) { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+        com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(context);
         for (Pack pack : available(context)) if (pack.id.equals(id)) {
             return context.getSharedPreferences("native_icon_packs", 0).edit().putString("package", id).commit();
         }
         return false;
-    }
+    } }
 
     public static void showPicker(final Activity activity, final Runnable changed) {
         final List<Pack> packs = available(activity);
@@ -86,7 +92,11 @@ public final class IconPackStore {
         new AlertDialog.Builder(activity).setTitle("Icon pack").setSingleChoiceItems(labels, checked,
                 new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
-                        if (select(activity, packs.get(which).id)) { dialog.dismiss(); if (changed != null) changed.run(); }
+                        try {
+                            if (select(activity, packs.get(which).id)) { dialog.dismiss(); if (changed != null) changed.run(); }
+                        } catch (IllegalStateException failure) {
+                            new AlertDialog.Builder(activity).setTitle("Settings not saved").setMessage(failure.getMessage()).setPositiveButton("OK",null).show();
+                        }
                     }
                 }).setNegativeButton("Cancel", null).show();
     }
@@ -94,6 +104,8 @@ public final class IconPackStore {
     /** Call from the artwork worker. Missing packs and missing mappings retain original artwork. */
     public static Drawable resolve(Context context, String tileKey, Drawable factory) {
         String pack = selected(context);
+        PaletteRecipes.Theme holiday = PaletteRecipes.fromHolidayPack(pack);
+        if (holiday != null) return holiday(context, factory, holiday);
         if (CLEAN.equals(pack) || MUTED.equals(pack)) return styled(context, factory, CLEAN.equals(pack));
         if (ORIGINAL.equals(pack)) return factory;
         if (tileKey == null || tileKey.startsWith("input:")) return factory;
@@ -127,7 +139,7 @@ public final class IconPackStore {
             }
             return raster(context, resources.getDrawable(id, external.getTheme()));
         } catch (Exception unavailable) { return factory; }
-    }
+     }
 
     private static Map<String, String> mappings(Context external) throws Exception {
         int xml = external.getResources().getIdentifier("appfilter", "xml", external.getPackageName());
@@ -194,6 +206,25 @@ public final class IconPackStore {
         }
         canvas.drawBitmap(image, null, new Rect(24, 14, 488, 274), paint);
         image.recycle();
+        return new BitmapDrawable(context.getResources(), result);
+    }
+
+    private static Drawable holiday(Context context, Drawable source, PaletteRecipes.Theme theme) {
+        if (source == null) return null;
+        Bitmap result = Bitmap.createBitmap(512, 288, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(result);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+        RectF plate = new RectF(20, 20, 492, 268);
+        paint.setColor(theme.dark);
+        canvas.drawRoundRect(plate, 35, 35, paint);
+        paint.setColor(theme.accent); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(3.5f);
+        canvas.drawRoundRect(plate, 35, 35, paint);
+        Rect previous = source.copyBounds();
+        int width = Math.max(1, source.getIntrinsicWidth()), height = Math.max(1, source.getIntrinsicHeight());
+        float scale = Math.min(512f * .74f / width, 288f * .68f / height);
+        int w = Math.max(1, Math.round(width * scale)), h = Math.max(1, Math.round(height * scale));
+        try { source.setBounds((512-w)/2, (288-h)/2, (512+w)/2, (288+h)/2); source.draw(canvas); }
+        finally { source.setBounds(previous); }
         return new BitmapDrawable(context.getResources(), result);
     }
 }

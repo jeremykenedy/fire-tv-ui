@@ -64,6 +64,13 @@ public final class PaletteRecipes {
 
     private PaletteRecipes() {}
 
+    public static String holidayPack(String id) { return "builtin:holiday:" + id; }
+
+    public static Theme fromHolidayPack(String value) {
+        String prefix = "builtin:holiday:";
+        return value != null && value.startsWith(prefix) ? find(value.substring(prefix.length())) : null;
+    }
+
     public static Theme find(String id) {
         for (Theme theme : ALL) if (theme.id.equals(id)) return theme;
         return null;

@@ -36,12 +36,13 @@ public final class SourceApplication extends Application implements SourceStartu
     private volatile String protectionFailure;
     private boolean running;
 
-    @Override public boolean isReady() { return ready; }
-    @Override public String error() { return failure; }
+    @Override public boolean isReady() { synchronized(com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) { return ready && !com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.hasRecovery(this); } }
+    @Override public String error() { return com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.hasRecovery(this) ? "An interrupted holiday change needs to be restored. Select Retry." : failure; }
     @Override public String protectionError() { return protectionFailure; }
 
     @Override public synchronized void start(Runnable complete) {
-        if (ready) { main.post(complete); return; }
+        if (isReady()) { main.post(complete); return; }
+        ready = false;
         callbacks.add(complete);
         if (running) return;
         running = true;
@@ -49,6 +50,11 @@ public final class SourceApplication extends Application implements SourceStartu
         executor.execute(new Runnable() {
             @Override public void run() {
                 try {
+                    boolean interrupted = com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.hasRecovery(SourceApplication.this);
+                    com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.recover(SourceApplication.this);
+                    if (interrupted) main.post(new Runnable() { @Override public void run() {
+                        android.widget.Toast.makeText(SourceApplication.this, "Interrupted holiday change restored.", android.widget.Toast.LENGTH_LONG).show();
+                    } });
                     File data = new File(getApplicationInfo().dataDir);
                     File markerPath = new File(new File(data, "no_backup"), "source-startup-v1");
                     int marker = readMarker(markerPath);
@@ -73,7 +79,7 @@ public final class SourceApplication extends Application implements SourceStartu
     }
 
     @Override public void startProtection(final Runnable complete, final AtomicBoolean expired) {
-        if (!ready) { main.post(complete); return; }
+        if (!isReady()) { main.post(complete); return; }
         executor.execute(new Runnable() {
             @Override public void run() {
                 boolean wanted = false, updateWanted = false;

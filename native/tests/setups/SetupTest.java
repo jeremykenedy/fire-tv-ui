@@ -47,6 +47,7 @@ public final class SetupTest {
     }
 
     public static void main(String[] args) throws Exception {
+        holidayPresets(new File(args[0], "holiday-fixtures"));
         for (String style : Arrays.asList("default", "none", "fade", "slide")) {
             Context transitionContext = new Context(new File(args[0], "transition-" + style));
             prefs(transitionContext, "launcher_prefs").values.put("menu_transition_style", style);
@@ -102,6 +103,11 @@ public final class SetupTest {
                 !first.get("native_inputs").values().containsKey("known:vendor/.Input/HDMI1"),
                 "input discovery metadata excluded");
         PresentationState.validatePortable(first);
+        Map<String, PreferenceSnapshot> holidayPack = new LinkedHashMap<>(first);
+        holidayPack.put("native_icon_packs", new PreferenceSnapshot(Collections.singletonMap("package", "builtin:holiday:hanukkah")));
+        PresentationState.validatePortable(holidayPack);
+        holidayPack.put("native_icon_packs", new PreferenceSnapshot(Collections.singletonMap("package", "builtin:holiday:unknown")));
+        rejects(() -> PresentationState.validatePortable(holidayPack), "unknown holiday pack rejected");
         Map<String, PreferenceSnapshot> exercise = new LinkedHashMap<>(first);
         exercise.put(
                 "native_breathing_break",
@@ -539,5 +545,81 @@ public final class SetupTest {
                 && prefs(legacyContext, "source_accessibility").values.get("future_private").equals("kept"),
                 "applying older setup removes owned readability choices while preserving unknown data");
         System.out.println("Saved setups: " + checks + " checks passed.");
+    }
+    private static void holidayPresets(File folder) throws Exception {
+        Context context = new Context(folder);
+        Context.Prefs appearance=prefs(context,"source_appearance"), focus=prefs(context,"native_focus"), packs=prefs(context,"native_icon_packs");
+        appearance.values.put("scene","halloween"); appearance.values.put("wallpaper_image_uri","content://owner/image");
+        appearance.values.put("base_speed",17); appearance.values.put("overlay_opacity",25);
+        focus.values.put("growth_percent",6); focus.values.put("legacy_app_default",true); packs.values.put("package","original");
+        for(com.jeremykenedy.firetv.ui.nativeapp.appearance.PaletteRecipes.Theme theme : com.jeremykenedy.firetv.ui.nativeapp.appearance.PaletteRecipes.ALL) {
+            HolidayPresetTransaction.apply(context,theme.id,true,true,false);
+            check(appearance.values.get("overlay").equals(theme.motif) && appearance.values.get("overlay_palette").equals(theme.id) && appearance.values.get("scene").equals("halloween"), "Each recipe applies its own overlay without changing the scene.");
+        }
+        HolidayPresetTransaction.apply(context,"eid_fitr",true,false,false);
+        check(appearance.values.get("scene").equals("halloween") && appearance.values.get("overlay").equals("bokeh")
+                && appearance.values.get("overlay_palette").equals("eid_fitr") && appearance.values.get("overlay_frozen").equals(true), "Overlay preset preserves scene and applies recipe, palette and still choice.");
+        check(packs.values.get("package").equals("original") && !focus.values.containsKey("border_rgb") && Boolean.TRUE.equals(focus.values.get("legacy_app_default")), "Unselected icon and focus choices remain untouched.");
+        HolidayPresetTransaction.apply(context,"hanukkah",false,true,true);
+        check(appearance.values.get("scene").equals("") && appearance.values.get("base").equals("lanterns") && appearance.values.get("base_frozen").equals(false), "Background preset becomes visible and clears the selected scene.");
+        check(packs.values.get("package").equals("builtin:holiday:hanukkah") && focus.values.get("border_enabled").equals(true) && focus.values.get("border_rgb").equals(0xacbfdc) && focus.values.get("fill_enabled").equals(false) && !focus.values.containsKey("legacy_app_default"), "Optional coordinated icons and focus are applied.");
+        check(appearance.values.get("wallpaper_image_uri").equals("content://owner/image") && appearance.values.get("base_speed").equals(17) && focus.values.get("growth_percent").equals(6), "Unrelated choices are retained.");
+        rejects(() -> HolidayPresetTransaction.apply(context,"unknown",true,true,true), "Unknown recipe rejected");
+        for(String file:new String[]{"source_appearance","native_focus","native_icon_packs"}) {
+            Map<String,Object> oldAppearance=new LinkedHashMap<>(appearance.values),oldFocus=new LinkedHashMap<>(focus.values),oldPacks=new LinkedHashMap<>(packs.values);
+            prefs(context,file).failures=1;
+            rejects(() -> HolidayPresetTransaction.apply(context,"diwali",true,true,true), "Failed preset write is reported");
+            check(appearance.values.equals(oldAppearance)&&focus.values.equals(oldFocus)&&packs.values.equals(oldPacks)&&!HolidayPresetTransaction.hasRecovery(context), "Each failed commit restores all affected keys and absence.");
+        }
+        appearance.values.put("base",99L); appearance.values.remove("base_palette");
+        AtomicFile.failDelete=true;
+        rejects(() -> HolidayPresetTransaction.apply(context,"christmas",false,true,true), "Unresolved recovery is reported");
+        check(HolidayPresetTransaction.hasRecovery(context), "Failed recovery cleanup keeps journal");
+        rejects(() -> com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearancePreferences.string(context,"base","stars"), "Pending recovery blocks ordinary appearance edits");
+        rejects(() -> com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearancePreferences.load(context), "Pending recovery blocks partial appearance reads");
+        rejects(() -> PresentationState.capture(context), "Pending recovery blocks mixed setup capture");
+        appearance.values.put("unrelated_fixture","keep"); AtomicFile.failDelete=false;
+        Context restarted=new Context(folder);
+        for(String file:new String[]{"source_appearance","native_focus","native_icon_packs"}) prefs(restarted,file).values.putAll(prefs(context,file).values);
+        HolidayPresetTransaction.recover(restarted);
+        check(prefs(restarted,"source_appearance").values.get("base").equals(99L) && !prefs(restarted,"source_appearance").values.containsKey("base_palette") && prefs(restarted,"source_appearance").values.get("unrelated_fixture").equals("keep"), "Reopened recovery restores exact original type and absence without touching unrelated keys.");
+        check(!HolidayPresetTransaction.hasRecovery(restarted), "Verified recovery resolves journal");
+        final java.util.concurrent.CountDownLatch start=new java.util.concurrent.CountDownLatch(1);
+        final Throwable[] errors=new Throwable[2];
+        Thread preset=new Thread(() -> { try { start.await(); HolidayPresetTransaction.apply(context,"diwali",false,true,true); } catch(Throwable failure) { errors[0]=failure; } });
+        Thread edit=new Thread(() -> { try { start.await(); com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearancePreferences.string(context,"base","stars"); } catch(Throwable failure) { errors[1]=failure; } });
+        preset.start(); edit.start(); start.countDown(); preset.join(); edit.join();
+        check(errors[0]==null&&errors[1]==null && (appearance.values.get("base").equals("stars") || appearance.values.get("base").equals("lanterns")), "Concurrent manual edit and preset serialize without a lost or malformed result.");
+        check(appearance.values.get("base_palette").equals("diwali") && packs.values.get("package").equals("builtin:holiday:diwali") && !HolidayPresetTransaction.hasRecovery(context), "Concurrent completion leaves a complete verified preset and no journal.");
+        for(String pending:new String[]{"saved-setup-apply-v1.json","portable-household-import-v1.snapshot","presentation-migration-v1.snapshot"}) {
+            File journal=new File(context.getNoBackupFilesDir(),pending); journal.getParentFile().mkdirs(); Files.write(journal.toPath(),new byte[]{1});
+            Map<String,Object> old=new LinkedHashMap<>(appearance.values);
+            rejects(() -> HolidayPresetTransaction.apply(context,"diwali",true,true,true), "Other pending recovery blocks preset");
+            check(appearance.values.equals(old), "Blocked preset preserves appearance");
+            Files.delete(journal.toPath());
+        }
+        File corrupt=new File(context.getNoBackupFilesDir(),"holiday-preset-v1.snapshot");
+        Files.write(corrupt.toPath(),new byte[]{1,2,3});
+        Map<String,Object> beforeCorrupt=new LinkedHashMap<>(appearance.values);
+        rejects(() -> HolidayPresetTransaction.recover(context), "Corrupt recovery cannot be applied");
+        rejects(() -> com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearancePreferences.string(context,"base","stars"), "Corrupt recovery blocks writes");
+        check(appearance.values.equals(beforeCorrupt) && HolidayPresetTransaction.hasRecovery(context), "Failed recovery keeps journal and does not write affected values");
+        Files.delete(corrupt.toPath());
+        for(int variant=0;variant<4;variant++) {
+            Map<String,Object> malformed=new LinkedHashMap<>();
+            malformed.put("present/source_appearance/base",true);
+            malformed.put("value/source_appearance/base","aurora");
+            if(variant==0)malformed.put("present/native_focus/border_rgb","true");
+            if(variant==1)malformed.put("value/native_focus/border_rgb",123);
+            if(variant==2){malformed.put("present/native_focus/border_rgb",false);malformed.put("value/native_focus/border_rgb",123);}
+            if(variant==3)malformed.put("unknown/source_appearance/base",true);
+            byte[] content=new PreferenceSnapshot(malformed).encode();
+            byte[] checksum=java.security.MessageDigest.getInstance("SHA-256").digest(content);
+            try(FileOutputStream output=new FileOutputStream(corrupt)){output.write(content);output.write(checksum);}
+            Map<String,Object> priorAppearance=new LinkedHashMap<>(appearance.values),priorFocus=new LinkedHashMap<>(focus.values);
+            rejects(() -> HolidayPresetTransaction.recover(context), "Mixed malformed recovery rejected");
+            check(appearance.values.equals(priorAppearance)&&focus.values.equals(priorFocus)&&HolidayPresetTransaction.hasRecovery(context), "Malformed recovery retains all values and journal without partial restore");
+            Files.delete(corrupt.toPath());
+        }
     }
 }

@@ -79,7 +79,8 @@ public final class PresentationState {
                 : KEYS.get(file).contains(key);
     }
 
-    public static Map<String, PreferenceSnapshot> capture(Context context) throws Exception {
+    public static synchronized Map<String, PreferenceSnapshot> capture(Context context) throws Exception {
+        if (HolidayPresetTransaction.hasRecovery(context)) throw new IOException("Restore the interrupted holiday change first.");
         Map<String, PreferenceSnapshot> result = new LinkedHashMap<>();
         for (String file : files()) {
             Map<String, ?> all = context.getSharedPreferences(file, Context.MODE_PRIVATE).getAll();
@@ -224,9 +225,9 @@ public final class PresentationState {
         AccessibilityPreferences.validateSnapshot(state.get(AccessibilityPreferences.FILE).values());
         for (Object value : state.get("native_icon_packs").values().values())
             if (!(value instanceof String)
-                    || !((String) value)
+                    || (com.jeremykenedy.firetv.ui.nativeapp.appearance.PaletteRecipes.fromHolidayPack((String) value) == null && !((String) value)
                             .matches(
-                                    "original|clean-line|muted-solid|[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+"))
+                                    "original|clean-line|muted-solid|[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+")))
                 throw new IOException("Invalid icon pack.");
     }
 
@@ -299,6 +300,7 @@ public final class PresentationState {
     public static synchronized void apply(
             Context context, Map<String, PreferenceSnapshot> state, boolean icons)
             throws Exception {
+        if (HolidayPresetTransaction.hasRecovery(context)) throw new IOException("Restore the interrupted holiday change first.");
         state = optionalStores(state);
         validate(state);
         if (hasRecovery(context))
@@ -448,6 +450,7 @@ public final class PresentationState {
     }
 
     public static synchronized void recover(Context context) throws Exception {
+        if (HolidayPresetTransaction.hasRecovery(context)) throw new IOException("Restore the interrupted holiday change first.");
         Map<String, PreferenceSnapshot> saved = readRecovery(context);
         boolean success = true;
         for (String file : files()) {

@@ -96,6 +96,7 @@ public final class BackgroundLayer extends FrameLayout {
     }
 
     public void refresh() {
+        if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(getContext())) return;
         AppearanceOptions options = AppearancePreferences.load(getContext());
         boolean reducedMotion = AppearancePreferences.reducedMotion(getContext());
         videoFrozen = reducedMotion || AppearancePreferences.videoFrozen(getContext());
@@ -159,6 +160,7 @@ public final class BackgroundLayer extends FrameLayout {
     }
 
     public void setResumed(boolean value) {
+        if (value && !com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(getContext())) value = false;
         resumed = value;
         if (value) refresh();
         else if (imageRequest != null) {
