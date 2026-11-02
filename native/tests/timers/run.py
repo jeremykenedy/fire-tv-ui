@@ -12,7 +12,7 @@ with tempfile.TemporaryDirectory(prefix='local-timers-') as folder:
                     SOURCE / 'widget/timers/TimerState.java', ROOT / 'tests/timers/LocalTimerTest.java'], check=True)
     subprocess.run(['java', '-cp', folder, 'com.jeremykenedy.firetv.ui.nativeapp.widget.timers.LocalTimerTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-                    '-d', folder, SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
+                    '-d', folder, SOURCE / 'HomeDialogBuilder.java', SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
                     SOURCE / 'layout/LayoutOptions.java', SOURCE / 'layout/LayoutPreferences.java',
                     ROOT / 'tests/state_guard/GuardStore.java',
                     *sorted((SOURCE / 'widget/timers').glob('*.java')),

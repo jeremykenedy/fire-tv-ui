@@ -68,7 +68,7 @@ public final class InputViews {
     }
     public static void actions(final Activity activity, final InputEntry input, final Runnable refresh,
             final java.util.List<String> homeOrder) {
-        new AlertDialog.Builder(activity).setTitle(input.displayName)
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(input.displayName)
                 .setItems(new String[]{"Open input", "Rename input", "Use factory name", "Change icon", "Use factory icon", input.hidden ? "Show on Home" : "Hide from Home", "Move earlier", "Move later"}, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         try {
@@ -106,7 +106,7 @@ public final class InputViews {
         edit.setFilters(new InputFilter[]{new InputFilter.LengthFilter(60)});
         edit.setText(input.displayName);
         edit.selectAll();
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Rename input").setView(edit)
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Rename input").setView(edit)
                 .setPositiveButton("Save", null).setNegativeButton("Cancel", null).create();
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override public void onShow(DialogInterface shown) {

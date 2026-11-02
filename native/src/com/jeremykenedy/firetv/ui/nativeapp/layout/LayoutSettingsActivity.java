@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class LayoutSettingsActivity extends Activity {
+public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private LayoutOptions options;
     private List<LayoutItem> available;

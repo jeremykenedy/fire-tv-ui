@@ -20,7 +20,7 @@ public final class ClockWidgetProvider implements WidgetProvider {
         return view;
     }
     @Override public void configure(Activity activity) {
-        new AlertDialog.Builder(activity).setTitle(title()).setMessage(message(activity))
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(title()).setMessage(message(activity))
                 .setPositiveButton("Done", null).show();
     }
     @Override public void onStart(View view) { ((ClockWidgetView) view).startUpdates(); }

@@ -28,7 +28,7 @@ public final class ProductionMigrationGate {
         Map<String, PreferenceSnapshot> nativeBefore = new LinkedHashMap<>(before.stores);
         nativeBefore.remove(LauncherMigration.PREFERENCES);
         try {
-            LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(legacy, identities, nativeBefore, folders, true);
+            LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(legacy, identities, nativeBefore, folders, true, true);
             Set<String> unresolved = new LinkedHashSet<>(plan.unmappedLegacyKeys);
             LegacyDeviceProtection.validateMigration(legacy.values());
             for (String key : new String[]{"fire_tv_ui_protect_settings", "fire_tv_ui_keep_adb",

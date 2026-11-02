@@ -11,7 +11,7 @@ import tempfile
 NATIVE = Path(__file__).resolve().parents[1]
 SUITES = (
     'focus/run.py', 'appgrid/run.py', 'cards/run.py', 'layout/run.py',
-    'providers/run.py', 'migration/run_tests.py', 'folders/run_tests.py',
+    'providers/run.py', 'menu_transition/run.py', 'migration/run_tests.py', 'folders/run_tests.py',
     'locks/run.py', 'inputs/run.py', 'icons/test_provenance.py',
     'appearance/run.py', 'setups/run_tests.py', 'backup/run.py',
     'network/run.py', 'protection/run.py', 'screensaver_admin/run.py',

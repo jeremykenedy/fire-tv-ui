@@ -14,7 +14,7 @@ public final class FeedPanel {
             if (new FeedStore(activity).read() == null) { FeedSettings.show(activity); return; }
         } catch (Exception unavailable) { FeedSettings.show(activity); return; }
         final FeedView view = new FeedView(activity);
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Custom feed").setView(view)
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Custom feed").setView(view)
                 .setNegativeButton("Done", null).setPositiveButton("Source settings", new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface ignored, int which) { FeedSettings.show(activity); }
                 }).create();

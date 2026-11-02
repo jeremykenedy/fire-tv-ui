@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Explicit document selection only. No production preferences or external directory scanning. */
-public final class BackupActivity extends Activity {
+public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private static final int EXPORT = 71, IMPORT = 72;
     static final PortableBackup.Validator VALIDATOR = new PortableBackup.Validator() {

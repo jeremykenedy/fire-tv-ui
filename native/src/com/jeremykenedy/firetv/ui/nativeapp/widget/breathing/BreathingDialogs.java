@@ -21,7 +21,7 @@ final class BreathingDialogs {
         final BreathingSession session;
         try { session = BreathingPreferences.read(activity); }
         catch (IllegalArgumentException error) {
-            new AlertDialog.Builder(activity).setTitle("Breathing break").setMessage(error.getMessage())
+            new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Breathing break").setMessage(error.getMessage())
                     .setPositiveButton("Reset exercise", new DialogInterface.OnClickListener() {
                         @Override public void onClick(DialogInterface dialog, int which) { save(activity, BreathingSession.defaults()); }
                     }).setNegativeButton("Back", null).show();
@@ -29,7 +29,7 @@ final class BreathingDialogs {
         }
         String action = session.running ? "Pause exercise" : session.elapsedAt(SystemClock.elapsedRealtime()) == session.duration * 1000L
                 ? "Start again" : session.elapsed == 0 ? "Start exercise" : "Resume exercise";
-        new AlertDialog.Builder(activity).setTitle("Breathing break")
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Breathing break")
                 .setItems(new String[]{action, "Reset exercise", "Cadence and motion", "About this exercise"}, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         BreathingSession current;
@@ -40,7 +40,7 @@ final class BreathingDialogs {
                             case 1: save(activity, current.reset()); break;
                             case 2: configure(activity, current); break;
                             case 3:
-                                new AlertDialog.Builder(activity).setTitle("Breathing break")
+                                new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Breathing break")
                                         .setMessage("An optional silent visual pace. Follow it only while comfortable. Choose your own cadence and session length."
                                                 + " Reduced motion keeps the circle still and shows phase text. The exercise pauses when Home closes or the widget leaves view."
                                                 + " It stays paused when you return. No sound, standby activity or wake is scheduled.")
@@ -72,7 +72,7 @@ final class BreathingDialogs {
         fields.addView(note);
         ScrollView scroll = new ScrollView(activity);
         scroll.addView(fields);
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Cadence and motion").setView(scroll)
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Cadence and motion").setView(scroll)
                 .setPositiveButton("Save", null).setNegativeButton("Back", null).create();
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override public void onShow(DialogInterface unused) {

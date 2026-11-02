@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Restores the historical, non-exported Plex TV-card handoff. */
-public final class LegacyPlexCardActivity extends Activity {
+public final class LegacyPlexCardActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private CancellationSignal cancellation;
     private LegacyPlexCardLookup.Reference reference;

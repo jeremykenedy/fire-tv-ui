@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 /** Explicit library discovery with local filters and source-labeled metadata. */
-public final class DiscoveryActivity extends Activity {
+public final class DiscoveryActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private final ExecutorService worker = new java.util.concurrent.ThreadPoolExecutor(1, 1, 0,
             java.util.concurrent.TimeUnit.MILLISECONDS, new java.util.concurrent.ArrayBlockingQueue<Runnable>(1),

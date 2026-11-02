@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Local setup management using standard TV focusable controls. */
-public final class SavedSetupsActivity extends Activity {
+public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private SavedSetupManager manager;
     private LinearLayout rows;

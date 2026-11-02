@@ -38,7 +38,7 @@ public final class HomeContentInstrumentation extends Instrumentation {
         Map<String, ?> layoutBefore = layout.getAll(), cardsBefore = cards.getAll();
         try {
             final String source = getTargetContext().getPackageName();
-            final TvRecommendations.Feed first = feed(source, "home-proof:first");
+            final TvRecommendations.Feed first = longFeed(source, "home-proof:first");
             final TvRecommendations.Feed second = feed(source, "home-proof:second");
             final TvRecommendations.Feed third = feed(source, "home-proof:third");
             final List<TvRecommendations.Feed> feeds = Arrays.asList(first, second, third);
@@ -63,6 +63,14 @@ public final class HomeContentInstrumentation extends Instrumentation {
                     stableCard[0] = home.findCard(first.item.key());
                     check(stable[0] != null && stableCard[0] != null, "Ready feeds create one native slot each.");
                     check(stable[0].requestFocus(), "Stable shells must take D-pad focus.");
+                    ChannelCardView neighbor = home.findCard(second.item.key());
+                    String neighborKey = neighbor.currentProgram().key;
+                    String initialKey = stableCard[0].currentProgram().key;
+                    stableCard[0].showPreviousProgram();
+                    check(stableCard[0].currentProgram().key.endsWith(":75"), "Previous reaches the 75th title by wrapping.");
+                    check(neighborKey.equals(neighbor.currentProgram().key) && stable[0].isFocused(), "Previous preserves the neighboring feed and focus.");
+                    stableCard[0].showNextProgram();
+                    check(initialKey.equals(stableCard[0].currentProgram().key), "Next returns to the original title.");
                     stableCard[0].showNextProgram();
                     String selected = stableCard[0].currentProgram().key;
                     home.applyResult(home.beginRefresh(), ready);
@@ -153,6 +161,15 @@ public final class HomeContentInstrumentation extends Instrumentation {
             result.putBoolean("cards_restored", restore(cards, cardsBefore));
         }
         finish(0, result);
+    }
+
+    private static TvRecommendations.Feed longFeed(String source, String id) {
+        List<TvRecommendations.Program> programs = new java.util.ArrayList<>();
+        programs.add(new TvRecommendations.Program(id + ":one", source, "First program", null, ""));
+        programs.add(new TvRecommendations.Program(id + ":two", source, "Second program", null, ""));
+        for (int i = 3; i <= 75; i++)
+            programs.add(new TvRecommendations.Program(id + ":" + i, source, "Program " + i, null, ""));
+        return new TvRecommendations.Feed(id, "Native " + id, source, programs);
     }
 
     private static TvRecommendations.Feed feed(String source, String id) {

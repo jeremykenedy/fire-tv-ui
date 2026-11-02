@@ -150,6 +150,14 @@ public final class ChannelCardView extends LinearLayout {
         schedule();
     }
 
+    public void showPreviousProgram() {
+        if (programs.size() > 1) {
+            index = (index + programs.size() - 1) % programs.size();
+            display();
+        }
+        schedule();
+    }
+
     public void onHostResume() {
         hostResumed = true;
         tile.refreshPreferences();

@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import com.jeremykenedy.firetv.ui.preview.R;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -69,12 +70,26 @@ public final class AppInventory {
                                 && context.checkSelfPermission(current.permission) != PackageManager.PERMISSION_GRANTED) continue;
                 Drawable artwork = current.loadBanner(packages);
                 if (artwork == null) artwork = info.loadIcon(packages);
+                artwork = factoryArtwork(context, current.packageName, artwork);
                 CharSequence label = info.loadLabel(packages);
                 found.put(component.flattenToString(), new App(label == null || label.length() == 0
                         ? current.packageName : label.toString(), artwork, component, category));
             } catch (PackageManager.NameNotFoundException | RuntimeException removed) { /* Package changed during discovery. */ }
         }
     }
+    private static Drawable factoryArtwork(Context context, String packageName, Drawable fallback) {
+        int resource;
+        if ("com.amazon.tv.livetv".equals(packageName)) resource = R.drawable.app_live_tv;
+        else if ("com.amazon.tv.launcher".equals(packageName)) resource = R.drawable.app_factory_ui;
+        else return fallback;
+        try {
+            Drawable artwork = context.getDrawable(resource);
+            return artwork == null ? fallback : artwork;
+        } catch (RuntimeException unavailable) {
+            return fallback;
+        }
+    }
+
     public static List<String> keys(List<App> apps) {
         List<String> keys = new ArrayList<>();
         for (App app : apps) keys.add(app.key());

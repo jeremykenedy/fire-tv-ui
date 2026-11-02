@@ -20,7 +20,7 @@ public final class TvRecommendations {
     public static final String PERMISSION = "android.permission.READ_TV_LISTINGS";
     private static final int MAX_ROWS = 2048;
     private static final int MAX_FEEDS = 64;
-    private static final int MAX_PROGRAMS = 24;
+    private static final int MAX_PROGRAMS = 96;
     public enum Status { READY, EMPTY, PERMISSION_REQUIRED, UNAVAILABLE, PARTIAL }
 
     public static final class Program {

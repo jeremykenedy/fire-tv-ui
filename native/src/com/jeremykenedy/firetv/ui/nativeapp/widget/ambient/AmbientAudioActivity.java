@@ -9,7 +9,7 @@ import android.widget.*;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 import java.io.IOException;
 
-public final class AmbientAudioActivity extends Activity {
+public final class AmbientAudioActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private static final int PICK_AUDIO=63;
     private AmbientOptions options;

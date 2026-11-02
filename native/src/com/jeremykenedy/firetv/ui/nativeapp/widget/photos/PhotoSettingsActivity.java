@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class PhotoSettingsActivity extends Activity {
+public final class PhotoSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private static final int PICK_PHOTOS = 41;
     private LinearLayout body;

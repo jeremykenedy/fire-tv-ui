@@ -11,8 +11,38 @@ public final class PresentationMappingTest {
     private static final String ALPHA = "fixture.alpha/fixture.alpha.Main", BETA = "fixture.beta/fixture.beta.Main";
     private static final String INPUT_ALIAS = "tvinput_name:HDMI 1", INPUT_ID = "fixture.input/.Service/HDMI1000001";
     public static void main(String[] args) throws Exception {
-        actualMapping(); plexAliasMapping(); focusOwnedDefaults(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate(); protectionPreflight();
+        actualMapping(); menuTransitionGate(); savedGridColumns(); plexAliasMapping(); focusOwnedDefaults(); legacyAppFocusMode(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate(); protectionPreflight();
         System.out.println("Native presentation mappings, unsupported-value rejection and interrupted multi-store recovery passed.");
+    }
+    private static void menuTransitionGate() throws Exception {
+        for (String style : Arrays.asList("default", "none", "fade", "slide")) {
+            Map<String, Object> values = Collections.<String, Object>singletonMap("menu_transition_style", style);
+            LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(values), identities(), Collections.emptyMap());
+            PresentationSnapshot before = new PresentationSnapshot(plan.before);
+            FixtureDisk disk = new FixtureDisk(before);
+            ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null);
+            check(style.equals(disk.files.get(LauncherMigration.PREFERENCES).values().get("menu_transition_style")),
+                    "Supported transition choice survives the production gate unchanged.");
+        }
+        for (Object style : Arrays.<Object>asList("unknown", "Fade", 1, true)) {
+            Map<String, Object> values = Collections.<String, Object>singletonMap("menu_transition_style", style);
+            LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(values), identities(), Collections.emptyMap());
+            PresentationSnapshot before = new PresentationSnapshot(plan.before);
+            FixtureDisk disk = new FixtureDisk(before);
+            reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null));
+            check(disk.events.isEmpty() && before.sameValues(new FixtureStore(disk).read()),
+                    "Unsupported transition choice blocks without writing.");
+        }
+    }
+    private static void savedGridColumns() {
+        for (int columns : new int[] {1, 2, 12, 13, 16, 20}) {
+            LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(
+                    snapshot(Collections.singletonMap("apps_per_row", columns)), identities(), Collections.emptyMap());
+            check(plan.after.get(LegacyPresentationMapper.GRID).values().get("columns").equals(columns),
+                    "Established legacy column choices map exactly without clamping.");
+            check(plan.after.get(LauncherMigration.PREFERENCES).values().get("apps_per_row").equals(columns)
+                    && plan.unmappedLegacyKeys.isEmpty(), "Original typed column choice stays intact and maps completely.");
+        }
     }
     private static void plexAliasMapping() throws Exception {
         String sourceKey = repeat('1');
@@ -47,6 +77,37 @@ public final class PresentationMappingTest {
                     "Owned legacy colors force opaque alpha.");
             check(focus.get("fill_enabled").equals(style.equals("fill")), "Explicit style selects the expected fill behavior.");
         }
+    }
+    private static void legacyAppFocusMode() throws Exception {
+        for (Map<String, Object> source : Arrays.asList(Collections.<String, Object>singletonMap("apps_per_row", 5), Collections.<String, Object>singletonMap("icon_focus_style", "default"))) {
+            LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap(), null, false, true);
+            check(Boolean.TRUE.equals(plan.after.get(LegacyPresentationMapper.FOCUS).values().get("legacy_app_default")), "Observed default chooses the app-only presentation.");
+            if (source.containsKey("icon_focus_style")) check(!plan.unmappedLegacyKeys.contains("icon_focus_style"), "Verified explicit Default uses the same app presentation as absent style.");
+            Map<String, PreferenceSnapshot> existing = new LinkedHashMap<>();
+            existing.put(LegacyPresentationMapper.FOCUS, snapshot(Collections.<String, Object>singletonMap("growth_percent", 0)));
+            Map<String, Object> focus = LegacyPresentationMapper.plan(snapshot(source), identities(), existing, null, false, true).after.get(LegacyPresentationMapper.FOCUS).values();
+            check(focus.get("growth_percent").equals(0) && !focus.containsKey("legacy_app_default"), "Explicit native focus wins without data loss.");
+            if (source.containsKey("icon_focus_style")) check(LegacyPresentationMapper.plan(snapshot(source), identities(), existing, null, false, true).unmappedLegacyKeys.contains("icon_focus_style"), "Default remains unresolved when an explicit native focus choice exists.");
+        }
+        LegacyPresentationMapper.Plan fragment = LegacyPresentationMapper.plan(snapshot(Collections.<String, Object>singletonMap("use_24h_clock", true)), identities(), Collections.emptyMap());
+        check(!fragment.after.get(LegacyPresentationMapper.FOCUS).values().containsKey("legacy_app_default"), "A partial saved setup does not invent a default focus mode.");
+        check(LegacyPresentationMapper.ownedNativeKeys(set("icon_focus_style"), identities()).get(LegacyPresentationMapper.FOCUS).contains("legacy_app_default"), "Applying a saved explicit style clears an older legacy mode marker.");
+        Map<String, Object> verified = new LinkedHashMap<>(); verified.put("apps_per_row", 5); verified.put("icon_focus_style", "default");
+        LegacyPresentationMapper.Plan verifiedPlan = LegacyPresentationMapper.plan(snapshot(verified), identities(), Collections.emptyMap(), null, false, true);
+        ProductionMigrationGate.preflight(new PresentationSnapshot(verifiedPlan.before), identities(), null);
+        verified.put("unverified_future", true);
+        LegacyPresentationMapper.Plan futurePlan = LegacyPresentationMapper.plan(snapshot(verified), identities(), Collections.emptyMap(), null, false, true);
+        reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(futurePlan.before), identities(), null));
+        Map<String, Object> withBorder = new LinkedHashMap<>(); withBorder.put("icon_focus_style", "default"); withBorder.put("white_border", false);
+        LegacyPresentationMapper.Plan borderPlan = LegacyPresentationMapper.plan(snapshot(withBorder), identities(), Collections.emptyMap(), null, false, true);
+        check(!borderPlan.after.get(LegacyPresentationMapper.FOCUS).values().containsKey("legacy_app_default") && borderPlan.unmappedLegacyKeys.contains("icon_focus_style"), "Unverified border choice remains gated.");
+        Map<String, Object> withColor = new LinkedHashMap<>(); withColor.put("icon_focus_style", "default"); withColor.put("icon_focus_background", 0xff123456);
+        LegacyPresentationMapper.Plan colorPlan = LegacyPresentationMapper.plan(snapshot(withColor), identities(), Collections.emptyMap(), null, false, true);
+        check(colorPlan.unmappedLegacyKeys.contains("icon_focus_style") && colorPlan.unmappedLegacyKeys.contains("icon_focus_background"), "Dormant custom colors remain gated.");
+        Map<String, PreferenceSnapshot> malformed = new LinkedHashMap<>(); malformed.put(LegacyPresentationMapper.FOCUS, snapshot(Collections.<String, Object>singletonMap("legacy_app_default", "true")));
+        reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.<String, Object>singletonMap("icon_focus_style", "border")), identities(), malformed, null, false, true));
+        Map<String, PreferenceSnapshot> conflict = new LinkedHashMap<>(); conflict.put(LegacyPresentationMapper.FOCUS, snapshot(Collections.<String, Object>singletonMap("legacy_app_default", false)));
+        reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.<String, Object>singletonMap("icon_focus_style", "default")), identities(), conflict, null, false, true));
     }
     private static PresentationMappingContext identities() {
         Map<String, String> components = new LinkedHashMap<>(); components.put("fixture.alpha", ALPHA); components.put("fixture.beta", BETA);
@@ -288,7 +349,7 @@ public final class PresentationMappingTest {
         check(owned.get(LegacyPresentationMapper.ICONS).contains("input:" + INPUT_ID), "Icon resets include exact known input identity.");
     }
     private static void unsupportedAndConflicts() throws Exception {
-        for (Object[] invalid : new Object[][]{{"apps_per_row", 1}, {"apps_per_row", 13}, {"apps_per_row", 7L},
+        for (Object[] invalid : new Object[][]{{"apps_per_row", 0}, {"apps_per_row", 21}, {"apps_per_row", 7L},
                 {"app_max_rows", 7}, {"app_scroll_direction", "diagonal"}, {"display_order", "fixture.alpha,fixture.alpha"},
                 {"display_order", "fixture.unknown"}, {"display_order", "fixture.alpha,"},
                 {"display_order", "fixture.alpha,tvinput_name:Unknown input"}, {"featured_rotation_seconds", -1},
@@ -476,7 +537,7 @@ public final class PresentationMappingTest {
         reject(() -> ProductionMigrationGate.markFresh(new FixtureStore(existing), new FixtureStore(existing).read()));
         check(existing.events.isEmpty(), "Fresh marker never overwrites existing settings.");
         Map<String, Object> source = new LinkedHashMap<>(); source.put("apps_per_row", 7);
-        LegacyPresentationMapper.Plan absentBlocker = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        LegacyPresentationMapper.Plan absentBlocker = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap(), null, false, true);
         ProductionMigrationGate.preflight(new PresentationSnapshot(absentBlocker.before), identities(), null);
         source.put("is_premium", true); source.put("fire_tv_ui_home_enabled", false);
         source.put("app_launch_count", 4); source.put("rate_app_shown", true);
@@ -486,7 +547,7 @@ public final class PresentationMappingTest {
         source.put("hide_status_bar_unless_focused", true); source.put("tinted_status_bar", true);
         source.put("fire_tv_ui_block_updates", false); source.put("fire_tv_ui_block_appstore", false);
         source.put("start_on_boot", false); source.put("override_home_button", false); source.put("better_home_detection", true);
-        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap(), null, false, true);
         PresentationSnapshot before = new PresentationSnapshot(plan.before);
         FixtureDisk disk = new FixtureDisk(before);
         ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null);
@@ -537,12 +598,12 @@ public final class PresentationMappingTest {
             }
         }
         source.put("unknown_future", true);
-        LegacyPresentationMapper.Plan unsupported = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        LegacyPresentationMapper.Plan unsupported = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap(), null, false, true);
         FixtureDisk blocked = new FixtureDisk(new PresentationSnapshot(unsupported.before));
         reject(() -> ProductionMigrationGate.commit(new FixtureStore(blocked), new FixtureStore(blocked).read(), identities(), null));
         check(blocked.events.isEmpty(), "Unknown saved data blocks before journal or preference writes.");
         source.remove("unknown_future"); source.put(LegacyPresentationMapper.VERSION_KEY, 1);
-        LegacyPresentationMapper.Plan partial = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        LegacyPresentationMapper.Plan partial = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap(), null, false, true);
         reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(partial.before), identities(), null));
         String plexKey = "plex:" + repeat('9') + ":123";
         Map<String, PresentationMappingContext.Item> hiddenItems = new LinkedHashMap<>();
@@ -597,7 +658,7 @@ public final class PresentationMappingTest {
         assertProtectionRejected(dormant);
     }
     private static void assertProtectionRejected(Map<String, Object> source) throws Exception {
-        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap(), null, false, true);
         PresentationSnapshot original = new PresentationSnapshot(plan.before);
         FixtureDisk disk = new FixtureDisk(original);
         reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), original, identities(), null));

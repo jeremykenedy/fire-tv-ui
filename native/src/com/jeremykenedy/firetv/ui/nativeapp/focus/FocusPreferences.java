@@ -22,6 +22,17 @@ public final class FocusPreferences {
                 number(prefs, KEYS[7], defaults.fillOpacity, 100));
     }
 
+    public static boolean hasExplicitSettings(Context context) {
+        Map<String, ?> values = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getAll();
+        return FocusOptions.hasExplicitSettings(values);
+    }
+
+    public static boolean legacyDefaultAppMode(Context context) {
+        Map<String, ?> values = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getAll();
+        return Boolean.TRUE.equals(values.get(FocusOptions.LEGACY_APP_DEFAULT))
+                && !FocusOptions.hasExplicitSettings(values);
+    }
+
     private static int number(SharedPreferences prefs, String key, int fallback, int max) {
         try {
             int value = prefs.getInt(key, fallback);
@@ -44,16 +55,25 @@ public final class FocusPreferences {
                 .putInt(KEYS[4], options.borderOpacity)
                 .putBoolean(KEYS[5], options.fillEnabled)
                 .putInt(KEYS[6], options.fillRgb)
-                .putInt(KEYS[7], options.fillOpacity).commit()) return;
+                .putInt(KEYS[7], options.fillOpacity)
+                .remove(FocusOptions.LEGACY_APP_DEFAULT).commit()) return;
         SharedPreferences.Editor rollback = prefs.edit();
-        for (String key : KEYS) {
-            Object value = previous.get(key);
-            if (value instanceof Integer) rollback.putInt(key, (Integer) value);
-            else if (value instanceof Boolean) rollback.putBoolean(key, (Boolean) value);
-            else if (value instanceof String) rollback.putString(key, (String) value);
-            else rollback.remove(key);
-        }
+        for (String key : KEYS) restore(rollback, key, previous.get(key));
+        restore(rollback, FocusOptions.LEGACY_APP_DEFAULT, previous.get(FocusOptions.LEGACY_APP_DEFAULT));
         rollback.commit();
         throw new IllegalStateException("Focus settings could not be saved. Try again.");
     }
+    private static void restore(SharedPreferences.Editor editor, String key, Object value) {
+        if (value instanceof Integer) editor.putInt(key, (Integer) value);
+        else if (value instanceof Boolean) editor.putBoolean(key, (Boolean) value);
+        else if (value instanceof String) editor.putString(key, (String) value);
+        else if (value instanceof Long) editor.putLong(key, (Long) value);
+        else if (value instanceof Float) editor.putFloat(key, (Float) value);
+        else if (value instanceof java.util.Set) {
+            java.util.Set<String> values = new java.util.LinkedHashSet<>();
+            for (Object item : (java.util.Set<?>) value) values.add((String) item);
+            editor.putStringSet(key, values);
+        } else editor.remove(key);
+    }
+
 }

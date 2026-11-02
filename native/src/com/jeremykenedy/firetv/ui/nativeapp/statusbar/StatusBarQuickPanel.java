@@ -21,7 +21,7 @@ public final class StatusBarQuickPanel {
     public static void show(final Activity activity) {
         final String[] labels = {"Network", "Settings", "Preferences", "Sound", "Accessibility",
                 "Display", "Factory Home", "Screensavers"};
-        AlertDialog dialog = new AlertDialog.Builder(activity)
+        AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity)
                 .setTitle(DateFormat.getDateInstance(DateFormat.FULL).format(new Date()))
                 .setItems(labels, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface ignored, int which) {

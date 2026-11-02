@@ -84,7 +84,7 @@ public final class LauncherLocks {
         final EditText confirm = input(activity, "Confirm new PIN");
         if (!newPin || currentRequired) fields.addView(current);
         if (newPin) { fields.addView(next); fields.addView(confirm); }
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle(title)
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(title)
                 .setMessage("These locks apply only inside this launcher. Other apps and system settings can still open apps. Your PIN stays on this device.")
                 .setView(fields).setNegativeButton("Cancel", null).setPositiveButton(newPin ? "Save PIN" : "Continue", null).create();
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {

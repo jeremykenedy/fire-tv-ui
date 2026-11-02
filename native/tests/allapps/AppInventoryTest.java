@@ -29,7 +29,24 @@ public final class AppInventoryTest {
         check(retained.launchIntent().category.equals(Intent.CATEGORY_LEANBACK_LAUNCHER), "TV launches keep TV category");
         check(all.get(0).launchIntent().category.equals(Intent.CATEGORY_LAUNCHER), "Ordinary apps use their actual launcher category");
         check(AppInventory.load(context).size() == 1, "All apps discovery does not broaden later default loads");
+        bundledFactoryArtwork();
         System.out.println("Opt-in launchable inventory, exact dedupe, category, access and removal checks passed");
+    }
+    private static void bundledFactoryArtwork() {
+        Context context = new Context();
+        context.pm.add(Intent.CATEGORY_LEANBACK_LAUNCHER, "com.amazon.tv.livetv", "Live", "Live TV");
+        context.pm.add(Intent.CATEGORY_LEANBACK_LAUNCHER, "com.amazon.tv.launcher", "Home", "Factory UI");
+        context.pm.add(Intent.CATEGORY_LEANBACK_LAUNCHER, "other.app", "Main", "Other");
+        List<AppInventory.App> apps = AppInventory.load(context);
+        check(apps.size() == 3, "Bundled artwork must retain both Amazon apps and unrelated apps");
+        for (AppInventory.App app : apps) {
+            int expected = app.component.pkg.equals("com.amazon.tv.livetv") ? 1
+                    : app.component.pkg.equals("com.amazon.tv.launcher") ? 2 : 0;
+            check(app.artwork.resource == expected, "Only the two Amazon apps receive owned factory artwork");
+        }
+        context.failArtwork = true;
+        for (AppInventory.App app : AppInventory.load(context))
+            check(app.artwork.resource == 0, "Unavailable bundled artwork retains package artwork");
     }
     private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
 }

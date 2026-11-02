@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** User-triggered native device screens, without Home ownership or device configuration writes. */
-public final class DeviceSettingsActivity extends Activity {
+public final class DeviceSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final DeviceRoutes.Destination[] destinations = {DeviceRoutes.Destination.FACTORY_UI,

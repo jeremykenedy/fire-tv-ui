@@ -147,6 +147,17 @@ public final class ProviderInstrumentation extends Instrumentation {
                     && RecommendationActions.inspect(target, invalid).app, "Unsafe title retains honest explicit app fallback.");
             check(RecommendationActions.launchTitle(target, invalid) == RecommendationActions.Outcome.UNAVAILABLE,
                     "Unsafe title must not silently launch app fallback.");
+            Bundle many = fixture("publish-many");
+            check(many.getInt("preview_rows") == 75, "Producer must publish 75 preview titles.");
+            TvRecommendations.Feed large = null;
+            for (TvRecommendations.Feed feed : TvRecommendations.read(target).feeds)
+                if (PRODUCER.equals(feed.source) && "Fixture channel".equals(feed.title)) large = feed;
+            check(large != null && large.programs.size() == 75, "All 75 published titles must reach the native feed.");
+            boolean foundLast = false;
+            for (TvRecommendations.Program item : large.programs)
+                if ("Fixture title 75".equals(item.title)) foundLast = true;
+            check(foundLast, "The 75th published title must reach the native feed.");
+            result.putBoolean("seventy_five_titles_read", true);
             result.putString("status", "PASS");
             result.putBoolean("cross_app_tvprovider_reads", true);
             result.putBoolean("publisher_scoped_title_and_separate_app_handoff", true);

@@ -12,6 +12,6 @@ with tempfile.TemporaryDirectory(prefix='daily-content-') as folder:
                     ROOT / 'tests/dailycontent/DailyContentTest.java'], check=True)
     subprocess.run(['java', '-cp', folder, 'com.jeremykenedy.firetv.ui.nativeapp.widget.dailycontent.DailyContentTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-                    '-d', folder, SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
+                    '-d', folder, SOURCE / 'HomeDialogBuilder.java', SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
                     *sorted((SOURCE / 'widget/dailycontent').glob('*.java')),
                     ROOT / 'tests/dailycontent/DailyContentInstrumentation.java'], check=True)

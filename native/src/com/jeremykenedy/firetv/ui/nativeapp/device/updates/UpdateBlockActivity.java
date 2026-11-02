@@ -16,7 +16,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 import com.jeremykenedy.firetv.ui.nativeapp.SourceStartup;
 
 /** Controls the two existing owned update-protection choices. */
-public final class UpdateBlockActivity extends Activity {
+public final class UpdateBlockActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private static final int VPN_REQUEST = 312;
     private boolean blocked, resumed;
     private final UpdateBlockStatus.Listener statusListener = new UpdateBlockStatus.Listener() {

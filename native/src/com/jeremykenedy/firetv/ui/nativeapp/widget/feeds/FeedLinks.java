@@ -22,7 +22,7 @@ public final class FeedLinks {
         final String host;
         try { host = FeedSource.validateUrl(item.url).getHost(); }
         catch (IllegalArgumentException unsafe) { unavailable(activity); return; }
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity).setTitle("Open headline link?")
+        AlertDialog.Builder builder = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Open headline link?")
                 .setMessage(item.title + "\n\nSource: " + source.display() + "\nLink host: " + host)
                 .setNegativeButton("Cancel", null).setPositiveButton("Open link", new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) { open(activity, item.url); }

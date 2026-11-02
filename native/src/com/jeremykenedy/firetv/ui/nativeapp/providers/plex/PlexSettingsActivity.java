@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Pairing and profile changes require explicit TV actions. Merely opening setup is local. */
-public final class PlexSettingsActivity extends Activity {
+public final class PlexSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private LinearLayout body;

@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix='selected-feed-') as output:
                     ROOT / 'tests/feeds/FeedTest.java'], check=True)
     subprocess.run(['java', '-cp', output, 'com.jeremykenedy.firetv.ui.nativeapp.widget.feeds.FeedTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-                    '-d', output, SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
+                    '-d', output, SOURCE / 'HomeDialogBuilder.java', SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
                     SOURCE / 'migration/LegacyJson.java',
                     *[SOURCE / 'locks' / name for name in ('LauncherLocks.java', 'LockStore.java', 'LockState.java', 'LockResult.java')],
                     *sorted((SOURCE / 'widget/feeds').glob('*.java'))], check=True)

@@ -10,7 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 
-public final class AccessibilitySettingsActivity extends Activity {
+public final class AccessibilitySettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private Button size;
     private Button contrast;

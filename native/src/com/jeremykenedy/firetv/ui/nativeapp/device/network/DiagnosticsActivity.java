@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class DiagnosticsActivity extends Activity {
+public final class DiagnosticsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private static final int EXPORT = 731;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();

@@ -13,7 +13,7 @@ final class StatusDetails {
         final StatusWidgetView snapshot = new StatusWidgetView(activity, title, reader);
         snapshot.showFullDetails();
         scroll.addView(snapshot);
-        AlertDialog dialog = new AlertDialog.Builder(activity).setTitle(title).setView(scroll)
+        AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(title).setView(scroll)
                 .setPositiveButton("Done", null).create();
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override public void onDismiss(DialogInterface closed) { snapshot.stop(); }

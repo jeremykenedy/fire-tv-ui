@@ -40,7 +40,7 @@ public final class UvSettings {
             });
             fields.addView(forecast);
         }
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("UV forecast location").setView(fields)
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("UV forecast location").setView(fields)
                 .setNegativeButton("Cancel", null).setNeutralButton("Clear ZIP", new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface closed, int which) {
                         try { UvPreferences.save(activity, null); }
@@ -64,7 +64,7 @@ public final class UvSettings {
         final UvView forecast = new UvView(activity, true);
         ScrollView scroll = new ScrollView(activity);
         scroll.addView(forecast);
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("EPA hourly UV forecast").setView(scroll)
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("EPA hourly UV forecast").setView(scroll)
                 .setPositiveButton("Done", null).create();
         final Application.ActivityLifecycleCallbacks lifecycle = new Application.ActivityLifecycleCallbacks() {
             @Override public void onActivityStarted(Activity current) { if (current == activity && dialog.isShowing()) forecast.start(); }
@@ -84,6 +84,6 @@ public final class UvSettings {
         dialog.show(); forecast.start();
     }
     private static void failure(Activity activity, String message) {
-        new AlertDialog.Builder(activity).setTitle("ZIP was not saved").setMessage(message).setPositiveButton("OK", null).show();
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("ZIP was not saved").setMessage(message).setPositiveButton("OK", null).show();
     }
 }

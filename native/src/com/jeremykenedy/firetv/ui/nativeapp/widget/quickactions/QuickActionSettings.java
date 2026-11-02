@@ -24,7 +24,7 @@ public final class QuickActionSettings {
             names[0] = "Add app or content link";
             for (int i = 0; i < entries.size(); i++) names[i + 1] = entries.get(i).label
                     + (QuickActionLaunch.available(activity, entries.get(i)) ? "" : " (unavailable)");
-            AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Quick actions")
+            AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Quick actions")
                     .setItems(names, new DialogInterface.OnClickListener() {
                         @Override public void onClick(DialogInterface dialog, int which) {
                             if (which == 0) chooseApp(activity);
@@ -37,20 +37,20 @@ public final class QuickActionSettings {
 
     private static void actions(final Activity activity, final QuickActions.Entry entry) {
         final boolean available = QuickActionLaunch.available(activity, entry);
-        new AlertDialog.Builder(activity).setTitle(entry.label).setItems(new String[] {
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(entry.label).setItems(new String[] {
             available ? "Open now" : "Unavailable: app or link is not supported",
             "Edit name or content link", "Move earlier", "Move later", "Remove action"
         }, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int which) {
                 if (which == 0) {
                     if (available) QuickActionLaunch.open(activity, entry);
-                    else new AlertDialog.Builder(activity).setTitle("Action unavailable")
+                    else new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Action unavailable")
                             .setMessage("The selected app is missing, disabled, or cannot open this HTTPS content link. Your saved action is retained. Edit it or remove it below.")
                             .setPositiveButton("Back", new DialogInterface.OnClickListener() {
                                 @Override public void onClick(DialogInterface ignored, int button) { actions(activity, entry); }
                             }).show();
                 } else if (which == 1) edit(activity, entry, false);
-                else if (which == 4) new AlertDialog.Builder(activity).setTitle("Remove " + entry.label + "?")
+                else if (which == 4) new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Remove " + entry.label + "?")
                         .setMessage("This removes only the saved quick action.").setNegativeButton("Cancel", null)
                         .setPositiveButton("Remove", new DialogInterface.OnClickListener() {
                             @Override public void onClick(DialogInterface ignored, int button) {
@@ -79,7 +79,7 @@ public final class QuickActionSettings {
                             if (apps.isEmpty()) { unavailable(activity); return; }
                             String[] labels = new String[apps.size()];
                             for (int i = 0; i < apps.size(); i++) labels[i] = apps.get(i).label;
-                            new AlertDialog.Builder(activity).setTitle("Choose the app that owns this action").setItems(labels,
+                            new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Choose the app that owns this action").setItems(labels,
                                     new DialogInterface.OnClickListener() {
                                         @Override public void onClick(DialogInterface dialog, int which) {
                                             AppInventory.App app = apps.get(which);
@@ -106,7 +106,7 @@ public final class QuickActionSettings {
         link.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI); link.setSingleLine();
         link.setSaveEnabled(false); link.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
         fields.addView(name); fields.addView(link);
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle(add ? "Add quick action" : "Edit quick action")
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(add ? "Add quick action" : "Edit quick action")
                 .setMessage("Leave the link blank to open the app. Only HTTPS content links handled by the selected app are supported. Other schemes and system actions are unavailable. Links stay on this device; do not enter passwords or access tokens. Saving never opens the app.")
                 .setView(fields).setNegativeButton("Cancel", null).setPositiveButton("Save", null).create();
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {

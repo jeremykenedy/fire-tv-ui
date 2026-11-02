@@ -81,6 +81,17 @@ public final class IconInstrumentation extends Instrumentation {
             IconSelectionStore.save(context, first, imported);
             Bitmap bitmap = ((BitmapDrawable)IconSelectionStore.resolve(context, first, factory, theme)).getBitmap();
             check(bitmap.getWidth() <= 512 && bitmap.getWidth() == bitmap.getHeight() * 2, "Imported image must be bounded and keep its aspect ratio.");
+            java.io.File selectedImage = new java.io.File(new java.io.File(context.getFilesDir(), "icons"), imported.substring(6));
+            check(selectedImage.delete(), "Fixture selected image must be removable.");
+            check(IconSelectionStore.resolve(context, first, factory, theme) == factory
+                    && imported.equals(IconSelectionStore.choice(context, first)),
+                    "A missing selected image must show factory artwork and retain its saved choice.");
+            try (java.io.FileOutputStream output = new java.io.FileOutputStream(selectedImage)) {
+                output.write(new byte[] {1, 2, 3});
+            }
+            check(IconSelectionStore.resolve(context, first, factory, theme) == factory
+                    && imported.equals(IconSelectionStore.choice(context, first)),
+                    "A corrupt selected image must show factory artwork and retain its saved choice.");
             IconSelectionStore.save(context, first, IconSelectionStore.THEME);
 
             IconPackStore.select(context, IconPackStore.ORIGINAL);

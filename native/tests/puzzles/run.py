@@ -12,7 +12,7 @@ with tempfile.TemporaryDirectory(prefix='daily-puzzles-') as folder:
                     ROOT / 'tests/puzzles/DailyPuzzleTest.java'], check=True)
     subprocess.run(['java', '-cp', folder, 'com.jeremykenedy.firetv.ui.nativeapp.widget.puzzles.DailyPuzzleTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-                    '-d', folder, SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
+                    '-d', folder, SOURCE / 'HomeDialogBuilder.java', SOURCE / 'layout/WidgetProvider.java', SOURCE / 'layout/LayoutItem.java',
                     SOURCE / 'layout/LayoutOptions.java', SOURCE / 'layout/LayoutPreferences.java',
                     *sorted((SOURCE / 'widget/puzzles').glob('*.java')),
                     ROOT / 'tests/puzzles/PuzzleInstrumentation.java'], check=True)

@@ -17,7 +17,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.allapps.AllAppsPreferences;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class SettingsActivity extends Activity {
+public final class SettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private LinearLayout detail;
     private final Map<String, Button> categories = new LinkedHashMap<>();
@@ -100,6 +100,14 @@ public final class SettingsActivity extends Activity {
             first = route("Help topics", HelpActivity.class, 0x2061, owner);
         } else {
             first = route("Icons and focus", FocusSettingsActivity.class, 0x2002, owner);
+            final Button transitions = Pages.button(this, "Settings transitions: " + MenuTransition.label(this), null);
+            transitions.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View view) {
+                MenuTransition.choose(SettingsActivity.this, new Runnable() { @Override public void run() {
+                    transitions.setText("Settings transitions: " + MenuTransition.label(SettingsActivity.this));
+                    transitions.requestFocus();
+                } });
+            } });
+            transitions.setId(0x2007); transitions.setNextFocusLeftId(owner.getId()); detail.addView(transitions);
             route("Backgrounds and overlays", com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundSettingsActivity.class, 0x2004, owner);
             Button packs = Pages.button(this, "Icon packs", new View.OnClickListener() {
                 @Override public void onClick(View view) { IconPackStore.showPicker(SettingsActivity.this, null); }

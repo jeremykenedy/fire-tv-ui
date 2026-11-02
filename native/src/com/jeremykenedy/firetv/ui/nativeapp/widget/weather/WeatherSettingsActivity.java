@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class WeatherSettingsActivity extends Activity {
+public class WeatherSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     public static final String EXTRA_GROUP_WIDGET_ID = "weather_group_widget_id";
     private boolean startupBlocked;
     private String groupId;

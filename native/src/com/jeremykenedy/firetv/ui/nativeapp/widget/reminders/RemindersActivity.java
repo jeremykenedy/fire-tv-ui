@@ -25,7 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
-public final class RemindersActivity extends Activity {
+public final class RemindersActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private LinearLayout body;
     private String focusKey = "add";

@@ -109,7 +109,7 @@ public final class RadarView extends LinearLayout {
         if (source == null) { RadarSettings.show(activity); return; }
         try { activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(source.pageUrl()))); }
         catch (android.content.ActivityNotFoundException missing) {
-            new android.app.AlertDialog.Builder(activity).setMessage("No browser is available. Official radar: radar.weather.gov")
+            new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setMessage("No browser is available. Official radar: radar.weather.gov")
                     .setPositiveButton("Done", null).show();
         }
     }

@@ -120,6 +120,12 @@ public class HomeKeyService extends AccessibilityService {
         consumedPress = false;
         cancelPending();
         if (!DeviceRoutes.policy(this).homePressed()) return false;
+        if ((enabled(HOME_KEYS) || enabled(HOME_WINDOWS))
+                && com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder.dismissForHome()) {
+            DeviceRoutes.policy(this).launcherVisibility(true);
+            consumedPress = true;
+            return true;
+        }
         if (!enabled(HOME_KEYS)) {
             consumedPress = enabled(HOME_WINDOWS) && DeviceRoutes.policy(this).isHomeVisible();
             return consumedPress;
@@ -164,7 +170,8 @@ public class HomeKeyService extends AccessibilityService {
     private boolean openHome() {
         long now = SystemClock.uptimeMillis();
         if (!DeviceRoutes.policy(this).shouldOpen(PRODUCTION_PACKAGE.equals(getPackageName()), now)) return false;
-        Intent launch = new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getPackageName(), MAIN))
+        Intent launch = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                .setComponent(new ComponentName(getPackageName(), MAIN))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
                         | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         try {

@@ -149,6 +149,14 @@ public class CardControlsInstrumentation extends Instrumentation {
             press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(settings);
             press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
             ChannelCardView card = awaitCard(feed.item.id);
+            step = "Main previous title";
+            final ChannelCardView previousCard = card;
+            final String[] beforePrevious = new String[1];
+            onMain(new Runnable() { @Override public void run() { beforePrevious[0] = previousCard.currentProgram().key; } });
+            focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Previous title"); awaitWindow(main);
+            final String[] afterPrevious = new String[1];
+            onMain(new Runnable() { @Override public void run() { afterPrevious[0] = previousCard.currentProgram().key; } });
+            check(!beforePrevious[0].equals(afterPrevious[0]), "Previous title selects another item on the same card.");
             if (tvSeriesSupported) {
                 step = "Main Select Hide series and recover";
                 focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Hide series");

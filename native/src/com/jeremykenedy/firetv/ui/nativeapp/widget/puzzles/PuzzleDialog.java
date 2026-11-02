@@ -32,7 +32,7 @@ final class PuzzleDialog {
     static void show(final Activity activity) {
         try { new PuzzleDialog(activity, PuzzlePreferences.read(activity, PuzzlePreferences.today())).showBoard(); }
         catch (IllegalArgumentException error) {
-            new AlertDialog.Builder(activity).setTitle("Daily puzzle").setMessage(error.getMessage())
+            new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Daily puzzle").setMessage(error.getMessage())
                     .setPositiveButton("Reset today's puzzle", new DialogInterface.OnClickListener() {
                         @Override public void onClick(DialogInterface dialog, int which) {
                             if (PuzzlePreferences.save(activity, DailyPuzzle.forDate(PuzzlePreferences.today()))) show(activity);
@@ -91,7 +91,7 @@ final class PuzzleDialog {
         Button reset = new Button(activity); reset.setText("Reset today's puzzle"); reset.setTag("puzzle:reset");
         reset.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                new AlertDialog.Builder(activity).setTitle("Reset today's puzzle?").setMessage("Clear this puzzle's moves and hints and return to today's starting board?")
+                new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Reset today's puzzle?").setMessage("Clear this puzzle's moves and hints and return to today's starting board?")
                         .setPositiveButton("Reset", new DialogInterface.OnClickListener() {
                             @Override public void onClick(DialogInterface dialog, int which) { save(DailyPuzzle.forDate(PuzzlePreferences.today())); }
                         }).setNegativeButton("Keep progress", null).show();
@@ -101,7 +101,7 @@ final class PuzzleDialog {
         privacy.setText("A new puzzle uses the TV's local date. Only the current date's progress is kept on this TV.");
         privacy.setTextSize(15); content.addView(privacy);
         ScrollView scroll = new ScrollView(activity); scroll.addView(content);
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Daily lights puzzle").setView(scroll)
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Daily lights puzzle").setView(scroll)
                 .setNegativeButton("Done", null).create();
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override public void onShow(DialogInterface unused) { render(); cells[4].requestFocus(); handler.post(dateCheck); }

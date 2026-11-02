@@ -47,7 +47,7 @@ public final class DailyContentWidgets {
     private static void show(final Activity activity, final DailyContent.Kind kind) {
         final DailyContentView content = new DailyContentView(activity, kind, true);
         android.widget.ScrollView scroll = new android.widget.ScrollView(activity); scroll.addView(content);
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity).setTitle(kind.title).setView(scroll).setNegativeButton("Done", null);
+        AlertDialog.Builder builder = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(kind.title).setView(scroll).setNegativeButton("Done", null);
         if (kind == DailyContent.Kind.TRIVIA) builder.setPositiveButton("Reveal answer", null);
         if (kind == DailyContent.Kind.HOROSCOPE) builder.setPositiveButton("Choose sign", null);
         final AlertDialog dialog = builder.create();
@@ -69,7 +69,7 @@ public final class DailyContentWidgets {
     private static void chooseSign(final Activity activity, final DailyContentView content) {
         int current;
         try { current = sign(activity); } catch (RuntimeException error) { current = -1; }
-        new AlertDialog.Builder(activity).setTitle("Choose zodiac sign").setSingleChoiceItems(DailyContent.SIGNS, current, new DialogInterface.OnClickListener() {
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Choose zodiac sign").setSingleChoiceItems(DailyContent.SIGNS, current, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int which) {
                 if (activity.getSharedPreferences("daily_content_v1", Context.MODE_PRIVATE).edit().putInt("sign", which).commit()) {
                     content.refresh(); dialog.dismiss();

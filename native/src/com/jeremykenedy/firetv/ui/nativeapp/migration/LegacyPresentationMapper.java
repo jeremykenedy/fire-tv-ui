@@ -36,6 +36,7 @@ public final class LegacyPresentationMapper {
     private final Map<String, Object> legacy;
     private final PresentationMappingContext identities;
     private LegacyFolderMigration.Plan folders;
+    private boolean completeLegacySnapshot;
     private final Map<String, PreferenceSnapshot> before = new LinkedHashMap<>();
     private final Map<String, Map<String, Object>> patches = new LinkedHashMap<>();
     private final Set<String> mapped = new LinkedHashSet<>();
@@ -61,7 +62,12 @@ public final class LegacyPresentationMapper {
     }
     static Plan plan(PreferenceSnapshot legacy, PresentationMappingContext identities,
             Map<String, PreferenceSnapshot> nativeBefore, LegacyFolderMigration.Plan folders, boolean privateLocksVerified) {
+        return plan(legacy, identities, nativeBefore, folders, privateLocksVerified, false);
+    }
+    static Plan plan(PreferenceSnapshot legacy, PresentationMappingContext identities,
+            Map<String, PreferenceSnapshot> nativeBefore, LegacyFolderMigration.Plan folders, boolean privateLocksVerified, boolean completeLegacySnapshot) {
         LegacyPresentationMapper mapper = new LegacyPresentationMapper(legacy, identities, nativeBefore);
+        mapper.completeLegacySnapshot = completeLegacySnapshot;
         if (folders != null) {
             if (!legacy.values().containsKey("folders") || !folders.matches(legacy) || (folders.pinPresent && !privateLocksVerified)) throw invalid();
             mapper.folders = folders;
@@ -76,6 +82,9 @@ public final class LegacyPresentationMapper {
     }
     public static Set<String> directlyConsumedPresentationKeys(Map<String, ?> legacy) {
         Set<String> accepted = new LinkedHashSet<>();
+        Object transition = legacy.get("menu_transition_style");
+        if (transition instanceof String && Arrays.asList("default", "none", "fade", "slide").contains(transition))
+            accepted.add("menu_transition_style");
         for (String key : new String[]{"use_24h_clock", "featured_artwork_fit"})
             if (legacy.get(key) instanceof Boolean) accepted.add(key);
         if (legacy.get("minimal_status_bar") instanceof Boolean) {
@@ -104,7 +113,10 @@ public final class LegacyPresentationMapper {
                 for (String id : identities.inputs.values()) result.get(INPUTS).add("hidden:" + id);
             }
             if (key.equals("show_all_apps_button")) result.get(GRID).add("show_all_apps_button");
-            if (key.equals("white_border") || key.equals("icon_focus_style")) result.get(FOCUS).add("border_enabled");
+            if (key.equals("white_border") || key.equals("icon_focus_style")) {
+                result.get(FOCUS).add("border_enabled");
+                result.get(FOCUS).add(FocusOptions.LEGACY_APP_DEFAULT);
+            }
             if (key.equals("icon_focus_style")) result.get(FOCUS).add("fill_enabled");
             if (key.equals("icon_focus_background")) result.get(FOCUS).add("fill_rgb");
             if (key.equals("icon_focus_border")) result.get(FOCUS).add("border_rgb");
@@ -155,7 +167,7 @@ public final class LegacyPresentationMapper {
     }
     private void grid() {
         if (present("show_all_apps_button")) put(GRID, "show_all_apps_button", bool("show_all_apps_button"));
-        if (present("apps_per_row")) put(GRID, "columns", number("apps_per_row", 2, 12));
+        if (present("apps_per_row")) put(GRID, "columns", number("apps_per_row", 1, 20));
         if (present("app_max_rows")) put(GRID, "rows", number("app_max_rows", 0, 6));
         if (present("app_scroll_direction")) {
             String value = string("app_scroll_direction");
@@ -194,6 +206,12 @@ public final class LegacyPresentationMapper {
         if (!Arrays.asList("default", "border", "fill").contains(style)) throw invalid();
         if (legacy.containsKey("icon_focus_border")) color("icon_focus_border");
         if (legacy.containsKey("icon_focus_background")) color("icon_focus_background");
+        if (completeLegacySnapshot && !legacy.isEmpty() && style.equals("default") && !legacy.containsKey("white_border")
+                && !legacy.containsKey("icon_focus_border") && !legacy.containsKey("icon_focus_background")
+                && !FocusOptions.hasExplicitSettings(before.get(FOCUS).values())) {
+            put(FOCUS, FocusOptions.LEGACY_APP_DEFAULT, true);
+            if (legacy.containsKey("icon_focus_style")) mapped.add("icon_focus_style");
+        }
         if (!style.equals("default")) {
             mapped.add("icon_focus_style");
             put(FOCUS, "border_enabled", true);
@@ -203,7 +221,7 @@ public final class LegacyPresentationMapper {
             put(FOCUS, "border_opacity", 100);
             put(FOCUS, "fill_opacity", 100);
         }
-        // Default delegates to the inherited renderer. Its unused custom colors remain in legacy recovery.
+        // Unverified default combinations and their custom colors remain in legacy recovery.
         if (legacy.containsKey("white_border")) {
             boolean border = bool("white_border"); mapped.add("white_border");
             if (style.equals("default")) put(FOCUS, "border_enabled", border);
@@ -374,6 +392,7 @@ public final class LegacyPresentationMapper {
         new HomeTileOrder(lines(grid.get("home_order"), 4096));
         Map<String, Object> focus = values.get(FOCUS).values();
         FocusOptions defaults = FocusOptions.defaults();
+        nativeBool(focus, FocusOptions.LEGACY_APP_DEFAULT, false);
         new FocusOptions(nativeInt(focus, "duration_millis", defaults.durationMillis), nativeInt(focus, "growth_percent", defaults.growthPercent),
                 nativeBool(focus, "border_enabled", defaults.borderEnabled), nativeInt(focus, "border_rgb", defaults.borderRgb),
                 nativeInt(focus, "border_opacity", defaults.borderOpacity), nativeBool(focus, "fill_enabled", defaults.fillEnabled),

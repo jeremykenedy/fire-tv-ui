@@ -17,7 +17,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.holidays.HolidaySelection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class BackgroundSettingsActivity extends Activity {
+public final class BackgroundSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private static final int IMAGE=7101, VIDEO=7102;
     private BackgroundLayer layer;

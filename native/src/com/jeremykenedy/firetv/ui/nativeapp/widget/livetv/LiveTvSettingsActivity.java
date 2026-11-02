@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class LiveTvSettingsActivity extends Activity {
+public final class LiveTvSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Map<String, CheckBox> choices = new LinkedHashMap<>();

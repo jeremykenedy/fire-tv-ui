@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Discovery reports only feeds actually shared through the device's TV provider. */
-public final class RecommendationSourcesActivity extends Activity {
+public final class RecommendationSourcesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Map<String, String> installed = new LinkedHashMap<>();

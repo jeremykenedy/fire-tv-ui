@@ -19,7 +19,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationLoader;
 import java.util.Collections;
 import java.util.List;
 
-public final class CardsSettingsActivity extends Activity {
+public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private static final int[] PRESETS = {0, 5, 8, 15, 30};
     private RecommendationLoader recommendations;

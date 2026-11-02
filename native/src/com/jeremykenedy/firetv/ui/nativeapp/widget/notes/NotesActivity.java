@@ -13,7 +13,7 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 
-public final class NotesActivity extends Activity {
+public final class NotesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private LinearLayout body;
     private String focusKey = "add-note";

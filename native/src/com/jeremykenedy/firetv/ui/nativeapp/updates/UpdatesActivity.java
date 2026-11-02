@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Source preview never treats the legacy production release as a compatible update. */
-public class UpdatesActivity extends Activity {
+public class UpdatesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private UpdateCoordinator coordinator;

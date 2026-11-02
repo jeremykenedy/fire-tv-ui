@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * Explicit opt-in controls. Selection never applies a full saved setup or starts background work.
  */
-public final class LayoutScheduleActivity extends Activity {
+public final class LayoutScheduleActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private LayoutScheduleStore store;
     private LinearLayout rows;

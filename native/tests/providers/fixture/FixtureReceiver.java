@@ -24,19 +24,19 @@ public final class FixtureReceiver extends BroadcastReceiver {
         try {
             ContentResolver resolver = context.getContentResolver();
             String action = intent.getStringExtra("operation");
-            if ("clear".equals(action) || "publish".equals(action)) {
+            if ("clear".equals(action) || "publish".equals(action) || "publish-many".equals(action)) {
                 clearOwned(context, TvContract.PreviewPrograms.CONTENT_URI);
                 clearOwned(context, TvContract.WatchNextPrograms.CONTENT_URI);
                 clearOwned(context, TvContract.Channels.CONTENT_URI);
                 context.getSharedPreferences("fixture", Context.MODE_PRIVATE).edit().clear().commit();
             }
-            if ("publish".equals(action)) {
+            if ("publish".equals(action) || "publish-many".equals(action)) {
                 ContentValues channel = new ContentValues();
                 channel.put("type", TvContract.Channels.TYPE_PREVIEW);
                 channel.put("input_id", context.getPackageName() + "/fixture");
                 channel.put("display_name", "Fixture channel");
                 long id = ContentUris.parseId(resolver.insert(TvContract.Channels.CONTENT_URI, channel));
-                for (int i = 1; i <= 2; i++) {
+                for (int i = 1; i <= ("publish-many".equals(action) ? 75 : 2); i++) {
                     ContentValues program = program("Fixture title " + i, "preview-" + i, "fixture://title/" + i);
                     program.put("channel_id", id);
                     program.put("type", TvContract.PreviewPrograms.TYPE_TV_EPISODE);
@@ -92,7 +92,7 @@ public final class FixtureReceiver extends BroadcastReceiver {
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.cancel(42);
             }
-            if ("publish".equals(action) || "diagnostics".equals(action)) tvDiagnostics(context, result);
+            if ("publish".equals(action) || "publish-many".equals(action) || "diagnostics".equals(action)) tvDiagnostics(context, result);
             if ("notification-diagnostics".equals(action)) {
                 NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 result.putBoolean("notifications_enabled", manager.areNotificationsEnabled());

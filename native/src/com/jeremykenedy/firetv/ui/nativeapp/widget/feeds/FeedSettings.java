@@ -32,7 +32,7 @@ public final class FeedSettings {
         RadioButton rss = new RadioButton(activity); rss.setId(0x6f01); rss.setText("RSS 2.0"); format.addView(rss);
         RadioButton json = new RadioButton(activity); json.setId(0x6f02); json.setText("JSON Feed 1 / 1.1"); format.addView(json);
         format.check(saved != null && saved.format == FeedSource.Format.JSON_FEED ? 0x6f02 : 0x6f01); body.addView(format);
-        final AlertDialog dialog = new AlertDialog.Builder(activity).setTitle("Custom feed").setView(body)
+        final AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle("Custom feed").setView(body)
                 .setNegativeButton("Cancel", null).setNeutralButton("Remove source", new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface ignored, int which) { store.clear(); }
                 }).setPositiveButton("Use selected source", null).create();

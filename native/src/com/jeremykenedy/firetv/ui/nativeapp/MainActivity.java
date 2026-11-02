@@ -363,21 +363,22 @@ public final class MainActivity extends Activity {
         GridLayout grid = new GridLayout(this);
         grid.setClipChildren(false); grid.setClipToPadding(false);
         int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 64);
-        int tileWidth = Math.max(Pages.dp(this, 48), width / options.columns);
+        int tileWidth = Math.max(1, width / options.columns);
+        boolean legacyAppFocus = com.jeremykenedy.firetv.ui.nativeapp.focus.FocusPreferences.legacyDefaultAppMode(this);
         int tileHeight = Math.max(Pages.dp(this, 96), Math.round(tileWidth * 9f / 16f) + Pages.dp(this, 46));
         if (options.horizontal) {
             int availableHeight = Math.max(tileHeight, appArea.getHeight());
             int rows = options.rows == 0 ? Math.max(1, availableHeight / tileHeight) : options.rows;
             grid.setOrientation(GridLayout.VERTICAL); grid.setRowCount(rows);
             HorizontalScrollView scroll = new HorizontalScrollView(this);
-            scroll.setClipChildren(false); scroll.setClipToPadding(false);
+            scroll.setClipChildren(legacyAppFocus); scroll.setClipToPadding(legacyAppFocus);
             scroll.addView(grid);
             if (rows * tileHeight > availableHeight) {
                 ScrollView vertical = new ScrollView(this); vertical.addView(scroll); appArea.addView(vertical);
             } else appArea.addView(scroll);
         } else {
             grid.setColumnCount(options.columns);
-            ScrollView scroll = new ScrollView(this); scroll.setClipChildren(false); scroll.setClipToPadding(false);
+            ScrollView scroll = new ScrollView(this); scroll.setClipChildren(legacyAppFocus); scroll.setClipToPadding(legacyAppFocus);
             scroll.addView(grid); appArea.addView(scroll);
         }
         Map<String, AppInventory.App> byKey = new HashMap<>();
@@ -402,6 +403,7 @@ public final class MainActivity extends Activity {
             FocusTileView tile;
             if (app != null) {
                 tile = new FocusTileView(this);
+                tile.useLegacyDefaultAppPresentation(com.jeremykenedy.firetv.ui.nativeapp.focus.FocusOptions.legacyAppArtworkWidth(tileWidth));
                 tile.setTitle(app.label); tile.setIcon(artwork.get(key)); tile.setTag(key);
                 tile.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
@@ -505,7 +507,7 @@ public final class MainActivity extends Activity {
 
     private void folderActions(final FolderOptions.Folder folder) {
         final String key = "folder:" + folder.id;
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(folder.name)
+        AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(this).setTitle(folder.name)
                 .setItems(new String[]{"Open folder", "Manage folders", "Lock / unlock", "Move earlier", "Move later"}, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface ignored, int which) {
                         if (which == 0) startActivity(FolderActivity.intent(MainActivity.this, folder.id));
@@ -519,7 +521,7 @@ public final class MainActivity extends Activity {
 
     private void appActions(final AppInventory.App app) {
         final AppGridOptions options = AppGridPreferences.load(this);
-        AlertDialog actions = new AlertDialog.Builder(this).setTitle(app.label).setItems(new String[] {
+        AlertDialog actions = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(this).setTitle(app.label).setItems(new String[] {
             "Change icon", options.favorites.contains(app.key()) ? "Remove favorite" : "Add favorite",
             "Move earlier", "Move later", "Hide from Home", "Lock / unlock"
         }, new DialogInterface.OnClickListener() {
@@ -546,6 +548,12 @@ public final class MainActivity extends Activity {
         } catch (RuntimeException failure) {
             Toast.makeText(this, failure.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null && Intent.ACTION_MAIN.equals(intent.getAction())
+                && intent.hasCategory(Intent.CATEGORY_HOME)) HomeDialogBuilder.dismissForHome(this);
     }
 
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
@@ -590,6 +598,7 @@ public final class MainActivity extends Activity {
                     @Override public void run() { launchResult(RecommendationActions.openApp(MainActivity.this, program)); }
                 });
             }
+            labels.add("Previous title"); actions.add(new Runnable() { @Override public void run() { card.showPreviousProgram(); } });
             labels.add("Next title"); actions.add(new Runnable() { @Override public void run() { card.showNextProgram(); } });
             labels.add("Hide this item"); actions.add(new Runnable() {
                 @Override public void run() {
@@ -616,7 +625,7 @@ public final class MainActivity extends Activity {
         labels.add("Card settings"); actions.add(new Runnable() {
             @Override public void run() { startActivity(new Intent(MainActivity.this, CardsSettingsActivity.class)); }
         });
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(program == null ? feed.title : program.title)
+        AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(this).setTitle(program == null ? feed.title : program.title)
                 .setItems(labels.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) { actions.get(which).run(); }
                 }).setNegativeButton("Cancel", null).create();
@@ -647,6 +656,7 @@ public final class MainActivity extends Activity {
         super.onSaveInstanceState(state);
     }
     @Override protected void onPause() {
+        HomeDialogBuilder.deactivate(this);
         activityResumed = false;
         if (!homeReady) { super.onPause(); return; }
         remoteButtons.clear();
@@ -659,13 +669,14 @@ public final class MainActivity extends Activity {
         background.setResumed(false);
         super.onPause();
     }
-    @Override protected void onDestroy() { startupHandler.removeCallbacks(startupTimeout); if (homeReady) { awake.onPause(); dashboard.close(); recommendations.close(); } loader.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() { HomeDialogBuilder.release(this); startupHandler.removeCallbacks(startupTimeout); if (homeReady) { awake.onPause(); dashboard.close(); recommendations.close(); } loader.shutdownNow(); super.onDestroy(); }
     @Override protected void onResume() {
         super.onResume();
         activityResumed = true;
         if (homeReady) resumeHome();
     }
     private void resumeHome() {
+        HomeDialogBuilder.activate(this);
         refreshStatusBar();
         refreshHomeAppearance();
         DeviceRoutes.launcherVisibility(this, true);

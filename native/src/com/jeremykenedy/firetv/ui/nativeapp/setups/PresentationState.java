@@ -36,7 +36,7 @@ public final class PresentationState {
         add(
                 "native_focus",
                 "duration_millis growth_percent border_enabled border_rgb border_opacity"
-                        + " fill_enabled fill_rgb fill_opacity");
+                        + " fill_enabled fill_rgb fill_opacity legacy_app_default");
         add("native_layout", "card_width_dp card_height_dp order hidden mode");
         add(
                 "native_cards",
@@ -158,6 +158,9 @@ public final class PresentationState {
         CardOptions.fromBackup(
                 defaults("native_cards", state, CardOptions.defaults().backupValues()));
         Map<String, Object> f = state.get("native_focus").values();
+        if (f.containsKey(FocusOptions.LEGACY_APP_DEFAULT)
+                && !(f.get(FocusOptions.LEGACY_APP_DEFAULT) instanceof Boolean))
+            throw new IOException("Invalid legacy app focus presentation.");
         FocusOptions d = FocusOptions.defaults();
         new FocusOptions(
                 integer(f, "duration_millis", d.durationMillis),

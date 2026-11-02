@@ -17,7 +17,7 @@ public final class AppGridOptions {
 
     public AppGridOptions(int columns, int rows, boolean horizontal, List<String> order,
             Set<String> hidden, Set<String> favorites) {
-        if (columns < 2 || columns > 12 || rows < 0 || rows > 8) throw new IllegalArgumentException("Grid size is outside supported bounds.");
+        if (columns < 1 || columns > 20 || rows < 0 || rows > 8) throw new IllegalArgumentException("Grid size is outside supported bounds.");
         this.columns = columns;
         this.rows = rows;
         this.horizontal = horizontal;

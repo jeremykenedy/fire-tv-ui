@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class AppGridSettingsActivity extends Activity {
+public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private List<AppInventory.App> apps = new ArrayList<>();
@@ -130,6 +130,7 @@ public final class AppGridSettingsActivity extends Activity {
                     @Override public void onClick(View view) {
                         try {
                             int number = Integer.parseInt(value.getText().toString());
+                            if (columns && (number < 2 || number > 12)) throw new IllegalArgumentException();
                             AppGridOptions current = AppGridPreferences.load(AppGridSettingsActivity.this);
                             save(current.grid(columns ? number : current.columns, columns ? current.rows : number, current.horizontal));
                             dialog.dismiss();

@@ -47,12 +47,35 @@ public final class SetupTest {
     }
 
     public static void main(String[] args) throws Exception {
+        for (String style : Arrays.asList("default", "none", "fade", "slide")) {
+            Context transitionContext = new Context(new File(args[0], "transition-" + style));
+            prefs(transitionContext, "launcher_prefs").values.put("menu_transition_style", style);
+            Map<String, PreferenceSnapshot> saved = PresentationState.capture(transitionContext);
+            prefs(transitionContext, "launcher_prefs").values.put("menu_transition_style", "none");
+            PresentationState.apply(transitionContext, saved, true);
+            check(style.equals(prefs(transitionContext, "launcher_prefs").values.get("menu_transition_style")),
+                    "Saved setup restores the exact settings transition choice.");
+        }
+        Context focusContext = new Context(new File(args[0], "focus-mode"));
+        prefs(focusContext, "native_focus").values.put("legacy_app_default", true);
+        Map<String, PreferenceSnapshot> legacyMode = PresentationState.capture(focusContext);
+        check(Boolean.TRUE.equals(legacyMode.get("native_focus").values().get("legacy_app_default")), "Legacy app focus survives capture.");
+        prefs(focusContext, "native_focus").values.clear();
+        prefs(focusContext, "native_focus").values.put("growth_percent", 0);
+        Map<String, PreferenceSnapshot> sourceMode = PresentationState.capture(focusContext);
+        PresentationState.apply(focusContext, legacyMode, true);
+        check(Boolean.TRUE.equals(prefs(focusContext, "native_focus").values.get("legacy_app_default")) && !prefs(focusContext, "native_focus").values.containsKey("growth_percent"), "Restoring setup restores legacy mode and removes later native choice.");
+        PresentationState.apply(focusContext, sourceMode, true);
+        check(!prefs(focusContext, "native_focus").values.containsKey("legacy_app_default") && Integer.valueOf(0).equals(prefs(focusContext, "native_focus").values.get("growth_percent")), "Restoring a native setup clears legacy mode and restores explicit focus.");
+        Map<String, PreferenceSnapshot> invalidFocus = new LinkedHashMap<>(legacyMode);
+        invalidFocus.put("native_focus", new PreferenceSnapshot(Collections.<String, Object>singletonMap("legacy_app_default", "true")));
+        rejects(() -> PresentationState.validate(invalidFocus), "Malformed legacy marker is rejected.");
         final Context context = new Context(new File(args[0], "fixtures"));
         prefs(context, "launcher_prefs").values.put("access_token", "private-fixture");
         prefs(context, "launcher_prefs").values.put("fire_tv_ui_sleep", 1234);
         prefs(context, "launcher_prefs").values.put("folder_lock_pin", "private-fixture");
         prefs(context, "launcher_prefs").values.put("menu_overlay_frozen", false);
-        prefs(context, "native_app_grid").values.put("columns", 7);
+        prefs(context, "native_app_grid").values.put("columns", 16);
         prefs(context, "native_app_grid").values.put("owner_future_metadata", "keep");
         prefs(context, "native_focus").values.put("growth_percent", 6);
         prefs(context, "native_inputs").values.put("name:vendor/.Input/HDMI1", "Receiver");

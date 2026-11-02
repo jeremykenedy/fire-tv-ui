@@ -22,7 +22,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 
-public final class CalendarActivity extends Activity {
+public final class CalendarActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private static final int READ_REQUEST = 71;
     private LinearLayout body;

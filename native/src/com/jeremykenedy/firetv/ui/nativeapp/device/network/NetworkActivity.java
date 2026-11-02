@@ -12,7 +12,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.device.DeviceRoutes;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class NetworkActivity extends Activity {
+public final class NetworkActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private TextView details;

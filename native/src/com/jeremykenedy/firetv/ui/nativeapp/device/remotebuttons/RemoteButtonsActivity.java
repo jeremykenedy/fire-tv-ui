@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class RemoteButtonsActivity extends Activity {
+public final class RemoteButtonsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private RemoteButtonPreferences preferences;
     private RemoteButtonDispatcher dispatcher;

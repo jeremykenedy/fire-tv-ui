@@ -16,7 +16,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 import com.jeremykenedy.firetv.ui.nativeapp.SourceStartup;
 import com.jeremykenedy.firetv.ui.nativeapp.device.DeviceRoutes;
 
-public final class ProtectionActivity extends Activity {
+public final class ProtectionActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private Button awake;
     private TextView status;

@@ -52,7 +52,7 @@ public final class WidgetGroupsEditor implements WidgetGroupsView.Editor {
         }
         if (groupIndex > 0) option(labels, actions, "Move column earlier", "earlier");
         if (groupIndex + 1 < groups.groups.size()) option(labels, actions, "Move column later", "later");
-        new AlertDialog.Builder(activity).setTitle(entry == null ? "Widget column" : entry.type + " widget")
+        new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(activity).setTitle(entry == null ? "Widget column" : entry.type + " widget")
                 .setItems(labels.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         try {
