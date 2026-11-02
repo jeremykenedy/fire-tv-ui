@@ -1,20 +1,78 @@
 package com.jeremykenedy.firetv.ui.nativeapp.layout;
 
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.worldclock.WorldClockWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.notes.NotesWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.reminders.RemindersWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.quickactions.QuickActionsWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.astronomy.AstronomyWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.photos.PhotoWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.breathing.BreathingWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.timers.CountdownWidgetProvider;
+import com.jeremykenedy.firetv.ui.nativeapp.widget.timers.TimerWidgetProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /** Stable Home slots for implemented widgets and real published TV feeds. */
 public final class HomeSlots {
     public static final LayoutItem CLOCK = new LayoutItem("clock", LayoutItem.Kind.WIDGET);
+    public static final LayoutItem WORLD_CLOCKS = new LayoutItem("world-clocks", LayoutItem.Kind.WIDGET);
     private HomeSlots() {}
 
-    public static List<LayoutItem> available() { return Collections.singletonList(CLOCK); }
+    public static List<WidgetProvider> widgets() {
+        List<WidgetProvider> widgets = new ArrayList<>();
+        widgets.add(new ClockWidgetProvider());
+        widgets.add(new WorldClockWidgetProvider());
+        widgets.add(new NotesWidgetProvider());
+        widgets.add(new RemindersWidgetProvider());
+        widgets.add(new QuickActionsWidgetProvider());
+        widgets.add(new AstronomyWidgetProvider());
+        widgets.add(new PhotoWidgetProvider());
+        widgets.add(new BreathingWidgetProvider());
+        widgets.add(new CountdownWidgetProvider());
+        widgets.add(new TimerWidgetProvider());
+        return Collections.unmodifiableList(widgets);
+    }
+
+    public static WidgetProvider widget(String key) {
+        for (WidgetProvider widget : widgets()) if (widget.item().key().equals(key)) return widget;
+        return null;
+    }
+
+    public static List<LayoutItem> available() {
+        List<LayoutItem> items = new ArrayList<>();
+        for (WidgetProvider widget : widgets()) items.add(widget.item());
+        return Collections.unmodifiableList(items);
+    }
     public static List<LayoutItem> available(List<TvRecommendations.Feed> feeds) {
         List<LayoutItem> items = new ArrayList<>(available());
         for (TvRecommendations.Feed feed : feeds) items.add(feed.item);
         return Collections.unmodifiableList(items);
+    }
+
+    public static LayoutOptions discover(LayoutOptions options, List<TvRecommendations.Feed> feeds) {
+        Set<String> order = new LinkedHashSet<>(options.order);
+        Set<String> hidden = new LinkedHashSet<>(options.hidden);
+        for (WidgetProvider widget : widgets()) {
+            String key = widget.item().key();
+            if (order.contains(key) || order.size() >= LayoutOptions.MAX_ITEMS) continue;
+            if (!widget.defaultVisible() && !hidden.contains(key) && hidden.size() >= LayoutOptions.MAX_ITEMS) continue;
+            order.add(key);
+            if (!widget.defaultVisible()) hidden.add(key);
+        }
+        for (TvRecommendations.Feed feed : feeds) {
+            if (order.size() < LayoutOptions.MAX_ITEMS) order.add(feed.item.key());
+        }
+        return new LayoutOptions(options.cardWidthDp, options.cardHeightDp, order, hidden, options.mode);
+    }
+
+    public static int omittedCount(LayoutOptions options, List<TvRecommendations.Feed> feeds) {
+        int omitted = 0;
+        for (LayoutItem item : available(feeds)) if (!options.order.contains(item.key())) omitted++;
+        return omitted;
     }
 
     public static String title(String key, List<TvRecommendations.Feed> feeds) {
@@ -25,7 +83,8 @@ public final class HomeSlots {
     public static LayoutOptions defaults() { return LayoutOptions.defaults(320, 180); }
 
     public static String title(String key) {
-        if (CLOCK.key().equals(key)) return "Clock";
+        WidgetProvider widget = widget(key);
+        if (widget != null) return widget.title();
         return key.startsWith("channel:") ? "Unavailable channel" : "Unavailable widget";
     }
 }

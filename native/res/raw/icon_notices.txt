@@ -1,9 +1,76 @@
-This source preview includes eight curated icons, not the complete production catalog.
-VCR, Stereo Receiver, Laptop and PC are original project pictograms under MIT.
-JBL, Sonos, Samsung and LG artwork comes from the pinned Simple Icons CC0 release.
-Exact upstream sources and source/image hashes are recorded in provenance.json.
-The original project tile backgrounds/layout are MIT. Brand trademarks remain with their owners.
-The other production-catalog assets are not included pending individual provenance review.
+This source preview includes 21 individually reviewed curated icons.
+The remaining 27 legacy catalog images are excluded pending verified redistribution rights.
+
+Original project artwork and tile backgrounds/layout are MIT.
+Simple Icons artwork is CC0-1.0 at the pinned revision in provenance.json.
+Wikimedia artwork carries the specific public-domain or CC0 status recorded below.
+Brand names and trademarks remain with their respective owners and identify devices only.
+
+VCR: MIT original project artwork
+Original project vector icons/sources/vcr.svg
+
+Stereo Receiver: MIT original project artwork
+Original project vector icons/sources/stereo-receiver.svg
+
+Laptop: MIT original project artwork
+Original project vector icons/sources/laptop.svg
+
+PC: MIT original project artwork
+Original project vector icons/sources/pc.svg
+
+JBL: CC0-1.0 artwork; MIT project tile layout
+https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/jbl.svg
+
+Sonos: CC0-1.0 artwork; MIT project tile layout
+https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/sonos.svg
+
+Samsung: CC0-1.0 artwork; MIT project tile layout
+https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/samsung.svg
+
+LG: CC0-1.0 artwork; MIT project tile layout
+https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/lg.svg
+
+Xbox Series X: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Xbox_Series_X_logo.svg
+
+Nintendo Switch 2: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Nintendo_Switch_2_logo.svg
+
+Nintendo Switch Lite: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Nintendo_Switch_Lite_logo.svg
+
+DVD: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:DVD-Video_Logo.svg
+
+Blu-ray: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Blu-ray_Disc.svg
+
+LaserDisc: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Laser_Disc.svg
+
+Meta VR: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Meta_Platforms_Inc._logo.svg
+
+Meta Quest: CC0-1.0 artwork; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Meta_Quest_logo.svg
+
+MacBook: MIT original project artwork
+Original project vector icons/sources/macbook.svg
+
+Sony: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Sony_logo.svg
+
+Kenwood: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Kenwood_Logo.svg
+
+Pioneer: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Pioneer_logo.svg
+
+Harman Kardon: Public domain textlogo per Wikimedia Commons; MIT project tile layout
+https://commons.wikimedia.org/wiki/File:Harman_Kardon_logo.svg
+
+provenance.json records exact source and rendered image hashes.
+catalog-review.json records each of the 40 newly reviewed assets, including exclusions.
 
 The MIT License (MIT)
 

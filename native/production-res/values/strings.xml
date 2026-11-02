@@ -1,0 +1,7 @@
+<resources>
+    <string name="candidate_app_name">Fire TV UI Source Candidate</string>
+    <string name="candidate_keys_label">Fire TV UI Home controls</string>
+    <string name="candidate_windows_label">Fire TV UI Home window fallback</string>
+    <string name="candidate_home_description">Opens Fire TV UI with Home only when its saved Home mode is on. Explicit Factory UI and Settings handoffs remain available. Does not read screen content.</string>
+    <string name="candidate_window_description">Preserves the existing Home window service selection. Redirects system Home only when the saved fallback mode is on. Does not filter remote keys or read screen content.</string>
+</resources>

@@ -45,6 +45,14 @@ public final class LauncherMigration {
         return new PreferenceSnapshot(portable);
     }
 
+    public static Map<String, String> portableTypes() {
+        Map<String, String> types = new LinkedHashMap<>();
+        for (String key : PORTABLE_BOOLEANS) types.put(key, "Boolean");
+        for (String key : PORTABLE_INTS) types.put(key, "Int");
+        for (String key : PORTABLE_ENUMS) types.put(key, "String");
+        return Collections.unmodifiableMap(types);
+    }
+
     private static void validate(Map<String, Object> values) {
         for (Map.Entry<String, Object> entry : values.entrySet()) {
             String key = entry.getKey();

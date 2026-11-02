@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class CardOptions {
     public static final int DEFAULT_SECONDS = 8;
@@ -14,6 +16,8 @@ public final class CardOptions {
     public final int globalSeconds;
     public final Map<String, Integer> feedSeconds;
     private final Map<String, HiddenItem> hidden;
+    private final Map<String, HiddenItem> series;
+    private final Map<String, List<String>> itemOrder;
 
     public static final class HiddenItem {
         public final String source;
@@ -24,16 +28,30 @@ public final class CardOptions {
         }
     }
 
-    private CardOptions(int seconds, Map<String, Integer> timers, Map<String, HiddenItem> hidden) {
+    private CardOptions(int seconds, Map<String, Integer> timers, Map<String, HiddenItem> hidden,
+            Map<String, HiddenItem> series, Map<String, List<String>> order) {
         validateSeconds(seconds);
-        if (timers.size() > 256 || hidden.size() > 512) throw new IllegalArgumentException("Too many saved card settings.");
+        if (timers.size() > 256 || hidden.size() + series.size() > 512 || order.size() > 256)
+            throw new IllegalArgumentException("Too many saved card settings.");
+        int items = 0;
+        Map<String, List<String>> copy = new LinkedHashMap<>();
+        for (Map.Entry<String, List<String>> entry : order.entrySet()) {
+            if (entry.getValue().size() > 512) throw new IllegalArgumentException("Too many saved titles in one channel.");
+            items += entry.getValue().size();
+            copy.put(entry.getKey(), Collections.unmodifiableList(new ArrayList<>(entry.getValue())));
+        }
+        if (items > 4096) throw new IllegalArgumentException("Too many saved title positions.");
         globalSeconds = seconds;
         feedSeconds = Collections.unmodifiableMap(new LinkedHashMap<>(timers));
         this.hidden = Collections.unmodifiableMap(new LinkedHashMap<>(hidden));
+        this.series = Collections.unmodifiableMap(new LinkedHashMap<>(series));
+        itemOrder = Collections.unmodifiableMap(copy);
     }
 
     public static CardOptions defaults() {
-        return new CardOptions(DEFAULT_SECONDS, Collections.<String, Integer>emptyMap(), Collections.<String, HiddenItem>emptyMap());
+        return new CardOptions(DEFAULT_SECONDS, Collections.<String, Integer>emptyMap(),
+                Collections.<String, HiddenItem>emptyMap(), Collections.<String, HiddenItem>emptyMap(),
+                Collections.<String, List<String>>emptyMap());
     }
 
     public int timerSeconds(String feed) {
@@ -41,77 +59,185 @@ public final class CardOptions {
         return seconds == null ? globalSeconds : seconds;
     }
 
-    public CardOptions withGlobalSeconds(int seconds) { return new CardOptions(seconds, feedSeconds, hidden); }
+    public CardOptions withGlobalSeconds(int seconds) { return new CardOptions(seconds, feedSeconds, hidden, series, itemOrder); }
 
     public CardOptions withFeedSeconds(String feed, int seconds) {
         identity(feed); validateSeconds(seconds);
         Map<String, Integer> copy = new LinkedHashMap<>(feedSeconds);
         copy.put(feed, seconds);
-        return new CardOptions(globalSeconds, copy, hidden);
+        return new CardOptions(globalSeconds, copy, hidden, series, itemOrder);
     }
 
     public CardOptions useGlobal(String feed) {
         Map<String, Integer> copy = new LinkedHashMap<>(feedSeconds);
         copy.remove(feed);
-        return new CardOptions(globalSeconds, copy, hidden);
+        return new CardOptions(globalSeconds, copy, hidden, series, itemOrder);
     }
 
-    public boolean isHidden(String source, String key) { return hidden.containsKey(hiddenKey(source, key)); }
+    public boolean isHidden(String source, String key) { return hidden.containsKey(scopedKey(source, key)); }
+
+    public boolean isHidden(String source, String key, String seriesKey) {
+        return isHidden(source, key) || isSeriesHidden(source, seriesKey);
+    }
+
+    public boolean isSeriesHidden(String source, String seriesKey) {
+        return seriesKey != null && !seriesKey.isEmpty() && series.containsKey(scopedKey(source, seriesKey));
+    }
 
     public CardOptions hide(String source, String key, String title) {
-        String id = hiddenKey(source, key);
-        if (title == null || title.length() > 512) throw new IllegalArgumentException("Invalid item title.");
         Map<String, HiddenItem> copy = new LinkedHashMap<>(hidden);
-        copy.put(id, new HiddenItem(source, key, title));
-        return new CardOptions(globalSeconds, feedSeconds, copy);
+        copy.put(scopedKey(source, key), entry(source, key, title));
+        return new CardOptions(globalSeconds, feedSeconds, copy, series, itemOrder);
+    }
+
+    public CardOptions hideSeries(String source, String key, String title) {
+        Map<String, HiddenItem> copy = new LinkedHashMap<>(series);
+        copy.put(scopedKey(source, key), entry(source, key, title));
+        return new CardOptions(globalSeconds, feedSeconds, hidden, copy, itemOrder);
     }
 
     public CardOptions restore(String source, String key) {
         Map<String, HiddenItem> copy = new LinkedHashMap<>(hidden);
-        copy.remove(hiddenKey(source, key));
-        return new CardOptions(globalSeconds, feedSeconds, copy);
+        copy.remove(scopedKey(source, key));
+        return new CardOptions(globalSeconds, feedSeconds, copy, series, itemOrder);
+    }
+
+    public CardOptions restoreSeries(String source, String key) {
+        Map<String, HiddenItem> copy = new LinkedHashMap<>(series);
+        copy.remove(scopedKey(source, key));
+        return new CardOptions(globalSeconds, feedSeconds, hidden, copy, itemOrder);
     }
 
     public List<HiddenItem> hiddenItems() { return Collections.unmodifiableList(new ArrayList<>(hidden.values())); }
+    public List<HiddenItem> hiddenSeries() { return Collections.unmodifiableList(new ArrayList<>(series.values())); }
+
+    public List<String> orderedKeys(String source, String feed, List<String> available) {
+        String id = scopedKey(source, feed);
+        List<String> current = validatedOrder(available);
+        List<String> result = new ArrayList<>();
+        List<String> saved = itemOrder.get(id);
+        if (saved != null) for (String key : saved) if (current.contains(key)) result.add(key);
+        for (String key : current) if (!result.contains(key)) result.add(key);
+        return Collections.unmodifiableList(result);
+    }
+
+    public CardOptions withItemOrder(String source, String feed, List<String> order) {
+        Map<String, List<String>> copy = new LinkedHashMap<>(itemOrder);
+        copy.put(scopedKey(source, feed), validatedOrder(order));
+        return new CardOptions(globalSeconds, feedSeconds, hidden, series, copy);
+    }
+
+    public CardOptions discoverItems(String source, String feed, List<String> available) {
+        String id = scopedKey(source, feed);
+        List<String> order = new ArrayList<>();
+        if (itemOrder.containsKey(id)) order.addAll(itemOrder.get(id));
+        for (String key : validatedOrder(available)) if (!order.contains(key)) order.add(key);
+        return withItemOrder(source, feed, order);
+    }
+
+    public CardOptions moveItemBefore(String source, String feed, String item, String before) {
+        String id = scopedKey(source, feed);
+        List<String> order = new ArrayList<>(itemOrder.containsKey(id) ? itemOrder.get(id) : Collections.<String>emptyList());
+        if (!order.contains(item) || (before != null && !order.contains(before)))
+            throw new IllegalArgumentException("Refresh this channel before changing its title order.");
+        if (item.equals(before)) return this;
+        order.remove(item);
+        order.add(before == null ? order.size() : order.indexOf(before), item);
+        return withItemOrder(source, feed, order);
+    }
+
+    public CardOptions resetItemOrder(String source, String feed) {
+        Map<String, List<String>> copy = new LinkedHashMap<>(itemOrder);
+        copy.remove(scopedKey(source, feed));
+        return new CardOptions(globalSeconds, feedSeconds, hidden, series, copy);
+    }
 
     public Map<String, Object> backupValues() {
         Map<String, Object> result = new LinkedHashMap<>();
+        result.put("schema_version", 2);
         result.put("global_seconds", globalSeconds);
         StringBuilder timers = new StringBuilder();
-        for (Map.Entry<String, Integer> entry : feedSeconds.entrySet()) {
-            if (timers.length() > 0) timers.append('\n');
-            timers.append(entry.getKey()).append('\t').append(entry.getValue());
-        }
+        for (Map.Entry<String, Integer> entry : feedSeconds.entrySet()) append(timers, entry.getKey() + "\t" + entry.getValue());
         result.put("feed_seconds", timers.toString());
-        StringBuilder items = new StringBuilder();
-        for (HiddenItem item : hidden.values()) {
-            if (items.length() > 0) items.append('\n');
-            items.append(item.source).append('\t').append(item.key).append('\t')
-                    .append(Base64.getEncoder().encodeToString(item.title.getBytes(StandardCharsets.UTF_8)));
+        result.put("hidden_items", encodeHidden(hidden));
+        result.put("hidden_series", encodeHidden(series));
+        StringBuilder order = new StringBuilder();
+        for (Map.Entry<String, List<String>> entry : itemOrder.entrySet()) {
+            StringBuilder line = new StringBuilder(entry.getKey());
+            for (String key : entry.getValue()) line.append('\t').append(key);
+            append(order, line.toString());
         }
-        result.put("hidden_items", items.toString());
+        result.put("item_order", order.toString());
         return result;
     }
 
     public static CardOptions fromBackup(Map<String, ?> values) {
-        if (values == null || values.size() != 3 || !(values.get("global_seconds") instanceof Integer)
-                || !(values.get("feed_seconds") instanceof String) || !(values.get("hidden_items") instanceof String))
-            throw new IllegalArgumentException("Invalid card settings.");
+        boolean legacy = values != null && values.size() == 3 && !values.containsKey("schema_version");
+        if (values == null || (!legacy && (values.size() != 6 || !Integer.valueOf(2).equals(values.get("schema_version"))))
+                || !(values.get("global_seconds") instanceof Integer) || !(values.get("feed_seconds") instanceof String)
+                || !(values.get("hidden_items") instanceof String) || (!legacy && (!(values.get("hidden_series") instanceof String)
+                || !(values.get("item_order") instanceof String)))) throw new IllegalArgumentException("Invalid card settings.");
         CardOptions result = defaults().withGlobalSeconds((Integer) values.get("global_seconds"));
-        String timers = (String) values.get("feed_seconds"), items = (String) values.get("hidden_items");
-        if (timers.length() > 60000 || items.length() > 1500000) throw new IllegalArgumentException("Card settings are too large.");
+        String timers = bounded(values, "feed_seconds", 60000);
         if (!timers.isEmpty()) for (String line : timers.split("\n", -1)) {
             String[] parts = line.split("\t", -1);
             if (parts.length != 2 || result.feedSeconds.containsKey(parts[0]) || !parts[1].matches("0|[1-9][0-9]{0,4}"))
                 throw new IllegalArgumentException("Invalid channel timer.");
             result = result.withFeedSeconds(parts[0], Integer.parseInt(parts[1]));
         }
-        if (!items.isEmpty()) for (String line : items.split("\n", -1)) {
-            String[] parts = line.split("\t", -1);
-            if (parts.length != 3 || result.isHidden(parts[0], parts[1])) throw new IllegalArgumentException("Invalid hidden item.");
-            result = result.hide(parts[0], parts[1], new String(Base64.getDecoder().decode(parts[2]), StandardCharsets.UTF_8));
+        result = decodeHidden(result, bounded(values, "hidden_items", 1500000), false);
+        if (!legacy) {
+            result = decodeHidden(result, bounded(values, "hidden_series", 1500000), true);
+            String orders = bounded(values, "item_order", 1000000);
+            Set<String> seen = new LinkedHashSet<>();
+            if (!orders.isEmpty()) for (String line : orders.split("\n", -1)) {
+                String[] parts = line.split("\t", -1);
+                if (parts.length < 2 || !seen.add(scopedKey(parts[0], parts[1]))) throw new IllegalArgumentException("Invalid title order.");
+                List<String> keys = new ArrayList<>();
+                for (int i = 2; i < parts.length; i++) keys.add(parts[i]);
+                result = result.withItemOrder(parts[0], parts[1], keys);
+            }
         }
         return result;
+    }
+
+    private static String bounded(Map<String, ?> values, String key, int max) {
+        String result = (String) values.get(key);
+        if (result.length() > max) throw new IllegalArgumentException("Card settings are too large.");
+        return result;
+    }
+
+    private static CardOptions decodeHidden(CardOptions result, String text, boolean isSeries) {
+        if (!text.isEmpty()) for (String line : text.split("\n", -1)) {
+            String[] parts = line.split("\t", -1);
+            if (parts.length != 3 || (isSeries ? result.isSeriesHidden(parts[0], parts[1]) : result.isHidden(parts[0], parts[1])))
+                throw new IllegalArgumentException("Invalid hidden entry.");
+            String title = new String(Base64.getDecoder().decode(parts[2]), StandardCharsets.UTF_8);
+            result = isSeries ? result.hideSeries(parts[0], parts[1], title) : result.hide(parts[0], parts[1], title);
+        }
+        return result;
+    }
+
+    private static String encodeHidden(Map<String, HiddenItem> hidden) {
+        StringBuilder result = new StringBuilder();
+        for (HiddenItem item : hidden.values()) append(result, item.source + "\t" + item.key + "\t"
+                + Base64.getEncoder().encodeToString(item.title.getBytes(StandardCharsets.UTF_8)));
+        return result.toString();
+    }
+
+    private static void append(StringBuilder text, String line) { if (text.length() > 0) text.append('\n'); text.append(line); }
+
+    private static HiddenItem entry(String source, String key, String title) {
+        scopedKey(source, key);
+        if (title == null || title.length() > 512) throw new IllegalArgumentException("Invalid item title.");
+        return new HiddenItem(source, key, title);
+    }
+
+    private static List<String> validatedOrder(List<String> values) {
+        if (values == null || values.size() > 512) throw new IllegalArgumentException("Invalid title order.");
+        Set<String> seen = new LinkedHashSet<>();
+        for (String value : values) { identity(value); if (!seen.add(value)) throw new IllegalArgumentException("Duplicate title in order."); }
+        return new ArrayList<>(seen);
     }
 
     public static String timerLabel(int seconds) { return seconds == 0 ? "Manual only" : "Every " + seconds + " seconds"; }
@@ -120,7 +246,7 @@ public final class CardOptions {
         if (seconds < 0 || seconds > MAX_SECONDS) throw new IllegalArgumentException("Choose Manual or whole seconds from 1 to 86400.");
     }
 
-    private static String hiddenKey(String source, String key) {
+    private static String scopedKey(String source, String key) {
         if (source == null || !source.matches("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+") || source.length() > 200)
             throw new IllegalArgumentException("Invalid card source.");
         identity(key);

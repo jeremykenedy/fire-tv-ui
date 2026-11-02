@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 public final class AppGridOptions {
+    public static final int MAX_IDENTITIES = 2048;
     public final int columns;
     public final int rows;
     public final boolean horizontal;
@@ -28,12 +29,16 @@ public final class AppGridOptions {
     private static LinkedHashSet<String> valid(Iterable<String> keys) {
         LinkedHashSet<String> result = new LinkedHashSet<>();
         for (String key : keys) {
-            if (key == null || key.length() > 512 || !key.matches("[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+") || !result.add(key)) {
+            if (!validIdentity(key) || !result.add(key)) {
                 throw new IllegalArgumentException("Invalid or duplicate app identity.");
             }
         }
-        if (result.size() > 2048) throw new IllegalArgumentException("Too many app identities.");
+        if (result.size() > MAX_IDENTITIES) throw new IllegalArgumentException("Too many app identities.");
         return result;
+    }
+
+    private static boolean validIdentity(String key) {
+        return key != null && key.length() <= 512 && key.matches("[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+");
     }
 
     public static AppGridOptions defaults() {
@@ -43,19 +48,33 @@ public final class AppGridOptions {
 
     public AppGridOptions discover(List<String> available) {
         List<String> all = new ArrayList<>(order);
-        for (String key : available) if (!all.contains(key)) all.add(key);
+        for (String key : available) {
+            if (!validIdentity(key)) throw new IllegalArgumentException("Invalid app identity.");
+            if (all.size() < MAX_IDENTITIES && !all.contains(key)) all.add(key);
+        }
         return copy(columns, rows, horizontal, all, hidden, favorites);
     }
 
     public List<String> visible(List<String> available) {
         List<String> result = new ArrayList<>();
-        List<String> all = discover(available).order;
+        List<String> all = new ArrayList<>(order);
+        for (String key : available) {
+            if (!validIdentity(key)) throw new IllegalArgumentException("Invalid app identity.");
+            if (!all.contains(key)) all.add(key);
+        }
         for (boolean favorite : new boolean[] {true, false}) {
             for (String key : all) {
                 if (available.contains(key) && !hidden.contains(key) && favorites.contains(key) == favorite) result.add(key);
             }
         }
         return result;
+    }
+
+    public int unrememberedCount(List<String> available) {
+        List<String> remembered = discover(available).order;
+        Set<String> extra = new LinkedHashSet<>();
+        for (String key : available) if (!remembered.contains(key)) extra.add(key);
+        return extra.size();
     }
 
     public AppGridOptions toggleHidden(String key) {
@@ -77,7 +96,9 @@ public final class AppGridOptions {
         String other = visible.get(to);
         if (favorites.contains(key) != favorites.contains(other)) return this;
         List<String> all = new ArrayList<>(discover(available).order);
-        Collections.swap(all, all.indexOf(key), all.indexOf(other));
+        int savedFrom = all.indexOf(key), savedTo = all.indexOf(other);
+        if (savedFrom < 0 || savedTo < 0) return this;
+        Collections.swap(all, savedFrom, savedTo);
         return copy(columns, rows, horizontal, all, hidden, favorites);
     }
 

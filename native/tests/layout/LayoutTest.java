@@ -35,8 +35,9 @@ public final class LayoutTest {
         TvRecommendations.Feed feed = new TvRecommendations.Feed("com.example.tv:preview:12", "Shared movies");
         List<TvRecommendations.Feed> feeds = Collections.singletonList(feed);
         List<LayoutItem> discovered = HomeSlots.available(feeds);
-        check(discovered.equals(Arrays.asList(HomeSlots.CLOCK, feed.item)), "Real feeds join the clock as stable slots.");
-        check(HomeSlots.available().equals(Collections.singletonList(HomeSlots.CLOCK)), "The local-only baseline stays available.");
+        check(discovered.contains(HomeSlots.CLOCK) && discovered.get(discovered.size() - 1).equals(feed.item),
+                "Real feeds join implemented widgets as stable slots.");
+        check(HomeSlots.available().contains(HomeSlots.CLOCK), "The local clock baseline stays available.");
         check(HomeSlots.title(feed.item.key(), feeds).equals("Shared movies"), "Editor uses the publisher's feed title.");
         check(HomeSlots.title(feed.item.key(), Collections.<TvRecommendations.Feed>emptyList()).equals("Unavailable channel"),
                 "Missing feeds keep an explicit unavailable title.");
@@ -45,8 +46,91 @@ public final class LayoutTest {
         LayoutOptions missingFeed = feedLayout.discover(HomeSlots.available());
         check(missingFeed.order.equals(feedLayout.order) && missingFeed.hidden.equals(feedLayout.hidden),
                 "A missing real feed preserves saved order and visibility.");
-        check(missingFeed.discover(discovered).visible(discovered).equals(HomeSlots.available()),
+        check(keys(missingFeed.discover(discovered).visible(discovered)).equals(keys(HomeSlots.available())),
                 "A reappearing hidden feed stays hidden.");
+        Map<String, Object> legacy = new HashMap<>(feedLayout.backupValues());
+        legacy.remove("mode");
+        check(LayoutOptions.fromBackup(legacy).mode == LayoutOptions.Mode.BOTH, "Legacy layout backups retain both content kinds.");
+        LayoutOptions cardsOnly = feedLayout.withMode(LayoutOptions.Mode.CARDS_ONLY);
+        check(cardsOnly.visible(discovered).isEmpty(), "Cards-only mode preserves an individually hidden card.");
+        LayoutOptions none = feedLayout.withMode(LayoutOptions.Mode.NONE);
+        check(none.visible(discovered).isEmpty() && none.order.equals(feedLayout.order) && none.hidden.equals(feedLayout.hidden),
+                "Hiding all content retains exact saved order and individual visibility choices.");
+        check(LayoutOptions.fromBackup(none.backupValues()).mode == LayoutOptions.Mode.NONE,
+                "The explicit all-content-hidden choice survives backup restoration.");
+        check(none.withMode(LayoutOptions.Mode.BOTH).backupValues().equals(feedLayout.backupValues()),
+                "Leaving all-content-hidden mode restores the prior saved choices.");
+        LayoutOptions widgetsOnly = feedLayout.withMode(LayoutOptions.Mode.WIDGETS_ONLY);
+        check(keys(widgetsOnly.visible(discovered)).equals(keys(HomeSlots.available())), "Widgets-only mode filters cards independently of hidden flags.");
+        check(cardsOnly.order.equals(feedLayout.order) && cardsOnly.hidden.equals(feedLayout.hidden),
+                "Mode changes keep exact saved order and hidden choices.");
+        check(widgetsOnly.withMode(LayoutOptions.Mode.BOTH).backupValues().equals(feedLayout.backupValues()),
+                "Returning to both restores the exact layout choices.");
+        check(LayoutOptions.fromBackup(cardsOnly.backupValues()).mode == LayoutOptions.Mode.CARDS_ONLY,
+                "Content mode survives backup restoration.");
+        check(cardsOnly.resizeCards(400, 225).setVisible(feed.item.key(), true).moveBefore(HomeSlots.CLOCK.key(), feed.item.key())
+                .discover(HomeSlots.available()).mode == LayoutOptions.Mode.CARDS_ONLY, "Every layout mutation retains content mode.");
+        check(HomeSlots.widget(HomeSlots.CLOCK.key()) != null && HomeSlots.widget("widget:missing") == null,
+                "Only implemented local widgets resolve through the registry.");
+        LayoutOptions firstDiscovery = HomeSlots.discover(HomeSlots.defaults(), feeds);
+        check(firstDiscovery.visible(discovered).equals(Arrays.asList(HomeSlots.CLOCK, feed.item)),
+                "New opt-in widgets do not change the original visible Home defaults.");
+        for (WidgetProvider widget : HomeSlots.widgets()) {
+            if (widget.defaultVisible()) continue;
+            check(firstDiscovery.hidden.contains(widget.item().key()), "New opt-in widgets start hidden.");
+            LayoutOptions chosen = firstDiscovery.setVisible(widget.item().key(), true);
+            check(!HomeSlots.discover(chosen, feeds).hidden.contains(widget.item().key()),
+                    "Discovery preserves an explicit Show choice for a widget.");
+        }
+        List<String> historical = new java.util.ArrayList<>();
+        for (int index = 0; index < LayoutOptions.MAX_ITEMS; index++) historical.add("channel:historical-" + index);
+        LayoutOptions full = new LayoutOptions(320, 180, historical, Collections.singletonList(historical.get(0)));
+        LayoutOptions bounded = HomeSlots.discover(full, feeds);
+        check(bounded.order.equals(full.order) && bounded.hidden.equals(full.hidden),
+                "At capacity, discovery retains every historical identity and hidden choice without crashing.");
+        check(HomeSlots.omittedCount(bounded, feeds) == HomeSlots.available(feeds).size(),
+                "Capacity exposes an exact count of omitted new widgets and feeds.");
+        check(full.discover(discovered).order.equals(full.order), "Generic discovery also stays bounded at saved capacity.");
+        check(bounded.visible(discovered).isEmpty(), "Capacity-omitted slots are not implicitly displayed by the layout model.");
+        LayoutOptions oneSpace = new LayoutOptions(320, 180, historical.subList(0, historical.size() - 1),
+                Collections.<String>emptyList());
+        LayoutOptions filled = HomeSlots.discover(oneSpace, feeds);
+        check(filled.order.size() == LayoutOptions.MAX_ITEMS && filled.order.subList(0, historical.size() - 1).equals(oneSpace.order),
+                "Discovery appends only the remaining capacity while keeping historical order.");
+        List<String> hiddenAtLimit = new java.util.ArrayList<>();
+        for (int index = 0; index < LayoutOptions.MAX_ITEMS; index++) hiddenAtLimit.add("widget:missing-" + index);
+        LayoutOptions hiddenFull = new LayoutOptions(320, 180, Collections.singletonList(HomeSlots.CLOCK.key()), hiddenAtLimit);
+        LayoutOptions hiddenBounded = HomeSlots.discover(hiddenFull, feeds);
+        check(hiddenBounded.hidden.equals(hiddenFull.hidden) && hiddenBounded.order.contains(feed.item.key())
+                && !hiddenBounded.order.contains(HomeSlots.WORLD_CLOCKS.key()),
+                "A full hidden set retains saved choices and omits opt-in widgets that cannot be safely hidden.");
+        Context discoveryContext = new Context();
+        discoveryContext.prefs.values.put("unrelated", "keep");
+        LayoutOptions absent = LayoutPreferences.load(discoveryContext, HomeSlots.defaults());
+        LayoutOptions localDiscovered = absent.discover(Collections.singletonList(HomeSlots.CLOCK));
+        LayoutPreferences.saveDiscovery(discoveryContext, absent, localDiscovered);
+        check(discoveryContext.prefs.values.size() == 2 && discoveryContext.prefs.values.containsKey("order")
+                && discoveryContext.prefs.values.get("unrelated").equals("keep"),
+                "Discovery only writes changed order; absent dimensions, mode and unchanged hidden stay absent.");
+        LayoutOptions widgetsDiscovered = HomeSlots.discover(localDiscovered, feeds);
+        LayoutPreferences.saveDiscovery(discoveryContext, localDiscovered, widgetsDiscovered);
+        check(discoveryContext.prefs.values.size() == 3 && discoveryContext.prefs.values.containsKey("hidden"),
+                "Opt-in widget discovery persists hidden defaults without materializing presentation defaults.");
+        check(LayoutPreferences.load(discoveryContext, HomeSlots.defaults()).hidden.equals(widgetsDiscovered.hidden),
+                "Discovery's saved opt-in visibility survives reload.");
+        discoveryContext.prefs.values.put("mode", "WIDGETS_ONLY");
+        discoveryContext.prefs.values.put("card_width_dp", 450);
+        Map<String, Object> beforeDiscoveryFailure = new HashMap<>(discoveryContext.prefs.values);
+        discoveryContext.prefs.fail = true;
+        LayoutPreferences.saveDiscovery(discoveryContext, widgetsDiscovered, widgetsDiscovered);
+        try {
+            LayoutPreferences.saveDiscovery(discoveryContext, widgetsDiscovered,
+                    widgetsDiscovered.discover(Collections.singletonList(new LayoutItem("new-channel", LayoutItem.Kind.CHANNEL_CARD))));
+            throw new AssertionError("Failed discovery write accepted.");
+        } catch (IllegalStateException expected) {
+            check(discoveryContext.prefs.values.equals(beforeDiscoveryFailure),
+                    "Failed discovery rolls back only its changed keys and preserves exact explicit and absent values.");
+        }
         Context context = new Context();
         context.prefs.values.put("unrelated", "keep");
         LayoutPreferences.save(context, options);
@@ -60,6 +144,11 @@ public final class LayoutTest {
         for (String bad : Arrays.asList("channel:a\nchannel:a", "channel:bad title", "widget:clock\n", "unknown:x")) {
             Map<String, Object> invalid = new HashMap<>(options.backupValues());
             invalid.put("order", bad);
+            rejected(context, invalid, before);
+        }
+        for (Object badMode : Arrays.<Object>asList("CARDS", 1, true)) {
+            Map<String, Object> invalid = new HashMap<>(options.backupValues());
+            invalid.put("mode", badMode);
             rejected(context, invalid, before);
         }
         Map<String, Object> extra = new HashMap<>(options.backupValues());
@@ -89,6 +178,12 @@ public final class LayoutTest {
             throw new AssertionError("Unbounded layout accepted.");
         } catch (IllegalArgumentException expected) {}
         System.out.println("Mixed order, missing-provider retention, uniform card size, widget independence, storage and atomic backup validation passed.");
+    }
+
+    private static List<String> keys(List<LayoutItem> items) {
+        List<String> keys = new java.util.ArrayList<>();
+        for (LayoutItem item : items) keys.add(item.key());
+        return keys;
     }
 
     private static void rejected(Context context, Map<String, Object> values, Map<String, Object> before) {

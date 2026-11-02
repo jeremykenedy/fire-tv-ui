@@ -1,5 +1,9 @@
 # Documentation
 
+- [Source Preview 2.0.0-alpha.1](source-preview.md): separate preview installation, included first-cut scope and qualification limits.
+
+The guides below describe the retained stable 1.x product unless explicitly labeled otherwise.
+
 - [Configuration](configuration.md)
 - [Featured cards and personal Plex](featured-cards.md)
 - [Menu backgrounds](animated-backgrounds.md)

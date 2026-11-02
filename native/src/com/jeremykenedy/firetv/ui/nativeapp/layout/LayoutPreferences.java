@@ -22,9 +22,21 @@ public final class LayoutPreferences {
     }
 
     public static void save(Context context, LayoutOptions options) {
+        write(context, options.backupValues());
+    }
+
+    /** Discovery records new slots without turning absent presentation defaults into explicit choices. */
+    public static void saveDiscovery(Context context, LayoutOptions before, LayoutOptions discovered) {
+        Map<String, Object> changed = new LinkedHashMap<>();
+        Map<String, Object> values = discovered.backupValues();
+        if (!before.order.equals(discovered.order)) changed.put("order", values.get("order"));
+        if (!before.hidden.equals(discovered.hidden)) changed.put("hidden", values.get("hidden"));
+        if (!changed.isEmpty()) write(context, changed);
+    }
+
+    private static void write(Context context, Map<String, Object> values) {
         SharedPreferences preferences = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
         Map<String, ?> previous = preferences.getAll();
-        Map<String, Object> values = options.backupValues();
         SharedPreferences.Editor editor = preferences.edit();
         for (Map.Entry<String, Object> entry : values.entrySet()) put(editor, entry.getKey(), entry.getValue());
         if (editor.commit()) return;

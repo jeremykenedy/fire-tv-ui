@@ -54,12 +54,89 @@ public final class RecommendationsTest {
         entry.put("poster_art_uri", "file:///private/image");
         unsafe.resolver.tables.put("watch_next_program", rows(entry));
         check(TvRecommendations.read(unsafe).feeds.get(0).programs.get(0).artwork == null, "File artwork is not forwarded.");
+        Context artwork = context();
+        artwork.packages.owners.put("movie.art", "tv.example.movies");
+        artwork.packages.owners.put("private.art", "tv.other.private");
+        String[] locations = {"content://movie.art/poster", "content://private.art/private-image",
+                "android.resource://tv.example.movies/1", "android.resource://tv.other.private/1"};
+        for (int i = 0; i < locations.length; i++) {
+            Map<String,Object> poster = program(1, "tv.example.movies", 0, "Title", "id");
+            poster.put("poster_art_uri", locations[i]);
+            artwork.resolver.tables.put("watch_next_program", rows(poster));
+            check((TvRecommendations.read(artwork).feeds.get(0).programs.get(0).artwork != null) == (i % 2 == 0),
+                    "Content and resource artwork must belong to the actual publisher, not a private grant held by the launcher.");
+        }
+        Context series = context();
+        Map<String,Object> episode = program(1, "tv.example.movies", 0, "Episode one", "episode-1");
+        episode.put("series_id", "provider-series-42");
+        series.resolver.tables.put("watch_next_program", rows(episode));
+        TvRecommendations.Program withSeries = TvRecommendations.read(series).feeds.get(0).programs.get(0);
+        check(withSeries.seriesKey.equals(RecommendationKeys.series("tv.example.movies", "provider-series-42")),
+                "Explicit series metadata becomes a source-scoped stable identity.");
+        check(!withSeries.seriesKey.equals(RecommendationKeys.series("tv.other.app", "provider-series-42")),
+                "Different publishers cannot collide through identical series IDs.");
+        check(withSeries.seriesTitle == null && withSeries.detailsIntentUri == null && withSeries.playIntentUri == null,
+                "TV metadata does not invent series labels, details or playback guarantees.");
+        series.resolver.tables.put("watch_next_program", rows(episode));
+        android.os.Build.VERSION.SDK_INT = 27;
+        check(TvRecommendations.read(series).feeds.get(0).programs.get(0).seriesKey == null,
+                "Older supported TV APIs do not depend on the API29 series column.");
+        android.os.Build.VERSION.SDK_INT = 34;
+        check(new TvRecommendations.Program("key", "tv.example.movies", "Title", null, "fixture://title").seriesKey == null,
+                "Existing program constructors remain compatible without inferred series.");
+        android.os.CancellationSignal canceled = new android.os.CancellationSignal();
+        canceled.cancel();
+        boolean interrupted = false;
+        try { TvRecommendations.read(context(), canceled); }
+        catch (android.os.OperationCanceledException expected) { interrupted = true; }
+        check(interrupted, "Canceled reads do not become false unavailable snapshots.");
+        Context cancelDuringRead = context();
+        Rows canceledRows = rows(program(1, "tv.example.movies", 0, "Title", "id"));
+        android.os.CancellationSignal running = new android.os.CancellationSignal();
+        canceledRows.cancelOnMove = running;
+        cancelDuringRead.resolver.tables.put("watch_next_program", canceledRows);
+        interrupted = false;
+        try { TvRecommendations.read(cancelDuringRead, running); }
+        catch (android.os.OperationCanceledException expected) { interrupted = true; }
+        check(interrupted && canceledRows.closed, "In-flight cancellation closes provider cursors.");
+        Context optional = context();
+        com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.reads = 0;
+        result = RecommendationSources.read(optional);
+        check(result.status == TvRecommendations.Status.EMPTY && result.feeds.isEmpty()
+                && com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.reads == 0,
+                "Disabled Plex does not access its repository or alter TV empty state.");
+        optional.permission = false;
+        optional.plexEnabled = true;
+        com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.next =
+                com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.Status.READY;
+        com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.feeds = Arrays.asList(
+                new TvRecommendations.Feed("plex:test", "Authorized Plex", "com.plexapp.android", Arrays.asList(withSeries)));
+        result = RecommendationSources.read(optional);
+        check(result.status == TvRecommendations.Status.PERMISSION_REQUIRED && result.feeds.size() == 1,
+                "TV denial remains explicit while an independently authorized optional feed remains available.");
+        check(result.sources.size() == 3 && result.sources.get(1).state == TvRecommendations.SourceStatus.State.READY
+                && result.sources.get(2).state == TvRecommendations.SourceStatus.State.DISABLED,
+                "Individual source readiness is preserved rather than inferred from another provider.");
+        optional.permission = true;
+        com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.fail = true;
+        result = RecommendationSources.read(optional);
+        check(result.status == TvRecommendations.Status.EMPTY && result.feeds.isEmpty()
+                && result.sources.get(1).state == TvRecommendations.SourceStatus.State.UNAVAILABLE,
+                "An optional source failure must preserve TV state and other source reports.");
+        com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexRepository.fail = false;
+        check(NotificationRules.eligible("tv.example.movies", "recommendation", "tv.example.movies", 42, 42, "Title"),
+                "Matching source-owned recommendation action is eligible.");
+        check(!NotificationRules.eligible("tv.example.movies", "recommendation", "tv.other.app", 42, 42, "Title")
+                && !NotificationRules.eligible("tv.example.movies", "recommendation", "tv.example.movies", 42, 24, "Title")
+                && !NotificationRules.eligible("tv.example.movies", "message", "tv.example.movies", 42, 42, "Title")
+                && !NotificationRules.eligible("tv.example.movies", "recommendation", "tv.example.movies", 42, 42, " "),
+                "Foreign creators, UID mismatches, unrelated notifications and blank titles are excluded.");
         String a = RecommendationKeys.feed("tv.example.movies", false, 1);
         check(!a.equals(RecommendationKeys.feed("tv.other.app", false, 1))
                 && !a.equals(RecommendationKeys.feed("tv.example.movies", true, 0)), "Feed identities are source and table isolated.");
         check(RecommendationKeys.program(a, 1, "stable").equals(RecommendationKeys.program(a, 200, "stable")),
                 "Stable provider item ID survives a row replacement within the same feed.");
-        System.out.println("TV recommendation permission, empty/partial states, source isolation, grouping, bounds and cursor cleanup passed.");
+        System.out.println("Recommendation states, grouping, series scoping, cancellation, optional-source isolation and notification ownership passed.");
     }
 
     private static Context context() {
@@ -85,11 +162,12 @@ public final class RecommendationsTest {
         final List<String> columns;
         int index = -1;
         boolean closed;
+        android.os.CancellationSignal cancelOnMove;
         Rows(List<Map<String,Object>> data) {
             this.data = data;
             columns = data.isEmpty() ? new ArrayList<String>() : new ArrayList<>(data.get(0).keySet());
         }
-        public boolean moveToNext() { return ++index < data.size(); }
+        public boolean moveToNext() { if (cancelOnMove != null) cancelOnMove.cancel(); return ++index < data.size(); }
         public int getColumnIndex(String name) { return columns.indexOf(name); }
         public int getColumnIndexOrThrow(String name) {
             int result = getColumnIndex(name); if (result < 0) throw new IllegalArgumentException(name); return result;

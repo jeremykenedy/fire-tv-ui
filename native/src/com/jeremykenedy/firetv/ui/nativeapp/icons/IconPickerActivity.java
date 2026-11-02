@@ -1,7 +1,6 @@
 package com.jeremykenedy.firetv.ui.nativeapp.icons;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -36,7 +35,7 @@ public final class IconPickerActivity extends Activity {
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
         tileKey = getIntent().getStringExtra(EXTRA_TILE_KEY);
-        if (ComponentName.unflattenFromString(tileKey == null ? "" : tileKey) == null) {
+        if (!IconSelectionStore.isValidTileKey(tileKey)) {
             finish();
             return;
         }
@@ -69,14 +68,20 @@ public final class IconPickerActivity extends Activity {
         }));
         body.addView(actions);
         body.addView(text("Curated icons", 20));
-        GridLayout grid = new GridLayout(this);
-        grid.setColumnCount(4);
-        grid.setClipChildren(false);
-        grid.setClipToPadding(false);
-        body.addView(grid);
+        GridLayout grid = null;
+        String category = null;
         int width = (getResources().getDisplayMetrics().widthPixels - dp(64)) / 4;
         View first = null;
         for (final IconCatalog.Entry entry : IconCatalog.ALL) {
+            if (!entry.category.equals(category)) {
+                category = entry.category;
+                body.addView(text(category, 18));
+                grid = new GridLayout(this);
+                grid.setColumnCount(4);
+                grid.setClipChildren(false);
+                grid.setClipToPadding(false);
+                body.addView(grid);
+            }
             final FocusTileView tile = new FocusTileView(this);
             tile.setTitle(entry.label);
             tile.setTag(entry.id);

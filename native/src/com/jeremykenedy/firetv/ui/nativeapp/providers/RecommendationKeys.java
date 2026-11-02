@@ -18,6 +18,14 @@ final class RecommendationKeys {
     static String feed(String source, boolean watchNext, long channelId) {
         return "tv:" + hash(source + "\n" + (watchNext ? "watch-next" : "preview:" + channelId));
     }
+    static String notificationFeed(String source) { return "notification:" + hash(source); }
+    static String notification(String source, String notificationKey, String title) {
+        return "notification:" + hash(source + "\n" + notificationKey + "\n" + title);
+    }
+    static String series(String source, String providerSeriesId) {
+        return providerSeriesId == null || providerSeriesId.isEmpty() ? null
+                : "series:" + hash(source + "\n" + providerSeriesId);
+    }
     static String program(String feedId, long rowId, String providerId) {
         return hash(feedId + "\n" + (providerId.isEmpty() ? "row:" + rowId : "provider:" + providerId));
     }

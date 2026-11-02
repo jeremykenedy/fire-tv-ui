@@ -40,6 +40,47 @@ public final class LayoutInstrumentation extends Instrumentation {
             editor = openEditor();
             final TvRecommendations.Result recommendations = TvRecommendations.read(getTargetContext());
             waitForProviders();
+            clickTag("layout:widget-settings");
+            onMain(new Runnable() {
+                @Override public void run() {
+                    View decor = editor.getWindow().getDecorView();
+                    for (WidgetProvider widget : HomeSlots.widgets()) {
+                        check(decor.findViewWithTag(widget.item().key() + ":configure") != null,
+                                "Widget settings must configure each implemented widget.");
+                    }
+                    check(decor.findViewWithTag("channel:emulator-proof-unavailable:visibility") == null,
+                            "Widget settings must omit channel controls.");
+                    check(!decor.findViewWithTag("layout:provider-action").isShown(),
+                            "Widget settings must not mix in TV listings access controls.");
+                }
+            });
+            sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+            waitForIdleSync();
+            onMain(new Runnable() {
+                @Override public void run() {
+                    View decor = editor.getWindow().getDecorView();
+                    check(decor.findViewWithTag("channel:emulator-proof-unavailable:visibility") != null,
+                            "Back must return to the shared editor.");
+                    check(decor.findViewWithTag("layout:widget-settings").isFocused(),
+                            "Back must restore Widget settings entry focus.");
+                }
+            });
+            final LayoutOptions beforeMode = LayoutPreferences.load(getTargetContext(), HomeSlots.defaults());
+            final LayoutOptions discoveredMode = HomeSlots.discover(beforeMode, recommendations.feeds);
+            clickTag("layout:mode:CARDS_ONLY");
+            LayoutOptions cardsMode = LayoutPreferences.load(getTargetContext(), HomeSlots.defaults());
+            check(cardsMode.mode == LayoutOptions.Mode.CARDS_ONLY && cardsMode.order.equals(discoveredMode.order)
+                    && cardsMode.hidden.equals(discoveredMode.hidden), "Cards-only mode keeps exact saved order and visibility.");
+            clickTag("layout:mode:WIDGETS_ONLY");
+            check(LayoutPreferences.load(getTargetContext(), HomeSlots.defaults()).mode == LayoutOptions.Mode.WIDGETS_ONLY,
+                    "Widgets-only mode persists from the native editor.");
+            clickTag("layout:mode:NONE");
+            LayoutOptions hiddenMode = LayoutPreferences.load(getTargetContext(), HomeSlots.defaults());
+            check(hiddenMode.mode == LayoutOptions.Mode.NONE && hiddenMode.order.equals(discoveredMode.order)
+                    && hiddenMode.hidden.equals(discoveredMode.hidden), "Hide cards and widgets preserves each saved choice.");
+            check(hiddenMode.visible(HomeSlots.available(recommendations.feeds)).isEmpty(),
+                    "Hide cards and widgets excludes both content kinds.");
+            clickTag("layout:mode:BOTH");
             onMain(new Runnable() {
                 @Override public void run() {
                     ViewGroup decor = (ViewGroup) editor.getWindow().getDecorView();
@@ -95,6 +136,8 @@ public final class LayoutInstrumentation extends Instrumentation {
             result.putString("provider_status", recommendations.status.name());
             result.putInt("published_feed_slots", recommendations.feeds.size());
             result.putBoolean("editor_provider_state", true);
+            result.putBoolean("content_mode_preserves_choices", true);
+            result.putBoolean("widget_settings_and_back_focus", true);
             result.putString("limits", "Feed assertions reflect the target's currently published data. Runtime permission dialog and physical card sizing require separate native proof.");
         } catch (Throwable error) {
             result.putString("status", "FAIL");

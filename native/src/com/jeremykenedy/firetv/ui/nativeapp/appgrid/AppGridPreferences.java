@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 public final class AppGridPreferences {
     private AppGridPreferences() {}
@@ -21,6 +22,29 @@ public final class AppGridPreferences {
     private static List<String> split(String value) {
         return value.isEmpty() ? Collections.<String>emptyList() : Arrays.asList(value.split("\n", -1));
     }
+    public static void saveDiscoveredOrder(Context context, List<String> available) {
+        SharedPreferences prefs = context.getSharedPreferences("native_app_grid", Context.MODE_PRIVATE);
+        Map<String, ?> previous = prefs.getAll();
+        Object stored = previous.get("order");
+        if (previous.containsKey("order") && !(stored instanceof String))
+            throw new IllegalStateException("Saved app order could not be read. Its stored data has been kept.");
+        String order = stored == null ? "" : (String) stored;
+        final String discovered;
+        try {
+            AppGridOptions current = new AppGridOptions(5, 0, false, split(order),
+                    Collections.<String>emptySet(), Collections.<String>emptySet());
+            discovered = String.join("\n", current.discover(available).order);
+        } catch (IllegalArgumentException invalid) {
+            throw new IllegalStateException("Saved app order could not be read. Its stored data has been kept.", invalid);
+        }
+        if (order.equals(discovered)) return;
+        if (prefs.edit().putString("order", discovered).commit()) return;
+        SharedPreferences.Editor restore = prefs.edit();
+        if (stored == null) restore.remove("order"); else restore.putString("order", order);
+        restore.commit();
+        throw new IllegalStateException("App order could not be saved. Please try again.");
+    }
+
     public static void save(Context context, AppGridOptions value) {
         SharedPreferences prefs = context.getSharedPreferences("native_app_grid", Context.MODE_PRIVATE);
         prefs.edit().putInt("columns", value.columns).putInt("rows", value.rows)

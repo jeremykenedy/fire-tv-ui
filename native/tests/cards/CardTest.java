@@ -1,6 +1,9 @@
 package com.jeremykenedy.firetv.ui.nativeapp.cards;
 
 import android.content.Context;
+import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +27,33 @@ public final class CardTest {
         check(CardOptions.fromBackup(value.backupValues()).backupValues().equals(value.backupValues()), "Settings round trip.");
         CardOptions unicode = value.hide("com.first.app", "unicode", "Title\twith\nseparators 日本語");
         check(CardOptions.fromBackup(unicode.backupValues()).backupValues().equals(unicode.backupValues()), "Unicode and display separators cannot alter item identity.");
+        CardOptions grouped = value.hideSeries("com.first.app", "series:one", "A series")
+                .hide("com.first.app", "episode:one", "Episode one");
+        check(grouped.isHidden("com.first.app", "episode:future", "series:one"), "Series rule covers future episodes without matching titles.");
+        check(!grouped.isHidden("com.other.app", "episode:future", "series:one"), "Series rules cannot cross sources.");
+        check(!grouped.isHidden("com.first.app", "episode:future", null), "Missing trusted identity never infers a series.");
+        grouped = CardOptions.fromBackup(grouped.backupValues());
+        check(grouped.isHidden("com.first.app", "episode:future", "series:one"), "Series rule survives serialization.");
+        grouped = grouped.restoreSeries("com.first.app", "series:one");
+        check(!grouped.isHidden("com.first.app", "episode:future", "series:one")
+                && grouped.isHidden("com.first.app", "episode:one", "series:one"), "Restoring series retains independent episode rule.");
+        CardOptions ordered = grouped.discoverItems("com.first.app", "tv:one", Arrays.asList("a", "b", "c"))
+                .moveItemBefore("com.first.app", "tv:one", "c", "a");
+        check(ordered.orderedKeys("com.first.app", "tv:one", Arrays.asList("a", "b", "c")).equals(Arrays.asList("c", "a", "b")), "Custom feed title order is applied.");
+        check(ordered.orderedKeys("com.other.app", "tv:one", Arrays.asList("a", "b", "c")).equals(Arrays.asList("a", "b", "c")), "Title order is source scoped.");
+        ordered = ordered.discoverItems("com.first.app", "tv:one", Arrays.asList("b", "new"));
+        check(ordered.orderedKeys("com.first.app", "tv:one", Arrays.asList("b", "new")).equals(Arrays.asList("b", "new")), "New items append and missing items do not render.");
+        check(ordered.orderedKeys("com.first.app", "tv:one", Arrays.asList("a", "b", "c", "new")).equals(Arrays.asList("c", "a", "b", "new")), "Unavailable titles return to their saved positions.");
+        check(CardOptions.fromBackup(ordered.backupValues()).backupValues().equals(ordered.backupValues()), "Order and hidden entries round trip together.");
+        check(ordered.resetItemOrder("com.first.app", "tv:one").orderedKeys("com.first.app", "tv:one", Arrays.asList("a", "b", "c")).equals(Arrays.asList("a", "b", "c")), "Reset restores source order only.");
+        TvRecommendations.Program a = new TvRecommendations.Program("a", "com.first.app", "Episode", null, "", "series:one", "Series");
+        TvRecommendations.Program b = new TvRecommendations.Program("b", "com.first.app", "Episode", null, "", null, null);
+        TvRecommendations.Program c = new TvRecommendations.Program("c", "com.first.app", "Movie", null, "", null, null);
+        TvRecommendations.Feed feed = new TvRecommendations.Feed("tv:one", "Channel", "com.first.app", Arrays.asList(a,b,c));
+        check(CardPreferences.visiblePrograms(ordered.hideSeries("com.first.app", "series:one", "Series"), feed).equals(Arrays.asList(c,b)), "Render helper applies title order then trusted series filtering.");
+        Map<String,Object> legacy = new HashMap<>(value.backupValues());
+        legacy.remove("schema_version"); legacy.remove("hidden_series"); legacy.remove("item_order");
+        check(CardOptions.fromBackup(legacy).globalSeconds == value.globalSeconds && CardOptions.fromBackup(legacy).isHidden("com.first.app", "item-2"), "Existing v1 settings retain timers and item hides.");
         Context context = new Context();
         context.prefs.values.put("unrelated", "keep");
         CardPreferences.save(context, value);
@@ -48,6 +78,10 @@ public final class CardTest {
             backup.put("hidden_items", invalid);
             reject(context, backup, before);
         }
+        for (String invalid : new String[]{"com.first.app\ttv:one\ta\ta", "com.first.app\ttv:one\ta\ncom.first.app\ttv:one\tb", "bad-source\ttv:one\ta"}) {
+            Map<String, Object> backup = new HashMap<>(value.backupValues()); backup.put("item_order", invalid); reject(context, backup, before);
+        }
+        Map<String,Object> wrongVersion = new HashMap<>(value.backupValues()); wrongVersion.put("schema_version", 3); reject(context, wrongVersion, before);
         CardOptions bounded = CardOptions.defaults();
         for (int i = 0; i < 512; i++) bounded = bounded.hide("com.first.app", "item" + i, "Title");
         try { bounded.hide("com.first.app", "extra", "Title"); throw new AssertionError("Unbounded hides accepted."); }
@@ -62,7 +96,7 @@ public final class CardTest {
         context.prefs.fail = false;
         context.prefs.values.put("hidden_items", "malformed");
         check(CardPreferences.load(context).globalSeconds == 8, "Malformed persisted data falls back safely.");
-        System.out.println("Card timer bounds, manual/global inheritance, exact source hiding, independent restoration, persistence, malformed import and rollback passed.");
+        System.out.println("Card timers, trusted series rules, independent episodes, source-scoped item order, v1 migration, persistence and atomic validation passed.");
     }
 
     private static void reject(Context context, Map<String, Object> values, Map<String, Object> before) {

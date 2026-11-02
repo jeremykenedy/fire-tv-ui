@@ -29,12 +29,13 @@ if not SIGNER.exists():
 
 for name, manifest, sources, dependencies, key in (
     ('provider-fixture', HERE / 'fixture/AndroidManifest.xml', list((HERE / 'fixture').glob('*.java')), [], KEY),
-    ('provider-proof', HERE / 'AndroidManifest.xml', [HERE / 'ProviderInstrumentation.java'],
-     list((ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/providers').glob('*.java'))
+    ('provider-proof', HERE / 'AndroidManifest.xml', [HERE / 'ProviderInstrumentation.java', HERE / 'NotificationInstrumentation.java'],
+     list((ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/providers').rglob('*.java'))
      + [ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp' / source for source in (
-         'layout/LayoutItem.java', 'layout/LayoutOptions.java', 'layout/LayoutPreferences.java',
+         'Pages.java', 'layout/LayoutItem.java', 'layout/LayoutOptions.java', 'layout/LayoutPreferences.java',
          'cards/CardOptions.java', 'cards/CardPreferences.java',
-         'appgrid/AppGridOptions.java', 'appgrid/AppGridPreferences.java')], SIGNER),
+         'appgrid/AppGridOptions.java', 'appgrid/AppGridPreferences.java',
+         'locks/LauncherLocks.java', 'locks/LockStore.java', 'locks/LockState.java', 'locks/LockResult.java')], SIGNER),
 ):
     build = WORK / name
     if build.exists():
@@ -46,7 +47,7 @@ for name, manifest, sources, dependencies, key in (
     # Production classes compile for API verification, but instrumentation loads them from its target.
     dex_classes = sorted((build / 'classes').rglob('*.class'))
     if name == 'provider-proof':
-        dex_classes = [path for path in dex_classes if path.name.startswith('ProviderInstrumentation')]
+        dex_classes = [path for path in dex_classes if path.name.startswith(('ProviderInstrumentation', 'NotificationInstrumentation'))]
     run(TOOLS / 'd8', '--release', '--lib', ANDROID, '--min-api', '27', '--output', build / 'dex', *dex_classes)
     run(TOOLS / 'aapt2', 'link', '-I', ANDROID, '--manifest', manifest, '-o', build / 'base.apk')
     with ZipFile(build / 'base.apk', 'a') as output:

@@ -6,6 +6,7 @@ import java.util.*;
 /** Private recovery data, never a portable theme or a diagnostic payload. */
 public final class PreferenceSnapshot {
     public static final int MAX_BYTES = 8 * 1024 * 1024;
+    public static final int MAX_KEY_LENGTH = 4096;
     private static final int MAGIC = 0x46545549;
     private final Map<String, Object> values;
 
@@ -14,11 +15,11 @@ public final class PreferenceSnapshot {
         Map<String, Object> copy = new LinkedHashMap<>();
         for (Map.Entry<String, ?> entry : source.entrySet()) {
             String key = entry.getKey();
-            if (key == null || key.isEmpty() || key.length() > 512) throw invalid();
+            if (key == null || key.isEmpty() || key.length() > MAX_KEY_LENGTH) throw invalid();
             Object value = entry.getValue();
             if (value instanceof Set) {
                 Set<?> items = (Set<?>) value;
-                if (items.size() > 2048) throw invalid();
+                if (items.size() > 4096) throw invalid();
                 Set<String> strings = new LinkedHashSet<>();
                 for (Object item : items) {
                     if (!(item instanceof String) || ((String) item).length() > 4096) throw invalid();
@@ -71,7 +72,7 @@ public final class PreferenceSnapshot {
             int count = bounded(input.readInt(), 4096);
             Map<String, Object> values = new LinkedHashMap<>();
             for (int index = 0; index < count; index++) {
-                String key = readText(input, 512);
+                String key = readText(input, MAX_KEY_LENGTH);
                 if (values.containsKey(key)) throw malformed();
                 Object value;
                 switch (input.readUnsignedByte()) {
@@ -84,7 +85,7 @@ public final class PreferenceSnapshot {
                     case 4: value = input.readLong(); break;
                     case 5: value = input.readFloat(); break;
                     case 6:
-                        int size = bounded(input.readInt(), 2048);
+                        int size = bounded(input.readInt(), 4096);
                         Set<String> items = new LinkedHashSet<>();
                         for (int item = 0; item < size; item++) {
                             if (!items.add(readText(input, 4096))) throw malformed();

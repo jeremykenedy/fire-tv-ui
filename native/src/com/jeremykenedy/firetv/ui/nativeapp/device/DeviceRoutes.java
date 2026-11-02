@@ -16,9 +16,13 @@ import java.util.List;
 
 /** Explicit, capability-checked native destinations. Resolution never changes device settings. */
 public final class DeviceRoutes {
-    public enum Destination { FACTORY_UI, SYSTEM_SETTINGS, LIVE_TV }
+    public enum Destination { FACTORY_UI, SYSTEM_SETTINGS, LIVE_TV, NETWORK_SETTINGS }
     public enum Result { STARTED, UNAVAILABLE, FAILED }
-    static final HomeRoutingPolicy ROUTING = new HomeRoutingPolicy();
+    private static HomeRoutingPolicy routing;
+    static synchronized HomeRoutingPolicy policy(Context context) {
+        if (routing == null) routing = new HomeRoutingPolicy(new HomeHandoffStore(context.getApplicationContext()));
+        return routing;
+    }
     private DeviceRoutes() {}
 
     public static Intent resolve(Context context, Destination destination) {
@@ -36,6 +40,14 @@ public final class DeviceRoutes {
         }
         if (destination == Destination.SYSTEM_SETTINGS) {
             return firstSystem(context, new Intent(Settings.ACTION_SETTINGS), null);
+        }
+        if (destination == Destination.NETWORK_SETTINGS) {
+            for (String action : new String[] {"android.settings.ETHERNET_SETTINGS", Settings.ACTION_WIFI_IP_SETTINGS,
+                    Settings.ACTION_WIFI_SETTINGS, Settings.ACTION_WIRELESS_SETTINGS}) {
+                Intent network = firstSystem(context, new Intent(action), null);
+                if (network != null) return network;
+            }
+            return null;
         }
         if (destination == Destination.LIVE_TV) {
             Intent guide = firstSystem(context, new Intent(Intent.ACTION_VIEW,
@@ -95,18 +107,38 @@ public final class DeviceRoutes {
     }
 
     public static Result open(Context context, Destination destination) {
+        return dispatch(context, resolve(context, destination));
+    }
+
+    /** Validate an already resolved system destination before arming the shared Home exemption. */
+    public static Result openSystemIntent(Context context, Intent request) {
+        if (request == null || request.getComponent() == null) return Result.UNAVAILABLE;
         try {
-            Intent intent = resolve(context, destination);
-            if (intent == null) return Result.UNAVAILABLE;
-            // Settings may briefly present system Home before its own window appears.
-            ROUTING.beginHandoff();
-            context.startActivity(intent);
-            return Result.STARTED;
-        } catch (RuntimeException failed) {
-            ROUTING.cancelHandoff();
+            return dispatch(context, firstSystem(context, request, request.getComponent().getPackageName()));
+        } catch (RuntimeException unavailable) {
             return Result.FAILED;
         }
     }
 
-    public static void launcherVisibility(boolean visible) { ROUTING.launcherVisibility(visible); }
+    private static Result dispatch(Context context, Intent intent) {
+        if (intent == null) return Result.UNAVAILABLE;
+        try {
+            // Persist before Android can display Settings' intermediate system Home window.
+            if (!policy(context).beginHandoff()) return Result.FAILED;
+            context.startActivity(intent);
+            return Result.STARTED;
+        } catch (RuntimeException failed) {
+            policy(context).cancelHandoff();
+            return Result.FAILED;
+        }
+    }
+
+    public static void launcherVisibility(Context context, boolean visible) {
+        policy(context).launcherVisibility(visible);
+    }
+
+    /** Compatibility for callers while their lifecycle integration is updated. */
+    public static synchronized void launcherVisibility(boolean visible) {
+        if (routing != null) routing.launcherVisibility(visible);
+    }
 }

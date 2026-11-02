@@ -2,6 +2,10 @@ package com.jeremykenedy.firetv.ui.nativeapp.cards;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -16,6 +20,27 @@ public final class CardPreferences {
         for (String key : values.keySet()) if (stored.containsKey(key)) values.put(key, stored.get(key));
         try { return CardOptions.fromBackup(values); }
         catch (IllegalArgumentException invalid) { return defaults; }
+    }
+
+    public static List<String> programKeys(TvRecommendations.Feed feed) {
+        List<String> keys = new ArrayList<>();
+        for (TvRecommendations.Program program : feed.programs) if (feed.source.equals(program.source)) keys.add(program.key);
+        return keys;
+    }
+
+    public static List<TvRecommendations.Program> orderedPrograms(CardOptions options, TvRecommendations.Feed feed) {
+        Map<String, TvRecommendations.Program> programs = new LinkedHashMap<>();
+        for (TvRecommendations.Program program : feed.programs) if (feed.source.equals(program.source)) programs.put(program.key, program);
+        List<TvRecommendations.Program> result = new ArrayList<>();
+        for (String key : options.orderedKeys(feed.source, feed.item.id, new ArrayList<>(programs.keySet()))) result.add(programs.get(key));
+        return Collections.unmodifiableList(result);
+    }
+
+    public static List<TvRecommendations.Program> visiblePrograms(CardOptions options, TvRecommendations.Feed feed) {
+        List<TvRecommendations.Program> result = new ArrayList<>();
+        for (TvRecommendations.Program program : orderedPrograms(options, feed))
+            if (!options.isHidden(program.source, program.key, program.seriesKey)) result.add(program);
+        return Collections.unmodifiableList(result);
     }
 
     public static void restore(Context context, Map<String, ?> backup) {

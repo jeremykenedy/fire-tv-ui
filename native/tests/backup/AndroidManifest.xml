@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.backupproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Backup verification">
+        <provider android:name="com.jeremykenedy.firetv.ui.nativeapp.backup.BackupFixtureProvider" android:authorities="com.jeremykenedy.firetv.ui.backupproof.documents" android:exported="true" android:process=":documents" />
+    </application>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.backup.BackupInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

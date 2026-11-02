@@ -3,6 +3,8 @@ package com.jeremykenedy.firetv.ui.nativeapp.cards;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Context;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -17,12 +19,14 @@ import com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-public final class CardControlsInstrumentation extends Instrumentation {
-    private static final String ROOT = "com.jeremykenedy.firetv.ui.nativeapp.";
+public class CardControlsInstrumentation extends Instrumentation {
+    protected static final String ROOT = "com.jeremykenedy.firetv.ui.nativeapp.";
     private static final String PRODUCER = "com.jeremykenedy.firetv.ui.providerfixture";
-    private Activity main;
-    private Activity cards;
+    protected Activity main;
+    protected Activity cards;
     private boolean recoverNewCards;
     private String step = "startup";
 
@@ -38,12 +42,19 @@ public final class CardControlsInstrumentation extends Instrumentation {
             if (!recovered) { result.putString("status", "FAIL"); result.putString("reason", "Initial new-card preference recovery failed."); finish(0, result); return; }
         }
         Map<String, ?> cardBefore = cardPrefs.getAll(), layoutBefore = layoutPrefs.getAll();
+        boolean addedEpisode = false;
         try {
             TvRecommendations.Feed fixture = null;
-            for (TvRecommendations.Feed feed : TvRecommendations.read(getTargetContext()).feeds)
-                if (PRODUCER.equals(feed.source) && feed.programs.size() == 2) fixture = feed;
+            TvRecommendations.Feed itemOnly = null;
+            for (TvRecommendations.Feed candidate : TvRecommendations.read(getTargetContext()).feeds) {
+                if (!PRODUCER.equals(candidate.source)) continue;
+                if (candidate.programs.size() == 2) fixture = candidate;
+                else if (candidate.programs.size() == 1) itemOnly = candidate;
+            }
             check(fixture != null, "Publish the two-title provider fixture and grant TV listings access before this suite.");
             final TvRecommendations.Feed feed = fixture;
+            check(feed.programs.get(0).seriesKey != null && feed.programs.get(0).seriesKey.equals(feed.programs.get(1).seriesKey), "Fixture episodes must supply the same trusted series identity.");
+            check(itemOnly != null && itemOnly.programs.get(0).seriesKey == null, "Watch Next fixture must retain explicit item-only support.");
             CardPreferences.save(getTargetContext(), CardOptions.defaults().withGlobalSeconds(0));
             LayoutPreferences.save(getTargetContext(), LayoutPreferences.load(getTargetContext(), HomeSlots.defaults())
                     .discover(java.util.Collections.singletonList(feed.item)).setVisible(feed.item.key(), true));
@@ -83,9 +94,53 @@ public final class CardControlsInstrumentation extends Instrumentation {
             step = "Back from timers to Main";
             press(KeyEvent.KEYCODE_BACK);
             awaitFocusedTag("timers");
-            press(KeyEvent.KEYCODE_BACK); awaitWindow(settings);
+            step = "channel title order and series controls";
+            clickTag("channels"); awaitTag(feed.item.id); clickTag(feed.item.id);
+            clickTag(feed.programs.get(1).key + ":up");
+            check(CardPreferences.orderedPrograms(CardPreferences.load(getTargetContext()), feed).get(0).key.equals(feed.programs.get(1).key), "Channel title move persists source-scoped order.");
+            clickTag("reset-order");
+            check(CardPreferences.orderedPrograms(CardPreferences.load(getTargetContext()), feed).get(0).key.equals(feed.programs.get(0).key), "Title order reset restores source order.");
+            clickTag(feed.programs.get(0).key + ":item");
+            clickTag(feed.programs.get(1).key + ":series");
+            check(CardPreferences.visiblePrograms(CardPreferences.load(getTargetContext()), feed).isEmpty(), "Settings hides the item and trusted series.");
+            addedEpisode = true; fixture("add-episode");
+            TvRecommendations.Feed updated = null;
+            for (TvRecommendations.Feed candidate : TvRecommendations.read(getTargetContext()).feeds)
+                if (candidate.item.id.equals(feed.item.id)) updated = candidate;
+            check(updated != null && updated.programs.size() == 3, "New episode must be published without replacing old records.");
+            check(CardPreferences.visiblePrograms(CardPreferences.load(getTargetContext()), updated).isEmpty(), "Persisted series rule hides a newly published episode.");
+            fixture("remove-added-episode"); addedEpisode = false;
+            press(KeyEvent.KEYCODE_BACK); awaitFocusedTag(feed.item.id);
+            clickTag(itemOnly.item.id);
+            final String itemOnlyKey = itemOnly.programs.get(0).key;
+            final boolean[] unsupported = new boolean[1];
+            onMain(new Runnable() { @Override public void run() {
+                unsupported[0] = cards.getWindow().getDecorView().findViewWithTag(itemOnlyKey + ":series") == null
+                        && containsText(cards.getWindow().getDecorView(), "Series hiding is unavailable");
+            } });
+            check(unsupported[0], "Unsupported series identity must show item-only explanation and no series action.");
+            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitFocusedTag("channels");
+            clickTag("hidden");
+            clickTag("series:" + PRODUCER + ":" + feed.programs.get(0).seriesKey);
+            check(!CardPreferences.load(getTargetContext()).isSeriesHidden(PRODUCER, feed.programs.get(0).seriesKey)
+                    && CardPreferences.load(getTargetContext()).isHidden(PRODUCER, feed.programs.get(0).key), "Restoring series retains separately hidden episode.");
+            clickTag(PRODUCER + ":" + feed.programs.get(0).key);
+            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(settings);
             press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
             ChannelCardView card = awaitCard(feed.item.id);
+            step = "Main Select Hide series and recover";
+            focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Hide series");
+            check(CardPreferences.load(getTargetContext()).isSeriesHidden(PRODUCER, feed.programs.get(0).seriesKey), "Main Select series action persists rule.");
+            awaitWindow(main); card = awaitCard(feed.item.id);
+            focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER);
+            ActivityMonitor seriesMonitor = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
+            clickText("Card settings");
+            cards = waitForMonitorWithTimeout(seriesMonitor, 3000); removeMonitor(seriesMonitor);
+            check(cards != null, "Series-hidden card settings recovery opens.");
+            awaitWindow(cards); clickTag("hidden");
+            clickTag("series:" + PRODUCER + ":" + feed.programs.get(0).seriesKey);
+            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
+            card = awaitCard(feed.item.id);
             step = "Select hide two titles";
             for (int i = 0; i < 2; i++) {
                 card = awaitCard(feed.item.id);
@@ -93,7 +148,7 @@ public final class CardControlsInstrumentation extends Instrumentation {
                 final TvRecommendations.Program[] program = new TvRecommendations.Program[1];
                 onMain(new Runnable() { @Override public void run() { program[0] = selected.currentProgram(); } });
                 check(program[0] != null, "Next visible fixture title must exist.");
-                focus(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Hide this item");
+                focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER); clickText("Hide this item");
                 check(CardPreferences.load(getTargetContext()).isHidden(PRODUCER, program[0].key), "Select Hide persists exact program identity.");
             }
             card = awaitCard(feed.item.id);
@@ -102,7 +157,7 @@ public final class CardControlsInstrumentation extends Instrumentation {
             final boolean[] empty = new boolean[1];
             onMain(new Runnable() { @Override public void run() { empty[0] = emptyCard.currentProgram() == null; } });
             check(empty[0], "All-hidden channel stays present with no visible title.");
-            focus(card); press(KeyEvent.KEYCODE_DPAD_CENTER);
+            focusCard(card); press(KeyEvent.KEYCODE_DPAD_CENTER);
             ActivityMonitor recoveryMonitor = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
             clickText("Card settings");
             cards = waitForMonitorWithTimeout(recoveryMonitor, 3000); removeMonitor(recoveryMonitor);
@@ -124,20 +179,45 @@ public final class CardControlsInstrumentation extends Instrumentation {
             result.putBoolean("dpad_settings_cards_route", true);
             result.putBoolean("custom_manual_override_reset", true);
             result.putBoolean("select_hide_all_hidden_recovery_restore", true);
-            result.putString("limits", "Emulator fixture only; no physical TV, production migration or series identity proof.");
+            result.putBoolean("channel_title_order_reset", true);
+            result.putBoolean("trusted_series_future_episode_and_independent_restore", true);
+            result.putBoolean("main_select_series_hide_restore", true);
+            result.putBoolean("unsupported_series_item_only", true);
+            result.putString("limits", "Emulator fixture only; no physical TV or production migration proof. Trusted series behavior is proven with explicit fixture IDs only.");
         } catch (Throwable failure) {
             result.putString("status", "FAIL"); result.putString("reason", failure.toString()); result.putString("step", step);
             StringBuilder visible = new StringBuilder();
             describe(getUiAutomation().getRootInActiveWindow(), visible);
             result.putString("visible_test_ui", visible.toString());
         } finally {
+            if (addedEpisode) {
+                try { fixture("remove-added-episode"); result.putBoolean("added_episode_removed", true); }
+                catch (Throwable failure) { result.putBoolean("added_episode_removed", false); result.putString("fixture_cleanup_error", failure.toString()); }
+            }
             result.putBoolean("native_cards_restored", restore(cardPrefs, cardBefore));
             result.putBoolean("native_layout_restored", restore(layoutPrefs, layoutBefore));
         }
         finish(0, result);
     }
 
-    private void onMain(final Runnable action) {
+    private Bundle fixture(String operation) throws Exception {
+        final CountDownLatch received = new CountDownLatch(1);
+        final Bundle[] response = new Bundle[1];
+        getTargetContext().sendOrderedBroadcast(new Intent().setComponent(new ComponentName(PRODUCER,
+                PRODUCER + ".FixtureReceiver")).putExtra("operation", operation), null, new BroadcastReceiver() {
+            @Override public void onReceive(Context context, Intent intent) { response[0] = getResultExtras(false); received.countDown(); }
+        }, null, 0, null, null);
+        check(received.await(10, TimeUnit.SECONDS), "Producer did not respond.");
+        check(response[0] != null && "OK".equals(response[0].getString("status")), "Producer failed: " + response[0]);
+        return response[0];
+    }
+    protected boolean containsText(View view, String text) {
+        if (view instanceof android.widget.TextView && ((android.widget.TextView) view).getText().toString().contains(text)) return true;
+        if (view instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++)
+            if (containsText(((ViewGroup) view).getChildAt(i), text)) return true;
+        return false;
+    }
+    protected void onMain(final Runnable action) {
         final Throwable[] failure = new Throwable[1];
         super.runOnMainSync(new Runnable() {
             @Override public void run() {
@@ -146,13 +226,13 @@ public final class CardControlsInstrumentation extends Instrumentation {
         });
         if (failure[0] != null) throw new AssertionError("Main-thread test action failed", failure[0]);
     }
-    private Activity launch(String name) {
+    protected Activity launch(String name) {
         Activity activity = startActivitySync(new Intent().setClassName(getTargetContext(), ROOT + name)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
         awaitWindow(activity); return activity;
     }
-    private void press(int code) { sendKeyDownUpSync(code); waitForIdleSync(); }
-    private void focus(final View view) {
+    protected void press(int code) { sendKeyDownUpSync(code); waitForIdleSync(); }
+    protected void focus(final View view) {
         check(view != null, "Missing focus target.");
         final boolean[] state = new boolean[2];
         onMain(new Runnable() { @Override public void run() {
@@ -163,13 +243,22 @@ public final class CardControlsInstrumentation extends Instrumentation {
         check(state[1], "Target must accept D-pad focus.");
         waitForIdleSync();
     }
-    private void clickTag(final String tag) {
+    protected void focusCard(final ChannelCardView card) {
+        final View[] target = new View[1];
+        onMain(new Runnable() { @Override public void run() {
+            View view = card;
+            while (view != null && !view.isFocusable()) view = view.getParent() instanceof View ? (View) view.getParent() : null;
+            target[0] = view;
+        } });
+        focus(target[0]);
+    }
+    protected void clickTag(final String tag) {
         awaitWindow(cards);
         final View[] target = new View[1];
         onMain(new Runnable() { @Override public void run() { target[0] = cards.getWindow().getDecorView().findViewWithTag(tag); } });
         focus(target[0]); press(KeyEvent.KEYCODE_DPAD_CENTER);
     }
-    private void awaitFocusedTag(final String tag) {
+    protected void awaitFocusedTag(final String tag) {
         awaitWindow(cards);
         long end = SystemClock.uptimeMillis() + 3000;
         while (SystemClock.uptimeMillis() < end) {
@@ -183,7 +272,7 @@ public final class CardControlsInstrumentation extends Instrumentation {
         }
         throw new AssertionError("Cards must restore focused opener: " + tag);
     }
-    private void awaitTag(final String tag) {
+    protected void awaitTag(final String tag) {
         long end = SystemClock.uptimeMillis() + 5000;
         while (SystemClock.uptimeMillis() < end) {
             final boolean[] found = new boolean[1];
@@ -193,7 +282,7 @@ public final class CardControlsInstrumentation extends Instrumentation {
         }
         throw new AssertionError("Feed timer did not load.");
     }
-    private void awaitWindow(final Activity activity) {
+    protected void awaitWindow(final Activity activity) {
         long end = SystemClock.uptimeMillis() + 5000;
         while (SystemClock.uptimeMillis() < end) {
             final boolean[] active = new boolean[1];
@@ -203,7 +292,7 @@ public final class CardControlsInstrumentation extends Instrumentation {
         }
         throw new AssertionError("Expected foreground window: " + activity.getClass().getSimpleName());
     }
-    private ChannelCardView awaitCard(final String id) {
+    protected ChannelCardView awaitCard(final String id) {
         awaitWindow(main);
         long end = SystemClock.uptimeMillis() + 5000;
         ChannelCardView previous = null;
@@ -227,7 +316,7 @@ public final class CardControlsInstrumentation extends Instrumentation {
         }
         return null;
     }
-    private Button button(View view, String title) {
+    protected Button button(View view, String title) {
         if (view instanceof Button && ((Button) view).getText().toString().equals(title)) return (Button) view;
         if (view instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
             Button found = button(((ViewGroup) view).getChildAt(i), title); if (found != null) return found;
@@ -242,7 +331,7 @@ public final class CardControlsInstrumentation extends Instrumentation {
         }
         return null;
     }
-    private void clickText(String text) {
+    protected void clickText(String text) {
         long end = SystemClock.uptimeMillis() + 3000;
         while (SystemClock.uptimeMillis() < end) {
             AccessibilityNodeInfo found = node(getUiAutomation().getRootInActiveWindow(), text, false);
@@ -278,13 +367,13 @@ public final class CardControlsInstrumentation extends Instrumentation {
         }
         for (int i = 0; i < node.getChildCount() && output.length() < 2000; i++) describe(node.getChild(i), output);
     }
-    private void setNumber(String text) {
+    protected void setNumber(String text) {
         AccessibilityNodeInfo field = node(getUiAutomation().getRootInActiveWindow(), "", true);
         check(field != null, "Custom timer field must be visible.");
         Bundle args = new Bundle(); args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text);
         check(field.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args), "Custom field must accept input."); waitForIdleSync();
     }
-    @SuppressWarnings("unchecked") private boolean restore(SharedPreferences prefs, Map<String, ?> before) {
+    @SuppressWarnings("unchecked") protected boolean restore(SharedPreferences prefs, Map<String, ?> before) {
         SharedPreferences.Editor editor = prefs.edit().clear();
         for (Map.Entry<String, ?> entry : before.entrySet()) {
             Object value = entry.getValue(); String key = entry.getKey();
@@ -297,5 +386,5 @@ public final class CardControlsInstrumentation extends Instrumentation {
         }
         return editor.commit() && before.equals(prefs.getAll());
     }
-    private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
+    protected static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
 }

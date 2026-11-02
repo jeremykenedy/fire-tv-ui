@@ -35,15 +35,32 @@ public final class IconInstrumentation extends Instrumentation {
         SharedPreferences prefs = context.getSharedPreferences("native_icons", Context.MODE_PRIVATE);
         Map<String, ?> original = prefs.getAll();
         String imported = null;
+        SharedPreferences packPreferences = context.getSharedPreferences("native_icon_packs", 0);
+        Map<String, ?> originalPacks = packPreferences.getAll();
         try {
+            check(IconSelectionStore.isValidTileKey("input:vendor/.Input/HDMI1"), "Input artwork keys must remain valid independently of component syntax.");
+            check(!IconSelectionStore.isValidTileKey("input:") && !IconSelectionStore.isValidTileKey("invalid"), "Empty input and invalid app keys must fail.");
+            org.xmlpull.v1.XmlPullParser parser = android.util.Xml.newPullParser();
+            parser.setInput(new java.io.StringReader("<resources><item component='ComponentInfo{proof.one/.Main}' drawable='custom_icon'/><item component='proof.two/.Main' drawable='../escape'/></resources>"));
+            Map<String, String> mappings = IconPackStore.mappings(parser);
+            check("custom_icon".equals(mappings.get("proof.one/proof.one.Main")) && mappings.size() == 1, "Icon pack mappings must match exact components and reject invalid resource names.");
             String first = "proof.one/.Main", second = "proof.two/.Main";
             IconSelectionStore.save(context, first, "catalog:jbl");
             IconSelectionStore.save(context, second, "catalog:pc");
             IconSelectionStore.save(context, first, IconSelectionStore.FACTORY);
             check("catalog:pc".equals(IconSelectionStore.choice(context, second)), "Factory reset must not change another tile.");
             ColorDrawable factory = new ColorDrawable(Color.RED), theme = new ColorDrawable(Color.BLUE);
+            check(IconPackStore.select(context, "proof.icons.pack"), "Advertised installed fixture icon pack must be discoverable.");
+            android.graphics.drawable.Drawable packed = IconPackStore.resolve(context, first, factory);
+            check(packed instanceof BitmapDrawable && ((BitmapDrawable) packed).getBitmap().getWidth() <= 512,
+                    "Installed pack component artwork must render at a bounded size.");
+            check(IconPackStore.resolve(context, second, factory) == factory, "Unmapped components must retain factory artwork.");
+            check(IconPackStore.select(context, IconPackStore.CLEAN), "Built in clean style must be selectable.");
+            check(!IconPackStore.select(context, "uninstalled.pack"), "Unavailable icon packs must be rejected.");
+            check(IconPackStore.CLEAN.equals(IconPackStore.selected(context)), "Rejected pack must preserve previous selection.");
             check(IconSelectionStore.resolve(context, first, factory, theme) == factory, "Factory choice must bypass theme.");
             IconSelectionStore.save(context, first, IconSelectionStore.THEME);
+            check(IconSelectionStore.resolve(context, first, factory, null) instanceof BitmapDrawable, "Theme reset must apply selected built in icon style.");
             check(IconSelectionStore.resolve(context, first, factory, theme) == theme, "Theme reset must follow the global icon choice.");
             try {
                 IconSelectionStore.save(context, first, "catalog:unlisted-image");
@@ -64,6 +81,7 @@ public final class IconInstrumentation extends Instrumentation {
             check(bitmap.getWidth() <= 512 && bitmap.getWidth() == bitmap.getHeight() * 2, "Imported image must be bounded and keep its aspect ratio.");
             IconSelectionStore.save(context, first, IconSelectionStore.THEME);
 
+            IconPackStore.select(context, IconPackStore.ORIGINAL);
             home = startActivitySync(new Intent().setClassName(context, "com.jeremykenedy.firetv.ui.nativeapp.MainActivity")
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
             for (int attempt=0; attempt<50; attempt++) {
@@ -89,7 +107,7 @@ public final class IconInstrumentation extends Instrumentation {
             onMain(new Runnable() { @Override public void run() { check(tiles.get(1).isFocused(), "D-pad must move to the next curated icon."); }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
             waitForIdleSync();
-            check("catalog:sonos".equals(IconSelectionStore.choice(context, key)), "Selecting an icon must persist for the actual app component.");
+            check(("catalog:" + IconCatalog.ALL.get(1).id).equals(IconSelectionStore.choice(context, key)), "Selecting an icon must persist for the actual app component.");
             final Bitmap expected = ((BitmapDrawable)IconSelectionStore.resolve(context,key,factory,theme)).getBitmap();
             final boolean[] rendered = {false};
             for (int attempt=0; attempt<40 && !rendered[0]; attempt++) {
@@ -116,6 +134,9 @@ public final class IconInstrumentation extends Instrumentation {
         } catch(Throwable error) {
             result.putString("status","FAIL"); result.putString("reason",error.toString());
         } finally {
+            SharedPreferences.Editor restorePacks = packPreferences.edit().clear();
+            for (Map.Entry<String, ?> entry : originalPacks.entrySet()) restorePacks.putString(entry.getKey(), (String) entry.getValue());
+            result.putBoolean("icon_pack_preferences_restored", restorePacks.commit());
             SharedPreferences.Editor restore=prefs.edit().clear();
             for(Map.Entry<String,?> entry:original.entrySet()) restore.putString(entry.getKey(),(String)entry.getValue());
             result.putBoolean("preferences_restored",restore.commit());

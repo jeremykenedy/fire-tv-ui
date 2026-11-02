@@ -17,12 +17,22 @@ public final class DeviceInstrumentation extends Instrumentation {
     private static final String ROOT = "com.jeremykenedy.firetv.ui.nativeapp.";
     private Activity settings;
     private Activity device;
+    private String destination;
 
-    @Override public void onCreate(Bundle args) { super.onCreate(args); start(); }
+    @Override public void onCreate(Bundle args) {
+        super.onCreate(args);
+        destination = args.getString("destination");
+        start();
+    }
 
     @Override public void onStart() {
         Bundle result = new Bundle();
         try {
+            if (destination != null) {
+                proveDestination(result);
+                finish(0, result);
+                return;
+            }
             settings = startActivitySync(new Intent().setClassName(getTargetContext(), ROOT + "SettingsActivity")
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
             waitForIdleSync();
@@ -52,7 +62,9 @@ public final class DeviceInstrumentation extends Instrumentation {
                 @Override public void run() {
                     View action = device.getWindow().getDecorView().findViewWithTag("device:SYSTEM_SETTINGS");
                     check(action != null && action.hasFocus(), "Back must preserve System settings action focus");
-                    for (DeviceRoutes.Destination destination : DeviceRoutes.Destination.values()) {
+                    for (DeviceRoutes.Destination destination : new DeviceRoutes.Destination[] {
+                            DeviceRoutes.Destination.FACTORY_UI, DeviceRoutes.Destination.SYSTEM_SETTINGS,
+                            DeviceRoutes.Destination.LIVE_TV}) {
                         TextView state = (TextView) device.getWindow().getDecorView()
                                 .findViewWithTag("device:availability:" + destination.name());
                         boolean available = DeviceRoutes.resolve(device, destination) != null;
@@ -84,6 +96,54 @@ public final class DeviceInstrumentation extends Instrumentation {
             result.putString("reason", error.toString());
         }
         finish(0, result);
+    }
+
+    private void proveDestination(Bundle result) {
+        final DeviceRoutes.Destination target = DeviceRoutes.Destination.valueOf(destination);
+        check(target == DeviceRoutes.Destination.FACTORY_UI || target == DeviceRoutes.Destination.LIVE_TV,
+                "Destination proof supports Factory UI or Live TV only");
+        settings = startActivitySync(new Intent().setClassName(getTargetContext(), ROOT + "SettingsActivity")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+        waitForIdleSync();
+        click(settings, "Device");
+        ActivityMonitor monitor = addMonitor(ROOT + "device.DeviceSettingsActivity", null, false);
+        click(settings, "Device screens");
+        device = waitForMonitorWithTimeout(monitor, 3000);
+        removeMonitor(monitor);
+        check(device != null, "Device screens must open through Settings");
+        waitForActions();
+        final Intent nativeTarget = DeviceRoutes.resolve(getTargetContext(), target);
+        onMain(new Runnable() {
+            @Override public void run() {
+                View action = device.getWindow().getDecorView().findViewWithTag("device:" + target.name());
+                check(action != null && action.requestFocus(), "Destination must be remote-focusable");
+            }
+        });
+        sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
+        result.putString("destination", target.name());
+        if (nativeTarget == null) {
+            onMain(new Runnable() {
+                @Override public void run() {
+                    TextView status = (TextView) device.getWindow().getDecorView().findViewWithTag("device:status");
+                    check(status.getText().toString().contains("unavailable"), "Missing capability must be explained");
+                }
+            });
+            result.putString("capability", "UNAVAILABLE");
+            result.putBoolean("actual_native_window", false);
+        } else {
+            String pkg = nativeTarget.getComponent().getPackageName();
+            check(waitForPackage(pkg, 6000), "Resolved native destination must become the actual active package");
+            result.putString("capability", "AVAILABLE");
+            result.putString("native_package", pkg);
+            result.putString("native_component", nativeTarget.getComponent().flattenToShortString());
+            result.putBoolean("actual_native_window", true);
+            device = startActivitySync(new Intent().setClassName(getTargetContext(), ROOT + "device.DeviceSettingsActivity")
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            waitForActions();
+            result.putString("return", "Explicit source route; native Factory UI Back behavior is not claimed");
+        }
+        result.putString("status", "PASS");
+        result.putString("limits", "Native capability/window proof only; preview never owns Home and this does not validate Home interception or physical remotes.");
     }
 
     private boolean waitForPackage(String expected, long timeout) {

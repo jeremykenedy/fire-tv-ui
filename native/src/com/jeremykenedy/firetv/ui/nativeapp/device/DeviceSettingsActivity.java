@@ -13,7 +13,8 @@ import java.util.concurrent.Executors;
 /** User-triggered native device screens, without Home ownership or device configuration writes. */
 public final class DeviceSettingsActivity extends Activity {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
-    private final DeviceRoutes.Destination[] destinations = DeviceRoutes.Destination.values();
+    private final DeviceRoutes.Destination[] destinations = {DeviceRoutes.Destination.FACTORY_UI,
+            DeviceRoutes.Destination.SYSTEM_SETTINGS, DeviceRoutes.Destination.LIVE_TV};
     private final String[] labels = {"Factory UI", "System settings", "Live TV"};
     private final Button[] actions = new Button[destinations.length];
     private final TextView[] availability = new TextView[destinations.length];

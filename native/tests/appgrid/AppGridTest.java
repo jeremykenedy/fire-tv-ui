@@ -1,6 +1,7 @@
 package com.jeremykenedy.firetv.ui.nativeapp.appgrid;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,7 +28,31 @@ public final class AppGridTest {
         }
         try { options.discover(Arrays.asList("bad\nkey")); throw new AssertionError("Invalid identity accepted"); } catch (IllegalArgumentException expected) {}
         check(options.move(a, -1, available) == options, "First item cannot move outside list");
+        capacityPreservation();
         System.out.println("App order, missing app retention, favorites, hide/show, custom grid and input bounds passed.");
+    }
+    private static void capacityPreservation() {
+        List<String> historical = new ArrayList<>();
+        for (int i = 0; i < AppGridOptions.MAX_IDENTITIES; i++) historical.add("old.app" + i + "/.Main");
+        String fresh = "new.app/.Main", newer = "newer.app/.Main", retained = historical.get(10);
+        List<String> available = Arrays.asList(retained, fresh, newer);
+        AppGridOptions full = new AppGridOptions(7, 2, true, historical,
+                Collections.<String>emptySet(), Collections.<String>emptySet());
+        AppGridOptions discovered = full.discover(available);
+        check(discovered.order.equals(historical), "Full historical order retains every missing identity without cap crash");
+        check(discovered.visible(available).equals(available), "Fresh installed apps remain visible when remembered order is full");
+        check(discovered.unrememberedCount(available) == 2, "Capacity state reports unremembered installed apps");
+        check(discovered.move(fresh, -1, available) == discovered, "Moving an overflow app cannot use a missing saved index");
+        check(discovered.move(retained, 1, available) == discovered, "Moving across overflow boundary cannot discard saved identity");
+        AppGridOptions favorite = discovered.toggleFavorite(newer);
+        check(favorite.visible(available).equals(Arrays.asList(newer, retained, fresh)), "Overflow apps still honor favorites");
+        check(favorite.toggleHidden(newer).visible(available).equals(Arrays.asList(retained, fresh)), "Overflow apps still honor hide");
+        AppGridOptions partial = new AppGridOptions(5, 0, false, historical.subList(0, historical.size() - 1),
+                Collections.<String>emptySet(), Collections.<String>emptySet()).discover(available);
+        check(partial.order.size() == AppGridOptions.MAX_IDENTITIES && partial.order.get(partial.order.size() - 1).equals(fresh),
+                "Remaining remembered capacity fills deterministically");
+        check(partial.unrememberedCount(available) == 1 && partial.visible(available).equals(available),
+                "Overflow after partial discovery remains visible and reported");
     }
     private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
 }

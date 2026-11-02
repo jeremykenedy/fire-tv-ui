@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -32,6 +33,11 @@ public final class ChannelCardView extends LinearLayout {
     private long intervalMillis;
     private boolean hostResumed;
     private boolean attached;
+    private boolean hostFocused;
+    private String selectedKey;
+    private Uri artworkUri;
+    private boolean artworkVisible;
+    private int artworkEdge;
     private long artworkGeneration;
     private ArtworkLoader.Request artwork;
     private final Runnable rotate = new Runnable() {
@@ -85,17 +91,35 @@ public final class ChannelCardView extends LinearLayout {
         return programs.isEmpty() ? null : programs.get(index);
     }
 
+    public String selectedProgramKey() { return selectedKey; }
+
+    public void restoreProgramKey(String key) {
+        selectedKey = key;
+        for (int next = 0; next < programs.size(); next++) {
+            if (programs.get(next).key.equals(key)) { index = next; display(); return; }
+        }
+    }
+
+    public void setHostFocused(boolean focused) {
+        hostFocused = focused;
+        tile.setPreviewFocused(focused || isFocused());
+    }
+
     public void updateFeed(TvRecommendations.Feed value) {
+        updateFeed(value, value == null ? null : value.programs);
+    }
+
+    public void updateFeed(TvRecommendations.Feed value, List<TvRecommendations.Program> visible) {
         if (value == null || !feed.item.id.equals(value.item.id))
             throw new IllegalArgumentException("Update a channel card with the same feed identity.");
         feed = value;
         channel.setText(value.title);
-        setPrograms(value.programs);
+        setPrograms(visible);
     }
 
     /** The coordinator supplies the visible items after applying source-scoped hide preferences. */
     public void setPrograms(List<TvRecommendations.Program> visible) {
-        String key = currentProgram() == null ? null : currentProgram().key;
+        String key = currentProgram() == null ? selectedKey : currentProgram().key;
         programs.clear();
         if (visible != null) for (TvRecommendations.Program program : visible) {
             if (program != null && feed.source.equals(program.source) && belongsToFeed(program))
@@ -134,6 +158,8 @@ public final class ChannelCardView extends LinearLayout {
         hostResumed = false;
         handler.removeCallbacks(rotate);
         cancelArtwork();
+        artworkVisible = false;
+        tile.setIcon(null);
     }
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
@@ -143,15 +169,20 @@ public final class ChannelCardView extends LinearLayout {
         super.onMeasure(widthSpec, heightSpec);
     }
 
+    @Override protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+        super.onSizeChanged(width, height, oldWidth, oldHeight);
+        if (tile != null && active()) display();
+    }
+
     @Override protected void onFocusChanged(boolean focused, int direction, Rect previous) {
         super.onFocusChanged(focused, direction, previous);
-        if (tile != null) tile.setPreviewFocused(focused);
+        if (tile != null) tile.setPreviewFocused(focused || hostFocused);
     }
 
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         attached = true;
-        tile.setPreviewFocused(isFocused());
+        tile.setPreviewFocused(isFocused() || hostFocused);
         display();
         schedule();
     }
@@ -196,20 +227,34 @@ public final class ChannelCardView extends LinearLayout {
     }
 
     private void display() {
-        cancelArtwork();
         final TvRecommendations.Program program = currentProgram();
+        if (program != null) selectedKey = program.key;
         String title = program == null ? "No visible items" : program.title;
         tile.setTitle(title);
-        tile.setIcon(null);
         setContentDescription(feed.title + ": " + title);
+        Uri nextArtwork = program == null ? null : program.artwork;
+        int edge = Math.max(getWidth(), getHeight());
+        edge = Math.max(32, Math.min(768, edge > 0 ? edge : dp(320)));
+        if (nextArtwork != null && nextArtwork.equals(artworkUri) && edge == artworkEdge
+                && (artworkVisible || artwork != null)) return;
+        cancelArtwork();
+        artworkUri = nextArtwork;
+        artworkEdge = edge;
+        artworkVisible = false;
+        tile.setIcon(null);
         if (program == null || program.artwork == null || !active()) return;
         if ("android.resource".equals(program.artwork.getScheme())
                 && !feed.source.equals(program.artwork.getAuthority())) return;
         final long generation = artworkGeneration;
-        artwork = ArtworkLoader.load(getContext(), program.artwork, new ArtworkLoader.Callback() {
+        artwork = ArtworkLoader.load(getContext(), program.artwork, edge, new ArtworkLoader.Callback() {
             @Override public void onLoaded(Bitmap bitmap) {
-                if (generation == artworkGeneration && active() && bitmap != null)
-                    tile.setIcon(new BitmapDrawable(getResources(), bitmap));
+                if (generation == artworkGeneration) {
+                    artwork = null;
+                    if (active() && bitmap != null) {
+                        artworkVisible = true;
+                        tile.setIcon(new BitmapDrawable(getResources(), bitmap));
+                    }
+                }
             }
         });
     }

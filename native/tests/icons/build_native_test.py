@@ -27,3 +27,12 @@ run(TOOLS / 'zipalign', '-P', '16', '-f', '4', WORK / 'base.apk', WORK / 'aligne
 run(TOOLS / 'apksigner', 'sign', '--ks', ROOT / '.build/preview.jks', '--ks-pass', 'pass:android',
     '--ks-key-alias', 'preview', '--v4-signing-enabled', 'false', '--out', WORK / 'icon-proof.apk', WORK / 'aligned.apk')
 print(WORK / 'icon-proof.apk')
+
+FIXTURE = HERE / 'fixture'
+run(TOOLS / 'aapt2', 'compile', '--dir', FIXTURE / 'res', '-o', WORK / 'fixture-res.zip')
+run(TOOLS / 'aapt2', 'link', '-I', ANDROID, '--manifest', FIXTURE / 'AndroidManifest.xml',
+    '-R', WORK / 'fixture-res.zip', '-o', WORK / 'fixture-base.apk')
+run(TOOLS / 'zipalign', '-P', '16', '-f', '4', WORK / 'fixture-base.apk', WORK / 'fixture-aligned.apk')
+run(TOOLS / 'apksigner', 'sign', '--ks', ROOT / '.build/preview.jks', '--ks-pass', 'pass:android',
+    '--ks-key-alias', 'preview', '--v4-signing-enabled', 'false', '--out', WORK / 'icon-pack-fixture.apk', WORK / 'fixture-aligned.apk')
+print(WORK / 'icon-pack-fixture.apk')

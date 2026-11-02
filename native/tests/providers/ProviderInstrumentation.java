@@ -74,16 +74,36 @@ public final class ProviderInstrumentation extends Instrumentation {
                 for (TvRecommendations.Program program : feed.programs)
                     check(PRODUCER.equals(program.source), "Program publisher must be retained.");
             }
+            if (android.os.Build.VERSION.SDK_INT >= 29) {
+                String seriesKey = null;
+                for (TvRecommendations.Feed feed : feeds.feeds) if (PRODUCER.equals(feed.source) && "Fixture channel".equals(feed.title))
+                    for (TvRecommendations.Program program : feed.programs) {
+                        check(program.seriesKey != null, "Published API29 series identity must be retained.");
+                        if (seriesKey == null) seriesKey = program.seriesKey;
+                        check(seriesKey.equals(program.seriesKey), "Same publisher series remains stable across episodes.");
+                    }
+            }
+            verifyLoaderLifecycle();
             check(programs == 3 && selected != null, "Cross-app rows must retain published grouping and source.");
             RecommendationActions.Availability available = RecommendationActions.inspect(target, selected);
+            check(!available.details && !available.play, "Generic TV intent must not invent details/play capability.");
+            TvRecommendations.Program explicitRoutes = new TvRecommendations.Program("explicit", PRODUCER,
+                    "Fixture", null, "fixture://title/1", null, null, "fixture://details/1", "fixture://play/1");
+            RecommendationActions.Availability explicit = RecommendationActions.inspect(target, explicitRoutes);
+            check(explicit.details && explicit.play && !explicit.detailsLabel().equals(explicit.playLabel()),
+                    "An explicit source adapter can expose separate safe details/play routes.");
+            TvRecommendations.Program unsafePlay = new TvRecommendations.Program("unsafe", PRODUCER,
+                    "Fixture", null, null, null, null, null, "intent:#Intent;package=com.android.settings;end");
+            check(!RecommendationActions.inspect(target, unsafePlay).play,
+                    "Explicit playback routes must still pass publisher ownership checks.");
             check(available.title && available.app, "Title and app routes must both resolve independently.");
             check(!available.titleLabel().equals(available.appLabel()), "App fallback must not be labeled as title launch.");
             foregroundMain();
-            check(RecommendationActions.launchTitle(target, selected) == RecommendationActions.Outcome.OPENED,
+            check(RecommendationActions.launchTitle(main, selected) == RecommendationActions.Outcome.OPENED,
                     "Valid publisher title route must launch.");
             awaitOpened(selected.intentUri);
             foregroundMain();
-            check(RecommendationActions.openApp(target, selected) == RecommendationActions.Outcome.OPENED,
+            check(RecommendationActions.openApp(main, selected) == RecommendationActions.Outcome.OPENED,
                     "App fallback must launch independently.");
             awaitOpened("app");
             reject(target, new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(PRODUCER, PRODUCER + ".FixtureActivity")), "Non-title action");
@@ -110,6 +130,9 @@ public final class ProviderInstrumentation extends Instrumentation {
             result.putBoolean("cross_app_tvprovider_reads", true);
             result.putBoolean("publisher_scoped_title_and_separate_app_handoff", true);
             result.putBoolean("unsafe_intent_rejection", true);
+            result.putBoolean("explicit_series_metadata", true);
+            result.putBoolean("cancellable_loader_lifecycle", true);
+            result.putBoolean("explicit_action_capabilities", true);
             result.putString("limits", "Fixture handoff receipt is verified; no real service playback or physical TV behavior is established. Empty/partial/missing provider states also have host coverage.");
         } catch (Throwable failure) {
             result.putString("status", "FAIL");
@@ -125,6 +148,46 @@ public final class ProviderInstrumentation extends Instrumentation {
             catch (Throwable failure) { result.putBoolean("fixture_rows_removed", false); result.putString("cleanup_error", failure.toString()); }
         }
         finish(0, result);
+    }
+
+    private void verifyLoaderLifecycle() throws Exception {
+        final CountDownLatch loaded = new CountDownLatch(1);
+        final int[] callbacks = {0};
+        final TvRecommendations.Result[] snapshot = new TvRecommendations.Result[1];
+        final RecommendationLoader[] loading = new RecommendationLoader[1];
+        runOnMainSync(new Runnable() {
+            @Override public void run() {
+                loading[0] = new RecommendationLoader(getTargetContext(), new RecommendationLoader.Listener() {
+                    @Override public void onRecommendations(TvRecommendations.Result result) {
+                        callbacks[0]++;
+                        snapshot[0] = result;
+                        loaded.countDown();
+                    }
+                });
+                loading[0].start();
+                loading[0].refresh();
+                loading[0].refresh();
+            }
+        });
+        try {
+            check(loaded.await(5, TimeUnit.SECONDS), "Latest refresh must deliver a provider snapshot.");
+            check(snapshot[0] != null && fixtureFeeds(snapshot[0]) == 2, "Loader must return actual cross-app feeds.");
+            runOnMainSync(new Runnable() {
+                @Override public void run() {
+                    check(callbacks[0] == 1, "Superseded refreshes must not deliver stale callbacks.");
+                    loading[0].refresh();
+                    loading[0].stop();
+                }
+            });
+            SystemClock.sleep(250);
+            runOnMainSync(new Runnable() {
+                @Override public void run() { check(callbacks[0] == 1, "Stopped lifecycle must suppress callbacks."); }
+            });
+        } finally {
+            runOnMainSync(new Runnable() {
+                @Override public void run() { loading[0].close(); }
+            });
+        }
     }
 
     private void foregroundMain() {
@@ -163,7 +226,7 @@ public final class ProviderInstrumentation extends Instrumentation {
         addCount(result, "fixture_layout_entries_removed", layoutCount);
 
         CardOptions cards = CardPreferences.load(context);
-        int timers = 0, hiddenItems = 0;
+        int timers = 0, hiddenItems = 0, hiddenSeries = 0, itemOrders = 0;
         for (String feed : feeds) if (cards.feedSeconds.containsKey(feed)) {
             cards = cards.useGlobal(feed);
             timers++;
@@ -172,9 +235,20 @@ public final class ProviderInstrumentation extends Instrumentation {
             cards = cards.restore(item.source, item.key);
             hiddenItems++;
         }
-        if (timers + hiddenItems > 0) CardPreferences.save(context, cards);
+        for (CardOptions.HiddenItem item : cards.hiddenSeries()) if (PRODUCER.equals(item.source)) {
+            cards = cards.restoreSeries(item.source, item.key);
+            hiddenSeries++;
+        }
+        for (String feed : feeds) {
+            CardOptions reset = cards.resetItemOrder(PRODUCER, feed);
+            if (!reset.backupValues().get("item_order").equals(cards.backupValues().get("item_order"))) itemOrders++;
+            cards = reset;
+        }
+        if (timers + hiddenItems + hiddenSeries + itemOrders > 0) CardPreferences.save(context, cards);
         addCount(result, "fixture_timer_overrides_removed", timers);
         addCount(result, "fixture_hidden_items_removed", hiddenItems);
+        addCount(result, "fixture_hidden_series_removed", hiddenSeries);
+        addCount(result, "fixture_item_orders_removed", itemOrders);
 
         AppGridOptions apps = AppGridPreferences.load(context);
         List<String> appOrder = new ArrayList<>();

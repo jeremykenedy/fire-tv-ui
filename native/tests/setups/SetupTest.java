@@ -1,0 +1,332 @@
+package com.jeremykenedy.firetv.ui.nativeapp.setups;
+
+import android.content.Context;
+import android.net.Uri;
+import android.util.AtomicFile;
+
+import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
+
+import org.json.*;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.util.*;
+
+public final class SetupTest {
+    private static int checks;
+
+    private interface Work {
+        void run() throws Exception;
+    }
+
+    private static void check(boolean condition, String message) {
+        checks++;
+        if (!condition) throw new AssertionError(message);
+    }
+
+    private static void rejects(Work work, String message) throws Exception {
+        checks++;
+        try {
+            work.run();
+        } catch (Exception expected) {
+            return;
+        }
+        throw new AssertionError(message);
+    }
+
+    private static Context.Prefs prefs(Context context, String file) {
+        context.getSharedPreferences(file, 0);
+        return context.stores.get(file);
+    }
+
+    private static boolean same(
+            Map<String, PreferenceSnapshot> a, Map<String, PreferenceSnapshot> b) {
+        for (String file : a.keySet())
+            if (!a.get(file).values().equals(b.get(file).values())) return false;
+        return a.keySet().equals(b.keySet());
+    }
+
+    public static void main(String[] args) throws Exception {
+        final Context context = new Context(new File(args[0], "fixtures"));
+        prefs(context, "launcher_prefs").values.put("access_token", "private-fixture");
+        prefs(context, "launcher_prefs").values.put("fire_tv_ui_sleep", 1234);
+        prefs(context, "launcher_prefs").values.put("folder_lock_pin", "private-fixture");
+        prefs(context, "launcher_prefs").values.put("menu_overlay_frozen", false);
+        prefs(context, "native_app_grid").values.put("columns", 7);
+        prefs(context, "native_app_grid").values.put("owner_future_metadata", "keep");
+        prefs(context, "native_focus").values.put("growth_percent", 6);
+        prefs(context, "native_inputs").values.put("name:vendor/.Input/HDMI1", "Receiver");
+        prefs(context, "native_inputs").values.put("known:vendor/.Input/HDMI1", true);
+        prefs(context, "native_icon_packs").values.put("package", "clean-line");
+        prefs(context, "native_world_clocks").values.put("clocks", "v1\nAmerica/Los_Angeles\tHome");
+        prefs(context, "native_breathing_break").values.put("inhale", 5);
+        prefs(context, "native_breathing_break").values.put("elapsed", 1000L);
+        prefs(context, "native_breathing_break").values.put("running", false);
+        final Map<String, PreferenceSnapshot> first = PresentationState.capture(context);
+        check(
+                !first.get("launcher_prefs").values().containsKey("access_token"),
+                "credentials excluded");
+        check(
+                !first.get("launcher_prefs").values().containsKey("folder_lock_pin"),
+                "locks excluded");
+        check(
+                first.get("launcher_prefs").values().get("menu_overlay_frozen").equals(false),
+                "explicit false retained");
+        check(
+                !first.get("native_focus").values().containsKey("duration_millis"),
+                "absent default retained as absent");
+        check(
+                !first.get("native_inputs").values().containsKey("known:vendor/.Input/HDMI1"),
+                "input discovery metadata excluded");
+        PresentationState.validatePortable(first);
+        Map<String, PreferenceSnapshot> exercise = new LinkedHashMap<>(first);
+        exercise.put(
+                "native_breathing_break",
+                new PreferenceSnapshot(Collections.singletonMap("inhale", 6)));
+        prefs(context, "native_breathing_break").values.put("running", true);
+        rejects(
+                () -> PresentationState.apply(context, exercise, true),
+                "active breathing runtime blocks conflicting configuration restore");
+        check(
+                !PresentationState.hasRecovery(context),
+                "rejected live-session conflict writes no journal");
+        prefs(context, "native_breathing_break").values.put("running", false);
+        final SavedSetupManager manager = new SavedSetupManager(context);
+        final String id = manager.save("Evening", null);
+        prefs(context, "native_focus").values.put("duration_millis", 100);
+        prefs(context, "native_app_grid").values.put("columns", 3);
+        prefs(context, "launcher_prefs").values.put("color_later", 77);
+        manager.apply(id, true);
+        check(
+                same(first, PresentationState.capture(context)),
+                "all presentation choices and absence restored");
+        check(
+                prefs(context, "native_app_grid")
+                        .values
+                        .get("owner_future_metadata")
+                        .equals("keep"),
+                "unowned native key untouched");
+        check(
+                prefs(context, "launcher_prefs")
+                                .values
+                                .get("access_token")
+                                .equals("private-fixture")
+                        && prefs(context, "launcher_prefs")
+                                .values
+                                .get("fire_tv_ui_sleep")
+                                .equals(1234),
+                "account and TV controls untouched");
+        check(!PresentationState.hasRecovery(context), "successful apply resolves private journal");
+        manager.apply(id, true);
+        check(!PresentationState.hasRecovery(context), "recurring apply supported");
+        AtomicFile.failDelete = true;
+        rejects(
+                () -> manager.apply(id, true),
+                "failed journal deletion cannot report successful apply");
+        check(PresentationState.hasRecovery(context), "failed cleanup retains unresolved recovery");
+        rejects(
+                () -> PresentationState.recover(context),
+                "failed cleanup cannot report successful recovery");
+        rejects(() -> manager.apply(id, true), "unresolved cleanup blocks replay");
+        AtomicFile.failDelete = false;
+        PresentationState.recover(context);
+        check(!PresentationState.hasRecovery(context), "retry recovery verifies cleanup absence");
+        rejects(() -> manager.save(" evening ", null), "duplicate names rejected");
+        rejects(() -> manager.rename(id, "\n"), "blank name rejected");
+        AtomicFile.failNext = true;
+        rejects(() -> manager.rename(id, "New"), "atomic index failure rejected");
+        check(
+                manager.list().get(0).getString("name").equals("Evening"),
+                "index failure leaves original entry");
+        prefs(context, "native_focus").values.put("growth_percent", 10);
+        final Map<String, PreferenceSnapshot> beforeFailure = PresentationState.capture(context);
+        prefs(context, "native_app_grid").failures = 1;
+        rejects(() -> manager.apply(id, true), "mutating failed commit rejected");
+        check(
+                same(beforeFailure, PresentationState.capture(context)),
+                "multi-file failure rolls back mutated memory");
+        check(!PresentationState.hasRecovery(context), "verified rollback resolves journal");
+        prefs(context, "native_app_grid").failures = 2;
+        rejects(() -> manager.apply(id, true), "failed rollback rejected");
+        check(PresentationState.hasRecovery(context), "failed rollback keeps private journal");
+        rejects(() -> manager.apply(id, true), "pending recovery blocks new apply");
+        PresentationState.recover(context);
+        check(
+                same(beforeFailure, PresentationState.capture(context)),
+                "explicit recovery restores presentation");
+        Map<String, PreferenceSnapshot> malicious = new LinkedHashMap<>(first);
+        malicious.put(
+                "private_account",
+                new PreferenceSnapshot(Collections.singletonMap("token", "fixture")));
+        rejects(() -> PresentationState.validate(malicious), "unknown store rejected");
+        malicious.remove("private_account");
+        malicious.put(
+                "native_focus",
+                new PreferenceSnapshot(Collections.singletonMap("access_token", "fixture")));
+        rejects(() -> PresentationState.validate(malicious), "unknown key rejected");
+        JSONObject subset =
+                new JSONObject()
+                        .put("keys", new JSONArray(Arrays.asList("apps_per_row")))
+                        .put("values", new JSONObject().put("apps_per_row", 8));
+        Map<String, PreferenceSnapshot> legacyPlan =
+                manager.prepareLegacy(
+                        subset,
+                        com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext
+                                .empty(),
+                        true);
+        check(
+                legacyPlan.get("native_app_grid").values().get("columns").equals(8),
+                "reviewed legacy scalar mapped through shared mapper");
+        check(
+                legacyPlan.get("launcher_prefs").values().get("menu_overlay_frozen").equals(false),
+                "legacy subset preserves unrelated presentation keys");
+        JSONObject unsupported =
+                new JSONObject()
+                        .put("keys", new JSONArray(Arrays.asList("folders")))
+                        .put("values", new JSONObject().put("folders", "[]"));
+        rejects(
+                () ->
+                        manager.prepareLegacy(
+                                unsupported,
+                                com.jeremykenedy.firetv.ui.nativeapp.migration
+                                        .PresentationMappingContext.empty(),
+                                true),
+                "unmapped legacy format explicitly blocked");
+        File journal = new File(context.getNoBackupFilesDir(), "saved-setup-apply-v1.json");
+        Files.write(
+                journal.toPath(),
+                SavedSetupManager.encodeNative(beforeFailure)
+                        .toString()
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        prefs(context, "native_app_grid").values.put("columns", 9);
+        prefs(context, "native_focus").values.put("duration_millis", "malformed fixture");
+        prefs(context, "launcher_prefs").values.put("apps_per_row", "malformed fixture");
+        PresentationState.recover(context);
+        check(
+                same(beforeFailure, PresentationState.capture(context)),
+                "restart recovery restores journal after simulated interruption");
+        Map<String, PreferenceSnapshot> opaque = new LinkedHashMap<>(first);
+        Map<String, Object> opaqueLegacy =
+                new LinkedHashMap<>(first.get("launcher_prefs").values());
+        opaqueLegacy.put("widgets_config", "{\"token\":\"fixture\"}");
+        opaque.put("launcher_prefs", new PreferenceSnapshot(opaqueLegacy));
+        rejects(
+                () -> PresentationState.validatePortable(opaque),
+                "portable opaque nested data rejected");
+        File source = new File(context.files, "source.png");
+        Files.write(source.toPath(), new byte[] {1, 2, 3});
+        prefs(context, "source_appearance")
+                .values
+                .put("wallpaper_image_uri", Uri.fromFile(source).toString());
+        prefs(context, "source_appearance").values.put("wallpaper_mode", "image");
+        final String imageId = manager.save("Picture", null);
+        final Map<String, PreferenceSnapshot> personal = PresentationState.capture(context);
+        rejects(
+                () -> PresentationState.validatePortable(personal),
+                "portable personal media explicitly rejected");
+        Files.delete(source.toPath());
+        manager.apply(imageId, true);
+        String retained =
+                (String) prefs(context, "source_appearance").values.get("wallpaper_image_uri");
+        check(
+                new File(Uri.parse(retained).getPath()).isFile(),
+                "saved wallpaper survives original source deletion");
+        new File(Uri.parse(retained).getPath()).delete();
+        final Map<String, PreferenceSnapshot> beforeMissing = PresentationState.capture(context);
+        rejects(() -> manager.apply(imageId, true), "missing retained image rejected");
+        check(
+                manager.list().size() == 2
+                        && same(beforeMissing, PresentationState.capture(context)),
+                "missing media keeps setup and current preferences");
+        prefs(context, "source_appearance").values.clear();
+        String choice = "image:12345678-1234-1234-1234-123456789012.png";
+        File icon = new File(context.files, "icons/" + choice.substring(6));
+        icon.getParentFile().mkdirs();
+        Files.write(icon.toPath(), new byte[] {8, 7, 6});
+        prefs(context, "native_icons").values.put("proof.app/.Main", choice);
+        final String iconId = manager.save("Artwork", null);
+        icon.delete();
+        prefs(context, "native_icons").values.put("proof.app/.Main", "factory");
+        manager.apply(iconId, false);
+        check(
+                prefs(context, "native_icons").values.get("proof.app/.Main").equals("factory")
+                        && !icon.exists(),
+                "excluding icons preserves active choice and avoids media restoration");
+        manager.apply(iconId, true);
+        check(
+                icon.isFile()
+                        && prefs(context, "native_icons")
+                                .values
+                                .get("proof.app/.Main")
+                                .equals(choice),
+                "retained per-app artwork restored after original deletion");
+        File activeRetained = new File(context.files, "saved-setups/active.image");
+        Files.write(activeRetained.toPath(), new byte[] {2, 3, 4});
+        prefs(context, "source_appearance")
+                .values
+                .put("wallpaper_image_uri", Uri.fromFile(activeRetained).toString());
+        manager.delete(iconId);
+        check(
+                new File(context.files, "saved-setups")
+                                .listFiles((dir, name) -> name.endsWith(".image"))
+                                .length
+                        >= 1,
+                "deletion retains a referenced active wallpaper or other setup asset");
+        prefs(context, "native_icons").values.clear();
+        prefs(context, "source_appearance").values.clear();
+        for (int i = manager.list().size(); i < 24; i++) manager.save("Setup " + i, null);
+        rejects(() -> manager.save("Too many", null), "24 setup bound enforced");
+        manager.rename(id, "Evening renamed");
+        check(manager.list().get(0).getString("name").equals("Evening renamed"), "rename persists");
+        File oversized = new File(context.files, "oversized.png");
+        try (RandomAccessFile file = new RandomAccessFile(oversized, "rw")) {
+            file.setLength(20L * 1024 * 1024 + 1);
+        }
+        prefs(context, "source_appearance")
+                .values
+                .put("wallpaper_image_uri", Uri.fromFile(oversized).toString());
+        rejects(
+                () -> manager.save("Oversized", id),
+                "20 MB single-media limit enforced before index replacement");
+        check(
+                manager.list().get(0).getString("name").equals("Evening renamed"),
+                "failed media copy preserves prior setup");
+        prefs(context, "source_appearance").values.clear();
+        File capacity = new File(context.files, "saved-setups/capacity.image");
+        try (RandomAccessFile file = new RandomAccessFile(capacity, "rw")) {
+            file.setLength(96L * 1024 * 1024);
+        }
+        File tiny = new File(context.files, "tiny.png");
+        Files.write(tiny.toPath(), new byte[] {1});
+        prefs(context, "source_appearance")
+                .values
+                .put("wallpaper_image_uri", Uri.fromFile(tiny).toString());
+        rejects(() -> manager.save("Full", id), "96 MB aggregate-media limit enforced");
+        capacity.delete();
+        final Context legacyContext = new Context(new File(args[0], "legacy-fixture"));
+        File legacyDirectory = new File(legacyContext.files, "saved-setups");
+        legacyDirectory.mkdirs();
+        JSONObject original =
+                new JSONObject()
+                        .put("version", 1)
+                        .put(
+                                "setups",
+                                new JSONArray()
+                                        .put(
+                                                new JSONObject()
+                                                        .put("id", id)
+                                                        .put("name", "Legacy scalar")
+                                                        .put("savedAt", 1)
+                                                        .put("settings", subset)));
+        Files.write(
+                new File(legacyDirectory, "setups.json").toPath(),
+                original.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        SavedSetupManager legacyManager = new SavedSetupManager(legacyContext);
+        check(legacyManager.list().size() == 1, "existing version 1 index reads without rewriting");
+        legacyManager.apply(id, true);
+        check(
+                prefs(legacyContext, "native_app_grid").values.get("columns").equals(8),
+                "existing version 1 setup applies reviewed mapped scalar");
+        System.out.println("Saved setups: " + checks + " checks passed.");
+    }
+}

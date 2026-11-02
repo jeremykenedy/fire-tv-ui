@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -13,12 +14,24 @@ import android.view.accessibility.AccessibilityEvent;
 /** Original Home routing service; preview builds are intentionally unable to redirect Home. */
 public class HomeKeyService extends AccessibilityService {
     public static final String PRODUCTION_PACKAGE = HomeRoutingPolicy.PRODUCTION_PACKAGE;
-    public static final String HOME_KEYS = "source_home_keys_enabled";
-    public static final String HOME_WINDOWS = "source_home_window_fallback_enabled";
+    public static final String HOME_KEYS = HomeSetupPolicy.HOME_KEYS;
+    public static final String HOME_WINDOWS = HomeSetupPolicy.HOME_WINDOWS;
     private static final String MAIN = "com.jeremykenedy.firetv.ui.nativeapp.MainActivity";
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean consumedPress;
     private ComponentName pendingHome;
+    private SharedPreferences preferences;
+    private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener =
+            new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override public void onSharedPreferenceChanged(SharedPreferences changed, String key) {
+                    if (key == null || HOME_KEYS.equals(key) || HOME_WINDOWS.equals(key)
+                            || HomeSetupPolicy.LEGACY_HOME.equals(key) || "override_home_button".equals(key)
+                            || "better_home_detection".equals(key)) {
+                        updateServiceInfo();
+                        if (!enabled(HOME_WINDOWS)) cancelPending();
+                    }
+                }
+            };
     private final Runnable redirect = new Runnable() {
         @Override public void run() {
             if (pendingHome != null && enabled(HOME_WINDOWS)) openHome();
@@ -27,22 +40,37 @@ public class HomeKeyService extends AccessibilityService {
     };
 
     private boolean enabled(String key) {
-        return HomeRoutingPolicy.allowed(getPackageName(),
-                getSharedPreferences("launcher_prefs", MODE_PRIVATE).getAll().get(key));
+        if (!PRODUCTION_PACKAGE.equals(getPackageName()) || !HomeCommandHandler.recover(this)) return false;
+        HomeSetupPolicy choices = HomeSetupPolicy.read(getSharedPreferences("launcher_prefs", MODE_PRIVATE).getAll());
+        return HomeRoutingPolicy.allowed(getPackageName(), HOME_KEYS.equals(key) ? choices.keys : choices.windows);
     }
 
+    /** The legacy window-only compatibility component must not compete for key filtering. */
+    protected boolean filtersHomeKeys() { return true; }
+
     @Override protected void onServiceConnected() {
+        if (preferences != null) preferences.unregisterOnSharedPreferenceChangeListener(preferenceListener);
+        preferences = getSharedPreferences("launcher_prefs", MODE_PRIVATE);
+        preferences.registerOnSharedPreferenceChangeListener(preferenceListener);
+        updateServiceInfo();
+    }
+
+    private void updateServiceInfo() {
         AccessibilityServiceInfo info = getServiceInfo();
         if (info == null) return;
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
         // XML must also declare canRequestFilterKeyEvents; the OS may refuse this capability.
-        info.flags |= AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS;
+        if (filtersHomeKeys() && (enabled(HOME_KEYS) || enabled(HOME_WINDOWS))) {
+            info.flags |= AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS;
+        } else {
+            info.flags &= ~AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS;
+        }
         setServiceInfo(info);
     }
 
     @Override protected boolean onKeyEvent(KeyEvent event) {
-        if (event == null || event.getKeyCode() != KeyEvent.KEYCODE_HOME) return false;
+        if (!filtersHomeKeys() || event == null || event.getKeyCode() != KeyEvent.KEYCODE_HOME) return false;
         if (event.getAction() == KeyEvent.ACTION_UP) {
             boolean handled = consumedPress;
             consumedPress = false;
@@ -52,11 +80,11 @@ public class HomeKeyService extends AccessibilityService {
         if (event.getRepeatCount() > 0) return consumedPress;
         consumedPress = false;
         cancelPending();
-        DeviceRoutes.ROUTING.homePressed();
+        if (!DeviceRoutes.policy(this).homePressed()) return false;
         if (!enabled(HOME_KEYS)) return false;
         // Consume a complete key pair only after a real launch, or when Home is already visible.
-        consumedPress = DeviceRoutes.ROUTING.isHomeVisible()
-                || DeviceRoutes.ROUTING.launchPending(SystemClock.uptimeMillis()) || openHome();
+        consumedPress = DeviceRoutes.policy(this).isHomeVisible()
+                || DeviceRoutes.policy(this).launchPending(SystemClock.uptimeMillis()) || openHome();
         return consumedPress;
     }
 
@@ -66,13 +94,13 @@ public class HomeKeyService extends AccessibilityService {
         cancelPending();
         String pkg = event.getPackageName().toString();
         String cls = event.getClassName().toString();
-        DeviceRoutes.ROUTING.launcherVisibility(getPackageName().equals(pkg) && MAIN.equals(cls));
+        DeviceRoutes.policy(this).launcherVisibility(getPackageName().equals(pkg) && MAIN.equals(cls));
         if (!enabled(HOME_WINDOWS)) return;
         Intent factory = DeviceRoutes.resolve(this, DeviceRoutes.Destination.FACTORY_UI);
         if (factory == null || factory.getComponent() == null
                 || !pkg.equals(factory.getComponent().getPackageName())
                 || !cls.equals(factory.getComponent().getClassName())
-                || !DeviceRoutes.ROUTING.shouldOpen(true, SystemClock.uptimeMillis())) return;
+                || !DeviceRoutes.policy(this).shouldOpen(true, SystemClock.uptimeMillis())) return;
         pendingHome = factory.getComponent();
         // Let Settings and other follow-on windows cancel the fallback before it fires.
         handler.postDelayed(redirect, 600);
@@ -80,13 +108,13 @@ public class HomeKeyService extends AccessibilityService {
 
     private boolean openHome() {
         long now = SystemClock.uptimeMillis();
-        if (!DeviceRoutes.ROUTING.shouldOpen(PRODUCTION_PACKAGE.equals(getPackageName()), now)) return false;
+        if (!DeviceRoutes.policy(this).shouldOpen(PRODUCTION_PACKAGE.equals(getPackageName()), now)) return false;
         Intent launch = new Intent(Intent.ACTION_MAIN).setComponent(new ComponentName(getPackageName(), MAIN))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
                         | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         try {
             startActivity(launch);
-            DeviceRoutes.ROUTING.opened(now);
+            DeviceRoutes.policy(this).opened(now);
             return true;
         } catch (RuntimeException unavailable) {
             return false;
@@ -95,5 +123,9 @@ public class HomeKeyService extends AccessibilityService {
 
     private void cancelPending() { handler.removeCallbacks(redirect); pendingHome = null; }
     @Override public void onInterrupt() { cancelPending(); consumedPress = false; }
-    @Override public void onDestroy() { cancelPending(); consumedPress = false; super.onDestroy(); }
+    @Override public void onDestroy() {
+        cancelPending(); consumedPress = false;
+        if (preferences != null) preferences.unregisterOnSharedPreferenceChangeListener(preferenceListener);
+        super.onDestroy();
+    }
 }

@@ -1,6 +1,7 @@
 package com.jeremykenedy.firetv.ui.nativeapp.icons;
 
 import android.content.Context;
+import android.content.ComponentName;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,8 +30,13 @@ public final class IconSelectionStore {
         return preferences(context).getString(tileKey, THEME);
     }
 
+    public static boolean isValidTileKey(String key) {
+        return key != null && key.length() <= 2048 && key.indexOf('\0') < 0
+                && (key.startsWith("input:") ? key.length() > 6 : ComponentName.unflattenFromString(key) != null);
+    }
+
     public static void save(Context context, String tileKey, String value) throws IOException {
-        if (tileKey == null || tileKey.isEmpty() || tileKey.length() > 512) {
+        if (!isValidTileKey(tileKey)) {
             throw new IOException("Choose an app first.");
         }
         boolean valid = FACTORY.equals(value) || THEME.equals(value)
@@ -47,7 +53,7 @@ public final class IconSelectionStore {
     public static Drawable resolve(Context context, String tileKey, Drawable factoryIcon, Drawable themeIcon) {
         String selected = choice(context, tileKey);
         if (FACTORY.equals(selected)) return factoryIcon;
-        if (THEME.equals(selected)) return themeIcon == null ? factoryIcon : themeIcon;
+        if (THEME.equals(selected)) return themeIcon == null ? IconPackStore.resolve(context, tileKey, factoryIcon) : themeIcon;
         if (selected.startsWith("catalog:")) {
             IconCatalog.Entry entry = IconCatalog.find(selected.substring(8));
             if (entry != null) {
@@ -59,7 +65,15 @@ public final class IconSelectionStore {
         }
         File file = imageFile(context, selected);
         if (file != null && file.isFile()) {
-            Bitmap image = BitmapFactory.decodeFile(file.getAbsolutePath());
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+            if (options.outWidth < 1 || options.outHeight < 1 || file.length() > MAX_BYTES
+                    || (long) options.outWidth * options.outHeight > 40000000) return factoryIcon;
+            options.inSampleSize = 1;
+            while (Math.max(options.outWidth, options.outHeight) / options.inSampleSize > 512) options.inSampleSize *= 2;
+            options.inJustDecodeBounds = false;
+            Bitmap image = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
             if (image != null) return new BitmapDrawable(context.getResources(), image);
         }
         return factoryIcon;

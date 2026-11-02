@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.migrationproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Migration proof" android:debuggable="true" android:allowBackup="false" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.migration.MigrationCrashInstrumentation"
+        android:targetPackage="com.jeremykenedy.firetv.migrationproof" />
+</manifest>

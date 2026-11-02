@@ -5,6 +5,9 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.PathShape;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -18,20 +21,29 @@ import com.jeremykenedy.firetv.ui.nativeapp.cards.CardOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.CardPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.CardsSettingsActivity;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.ChannelCardView;
+import com.jeremykenedy.firetv.ui.nativeapp.cards.HomeContentView;
+import com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationLoader;
+import com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundLayer;
+import com.jeremykenedy.firetv.ui.nativeapp.locks.LauncherLocks;
+import com.jeremykenedy.firetv.ui.nativeapp.folders.FolderActivity;
+import com.jeremykenedy.firetv.ui.nativeapp.folders.FolderOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.folders.FolderPreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.inputs.InputEntry;
+import com.jeremykenedy.firetv.ui.nativeapp.inputs.InputRepository;
+import com.jeremykenedy.firetv.ui.nativeapp.inputs.InputViews;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationActions;
-import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.device.DeviceRoutes;
+import com.jeremykenedy.firetv.ui.nativeapp.device.protection.LauncherAwakeController;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppInventory;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
 import com.jeremykenedy.firetv.ui.nativeapp.icons.IconPickerActivity;
 import com.jeremykenedy.firetv.ui.nativeapp.icons.IconSelectionStore;
-import com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences;
-import com.jeremykenedy.firetv.ui.nativeapp.widget.ClockWidgetView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,20 +57,23 @@ public final class MainActivity extends Activity {
     private final List<FocusTileView> tiles = new ArrayList<>();
     private LinearLayout appArea;
     private Button settings;
-    private LinearLayout homeSlots;
+    private HomeContentView homeContent;
+    private ScrollView slotViewport;
+    private BackgroundLayer background;
+    private LauncherAwakeController awake;
+    private RecommendationLoader recommendations;
+    private long feedRequest;
     private TextView cardStatus;
-    private final List<ChannelCardView> cards = new ArrayList<>();
-    private final List<TvRecommendations.Feed> feeds = new ArrayList<>();
-    private int feedGeneration;
     private boolean resumed;
-    private String focusedSlot;
     private List<AppInventory.App> apps = new ArrayList<>();
     private String focusedApp;
+    private boolean restoringGridFocus;
     private int generation;
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
-        if (saved != null) { focusedApp = saved.getString("focused_app"); focusedSlot = saved.getString("focused_slot"); }
+        if (saved != null) focusedApp = saved.getString("focused_app");
+        restoringGridFocus = focusedApp != null;
         LinearLayout body = Pages.page(this);
         body.addView(Pages.text(this, "Fire TV UI Preview", 30));
         LinearLayout actions = new LinearLayout(this);
@@ -71,6 +86,12 @@ public final class MainActivity extends Activity {
             @Override public void onClick(View view) { startActivity(new Intent(MainActivity.this, HelpActivity.class)); }
         });
         help.setId(0x1002); actions.addView(help); body.addView(actions);
+        View.OnFocusChangeListener headerFocus = new View.OnFocusChangeListener() {
+            @Override public void onFocusChange(View view, boolean focused) {
+                if (focused && resumed) { focusedApp = null; restoringGridFocus = false; }
+            }
+        };
+        settings.setOnFocusChangeListener(headerFocus); help.setOnFocusChangeListener(headerFocus);
         cardStatus = Pages.text(this, "Checking channel cards…", 14);
         cardStatus.setTag("home:card-status");
         cardStatus.setMaxLines(2);
@@ -79,55 +100,115 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams statusLayout = new LinearLayout.LayoutParams(0, -2, 1);
         statusLayout.gravity = android.view.Gravity.CENTER_VERTICAL;
         actions.addView(cardStatus, statusLayout);
-        homeSlots = new LinearLayout(this);
-        homeSlots.setClipChildren(false); homeSlots.setClipToPadding(false);
-        HorizontalScrollView slotScroll = new HorizontalScrollView(this);
-        slotScroll.setClipChildren(false); slotScroll.setClipToPadding(false); slotScroll.addView(homeSlots);
-        ScrollView slotViewport = new ScrollView(this); slotViewport.addView(slotScroll);
+        homeContent = new HomeContentView(this, new ChannelCardView.Listener() {
+            @Override public void onSelect(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
+            @Override public void onLongPress(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
+        }, new HomeContentView.Listener() {
+            @Override public void onSlotFocused(String key) { focusedApp = null; }
+            @Override public void onUnavailable(LayoutItem item) {
+                startActivity(new Intent(MainActivity.this, item.kind == LayoutItem.Kind.CHANNEL_CARD
+                        ? CardsSettingsActivity.class : com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity.class));
+            }
+        });
+        homeContent.restoreState(saved);
+        slotViewport = new ScrollView(this);
+        slotViewport.setClipChildren(false); slotViewport.setClipToPadding(false);
+        slotViewport.addView(homeContent);
         body.addView(slotViewport, new LinearLayout.LayoutParams(-1, Pages.dp(this, 190)));
+        if (saved != null) {
+            final int scrollY = saved.getInt("slot_scroll_y", 0);
+            slotViewport.post(new Runnable() { @Override public void run() { slotViewport.scrollTo(0, scrollY); } });
+        }
+        recommendations = new RecommendationLoader(this, new RecommendationLoader.Listener() {
+            @Override public void onRecommendations(TvRecommendations.Result result) {
+                if (!homeContent.applyResult(feedRequest, result)) return;
+                int omitted = HomeSlots.omittedCount(LayoutPreferences.load(MainActivity.this, HomeSlots.defaults()), result.feeds);
+                String capacity = omitted == 0 ? "" : "Home layout limit reached: " + omitted + " new items were not added. ";
+                cardStatus.setText(capacity + result.message()
+                        + (result.status == TvRecommendations.Status.PERMISSION_REQUIRED ? " Open Settings, Cards to allow access." : ""));
+            }
+        });
         appArea = new LinearLayout(this); appArea.setOrientation(LinearLayout.VERTICAL);
         body.addView(appArea, new LinearLayout.LayoutParams(-1, 0, 1));
         appArea.addView(Pages.text(this, "Loading apps…", 18));
         settings.requestFocus();
+        background = BackgroundLayer.attach(this, body);
+        awake = new LauncherAwakeController(body);
     }
 
     private void loadApps() {
         final int request = ++generation;
+        final List<AppInventory.App> previous = new ArrayList<>(apps);
         loader.execute(new Runnable() {
             @Override public void run() {
-                try {
-                    final List<AppInventory.App> loaded = AppInventory.load(getApplicationContext());
-                    final Map<String, Drawable> artwork = new HashMap<>();
-                    for (AppInventory.App app : loaded) {
-                        artwork.put(app.key(), IconSelectionStore.resolve(MainActivity.this, app.key(), app.artwork, null));
-                    }
-                    runOnUiThread(new Runnable() {
-                        @Override public void run() {
-                            if (isDestroyed() || request != generation) return;
-                            apps = loaded;
-                            AppGridPreferences.save(MainActivity.this, AppGridPreferences.load(MainActivity.this).discover(AppInventory.keys(apps)));
-                            showApps(artwork);
-                        }
-                    });
-                } catch (RuntimeException unavailable) {
-                    runOnUiThread(new Runnable() {
-                        @Override public void run() {
-                            if (isDestroyed() || request != generation) return;
-                            appArea.removeAllViews();
-                            appArea.addView(Pages.text(MainActivity.this, "Installed apps could not be read. Reopen Home to try again.", 18));
-                        }
-                    });
+                final List<String> messages = new ArrayList<>();
+                List<AppInventory.App> inventory;
+                boolean readApps = true;
+                try { inventory = AppInventory.load(getApplicationContext()); }
+                catch (RuntimeException unavailable) {
+                    inventory = previous;
+                    readApps = false;
+                    messages.add("Installed apps could not be refreshed. Reopen Home to try again.");
                 }
+                final List<AppInventory.App> loaded = inventory;
+                final boolean appsRead = readApps;
+                final Map<String, Drawable> artwork = new HashMap<>();
+                boolean artworkFailed = false;
+                for (AppInventory.App app : loaded) {
+                    try { artwork.put(app.key(), IconSelectionStore.resolve(getApplicationContext(), app.key(), app.artwork, null)); }
+                    catch (RuntimeException unavailable) { artwork.put(app.key(), app.artwork); artworkFailed = true; }
+                }
+                if (artworkFailed) messages.add("Some app artwork could not be loaded. Factory artwork is shown where available.");
+                FolderOptions foundFolders;
+                try { foundFolders = FolderPreferences.load(getApplicationContext()); }
+                catch (RuntimeException unavailable) {
+                    foundFolders = FolderOptions.empty();
+                    messages.add("Saved folders could not be read. Their stored data has been kept.");
+                }
+                final FolderOptions folders = foundFolders;
+                for (FolderOptions.Folder folder : folders.folders) artwork.put("folder:" + folder.id, folderArtwork());
+                final List<InputEntry> inputs = new ArrayList<>();
+                try {
+                    InputRepository.Snapshot found = InputRepository.load(getApplicationContext());
+                    inputs.addAll(found.inputs);
+                    for (InputEntry input : inputs) artwork.put(input.artworkKey(), InputViews.artwork(getApplicationContext(), input));
+                } catch (RuntimeException unavailable) { messages.add("TV inputs could not be refreshed. Saved choices are kept."); }
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        if (isDestroyed() || !resumed || request != generation) return;
+                        apps = loaded;
+                        if (appsRead) {
+                            try { AppGridPreferences.saveDiscoveredOrder(MainActivity.this, AppInventory.keys(apps)); }
+                            catch (RuntimeException failed) { messages.add("App order could not be saved. Existing settings are unchanged."); }
+                        }
+                        showApps(artwork, folders, inputs, messages);
+                    }
+                });
             }
         });
     }
 
-    private void showApps(Map<String, Drawable> artwork) {
+    private static Drawable folderArtwork() {
+        Path path = new Path();
+        path.moveTo(8, 12); path.lineTo(48, 12); path.lineTo(60, 26); path.lineTo(120, 26);
+        path.quadTo(128, 26, 128, 34); path.lineTo(128, 88); path.quadTo(128, 96, 120, 96);
+        path.lineTo(8, 96); path.quadTo(0, 96, 0, 88); path.lineTo(0, 20); path.quadTo(0, 12, 8, 12);
+        path.close();
+        ShapeDrawable folder = new ShapeDrawable(new PathShape(path, 128, 108));
+        folder.getPaint().setColor(0xffb49ae4);
+        folder.setIntrinsicWidth(128); folder.setIntrinsicHeight(108);
+        return folder;
+    }
+
+    private void showApps(Map<String, Drawable> artwork, FolderOptions folders,
+            List<InputEntry> inputs, List<String> messages) {
         View oldFocus = getCurrentFocus();
         boolean restoreTile = oldFocus instanceof FocusTileView || focusedApp != null;
         if (oldFocus instanceof FocusTileView) focusedApp = String.valueOf(oldFocus.getTag());
         appArea.removeAllViews(); tiles.clear();
         AppGridOptions options = AppGridPreferences.load(this);
+        if (options.unrememberedCount(AppInventory.keys(apps)) > 0)
+            messages.add("App order limit reached. New apps remain usable, but their order cannot be saved.");
         GridLayout grid = new GridLayout(this);
         grid.setClipChildren(false); grid.setClipToPadding(false);
         int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 64);
@@ -158,12 +239,16 @@ public final class MainActivity extends Activity {
             tile.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     focusedApp = app.key();
-                    try {
-                        startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
-                                .setComponent(app.component).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                    } catch (RuntimeException unavailable) {
-                        Toast.makeText(MainActivity.this, "This app is currently unavailable.", Toast.LENGTH_SHORT).show();
-                    }
+                    LauncherLocks.guard(MainActivity.this, app.key(), new Runnable() {
+                        @Override public void run() {
+                            try {
+                                startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
+                                        .setComponent(app.component).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                            } catch (RuntimeException unavailable) {
+                                Toast.makeText(MainActivity.this, "This app is currently unavailable.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
                 }
             });
             tile.setOnLongClickListener(new View.OnLongClickListener() {
@@ -174,22 +259,74 @@ public final class MainActivity extends Activity {
             grid.addView(tile, params); tiles.add(tile);
             if (key.equals(focusedApp)) restore = tile;
         }
+        for (final FolderOptions.Folder folder : folders.folders) {
+            final String key = "folder:" + folder.id;
+            FocusTileView tile = new FocusTileView(this);
+            tile.setTitle(folder.name); tile.setIcon(artwork.get(key)); tile.setTag(key);
+            tile.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    focusedApp = key;
+                    // FolderActivity guards its direct-open boundary, so a locked folder prompts once.
+                    startActivity(FolderActivity.intent(MainActivity.this, folder.id));
+                }
+            });
+            tile.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override public boolean onLongClick(View view) { focusedApp = key; folderActions(folder); return true; }
+            });
+            addGridTile(grid, tile, tileWidth, tileHeight);
+            if (key.equals(focusedApp)) restore = tile;
+        }
+        for (final InputEntry input : inputs) {
+            final String key = input.artworkKey();
+            FocusTileView tile = InputViews.tile(this, input, artwork.get(key), new Runnable() {
+                @Override public void run() { focusedApp = key; loadApps(); }
+            });
+            tile.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override public void onFocusChange(View view, boolean focused) { if (focused) focusedApp = key; }
+            });
+            addGridTile(grid, tile, tileWidth, tileHeight);
+            if (key.equals(focusedApp)) restore = tile;
+        }
+        for (String message : messages) grid.addView(Pages.text(this, message, 16));
         if (tiles.isEmpty()) grid.addView(Pages.text(this, "No visible apps. Show apps in Settings → Home layout → Apps grid.", 18));
         if (restoreTile) {
             if (restore != null) restore.requestFocus();
             else if (!tiles.isEmpty()) { tiles.get(0).requestFocus(); focusedApp = String.valueOf(tiles.get(0).getTag()); }
             else { settings.requestFocus(); focusedApp = null; }
         }
+        restoringGridFocus = false;
+    }
+
+    private void addGridTile(GridLayout grid, FocusTileView tile, int width, int height) {
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+        params.width = width; params.height = height;
+        grid.addView(tile, params); tiles.add(tile);
+    }
+
+    private void folderActions(final FolderOptions.Folder folder) {
+        final String key = "folder:" + folder.id;
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(folder.name)
+                .setItems(new String[]{"Open folder", "Manage folders", "Lock / unlock"}, new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface ignored, int which) {
+                        if (which == 0) startActivity(FolderActivity.intent(MainActivity.this, folder.id));
+                        else if (which == 1) startActivity(new Intent(MainActivity.this, FolderActivity.class));
+                        else LauncherLocks.showControls(MainActivity.this, key, folder.name, null);
+                    }
+                }).setNegativeButton("Cancel", null).show();
+        dialog.getListView().requestFocus(); dialog.getListView().setSelection(0);
     }
 
     private void appActions(final AppInventory.App app) {
         final AppGridOptions options = AppGridPreferences.load(this);
         AlertDialog actions = new AlertDialog.Builder(this).setTitle(app.label).setItems(new String[] {
             "Change icon", options.favorites.contains(app.key()) ? "Remove favorite" : "Add favorite",
-            "Move earlier", "Move later", "Hide from Home"
+            "Move earlier", "Move later", "Hide from Home", "Lock / unlock"
         }, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int which) {
                 if (which == 0) { IconPickerActivity.open(MainActivity.this, app.key(), app.label); return; }
+                if (which == 5) {
+                    LauncherLocks.showControls(MainActivity.this, app.key(), app.label, null); return;
+                }
                 AppGridOptions current = AppGridPreferences.load(MainActivity.this);
                 if (which == 1) current = current.toggleFavorite(app.key());
                 else if (which == 4) current = current.toggleHidden(app.key());
@@ -201,67 +338,8 @@ public final class MainActivity extends Activity {
         actions.getListView().setSelection(0);
     }
 
-    private void loadFeeds() {
-        final int request = ++feedGeneration;
-        loader.execute(new Runnable() {
-            @Override public void run() {
-                final TvRecommendations.Result result = TvRecommendations.read(getApplicationContext());
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        if (isDestroyed() || !resumed || request != feedGeneration) return;
-                        feeds.clear(); feeds.addAll(result.feeds);
-                        cardStatus.setText(result.message() + (result.status == TvRecommendations.Status.PERMISSION_REQUIRED
-                                ? " Open Settings, Cards to allow access." : ""));
-                        showSlots();
-                    }
-                });
-            }
-        });
-    }
-
-    private void showSlots() {
-        View oldFocus = getCurrentFocus();
-        if (oldFocus != null && oldFocus.getTag() instanceof String
-                && String.valueOf(oldFocus.getTag()).startsWith("slot:")) focusedSlot = String.valueOf(oldFocus.getTag());
-        boolean restore = oldFocus != null && String.valueOf(oldFocus.getTag()).startsWith("slot:");
-        for (ChannelCardView card : cards) card.onHostPause();
-        cards.clear(); homeSlots.removeAllViews();
-        List<LayoutItem> available = HomeSlots.available(feeds);
-        LayoutOptions layout = LayoutPreferences.load(this, HomeSlots.defaults()).discover(available);
-        LayoutPreferences.save(this, layout);
-        CardOptions options = CardPreferences.load(this);
-        Map<String, TvRecommendations.Feed> byKey = new HashMap<>();
-        for (TvRecommendations.Feed feed : feeds) byKey.put(feed.item.key(), feed);
-        for (LayoutItem item : layout.visible(available)) {
-            View slot;
-            if (item.equals(HomeSlots.CLOCK)) slot = new ClockWidgetView(this);
-            else {
-                TvRecommendations.Feed feed = byKey.get(item.key());
-                if (feed == null) continue;
-                ChannelCardView card = new ChannelCardView(this, feed, new ChannelCardView.Listener() {
-                    @Override public void onSelect(TvRecommendations.Feed value, TvRecommendations.Program program) { cardActions(value, program); }
-                    @Override public void onLongPress(TvRecommendations.Feed value, TvRecommendations.Program program) { cardActions(value, program); }
-                });
-                configureCard(card, options); cards.add(card); slot = card;
-                if (resumed) card.onHostResume();
-            }
-            slot.setTag("slot:" + item.key());
-            slot.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override public void onFocusChange(View view, boolean focused) {
-                    if (focused) { focusedSlot = String.valueOf(view.getTag()); focusedApp = null; }
-                }
-            });
-            homeSlots.addView(slot, new LinearLayout.LayoutParams(Pages.dp(this, layout.widthDp(item, 320)),
-                    Pages.dp(this, layout.heightDp(item, 160))));
-            if (restore && slot.getTag().equals(focusedSlot)) slot.requestFocus();
-        }
-    }
-
     private void configureCard(ChannelCardView card, CardOptions options) {
-        List<TvRecommendations.Program> visible = new ArrayList<>();
-        for (TvRecommendations.Program program : card.feed().programs)
-            if (!options.isHidden(program.source, program.key)) visible.add(program);
-        card.setPrograms(visible);
+        card.setPrograms(CardPreferences.visiblePrograms(options, card.feed()));
         card.setRotationIntervalMillis(options.timerSeconds(card.feed().item.id) * 1000L);
     }
 
@@ -273,7 +351,17 @@ public final class MainActivity extends Activity {
         final List<Runnable> actions = new ArrayList<>();
         if (program != null) {
             RecommendationActions.Availability links = RecommendationActions.inspect(this, program);
-            if (links.title) {
+            if (links.details) {
+                labels.add(links.detailsLabel()); actions.add(new Runnable() {
+                    @Override public void run() { launchResult(RecommendationActions.launchDetails(MainActivity.this, program)); }
+                });
+            }
+            if (links.play) {
+                labels.add(links.playLabel()); actions.add(new Runnable() {
+                    @Override public void run() { launchResult(RecommendationActions.launchPlay(MainActivity.this, program)); }
+                });
+            }
+            if (links.title && (!links.details || !java.util.Objects.equals(program.intentUri, program.detailsIntentUri))) {
                 labels.add(links.titleLabel()); actions.add(new Runnable() {
                     @Override public void run() { launchResult(RecommendationActions.launchTitle(MainActivity.this, program)); }
                 });
@@ -292,6 +380,19 @@ public final class MainActivity extends Activity {
                     } catch (RuntimeException failed) { Toast.makeText(MainActivity.this, "This item could not be hidden. Please try again.", Toast.LENGTH_SHORT).show(); }
                 }
             });
+            if (program.seriesKey != null && !program.seriesKey.isEmpty()) {
+                labels.add("Hide series"); actions.add(new Runnable() {
+                    @Override public void run() {
+                        try {
+                            String label = program.seriesTitle == null || program.seriesTitle.isEmpty()
+                                    ? "Series containing " + program.title : program.seriesTitle;
+                            if (label.length() > 512) label = label.substring(0, 512);
+                            CardOptions updated = CardPreferences.load(MainActivity.this).hideSeries(program.source, program.seriesKey, label);
+                            CardPreferences.save(MainActivity.this, updated); homeContent.refreshPreferences();
+                        } catch (RuntimeException failed) { Toast.makeText(MainActivity.this, "This series could not be hidden. Please try again.", Toast.LENGTH_SHORT).show(); }
+                    }
+                });
+            }
         }
         labels.add("Card settings"); actions.add(new Runnable() {
             @Override public void run() { startActivity(new Intent(MainActivity.this, CardsSettingsActivity.class)); }
@@ -307,35 +408,40 @@ public final class MainActivity extends Activity {
     }
 
     private ChannelCardView findCard(String key) {
-        for (ChannelCardView card : cards) if (card.feed().item.key().equals(key)) return card;
-        return null;
+        return homeContent.findCard(key);
     }
 
     private void launchResult(RecommendationActions.Outcome result) {
-        if (result != RecommendationActions.Outcome.OPENED)
+        if (result != RecommendationActions.Outcome.OPENED && result != RecommendationActions.Outcome.PENDING)
             Toast.makeText(this, "This action is unavailable. Try opening the source app.", Toast.LENGTH_SHORT).show();
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
         View focus = getCurrentFocus();
         if (focus instanceof FocusTileView) state.putString("focused_app", String.valueOf(focus.getTag()));
-        state.putString("focused_slot", focusedSlot);
+        homeContent.saveState(state);
+        state.putInt("slot_scroll_y", slotViewport.getScrollY());
         super.onSaveInstanceState(state);
     }
     @Override protected void onPause() {
-        DeviceRoutes.launcherVisibility(false);
-        resumed = false; ++feedGeneration;
-        for (ChannelCardView card : cards) card.onHostPause();
+        DeviceRoutes.launcherVisibility(this, false);
+        resumed = false;
+        generation++;
+        awake.onPause();
+        recommendations.stop(); homeContent.onHostPause(); background.setResumed(false);
         super.onPause();
     }
-    @Override protected void onDestroy() { loader.shutdownNow(); super.onDestroy(); }
+    @Override protected void onDestroy() { awake.onPause(); recommendations.close(); loader.shutdownNow(); super.onDestroy(); }
     @Override protected void onResume() {
         super.onResume();
-        DeviceRoutes.launcherVisibility(true);
+        DeviceRoutes.launcherVisibility(this, true);
         resumed = true;
         View focus = getCurrentFocus();
-        if (!(focus instanceof FocusTileView) && focus != null && (focus.getId() == 0x1001 || focus.getId() == 0x1002)) focusedApp = null;
-        showSlots(); loadFeeds();
+        if (!restoringGridFocus && !(focus instanceof FocusTileView) && focus != null
+                && (focus.getId() == 0x1001 || focus.getId() == 0x1002)) focusedApp = null;
+        awake.onResume(this);
+        background.setResumed(true); homeContent.onHostResume();
+        feedRequest = homeContent.beginRefresh(); recommendations.start();
         loadApps();
     }
 }

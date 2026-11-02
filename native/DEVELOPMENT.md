@@ -1,5 +1,7 @@
 # Independent native review target
 
+This document records the earlier review foundation. See the [source preview guide](../docs/source-preview.md) for the current alpha scope and pending release qualification.
+
 This target builds from maintained Java and Android resources. It does not read the parent project's supplied launcher APK, decoded resources, Smali adapters or patch scripts.
 
 The application ID is `com.jeremykenedy.firetv.ui.preview`. It is an isolated review app, not a production replacement. It does not register as Home, enable accessibility, change TV settings or import production preferences. No physical TV deployment is part of this foundation.
@@ -30,7 +32,7 @@ To demonstrate independence, copy only the `native` directory into an empty temp
 
 ## Not a replacement yet
 
-Production Home/key routing, real-service playback, series hiding, the full widget catalog, themes, folders, screensaver administration, private account data, complete imports/device controls and existing update flows remain incomplete. Typed migration code is a preservation/recovery foundation, not a proven production upgrade. The full feature and migration inventory is tracked in `working-files/execution-2026-11-01/source-independent-ui.md` in the Fire TV workspace. Do not publish or deploy this review shell as the production UI.
+Production Home/key routing, real-service playback, series hiding, the full widget catalog, themes, folders, screensaver administration, private account data, complete imports/device controls and existing update flows remain incomplete. Typed migration code is a preservation/recovery foundation, not a proven production upgrade. The full production parity and migration inventory is maintained in private delivery records. Public preview scope and limits are documented in the [source preview guide](../docs/source-preview.md). Do not publish or deploy this review shell as the production UI.
 
 The original release build remains unchanged. Historical attribution and third-party notices remain in the repository.
 

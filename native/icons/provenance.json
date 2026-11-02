@@ -72,6 +72,136 @@
       "sourceSha256": "bde201887c0e190b0b1bbc15c71a0996ed818050d8db5764adb310f0a4043020",
       "imageSha256": "792581d418a47bb28b564d1770b76ae487f024bffae1fa09e90f23078646a857",
       "license": "CC0-1.0 artwork; MIT project tile layout"
+    },
+    {
+      "id": "xbox-series-x",
+      "name": "Xbox Series X",
+      "resource": "icon_xbox_series_x.png",
+      "source": "https://commons.wikimedia.org/wiki/File:Xbox_Series_X_logo.svg",
+      "sourceSha256": "d4649e1baa5bafede43648f0f7be63894a765f24bb9a5d6bd58934417edae576",
+      "imageSha256": "a9f23324e85f6526e4eb5b525fac8162f33970f459fa5d405b004c0308a16489",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Xbox_Series_X_logo.svg"
+    },
+    {
+      "id": "switch-2",
+      "name": "Nintendo Switch 2",
+      "resource": "icon_switch_2.png",
+      "source": "https://commons.wikimedia.org/wiki/File:Nintendo_Switch_2_logo.svg",
+      "sourceSha256": "6d77ac4b96ffd62865989f44a504df61fe4bae0ae498d6b19178a0fa27cae5af",
+      "imageSha256": "2b3edf5383e62cc3b75cc51834671e0a35df0f0633173b5d2c94f968ec6232bc",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Nintendo_Switch_2_logo.svg"
+    },
+    {
+      "id": "switch-lite",
+      "name": "Nintendo Switch Lite",
+      "resource": "icon_switch_lite.png",
+      "source": "https://commons.wikimedia.org/wiki/File:Nintendo_Switch_Lite_logo.svg",
+      "sourceSha256": "03c556bb98d47cf4a52045a53f7a5f596f655d8fd17e13fdb6c5147c056c1e17",
+      "imageSha256": "12194690a06677ec1d33cfff58fc490d9fa2696d2b226c0608581659b083e7ff",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Nintendo_Switch_Lite_logo.svg"
+    },
+    {
+      "id": "dvd",
+      "name": "DVD",
+      "resource": "icon_dvd.png",
+      "source": "https://commons.wikimedia.org/wiki/File:DVD-Video_Logo.svg",
+      "sourceSha256": "a29feb3af0cb81741b4c57f1c2b2c8c06a05e02f38fc185c4c51e01aa0b7ee40",
+      "imageSha256": "7fa8fefa1fc1e11d8ae08df307b887c951892e9a4eca03666a5a6ad97cf42aaa",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:DVD-Video_Logo.svg"
+    },
+    {
+      "id": "blu-ray",
+      "name": "Blu-ray",
+      "resource": "icon_blu_ray.png",
+      "source": "https://commons.wikimedia.org/wiki/File:Blu-ray_Disc.svg",
+      "sourceSha256": "575bfcc076b9b137c71b3aa039c1ac1aa2d0fcfb667774496250b82a0dc2d7b1",
+      "imageSha256": "22471efbb3563342bdae0182fd3a641464d974d26e0b029ed28701ade3bf5db0",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Blu-ray_Disc.svg"
+    },
+    {
+      "id": "laserdisc",
+      "name": "LaserDisc",
+      "resource": "icon_laserdisc.png",
+      "source": "https://commons.wikimedia.org/wiki/File:Laser_Disc.svg",
+      "sourceSha256": "999cefe93e7f89e15da611367123d360cb2549cee77cf491cc7e21cebfbb3732",
+      "imageSha256": "27e452dec19c4c89634d02eec48458cb405e7653a25ec019f8457292f692d954",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Laser_Disc.svg"
+    },
+    {
+      "id": "meta-vr",
+      "name": "Meta VR",
+      "resource": "icon_meta_vr.png",
+      "source": "https://commons.wikimedia.org/wiki/File:Meta_Platforms_Inc._logo.svg",
+      "sourceSha256": "b536f39ac80d6b93477ce158e9e0f963504a407da8c35caf5ded3ac072b49176",
+      "imageSha256": "60d65c2d675081d5b1fc09e3d10d84eaee7d9519af5df9cf88f0fd228ad3369c",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Meta_Platforms_Inc._logo.svg"
+    },
+    {
+      "id": "meta-quest",
+      "name": "Meta Quest",
+      "resource": "icon_meta_quest.png",
+      "source": "https://commons.wikimedia.org/wiki/File:Meta_Quest_logo.svg",
+      "sourceSha256": "d1c32368e301a28a902ea0f66b8a536ccd1e84d0ca9ede9c2f260bd5e7e501ec",
+      "imageSha256": "e04587cb0c217542c64e869e63471d4b378378411d249e5a704ea5a73b99a4ef",
+      "license": "CC0-1.0 artwork; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Meta_Quest_logo.svg"
+    },
+    {
+      "id": "macbook",
+      "name": "MacBook",
+      "resource": "icon_macbook.png",
+      "source": "Original project vector icons/sources/macbook.svg",
+      "sourceSha256": "73b4e3107d00442a644fddf40b314217ee7c15c393b4731d55ee3197c51225fe",
+      "imageSha256": "55e0444950702dc77e7a1ddda4538392cc9d2d4baf35bb360eee4b798574bf2e",
+      "license": "MIT original project artwork",
+      "licenseEvidence": null
+    },
+    {
+      "id": "sony",
+      "name": "Sony",
+      "resource": "icon_sony.png",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg",
+      "sourceSha256": "f6191bc69f8df259c86a13dc9582ba9ed2e0101d4452ba3f1d33ec8e907ddda0",
+      "imageSha256": "bcc615ce04b2fed9db8cac4e2e49b0a8d44a3c6c576ff2e304a6b98012e61d53",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Sony_logo.svg"
+    },
+    {
+      "id": "kenwood",
+      "name": "Kenwood",
+      "resource": "icon_kenwood.png",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/0/07/Kenwood_Logo.svg",
+      "sourceSha256": "31374ee5683d5e1c2b0163645330c988bcc706ec5e9e31cc2ffe32d53e5ffbc2",
+      "imageSha256": "a897953300b067a4c352b4de75b88bbb801c6377a05f245d2ba5f7928f8ab213",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Kenwood_Logo.svg"
+    },
+    {
+      "id": "pioneer",
+      "name": "Pioneer",
+      "resource": "icon_pioneer.png",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Pioneer_logo.svg",
+      "sourceSha256": "68c9dad63540d8d6165c132f57a4a8167ed01f02d604da4bb1d95951b3e2b5a6",
+      "imageSha256": "b4723f58e908b72dd105d91e6a2c0293e9e82d5e42e76899abd5ad27a36db329",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Pioneer_logo.svg"
+    },
+    {
+      "id": "harman-kardon",
+      "name": "Harman Kardon",
+      "resource": "icon_harman_kardon.png",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/4/40/Harman_Kardon_logo.svg",
+      "sourceSha256": "a59d7186155cd35ea7e75e87352f6ba0ee64789ebcbd4738203f229b8e85518d",
+      "imageSha256": "1733a0bfa4a96e2356b121de6fff912ca074188f6a1a7ded3f7a3e31e1a50712",
+      "license": "Public domain textlogo per Wikimedia Commons; MIT project tile layout",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Harman_Kardon_logo.svg"
     }
   ],
   "upstreamLicense": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/LICENSE.md"

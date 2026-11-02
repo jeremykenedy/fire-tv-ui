@@ -7,6 +7,19 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/cards'
 STUBS = {
+    'com/jeremykenedy/firetv/ui/nativeapp/providers/TvRecommendations.java': '''package com.jeremykenedy.firetv.ui.nativeapp.providers;
+import java.util.*;
+public final class TvRecommendations {
+ public static final class Program {
+  public final String key,source,title,seriesKey,seriesTitle;
+  public Program(String k,String s,String t,Object a,String intent,String sk,String st){key=k;source=s;title=t;seriesKey=sk;seriesTitle=st;}
+ }
+ public static final class Item { public final String id; Item(String v){id=v;} }
+ public static final class Feed {
+  public final Item item; public final String source,title; public final List<Program> programs;
+  public Feed(String id,String t,String s,List<Program> p){item=new Item(id);title=t;source=s;programs=p;}
+ }
+}''',
     'android/content/Context.java': '''package android.content;
 public class Context {
  public static final int MODE_PRIVATE=0;

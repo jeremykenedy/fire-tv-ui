@@ -11,12 +11,20 @@ import java.util.Set;
 
 public final class LayoutOptions {
     public static final int MAX_ITEMS = 512;
+    public enum Mode { BOTH, CARDS_ONLY, WIDGETS_ONLY, NONE }
+    public final Mode mode;
     public final int cardWidthDp;
     public final int cardHeightDp;
     public final List<String> order;
     public final Set<String> hidden;
 
     public LayoutOptions(int widthDp, int heightDp, Collection<String> order, Collection<String> hidden) {
+        this(widthDp, heightDp, order, hidden, Mode.BOTH);
+    }
+
+    public LayoutOptions(int widthDp, int heightDp, Collection<String> order, Collection<String> hidden, Mode mode) {
+        if (mode == null) throw new IllegalArgumentException("Invalid Home content mode.");
+        this.mode = mode;
         if (widthDp < 64 || widthDp > 1024 || heightDp < 48 || heightDp > 1024)
             throw new IllegalArgumentException("Card dimensions are outside the supported range.");
         cardWidthDp = widthDp;
@@ -33,8 +41,10 @@ public final class LayoutOptions {
     /** Keep missing producers in their saved positions and append newly discovered items. */
     public LayoutOptions discover(Collection<LayoutItem> available) {
         LinkedHashSet<String> next = new LinkedHashSet<>(order);
-        for (LayoutItem item : available) next.add(item.key());
-        return new LayoutOptions(cardWidthDp, cardHeightDp, next, hidden);
+        for (LayoutItem item : available) {
+            if (next.size() < MAX_ITEMS) next.add(item.key());
+        }
+        return new LayoutOptions(cardWidthDp, cardHeightDp, next, hidden, mode);
     }
 
     public List<LayoutItem> visible(Collection<LayoutItem> available) {
@@ -46,10 +56,27 @@ public final class LayoutOptions {
         List<LayoutItem> result = new ArrayList<>();
         for (String key : order) {
             LayoutItem item = pending.remove(key);
-            if (item != null && !hidden.contains(key)) result.add(item);
+            if (item != null && isVisible(item)) result.add(item);
         }
-        for (LayoutItem item : pending.values()) if (!hidden.contains(item.key())) result.add(item);
+        int remaining = MAX_ITEMS - order.size();
+        for (LayoutItem item : pending.values()) {
+            if (remaining-- <= 0) break;
+            if (isVisible(item)) result.add(item);
+        }
         return Collections.unmodifiableList(result);
+    }
+
+    public boolean includes(LayoutItem.Kind kind) {
+        return mode == Mode.BOTH || (mode == Mode.CARDS_ONLY && kind == LayoutItem.Kind.CHANNEL_CARD)
+                || (mode == Mode.WIDGETS_ONLY && kind == LayoutItem.Kind.WIDGET);
+    }
+
+    private boolean isVisible(LayoutItem item) {
+        return !hidden.contains(item.key()) && includes(item.kind);
+    }
+
+    public LayoutOptions withMode(Mode value) {
+        return new LayoutOptions(cardWidthDp, cardHeightDp, order, hidden, value);
     }
 
     /** Reorder relative to another visible item while retaining unavailable entries. */
@@ -60,18 +87,18 @@ public final class LayoutOptions {
         List<String> next = new ArrayList<>(order);
         next.remove(key);
         next.add(beforeKey == null ? next.size() : next.indexOf(beforeKey), key);
-        return new LayoutOptions(cardWidthDp, cardHeightDp, next, hidden);
+        return new LayoutOptions(cardWidthDp, cardHeightDp, next, hidden, mode);
     }
 
     public LayoutOptions setVisible(String key, boolean visible) {
         if (!LayoutItem.validKey(key)) throw new IllegalArgumentException("Invalid layout key.");
         Set<String> next = new LinkedHashSet<>(hidden);
         if (visible) next.remove(key); else next.add(key);
-        return new LayoutOptions(cardWidthDp, cardHeightDp, order, next);
+        return new LayoutOptions(cardWidthDp, cardHeightDp, order, next, mode);
     }
 
     public LayoutOptions resizeCards(int widthDp, int heightDp) {
-        return new LayoutOptions(widthDp, heightDp, order, hidden);
+        return new LayoutOptions(widthDp, heightDp, order, hidden, mode);
     }
 
     public int widthDp(LayoutItem item, int widgetWidthDp) {
@@ -88,17 +115,26 @@ public final class LayoutOptions {
         values.put("card_height_dp", cardHeightDp);
         values.put("order", join(order));
         values.put("hidden", join(hidden));
+        values.put("mode", mode.name());
         return Collections.unmodifiableMap(values);
     }
 
     public static LayoutOptions fromBackup(Map<String, ?> values) {
-        if (values == null || values.size() != 4
+        if (values == null || (values.size() != 4 && values.size() != 5)
+                || (values.size() == 5 && !values.containsKey("mode"))
                 || !(values.get("card_width_dp") instanceof Integer)
                 || !(values.get("card_height_dp") instanceof Integer)
                 || !(values.get("order") instanceof String) || !(values.get("hidden") instanceof String))
             throw new IllegalArgumentException("Invalid saved layout values.");
         return new LayoutOptions((Integer) values.get("card_width_dp"), (Integer) values.get("card_height_dp"),
-                split((String) values.get("order")), split((String) values.get("hidden")));
+                split((String) values.get("order")), split((String) values.get("hidden")), readMode(values));
+    }
+
+    private static Mode readMode(Map<String, ?> values) {
+        if (!values.containsKey("mode")) return Mode.BOTH;
+        if (!(values.get("mode") instanceof String)) throw new IllegalArgumentException("Invalid Home content mode.");
+        try { return Mode.valueOf((String) values.get("mode")); }
+        catch (IllegalArgumentException invalid) { throw new IllegalArgumentException("Invalid Home content mode."); }
     }
 
     private static LinkedHashSet<String> keys(Collection<String> values) {

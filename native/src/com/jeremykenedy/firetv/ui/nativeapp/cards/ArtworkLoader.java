@@ -147,12 +147,18 @@ public final class ArtworkLoader {
     private ArtworkLoader() {}
 
     public static Request load(Context context, final Uri uri, Callback callback) {
+        return load(context, uri, MAX_EDGE, callback);
+    }
+
+    public static Request load(Context context, final Uri uri, int requestedEdge, Callback callback) {
+        final int edge = Math.max(32, Math.min(MAX_EDGE, requestedEdge));
         final Request request = new Request(callback);
         if (uri == null || !allowed(uri)) {
             request.deliver(null);
             return request;
         }
-        final String key = uri.toString();
+        final String location = uri.toString();
+        final String key = location + "\n" + edge;
         Bitmap cached = CACHE.get(key);
         if (cached != null) {
             request.deliver(cached);
@@ -173,7 +179,7 @@ public final class ArtworkLoader {
                         if (request.expired()) return;
                         byte[] bytes;
                         if ("https".equals(uri.getScheme())) {
-                            HttpURLConnection connection = (HttpURLConnection) new URL(key).openConnection();
+                            HttpURLConnection connection = (HttpURLConnection) new URL(location).openConnection();
                             if (!request.track(connection)) return;
                             connection.setInstanceFollowRedirects(false);
                             connection.setConnectTimeout(4000);
@@ -189,7 +195,7 @@ public final class ArtworkLoader {
                             if (asset == null || !request.track(asset)) return;
                             bytes = read(asset, request);
                         }
-                        if (bytes != null && !request.expired()) bitmap = decode(bytes);
+                        if (bytes != null && !request.expired()) bitmap = decode(bytes, edge);
                         if (bitmap != null && !request.expired()) CACHE.put(key, bitmap);
                     } catch (IOException | RuntimeException unavailable) {
                         // Missing grants, broken providers and network errors leave the title usable.
@@ -255,7 +261,7 @@ public final class ArtworkLoader {
         } catch (ErrnoException unavailable) { throw new IOException(unavailable); }
     }
 
-    private static Bitmap decode(byte[] bytes) {
+    private static Bitmap decode(byte[] bytes, int edge) {
         BitmapFactory.Options bounds = new BitmapFactory.Options();
         bounds.inJustDecodeBounds = true;
         BitmapFactory.decodeByteArray(bytes, 0, bytes.length, bounds);
@@ -263,8 +269,8 @@ public final class ArtworkLoader {
             return null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = 1;
-        while ((bounds.outWidth + options.inSampleSize - 1) / options.inSampleSize > MAX_EDGE
-                || (bounds.outHeight + options.inSampleSize - 1) / options.inSampleSize > MAX_EDGE)
+        while ((bounds.outWidth + options.inSampleSize - 1) / options.inSampleSize > edge
+                || (bounds.outHeight + options.inSampleSize - 1) / options.inSampleSize > edge)
             options.inSampleSize *= 2;
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
