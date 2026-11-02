@@ -223,8 +223,36 @@ public final class PresentationMappingTest {
             reject(() -> LegacyPresentationMapper.plan(snapshot(changed), identities(), Collections.emptyMap()));
         }
         Map<String, Object> unsupportedGradient = new LinkedHashMap<>(); unsupportedGradient.put("mode", "custom"); unsupportedGradient.put("custom_gradient", "Fixture gradient");
-        LegacyPresentationMapper.Plan gradient = LegacyPresentationMapper.plan(snapshot(unsupportedGradient), identities(), Collections.emptyMap());
-        check(gradient.patches.isEmpty() && gradient.unmappedLegacyKeys.equals(unsupportedGradient.keySet()), "Custom gradient mode is not guessed to mean image wallpaper.");
+        reject(() -> LegacyPresentationMapper.plan(snapshot(unsupportedGradient), identities(), Collections.emptyMap()));
+        for (String[] choice : new String[][]{{"Electric Indigo", "electric_indigo"}, {"Cloud Nine", "cloud_nine"}}) {
+            Map<String, Object> custom = new LinkedHashMap<>();
+            custom.put("mode", "custom"); custom.put("custom_gradient", choice[0]);
+            custom.put("menu_animation", "off");
+            LegacyPresentationMapper.Plan selected = LegacyPresentationMapper.plan(snapshot(custom), identities(), Collections.emptyMap());
+            Map<String, Object> appearance = selected.after.get(LegacyPresentationMapper.APPEARANCE).values();
+            check(appearance.get("base").equals("still_legacy_gradient") && appearance.get("scene").equals("")
+                    && appearance.get("legacy_gradient").equals(choice[1]) && selected.unmappedLegacyKeys.isEmpty(), "Known active gradient maps exactly and stays separate from wallpaper.");
+            custom.remove("mode"); custom.remove("menu_animation");
+            LegacyPresentationMapper.Plan dormant = LegacyPresentationMapper.plan(snapshot(custom), identities(), Collections.emptyMap());
+            check(dormant.after.get(LegacyPresentationMapper.APPEARANCE).values().get("legacy_gradient").equals(choice[1])
+                    && !dormant.after.get(LegacyPresentationMapper.APPEARANCE).values().containsKey("base"), "Dormant gradient is retained without selecting a mode.");
+        }
+        Map<String, Object> missing = new LinkedHashMap<>(); missing.put("mode", "custom");
+        reject(() -> LegacyPresentationMapper.plan(snapshot(missing), identities(), Collections.emptyMap()));
+        Map<String, Object> conflict = new LinkedHashMap<>(); conflict.put("mode", "custom"); conflict.put("custom_gradient", "Electric Indigo"); conflict.put("menu_animation", "aurora");
+        reject(() -> LegacyPresentationMapper.plan(snapshot(conflict), identities(), Collections.emptyMap()));
+        conflict.remove("menu_animation");
+        Map<String, PreferenceSnapshot> target = new LinkedHashMap<>(); target.put(LegacyPresentationMapper.APPEARANCE, snapshot(Collections.singletonMap("scene", "christmas")));
+        reject(() -> LegacyPresentationMapper.plan(snapshot(conflict), identities(), target));
+        target.put(LegacyPresentationMapper.APPEARANCE, snapshot(Collections.singletonMap("scene", "valentine")));
+        reject(() -> LegacyPresentationMapper.plan(snapshot(conflict), identities(), target));
+        LegacyPresentationMapper.Plan preservedScene = LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("custom_gradient", "Cloud Nine")), identities(), target);
+        check(preservedScene.after.get(LegacyPresentationMapper.APPEARANCE).values().get("scene").equals("valentine"), "A dormant gradient retains an existing native scene.");
+        target.put(LegacyPresentationMapper.APPEARANCE, snapshot(Collections.singletonMap("scene", "unknown_scene")));
+        reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("custom_gradient", "Cloud Nine")), identities(), target));
+        Map<String, Object> otherMode = new LinkedHashMap<>(); otherMode.put("mode", "dark"); otherMode.put("custom_gradient", "Cloud Nine");
+        LegacyPresentationMapper.Plan heldMode = LegacyPresentationMapper.plan(snapshot(otherMode), identities(), Collections.emptyMap());
+        check(heldMode.unmappedLegacyKeys.contains("mode") && heldMode.after.get(LegacyPresentationMapper.APPEARANCE).values().get("legacy_gradient").equals("cloud_nine"), "Unknown mode remains unresolved while its dormant gradient is retained.");
     }
     private static void absentDefaults() {
         LegacyPresentationMapper.Plan absent = LegacyPresentationMapper.plan(snapshot(Collections.emptyMap()), identities(), Collections.emptyMap());
@@ -434,10 +462,15 @@ public final class PresentationMappingTest {
         reject(() -> ProductionMigrationGate.markFresh(new FixtureStore(existing), new FixtureStore(existing).read()));
         check(existing.events.isEmpty(), "Fresh marker never overwrites existing settings.");
         Map<String, Object> source = new LinkedHashMap<>(); source.put("apps_per_row", 7);
+        LegacyPresentationMapper.Plan absentBlocker = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        ProductionMigrationGate.preflight(new PresentationSnapshot(absentBlocker.before), identities(), null);
         source.put("is_premium", true); source.put("fire_tv_ui_home_enabled", false);
         source.put("app_launch_count", 4); source.put("rate_app_shown", true);
         source.put("use_24h_clock", true);
         source.put("featured_artwork_fit", false);
+        source.put("minimal_status_bar", false); source.put("status_bar_position", "Right");
+        source.put("hide_status_bar_unless_focused", true); source.put("tinted_status_bar", true);
+        source.put("fire_tv_ui_block_updates", false); source.put("fire_tv_ui_block_appstore", false);
         source.put("start_on_boot", false); source.put("override_home_button", false); source.put("better_home_detection", true);
         LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
         PresentationSnapshot before = new PresentationSnapshot(plan.before);
@@ -445,14 +478,50 @@ public final class PresentationMappingTest {
         ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null);
         check(ProductionMigrationGate.completed(new FixtureStore(disk).read()) && disk.journal == null,
                 "Complete marker is committed with verified native settings and resolved recovery.");
-        for (String key : Arrays.asList("is_premium", "app_launch_count", "rate_app_shown", "use_24h_clock", "featured_artwork_fit", "fire_tv_ui_home_enabled", "start_on_boot", "override_home_button", "better_home_detection"))
+        for (String key : Arrays.asList("is_premium", "app_launch_count", "rate_app_shown", "use_24h_clock", "featured_artwork_fit", "minimal_status_bar", "status_bar_position", "hide_status_bar_unless_focused", "tinted_status_bar", "fire_tv_ui_block_updates", "fire_tv_ui_block_appstore", "fire_tv_ui_home_enabled", "start_on_boot", "override_home_button", "better_home_detection"))
             check(source.get(key).equals(disk.files.get(LauncherMigration.PREFERENCES).values().get(key)), "Directly consumed compatibility choice remains intact.");
+        Map<String, Object> leftStatus = new LinkedHashMap<>(source); leftStatus.put("minimal_status_bar", true); leftStatus.put("status_bar_position", "Left");
+        LegacyPresentationMapper.Plan leftPlan = LegacyPresentationMapper.plan(snapshot(leftStatus), identities(), Collections.emptyMap());
+        ProductionMigrationGate.preflight(new PresentationSnapshot(leftPlan.before), identities(), null);
+        Map<String, Object> minimalOnly = Collections.<String, Object>singletonMap("minimal_status_bar", false);
+        LegacyPresentationMapper.Plan minimalPlan = LegacyPresentationMapper.plan(snapshot(minimalOnly), identities(), Collections.emptyMap());
+        FixtureDisk minimalDisk = new FixtureDisk(new PresentationSnapshot(minimalPlan.before));
+        ProductionMigrationGate.commit(new FixtureStore(minimalDisk), new FixtureStore(minimalDisk).read(), identities(), null);
+        Map<String, Object> minimalSaved = minimalDisk.files.get(LauncherMigration.PREFERENCES).values();
+        check(!minimalSaved.containsKey("status_bar_position") && !minimalSaved.containsKey("hide_status_bar_unless_focused")
+                && !minimalSaved.containsKey("tinted_status_bar"), "Absent status choices are not synthesized.");
+        for (String key : Arrays.asList("status_bar_position", "hide_status_bar_unless_focused", "tinted_status_bar")) {
+            Map<String, Object> noMinimal = new LinkedHashMap<>(); noMinimal.put(key, source.get(key));
+            LegacyPresentationMapper.Plan incomplete = LegacyPresentationMapper.plan(snapshot(noMinimal), identities(), Collections.emptyMap());
+            reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(incomplete.before), identities(), null));
+        }
+        Map<String, Object> badStatus = new LinkedHashMap<>(source); badStatus.put("status_bar_position", "center");
+        LegacyPresentationMapper.Plan invalidStatus = LegacyPresentationMapper.plan(snapshot(badStatus), identities(), Collections.emptyMap());
+        reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(invalidStatus.before), identities(), null));
+        for (String key : Arrays.asList("minimal_status_bar", "hide_status_bar_unless_focused", "tinted_status_bar")) {
+            Map<String, Object> malformedStatus = new LinkedHashMap<>(source); malformedStatus.put(key, "true");
+            LegacyPresentationMapper.Plan malformedPlan = LegacyPresentationMapper.plan(snapshot(malformedStatus), identities(), Collections.emptyMap());
+            PresentationSnapshot original = new PresentationSnapshot(malformedPlan.before);
+            FixtureDisk malformedDisk = new FixtureDisk(original);
+            reject(() -> ProductionMigrationGate.commit(new FixtureStore(malformedDisk), original, identities(), null));
+            check(malformedDisk.events.isEmpty() && original.sameValues(new FixtureStore(malformedDisk).read()), "Malformed status choice leaves every typed store unchanged.");
+        }
         Map<String, Object> malformedClock = new LinkedHashMap<>(source); malformedClock.put("use_24h_clock", "true");
         LegacyPresentationMapper.Plan invalidClock = LegacyPresentationMapper.plan(snapshot(malformedClock), identities(), Collections.emptyMap());
         reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(invalidClock.before), identities(), null));
         Map<String, Object> malformedArt = new LinkedHashMap<>(source); malformedArt.put("featured_artwork_fit", "false");
         LegacyPresentationMapper.Plan invalidArt = LegacyPresentationMapper.plan(snapshot(malformedArt), identities(), Collections.emptyMap());
         reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(invalidArt.before), identities(), null));
+        for (String key : Arrays.asList("fire_tv_ui_block_updates", "fire_tv_ui_block_appstore")) {
+            for (Object unsupported : Arrays.<Object>asList(true, "false", 0)) {
+                Map<String, Object> changed = new LinkedHashMap<>(source); changed.put(key, unsupported);
+                LegacyPresentationMapper.Plan unsafe = LegacyPresentationMapper.plan(snapshot(changed), identities(), Collections.emptyMap());
+                FixtureDisk unchanged = new FixtureDisk(new PresentationSnapshot(unsafe.before));
+                reject(() -> ProductionMigrationGate.commit(new FixtureStore(unchanged), new FixtureStore(unchanged).read(), identities(), null));
+                check(unchanged.events.isEmpty() && new PresentationSnapshot(unsafe.before).sameValues(new FixtureStore(unchanged).read()),
+                        "Enabled or malformed update protection blocks without changing preferences.");
+            }
+        }
         source.put("unknown_future", true);
         LegacyPresentationMapper.Plan unsupported = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
         FixtureDisk blocked = new FixtureDisk(new PresentationSnapshot(unsupported.before));

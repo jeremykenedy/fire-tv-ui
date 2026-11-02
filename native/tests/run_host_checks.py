@@ -23,7 +23,7 @@ SUITES = (
     'commands/run.py', 'dailycontent/run.py', 'discovery/run.py', 'feeds/run.py',
     'livetv/run.py', 'nowplaying/run.py', 'puzzles/run.py', 'radar/run.py',
     'status/run.py', 'uv/run.py', 'weather/run.py', 'remotebuttons/run_host.py',
-    'layoutschedule/run_tests.py', 'yearprogress/run.py', 'updateblock/run.py', 'statusbar/run.py',
+    'layoutschedule/run_tests.py', 'yearprogress/run.py', 'updateblock/run.py', 'statusbar/run.py', 'widgetgroups/run.py',
 )
 DEVICE_TESTS = ('HomeRoutingPolicyTest', 'HomeSetupPolicyTest', 'HomeCommandPolicyTest')
 

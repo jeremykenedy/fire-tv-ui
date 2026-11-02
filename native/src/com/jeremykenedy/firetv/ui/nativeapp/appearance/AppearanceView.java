@@ -52,18 +52,26 @@ public final class AppearanceView extends View {
         else if (options.base.equals("still_plum") || options.base.equals("silk")) { top=0xff241a36; bottom=0xff59405b; }
         else if (options.base.equals("embers")) { top=0xff231924; bottom=0xff613e30; }
         else if (options.base.equals("aurora") || options.base.equals("waves")) { top=0xff102834; bottom=0xff28534f; }
-        PaletteRecipes.Theme recipe=PaletteRecipes.find(options.basePalette);
-        if(recipe!=null) { top=recipe.dark; bottom=recipe.middle; }
-        ground.setShader(new LinearGradient(0, 0, Math.max(1,getWidth()), Math.max(1,getHeight()), top, bottom, Shader.TileMode.CLAMP));
+        int legacy = options.base.equals("still_legacy_gradient") ? LegacyGradients.index(options.legacyGradient) : -1;
+        if (legacy >= 0) { top = LegacyGradients.top(legacy); bottom = LegacyGradients.bottom(legacy); }
+        else {
+            PaletteRecipes.Theme recipe=PaletteRecipes.find(options.basePalette);
+            if(recipe!=null) { top=recipe.dark; bottom=recipe.middle; }
+        }
+        ground.setShader(new LinearGradient(0, 0, legacy >= 0 ? 0 : Math.max(1,getWidth()), Math.max(1,getHeight()), top, bottom, Shader.TileMode.CLAMP));
     }
     @Override protected void onDraw(Canvas canvas) {
         String style = overlay ? options.overlay : options.base;
-        if (style.equals("off") || (!overlay && !options.scene.isEmpty())) return;
+        if (style.equals("off") || (!overlay && !options.scene.isEmpty())
+                || (!overlay && style.equals("still_legacy_gradient") && LegacyGradients.index(options.legacyGradient) < 0)) return;
         int strength = overlay ? options.overlayOpacity : options.brightness;
         int density = overlay ? options.overlayIntensity : options.baseIntensity;
         double seconds = elapsed / 1000.0;
         double speed = 0.25 + (overlay ? options.overlaySpeed : options.baseSpeed) / 50.0;
-        if (!overlay) { canvas.drawRect(0,0,getWidth(),getHeight(),ground); paint.setColor(Color.BLACK); paint.setAlpha(Math.round((100-strength)*1.5f)); canvas.drawRect(0,0,getWidth(),getHeight(),paint); }
+        if (!overlay) {
+            canvas.drawRect(0,0,getWidth(),getHeight(),ground);
+            if (!style.equals("still_legacy_gradient")) { paint.setColor(Color.BLACK); paint.setAlpha(Math.round((100-strength)*1.5f)); canvas.drawRect(0,0,getWidth(),getHeight(),paint); }
+        }
         if (style.startsWith("still_") || density == 0 || (overlay && strength == 0)) return;
         float scale = Math.max(0.5f, getHeight()/1080f);
         if ((style.equals("aurora") || style.equals("waves") || style.equals("silk") || style.equals("prism") || style.equals("rays") || style.equals("orbits"))) {

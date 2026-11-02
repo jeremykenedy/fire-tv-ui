@@ -43,7 +43,7 @@ public class SharedPreferences {
  }
 }''',
 }
-PURE = ['WeatherOptions', 'WeatherRequest', 'WeatherCachePolicy', 'WeatherCache', 'WeatherHttp', 'WeatherForecast', 'WeatherRepository']
+PURE = ['WeatherOptions', 'WeatherRequest', 'WeatherCachePolicy', 'WeatherCache', 'WeatherHttp', 'WeatherForecast', 'WeatherRepository', 'WeatherPlaces']
 with tempfile.TemporaryDirectory(prefix='weather-tests-') as directory:
     work = Path(directory)
     runtime = str(json_runtime())
@@ -54,9 +54,12 @@ with tempfile.TemporaryDirectory(prefix='weather-tests-') as directory:
     subprocess.run(['javac', '-cp', runtime, '-d', str(work),
                     *[str(SOURCE / (name + '.java')) for name in PURE],
                     str(Path(__file__).parent / 'WeatherFixture.java'),
-                    str(Path(__file__).parent / 'WeatherTest.java')], check=True)
+                    str(Path(__file__).parent / 'WeatherTest.java'),
+                    str(Path(__file__).parent / 'WeatherPlacesTest.java')], check=True)
     subprocess.run(['java', '-cp', str(work) + ':' + runtime,
                     'com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherTest'], check=True)
+    subprocess.run(['java', '-cp', str(work) + ':' + runtime,
+                    'com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherPlacesTest'], check=True)
     subprocess.run(['javac', '-cp', str(work), '-d', str(work), *[str(work / name) for name in STUBS],
                     str(SOURCE / 'WeatherPreferences.java'), str(Path(__file__).parent / 'WeatherPreferencesTest.java')], check=True)
     subprocess.run(['java', '-cp', str(work), 'com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherPreferencesTest'], check=True)

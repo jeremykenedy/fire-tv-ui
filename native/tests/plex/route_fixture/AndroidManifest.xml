@@ -1,0 +1,17 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.plexrouteproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <permission android:name="com.jeremykenedy.firetv.plexrouteproof.FIXTURE" android:protectionLevel="signature" />
+    <uses-permission android:name="com.jeremykenedy.firetv.plexrouteproof.FIXTURE" />
+    <queries><package android:name="com.plexapp.android" /></queries>
+    <application android:usesCleartextTraffic="true" android:label="Plex route fixture" android:allowBackup="false">
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.CoverActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.LegacyPlexCardActivity" android:exported="false" />
+        <activity-alias android:name="com.jeremykenedy.firetv.plexrouteproof.PlexItemActivity"
+            android:targetActivity="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.LegacyPlexCardActivity" android:exported="false" />
+        <provider android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.LegacyPlexArtworkProvider"
+            android:authorities="com.jeremykenedy.firetv.plexrouteproof.plex.art" android:exported="false" />
+    </application>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.LegacyPlexRouteInstrumentation"
+        android:targetPackage="com.jeremykenedy.firetv.plexrouteproof" />
+</manifest>

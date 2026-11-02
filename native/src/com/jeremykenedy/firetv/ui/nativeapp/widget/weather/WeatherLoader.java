@@ -15,6 +15,7 @@ final class WeatherLoader {
     private final Context context;
     private final Listener listener;
     private final WeatherRepository repository;
+    private final WeatherOptions instanceOptions;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ThreadPoolExecutor worker = new ThreadPoolExecutor(1, 1, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(1));
     private WeatherRequest request;
@@ -31,10 +32,13 @@ final class WeatherLoader {
         }
     };
     WeatherLoader(Context context, Listener listener) {
-        this(context, listener, new WeatherRepository(new File(context.getCacheDir(), "weather-hourly")));
+        this(context, listener, new WeatherRepository(new File(context.getCacheDir(), "weather-hourly")), null);
     }
     WeatherLoader(Context context, Listener listener, WeatherRepository repository) {
-        this.context = context.getApplicationContext(); this.listener = listener; this.repository = repository;
+        this(context, listener, repository, null);
+    }
+    WeatherLoader(Context context, Listener listener, WeatherRepository repository, WeatherOptions instanceOptions) {
+        this.context = context.getApplicationContext(); this.listener = listener; this.repository = repository; this.instanceOptions = instanceOptions;
         worker.allowCoreThreadTimeOut(true);
     }
     void start() { if (!active) { active = true; load(); } }
@@ -42,7 +46,7 @@ final class WeatherLoader {
         if (!active) return;
         main.removeCallbacks(refresh); main.removeCallbacks(timeout); cancel();
         final WeatherOptions options;
-        try { options = WeatherPreferences.load(context); }
+        try { options = instanceOptions == null ? WeatherPreferences.load(context) : instanceOptions; }
         catch (IllegalStateException invalid) {
             listener.onForecast(null, WeatherForecast.state(WeatherForecast.State.UNAVAILABLE, invalid.getMessage(), System.currentTimeMillis())); return;
         }

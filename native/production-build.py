@@ -73,10 +73,28 @@ def validate(root=ROOT):
     compatibility.add(('service', PACKAGE + '.nativeapp.device.protection.LegacyProtectionService'))
     compatibility.add(('service', PACKAGE + '.ProtectionService'))
     compatibility.add(('activity', PACKAGE + '.nativeapp.device.updates.UpdateBlockActivity'))
+    compatibility.update({
+        ('activity', PACKAGE + '.nativeapp.providers.plex.LegacyPlexCardActivity'),
+        ('activity-alias', PACKAGE + '.PlexItemActivity'),
+        ('provider', PACKAGE + '.nativeapp.providers.plex.LegacyPlexArtworkProvider'),
+    })
     preview_components = {(node.tag, node.get(attr('name'))) for node in base}
     for node in candidate:
         if (node.tag, node.get(attr('name'))) not in preview_components | compatibility:
             raise ValueError('Unreviewed production component: ' + str(node.get(attr('name'))))
+    plex_target = PACKAGE + '.nativeapp.providers.plex.LegacyPlexCardActivity'
+    plex_components = (
+        ('activity', {attr('name'): plex_target, attr('exported'): 'false'}),
+        ('activity-alias', {attr('name'): PACKAGE + '.PlexItemActivity',
+                            attr('targetActivity'): plex_target, attr('exported'): 'false'}),
+        ('provider', {attr('name'): PACKAGE + '.nativeapp.providers.plex.LegacyPlexArtworkProvider',
+                      attr('authorities'): PACKAGE + '.plex.art', attr('exported'): 'false',
+                      attr('grantUriPermissions'): 'false'}),
+    )
+    for tag, attributes in plex_components:
+        matches = [node for node in candidate.findall(tag) if node.get(attr('name')) == attributes[attr('name')]]
+        if len(matches) != 1 or canonical(matches[0]) != canonical(ET.Element(tag, attributes)):
+            raise ValueError('Legacy Plex component must remain private with its reviewed identity')
     protection = [node for node in candidate.findall('service')
                   if node.get(attr('name')) == PACKAGE + '.nativeapp.device.protection.LegacyProtectionService']
     expected_service = ET.Element('service', {attr('name'): PACKAGE + '.nativeapp.device.protection.LegacyProtectionService',

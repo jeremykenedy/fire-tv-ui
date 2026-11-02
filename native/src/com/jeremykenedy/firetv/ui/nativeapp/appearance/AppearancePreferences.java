@@ -7,7 +7,7 @@ import java.util.Map;
 public final class AppearancePreferences {
     public static final String FILE = "source_appearance";
     public static final java.util.List<String> KEYS = java.util.Collections.unmodifiableList(java.util.Arrays.asList(
-            "base", "base_frozen", "base_speed", "base_intensity", "base_brightness", "base_palette",
+            "base", "legacy_gradient", "base_frozen", "base_speed", "base_intensity", "base_brightness", "base_palette",
             "overlay", "overlay_frozen", "overlay_speed", "overlay_intensity", "overlay_opacity", "overlay_palette",
             "reduced_motion", "scene", "wallpaper_image_uri", "wallpaper_video_uri", "wallpaper_mode", "wallpaper_video_frozen"));
     public static void validateSnapshot(Map<String, ?> values) {
@@ -21,6 +21,7 @@ public final class AppearancePreferences {
             } else {
                 if (!(value instanceof String) || ((String)value).length() > 8192) throw new IllegalArgumentException("Invalid appearance selection.");
                 String text=(String)value;
+                if (key.equals("legacy_gradient") && !text.isEmpty() && LegacyGradients.index(text) < 0) throw new IllegalArgumentException("Unknown saved gradient.");
                 if (key.equals("base") && !AppearanceOptions.known(AppearanceOptions.BASES,text).equals(text)) throw new IllegalArgumentException("Unknown background.");
                 if (key.equals("overlay") && !AppearanceOptions.known(AppearanceOptions.OVERLAYS,text).equals(text)) throw new IllegalArgumentException("Unknown overlay.");
                 if (key.endsWith("_palette") && !text.isEmpty() && PaletteRecipes.find(text)==null) throw new IllegalArgumentException("Unknown palette recipe.");
@@ -57,7 +58,7 @@ public final class AppearancePreferences {
                 number(values, "base_speed"), number(values, "base_intensity"), number(values, "base_brightness"),
                 string(values, "overlay", "off"), flag(values, "overlay_frozen"), number(values, "overlay_speed"),
                 number(values, "overlay_intensity"), number(values, "overlay_opacity"), string(values, "scene", ""),
-                string(values, "wallpaper_image_uri", ""), string(values, "wallpaper_video_uri", ""), string(values,"base_palette",""), string(values,"overlay_palette",""));
+                string(values, "wallpaper_image_uri", ""), string(values, "wallpaper_video_uri", ""), string(values,"base_palette",""), string(values,"overlay_palette",""), string(values,"legacy_gradient",""));
     }
     private static String string(Map<String, ?> values, String key, String fallback) { Object value = values.get(key); return value instanceof String ? (String) value : fallback; }
     private static int number(Map<String, ?> values, String key) { Object value = values.get(key); return value instanceof Integer ? (Integer) value : 50; }

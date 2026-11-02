@@ -79,7 +79,8 @@ public final class LegacyPresentationMapper {
         for (String file : FILES) if (!file.equals(LauncherMigration.PREFERENCES)) result.put(file, new LinkedHashSet<String>());
         for (String key : legacyKeys) {
             if (LegacyAppearanceMapper.keys().containsKey(key)) result.get(APPEARANCE).add(LegacyAppearanceMapper.keys().get(key));
-            if (key.equals("mode")) result.get(APPEARANCE).add("wallpaper_mode");
+            if (key.equals("mode")) { result.get(APPEARANCE).add("wallpaper_mode"); result.get(APPEARANCE).add("base"); result.get(APPEARANCE).add("scene"); }
+            if (key.equals("custom_gradient")) result.get(APPEARANCE).add("legacy_gradient");
             if (key.equals("icon_pack_package")) result.get(ICON_PACKS).add("package");
             if (key.equals("apps_per_row")) result.get(GRID).add("columns");
             if (key.equals("app_max_rows")) result.get(GRID).add("rows");

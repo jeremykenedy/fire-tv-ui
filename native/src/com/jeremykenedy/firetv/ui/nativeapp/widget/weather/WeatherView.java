@@ -9,12 +9,14 @@ import android.widget.TextView;
 
 public final class WeatherView extends LinearLayout {
     private WeatherLoader loader;
+    private final WeatherOptions instanceOptions;
     private final TextView title;
     private final TextView status;
     private final LinearLayout periods;
     private final TextView source;
-    public WeatherView(Context context) {
-        super(context); setOrientation(VERTICAL);
+    public WeatherView(Context context) { this(context, null); }
+    public WeatherView(Context context, WeatherOptions instanceOptions) {
+        super(context); this.instanceOptions = instanceOptions; setOrientation(VERTICAL);
         int pad = Math.round(14 * context.getResources().getDisplayMetrics().density); setPadding(pad, pad, pad, pad);
         title = text(18); title.setMaxLines(2); addView(title);
         status = text(15); status.setMaxLines(2); addView(status);
@@ -32,7 +34,7 @@ public final class WeatherView extends LinearLayout {
         status.setText("Checking the saved location...");
         loader = new WeatherLoader(getContext(), new WeatherLoader.Listener() {
             @Override public void onForecast(WeatherOptions options, WeatherForecast forecast) { render(options, forecast); }
-        }); loader.start();
+        }, new WeatherRepository(new java.io.File(getContext().getCacheDir(), "weather-hourly")), instanceOptions); loader.start();
     }
     void render(WeatherOptions options, WeatherForecast forecast) {
         periods.removeAllViews();

@@ -63,6 +63,11 @@ public final class RecommendationActions {
         return launch(context, titleIntent(context, program));
     }
 
+    public static Outcome launchTitle(Context context, TvRecommendations.Program program, final java.util.concurrent.Callable<Boolean> stillValid) {
+        if (stillValid == null || program.notificationKey != null) return Outcome.UNAVAILABLE;
+        return launch(context, titleIntent(context, program), stillValid);
+    }
+
     public static Outcome launchDetails(Context context, TvRecommendations.Program program) {
         return launch(context, scopedIntent(context, program.source, program.detailsIntentUri));
     }
@@ -76,11 +81,17 @@ public final class RecommendationActions {
     }
 
     private static Outcome launch(final Context context, final Intent intent) {
+        return launch(context, intent, null);
+    }
+
+    private static Outcome launch(final Context context, final Intent intent, final java.util.concurrent.Callable<Boolean> stillValid) {
         if (intent == null || intent.getComponent() == null) return Outcome.UNAVAILABLE;
         final String destination = intent.getComponent().flattenToString();
         final String source = intent.getComponent().getPackageName();
         return guarded(context, source, destination, new Dispatch() {
             @Override public Outcome run() {
+                try { if (stillValid != null && !Boolean.TRUE.equals(stillValid.call())) return Outcome.UNAVAILABLE; }
+                catch (Exception unavailable) { return Outcome.UNAVAILABLE; }
                 Intent checked = pin(context, new Intent(intent), source);
                 if (checked == null || !destination.equals(checked.getComponent().flattenToString())) return Outcome.UNAVAILABLE;
                 try { context.startActivity(checked); return Outcome.OPENED; }
@@ -170,7 +181,7 @@ public final class RecommendationActions {
     private static Intent pin(Context context, Intent intent, String source) {
         ResolveInfo resolved = context.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
         ActivityInfo activity = resolved == null ? null : resolved.activityInfo;
-        if (activity == null || !source.equals(activity.packageName) || !activity.exported || !activity.enabled
+        if (activity == null || !source.equals(activity.packageName) || (!activity.exported && !source.equals(context.getPackageName())) || !activity.enabled
                 || activity.applicationInfo == null || !activity.applicationInfo.enabled
                 || (activity.permission != null && !activity.permission.isEmpty())) return null;
         return intent.setComponent(new ComponentName(activity.packageName, activity.name))

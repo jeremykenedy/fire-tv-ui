@@ -24,6 +24,10 @@ final class CelebrationSceneLayer {
     private static final float[] ST_PATRICK = {.804f,.546f,.875f,.545f};
     private static final float[] EASTER = {.268f,.481f};
     private static final float[] THANKSGIVING = {.901f,.226f,.751f,.556f,.791f,.562f};
+    private static final float[] PASSOVER = {.095f,.344f,.137f,.348f};
+    private static final float[] VESAK = {.121f,.235f,.050f,.440f,.406f,.782f,.375f,.923f,.904f,.770f};
+    private static final float[] JUNETEENTH = {.533f,.625f,.546f,.658f,.603f,.646f};
+    private static final float[] RAMADAN = {.122f,.261f,.184f,.746f,.835f,.677f,.895f,.599f};
     private final Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
     private double seconds;
 
@@ -63,6 +67,10 @@ final class CelebrationSceneLayer {
         if ("st_patrick".equals(scene)) return ST_PATRICK;
         if ("easter".equals(scene)) return EASTER;
         if ("thanksgiving".equals(scene)) return THANKSGIVING;
+        if ("passover".equals(scene)) return PASSOVER;
+        if ("vesak".equals(scene)) return VESAK;
+        if ("juneteenth".equals(scene)) return JUNETEENTH;
+        if ("ramadan".equals(scene)) return RAMADAN;
         return null;
     }
 }

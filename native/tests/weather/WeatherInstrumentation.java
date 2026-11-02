@@ -68,6 +68,32 @@ public final class WeatherInstrumentation extends Instrumentation {
             check(rendered[0].contains("Stale saved forecast") && rendered[0].contains("Updated") && rendered[0].contains("Checked")
                     && rendered[0].contains("National Weather Service") && rendered[0].contains("°C"), "Native stale rendering preserves source, timestamps and actual units.");
             onMain(new Runnable() { @Override public void run() { view[0].render(selected, ready); view[0].start(); view[0].start(); view[0].stop(); } });
+            final WeatherOptions first = WeatherOptions.fromLegacy("Springfield", "F");
+            final WeatherOptions second = WeatherOptions.fromLegacy("Portland", "C");
+            final java.util.concurrent.CountDownLatch instanceResults = new java.util.concurrent.CountDownLatch(2);
+            final WeatherOptions[] received = new WeatherOptions[2];
+            final WeatherForecast.State[] states = new WeatherForecast.State[2];
+            WeatherRepository isolated = new WeatherRepository(directory);
+            WeatherLoader one = new WeatherLoader(getTargetContext(), new WeatherLoader.Listener() {
+                @Override public void onForecast(WeatherOptions options, WeatherForecast forecast) {
+                    received[0] = options; states[0] = forecast.state; instanceResults.countDown();
+                }
+            }, isolated, first);
+            WeatherLoader two = new WeatherLoader(getTargetContext(), new WeatherLoader.Listener() {
+                @Override public void onForecast(WeatherOptions options, WeatherForecast forecast) {
+                    received[1] = options; states[1] = forecast.state; instanceResults.countDown();
+                }
+            }, isolated, second);
+            try {
+                one.start(); two.start();
+                check(instanceResults.await(4, TimeUnit.SECONDS), "Distinct weather instances must finish setup state.");
+                check(received[0] == first && received[1] == second && !received[0].metric && received[1].metric,
+                        "Instance locations and units must stay independent of one another and global settings.");
+                check(states[0] == WeatherForecast.State.SETUP_REQUIRED && states[1] == WeatherForecast.State.SETUP_REQUIRED,
+                        "Unresolved instance locations must require setup rather than guess coordinates.");
+                check(WeatherPreferences.load(getTargetContext()).backupValues().equals(stored.backupValues()),
+                        "Rendering instance choices must not overwrite global settings.");
+            } finally { one.close(); two.close(); }
             try (final WeatherFixture fixture = new WeatherFixture()) {
                 File temporary = File.createTempFile("weather-proof-http", "", getTargetContext().getCacheDir()); temporary.delete(); temporary.mkdirs(); temporaryDirectories.add(temporary);
                 WeatherForecast http = fixture.repository(temporary).read(selected, fixture.origin, new WeatherRequest());

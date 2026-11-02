@@ -180,6 +180,47 @@ public final class SetupTest {
         check(
                 legacyPlan.get("launcher_prefs").values().get("menu_overlay_frozen").equals(false),
                 "legacy subset preserves unrelated presentation keys");
+        Map<String, Object> previousAppearance = new LinkedHashMap<>(prefs(context, "source_appearance").values);
+        prefs(context, "source_appearance").values.put("scene", "christmas");
+        prefs(context, "source_appearance").values.put("base", "aurora");
+        prefs(context, "source_appearance").values.put("legacy_gradient", "cloud_nine");
+        prefs(context, "source_appearance").values.put("overlay", "snow");
+        JSONObject gradientSetup = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("mode", "custom_gradient")))
+                .put("values", new JSONObject().put("mode", "custom").put("custom_gradient", "Electric Indigo"));
+        Map<String, Object> gradientTarget = manager.prepareLegacy(gradientSetup,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("source_appearance").values();
+        check("still_legacy_gradient".equals(gradientTarget.get("base")) && "".equals(gradientTarget.get("scene"))
+                && "electric_indigo".equals(gradientTarget.get("legacy_gradient")) && "snow".equals(gradientTarget.get("overlay")),
+                "Legacy setup replaces its owned scene and gradient while preserving overlay");
+        JSONObject clearedGradient = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("mode", "custom_gradient"))).put("values", new JSONObject());
+        Map<String, Object> clearedTarget = manager.prepareLegacy(clearedGradient,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("source_appearance").values();
+        check("aurora".equals(clearedTarget.get("base")) && "christmas".equals(clearedTarget.get("scene"))
+                && !clearedTarget.containsKey("legacy_gradient") && "snow".equals(clearedTarget.get("overlay")),
+                "Absent mode preserves unrelated background and scene while clearing the saved gradient");
+        JSONObject videoSetup = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("mode", "custom_video_uri")))
+                .put("values", new JSONObject().put("mode", "customv").put("custom_video_uri", "content://fixture.invalid/video"));
+        Map<String, Object> videoTarget = manager.prepareLegacy(videoSetup,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("source_appearance").values();
+        check("video".equals(videoTarget.get("wallpaper_mode")) && "aurora".equals(videoTarget.get("base"))
+                && "christmas".equals(videoTarget.get("scene")) && "cloud_nine".equals(videoTarget.get("legacy_gradient")),
+                "Video mode preserves independent background, scene and dormant gradient");
+        JSONObject videoResetBase = new JSONObject()
+                .put("keys", new JSONArray(Arrays.asList("mode", "custom_video_uri", "menu_animation")))
+                .put("values", new JSONObject().put("mode", "customv").put("custom_video_uri", "content://fixture.invalid/video"));
+        Map<String, Object> resetBaseTarget = manager.prepareLegacy(videoResetBase,
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true)
+                .get("source_appearance").values();
+        check(!resetBaseTarget.containsKey("base") && "christmas".equals(resetBaseTarget.get("scene")),
+                "Explicitly absent animation resets only its own base");
+        prefs(context, "source_appearance").values.clear();
+        prefs(context, "source_appearance").values.putAll(previousAppearance);
         JSONObject excludedIcons = new JSONObject()
                 .put("keys", new JSONArray(Arrays.asList("icon_pack_package", "factory_icon_packages", "app_visibility")))
                 .put("values", new JSONObject()

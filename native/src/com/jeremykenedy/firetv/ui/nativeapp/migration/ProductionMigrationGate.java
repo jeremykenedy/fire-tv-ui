@@ -32,9 +32,18 @@ public final class ProductionMigrationGate {
             for (String key : new String[]{"fire_tv_ui_home_enabled", "start_on_boot", "override_home_button", "better_home_detection", "use_24h_clock", "featured_artwork_fit"}) {
                 if (legacy.values().get(key) instanceof Boolean) unresolved.remove(key);
             }
+            if (legacy.values().get("minimal_status_bar") instanceof Boolean) {
+                unresolved.remove("minimal_status_bar");
+                for (String key : new String[]{"hide_status_bar_unless_focused", "tinted_status_bar"})
+                    if (legacy.values().get(key) instanceof Boolean) unresolved.remove(key);
+                Object position = legacy.values().get("status_bar_position");
+                if ("Left".equals(position) || "Right".equals(position)) unresolved.remove("status_bar_position");
+            }
             // The maintained legacy launcher forces this compatibility flag on; the source UI
             // has no premium gate. Keep its original typed value for recovery.
             if (Boolean.TRUE.equals(legacy.values().get("is_premium"))) unresolved.remove("is_premium");
+            for (String key : new String[]{"fire_tv_ui_block_updates", "fire_tv_ui_block_appstore"})
+                if (Boolean.FALSE.equals(legacy.values().get(key))) unresolved.remove(key);
             // The maintained legacy initializer removes both obsolete rating counters.
             unresolved.remove("app_launch_count");
             unresolved.remove("rate_app_shown");

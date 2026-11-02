@@ -105,6 +105,16 @@ public final class AppearanceInstrumentation extends Instrumentation {
             check(clear>0,"Transparent backing retained for "+style);
             check(style.equals("off")?visible==0:visible>0,"Selected overlay actually renders: "+style);
         }
+        AppearanceView background = new AppearanceView(context, false);
+        background.layout(0,0,960,540);
+        for (int i=0; i<LegacyGradients.IDS.length; i++) {
+            pixels.eraseColor(0);
+            background.setOptions(new AppearanceOptions("still_legacy_gradient",false,50,50,0,"off",false,50,50,50,"","","","diwali","",LegacyGradients.IDS[i]));
+            background.draw(new Canvas(pixels));
+            check(!background.isFrameScheduled(),"Legacy gradient is static");
+            check(close(pixels.getPixel(0,0),LegacyGradients.top(i)) && close(pixels.getPixel(959,0),LegacyGradients.top(i)),"Gradient top is horizontal and independent of palette and brightness");
+            check(close(pixels.getPixel(0,539),LegacyGradients.bottom(i)) && close(pixels.getPixel(959,539),LegacyGradients.bottom(i)),"Gradient bottom is horizontal");
+        }
         pixels.recycle();
         Bitmap source=Bitmap.createBitmap(3,2,Bitmap.Config.ARGB_8888);
         source.setPixel(0,0,0xffff0000); source.setPixel(2,0,0xff00ff00); source.setPixel(0,1,0xff0000ff);
@@ -112,6 +122,11 @@ public final class AppearanceInstrumentation extends Instrumentation {
         check(rotated.getWidth()==2&&rotated.getHeight()==3,"Portrait EXIF rotates dimensions");
         check(rotated.getPixel(1,0)==0xffff0000&&rotated.getPixel(1,2)==0xff00ff00&&rotated.getPixel(0,0)==0xff0000ff,"Portrait EXIF preserves pixel orientation");
         rotated.recycle();
+    }
+    private static boolean close(int actual,int expected) {
+        return Math.abs(android.graphics.Color.red(actual)-android.graphics.Color.red(expected))<=1
+                && Math.abs(android.graphics.Color.green(actual)-android.graphics.Color.green(expected))<=1
+                && Math.abs(android.graphics.Color.blue(actual)-android.graphics.Color.blue(expected))<=1;
     }
     private long alpha(Bitmap pixels) { long sum=0; for(int y=0;y<pixels.getHeight();y++)for(int x=0;x<pixels.getWidth();x++)sum+=pixels.getPixel(x,y)>>>24; return sum; }
     private Activity open(final Activity source,final String label,String target) {

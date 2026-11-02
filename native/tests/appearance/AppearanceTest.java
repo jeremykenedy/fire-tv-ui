@@ -50,6 +50,19 @@ public final class AppearanceTest {
         check(AppearancePreferences.load(context).baseFrozen&&AppearancePreferences.load(context).overlayFrozen,"Reduced motion preserves individual motion choices");
         AppearancePreferences.validateSnapshot(java.util.Collections.<String,Object>singletonMap("reduced_motion",true));
         try { AppearancePreferences.validateSnapshot(java.util.Collections.<String,Object>singletonMap("reduced_motion","true")); throw new AssertionError("Malformed reduced motion rejected"); } catch(IllegalArgumentException expected) {}
+        AppearancePreferences.string(context,"legacy_gradient","electric_indigo");
+        AppearancePreferences.string(context,"base","still_legacy_gradient");
+        check(!AppearancePreferences.load(context).baseAnimated(),"Saved gradient is static");
+        AppearancePreferences.string(context,"base","off");
+        check(AppearancePreferences.load(context).legacyGradient.equals("electric_indigo"),"Changing mode retains saved gradient");
+        AppearancePreferences.string(context,"legacy_gradient","cloud_nine");
+        AppearancePreferences.string(context,"base","still_legacy_gradient");
+        check(AppearancePreferences.load(context).legacyGradient.equals("cloud_nine"),"A different gradient can be selected while dormant");
+        check(LegacyGradients.top(0)==0xff1a0f3e && LegacyGradients.bottom(0)==0xff5633a1
+                && LegacyGradients.top(1)==0xffeceff1 && LegacyGradients.bottom(1)==0xff90a4ae,"Observed endpoint colors retained");
+        try { AppearancePreferences.validateSnapshot(java.util.Collections.<String,Object>singletonMap("legacy_gradient","unknown")); throw new AssertionError("Unknown saved gradient accepted"); } catch(IllegalArgumentException expected) {}
+        context.prefs.values.put("legacy_gradient","unknown");
+        check(LegacyGradients.index(AppearancePreferences.load(context).legacyGradient)<0 && context.prefs.values.get("legacy_gradient").equals("unknown"),"Unknown stored value is preserved without guessing");
         context.prefs.fail=true;
         try { AppearancePreferences.string(context,"overlay","leaves"); throw new AssertionError("Failed write must report error"); }
         catch(IllegalStateException expected) {}

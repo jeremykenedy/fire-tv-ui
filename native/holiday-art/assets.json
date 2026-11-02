@@ -121,6 +121,42 @@
       "bytes": 2551674,
       "sha256": "4c37a3716a25b3b56d62741b7b262e45f25508e7ddaa803f0858e9a7ca1f0f16",
       "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "passover",
+      "path": "native/res/drawable-nodpi/holiday_scene_passover.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3012179,
+      "sha256": "caf30b1f182f2e0a7482360f7039466a121a881447716cb9b5f2cc4e564002a7",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "vesak",
+      "path": "native/res/drawable-nodpi/holiday_scene_vesak.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2509703,
+      "sha256": "537db16c93688a9d357048fd138585ef44321b2eef62ce19e214a7dac2e1729e",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
+    },
+    {
+      "id": "juneteenth",
+      "path": "native/res/drawable-nodpi/holiday_scene_juneteenth.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2787008,
+      "sha256": "c8098cf0384028b097737b271a287f7f4bd4d649214668045de735b0d4c6632e",
+      "origin": "Original project-generated artwork with a targeted imagegen edit to the flag; no external input artwork."
+    },
+    {
+      "id": "ramadan",
+      "path": "native/res/drawable-nodpi/holiday_scene_ramadan.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2458279,
+      "sha256": "f7bfbe9446a4333b5b7712e288bd8854cc801b1cb8654cb7ec89e8b8f05d19f1",
+      "origin": "Original artwork generated for this project with built-in imagegen; no input images or external stock artwork."
     }
   ]
 }

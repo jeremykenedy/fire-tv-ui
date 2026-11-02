@@ -15,6 +15,9 @@ public final class ClockWidgetView extends LinearLayout {
     private final TextClock time;
     private final TextClock date;
     private final SharedPreferences preferences;
+    private boolean managed;
+    private boolean active;
+    private boolean observing;
     private final SharedPreferences.OnSharedPreferenceChangeListener changed =
             new SharedPreferences.OnSharedPreferenceChangeListener() {
                 @Override public void onSharedPreferenceChanged(SharedPreferences values, String key) {
@@ -48,6 +51,29 @@ public final class ClockWidgetView extends LinearLayout {
         time.setTextSize(18);
     }
 
+    public void setGroupedSmall() {
+        int padding = Math.round(6 * getResources().getDisplayMetrics().density);
+        setPadding(padding, padding, padding, padding);
+        time.setTextSize(26);
+        date.setTextSize(13);
+    }
+
+    public void useManagedLifecycle() { managed = true; }
+    public void startUpdates() { active = true; updateObservation(); }
+    public void stopUpdates() { active = false; updateObservation(); }
+
+    private void updateObservation() {
+        boolean shouldObserve = isAttachedToWindow() && (!managed || active);
+        if (shouldObserve && !observing) {
+            preferences.registerOnSharedPreferenceChangeListener(changed);
+            observing = true;
+            applyTimeFormat();
+        } else if (!shouldObserve && observing) {
+            preferences.unregisterOnSharedPreferenceChangeListener(changed);
+            observing = false;
+        }
+    }
+
     public CharSequence timeText() { return time.getText(); }
 
     private void applyTimeFormat() {
@@ -68,12 +94,12 @@ public final class ClockWidgetView extends LinearLayout {
 
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        preferences.registerOnSharedPreferenceChangeListener(changed);
-        applyTimeFormat();
+        updateObservation();
     }
 
     @Override protected void onDetachedFromWindow() {
-        preferences.unregisterOnSharedPreferenceChangeListener(changed);
+        if (observing) preferences.unregisterOnSharedPreferenceChangeListener(changed);
+        observing = false;
         super.onDetachedFromWindow();
     }
 

@@ -21,6 +21,10 @@ public final class WeatherWidgetProvider implements WidgetProvider {
     @Override public int widthDp() { return 440; }
     @Override public int heightDp() { return 300; }
     @Override public View createView(Context context) { return new WeatherView(context); }
+    public View createView(Context context, WeatherOptions options) {
+        if (options == null) throw new IllegalArgumentException("Instance weather choices are required.");
+        return new WeatherView(context, options);
+    }
     @Override public void configure(Activity activity) { activity.startActivity(new Intent(activity, WeatherSettingsActivity.class)); }
     @Override public void onStart(View view) { if (view instanceof WeatherView) ((WeatherView) view).start(); }
     @Override public void onStop(View view) { if (view instanceof WeatherView) ((WeatherView) view).stop(); }

@@ -24,3 +24,23 @@ Test scene-only, overlay-only, combined, motion-off and both layers Off. Overlay
 ## Physical TV acceptance
 
 After bounded native emulator checks pass, record sustained motion and readability on the target Fire TV at its actual resolution and viewing distance. Verify remote responsiveness while animation and recommendations are active. The current scene files are 1672 by 941, so detail at 1080p and 4K output needs explicit visual assessment. Owner acceptance of artwork and movement remains a separate gate. The remaining holiday scenes, scene-specific animated layers and optional illustrated icons remain open in COVERAGE.md.
+
+## Runnable native fixture for the next batch
+
+`tests/holidays/HolidaySceneInstrumentation.java` is a native Instrumentation entry point for the next test APK. It is beyond the frozen cda56466 acceptance batch. The integration owner must include the class and declare `com.jeremykenedy.firetv.ui.nativeapp.holidays.HolidaySceneInstrumentation` in the isolated proof APK targeting the verified preview package. No production activity or manifest change is needed for the scene renderer; the fixture opens the already registered BackgroundPreviewActivity and creates a temporary native dialog surface.
+
+The fixture writes no appearance preferences. It snapshots the complete `source_appearance` map, uses direct scene-view configuration, closes its dialogs/activity and verifies the snapshot still matches. It checks visible Christmas sky movement away from tree lights, pause/resume, hidden-view and focus-loss stability, motion-off static equality, Halloween movement, rapid scene-switch recovery, winter snow movement, winter pause/still behavior, clearing to transparency and detach. Its image comparisons use native View drawing at up to 1280 pixels wide; this is bounded behavioral evidence, not full-resolution visual acceptance or a hardware compositor frame-rate measurement.
+
+The fixture reports changed-sample counts and pass/fail in the instrumentation result Bundle. It does not claim that changing pixels prove polished snow, convincing gait or stable frame pacing. Record full-resolution on-device screenshots and sustained screen recordings separately for the scene-quality checks above. The coordinator owns building, installing, running, preservation and cleanup; this lane only compiled the fixture.
+
+## Winter scene continuation checks
+
+With scene winter selected and the independent overlay off, record at least 60 seconds at default speed. Confirm the separately authored river, mountains and frosted trees remain recognizable. Snow should have small distant flakes, distinct middle silhouettes and soft foreground flakes, with wind differing from Christmas. Low mist should follow the three river bands, retain landscape detail and drift continuously without obvious closed-path edges, hard bands, flashing or a visible reset. Verify there are no Christmas lights, presents, ornaments or decoration layers.
+
+Test scene-motion Off and pause/resume separately from the independent overlay. Motion Off should restore the complete original snowy river still. Keep private wallpaper and custom effects unchanged, and repeat the saved-setup round trip. The fixture's winter sky pixel changes prove only movement; they do not establish convincing mist or natural snowfall. Native full-resolution recordings and physical TV review are still required.
+
+## Hanukkah, Diwali, Eid al-Fitr and Lunar New Year
+
+Select each scene in Backgrounds and overlays with independent overlay Off. Confirm the actual subject and native composition match the inspected original artwork, then record at least 30 seconds of default-speed light animation. Candle and lantern glows should remain on the artwork objects, with no whole-screen flashing, displaced halos or new foreground obstruction. Check minimum/maximum speed, scene motion Off, Reduced motion On, focus loss and pause/resume. Full original imagery must remain when animation is disabled.
+
+The native fixture now checks moving pixels and stable stills for all four IDs (`hanukkah`, `diwali`, `eid_fitr`, `lunar_new_year`). It still requires inclusion in the isolated test APK and execution under an exclusive device lease. These four candidates extend the collection to seven actual scenes; remaining holidays and optional illustrated icons stay explicitly pending in COVERAGE.md.

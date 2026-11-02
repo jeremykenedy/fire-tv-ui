@@ -26,7 +26,11 @@ public final class HolidayScenes {
         new Scene("valentine", "Valentine's garden", "hearts_floating"),
         new Scene("st_patrick", "St. Patrick's valley", "particles"),
         new Scene("easter", "Easter garden", "petals"),
-        new Scene("thanksgiving", "Thanksgiving harvest", "leaves")
+        new Scene("thanksgiving", "Thanksgiving harvest", "leaves"),
+        new Scene("passover", "Passover Seder", "petals"),
+        new Scene("vesak", "Vesak lantern garden", "petals"),
+        new Scene("juneteenth", "Juneteenth evening", "stars"),
+        new Scene("ramadan", "Ramadan evening", "lanterns")
     };
 
     private HolidayScenes() {}

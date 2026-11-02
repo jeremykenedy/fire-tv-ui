@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.plexapp.android">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <uses-permission android:name="com.jeremykenedy.firetv.plexrouteproof.FIXTURE" />
+    <queries><package android:name="com.jeremykenedy.firetv.plexrouteproof" /></queries>
+    <application android:label="Synthetic Plex handler" android:allowBackup="false">
+        <activity android:name=".FakePlexActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="plex" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

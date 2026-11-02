@@ -16,6 +16,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupsStore;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupsView;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,8 +54,8 @@ public final class LayoutSettingsActivity extends Activity {
         if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
         widgetPage = state == null ? getIntent().getBooleanExtra("widgets", false) : state.getBoolean("widgets", false);
         permissionDenied = state != null && state.getBoolean("listings_denied", false);
-        available = HomeSlots.available();
-        options = HomeSlots.discover(LayoutPreferences.load(this, HomeSlots.defaults()), feeds);
+        available = availableItems();
+        options = HomeSlots.discover(LayoutPreferences.load(this, HomeSlots.defaults()), feeds).discover(available);
         LinearLayout page = Pages.page(this);
         heading = Pages.text(this, "", 30);
         explanation = Pages.text(this, "", 17);
@@ -66,6 +70,11 @@ public final class LayoutSettingsActivity extends Activity {
         });
         widgetSettings.setTag("layout:widget-settings");
         content.addView(widgetSettings);
+        Button addGroup = Pages.button(this, "Add widget column", new View.OnClickListener() {
+            @Override public void onClick(View view) { addWidgetColumn(); }
+        });
+        addGroup.setTag("layout:add-widget-column");
+        content.addView(addGroup);
         general = column();
         content.addView(general);
         Button statusBar = Pages.button(this, "Status bar", new View.OnClickListener() {
@@ -116,6 +125,30 @@ public final class LayoutSettingsActivity extends Activity {
         rows = column();
         content.addView(rows);
         render(null);
+    }
+
+    private List<LayoutItem> availableItems() {
+        List<LayoutItem> result = new ArrayList<>(HomeSlots.available(feeds));
+        if (getSharedPreferences("native_layout", MODE_PRIVATE).contains("widget_groups"))
+            result.add(WidgetGroupsView.ITEM);
+        return result;
+    }
+
+    private void addWidgetColumn() {
+        try {
+            WidgetGroupsStore store = new WidgetGroupsStore(this);
+            String previous = store.raw();
+            WidgetGroups groups = store.load();
+            if (groups == null) groups = WidgetGroups.decode("[]");
+            if (!store.save(previous, groups.appendEmptyGroup())) {
+                Toast.makeText(this, "Widget groups changed or could not be saved. Try again.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            available = availableItems();
+            save(options.discover(available), "layout:add-widget-column");
+        } catch (IllegalArgumentException | IllegalStateException failure) {
+            Toast.makeText(this, "Widget groups could not be read or saved. Existing data was kept.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void showWidgets(boolean show) {
@@ -190,9 +223,9 @@ public final class LayoutSettingsActivity extends Activity {
                         String tag = focused != null && focused.getTag() instanceof String ? (String) focused.getTag() : null;
                         status = result.status;
                         feeds = result.feeds;
-                        available = HomeSlots.available(feeds);
+                        available = availableItems();
                         try {
-                            options = HomeSlots.discover(options, feeds);
+                            options = HomeSlots.discover(options, feeds).discover(available);
                         } catch (IllegalArgumentException full) {
                             providerStatus.setText("Your saved layout is full. Existing slots and their order are preserved.");
                             providerAction.setEnabled(true);
@@ -269,7 +302,8 @@ public final class LayoutSettingsActivity extends Activity {
             LayoutItem.Kind kind = key.startsWith("channel:") ? LayoutItem.Kind.CHANNEL_CARD : LayoutItem.Kind.WIDGET;
             if (present.contains(key) && !options.includes(kind)) status += " · Excluded by Home content mode";
             if (widget != null) status += "\n" + stateLabel(widget.state(this)) + ": " + widget.message(this);
-            item.addView(Pages.text(this, (index + 1) + ". " + HomeSlots.title(key, feeds) + "\n" + status, 19));
+            String title = key.equals(WidgetGroupsView.ITEM.key()) ? "Grouped widgets" : HomeSlots.title(key, feeds);
+            item.addView(Pages.text(this, (index + 1) + ". " + title + "\n" + status, 19));
             LinearLayout actions = new LinearLayout(this);
             Button visibility = Pages.button(this, options.hidden.contains(key) ? "Show" : "Hide", new View.OnClickListener() {
                 @Override public void onClick(View view) { save(options.setVisible(key, options.hidden.contains(key)), key + ":visibility"); }

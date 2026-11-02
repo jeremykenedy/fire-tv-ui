@@ -105,6 +105,35 @@ class ProductionReleaseContractTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Device protection service'):
             build.validate(root)
 
+    def test_legacy_plex_components_reject_exposure_and_identity_drift(self):
+        for mutation in ('activity', 'alias', 'target', 'provider', 'authority', 'grant'):
+            with self.subTest(mutation=mutation):
+                root = Path(self.tmp.name) / mutation
+                (root / 'production-src').mkdir(parents=True)
+                shutil.copy(ROOT / 'native/AndroidManifest.xml', root)
+                shutil.copy(ROOT / 'native/production-src/AndroidManifest.xml', root / 'production-src')
+                shutil.copytree(ROOT / 'native/production-res', root / 'production-res')
+                manifest = root / 'production-src/AndroidManifest.xml'
+                tree = build.ET.parse(manifest)
+                application = tree.getroot().find('application')
+                names = {'activity': ('activity', build.PACKAGE + '.nativeapp.providers.plex.LegacyPlexCardActivity'),
+                         'alias': ('activity-alias', build.PACKAGE + '.PlexItemActivity'),
+                         'provider': ('provider', build.PACKAGE + '.nativeapp.providers.plex.LegacyPlexArtworkProvider')}
+                kind = 'alias' if mutation == 'target' else 'provider' if mutation in ('authority', 'grant') else mutation
+                tag, name = names[kind]
+                node = next(node for node in application.findall(tag) if node.get(build.attr('name')) == name)
+                if mutation == 'target':
+                    node.set(build.attr('targetActivity'), 'example.OtherActivity')
+                elif mutation == 'authority':
+                    node.set(build.attr('authorities'), 'example.other')
+                elif mutation == 'grant':
+                    node.set(build.attr('grantUriPermissions'), 'true')
+                else:
+                    node.set(build.attr('exported'), 'true')
+                tree.write(manifest)
+                with self.assertRaisesRegex(ValueError, 'Legacy Plex component'):
+                    build.validate(root)
+
     def test_vpn_manifest_contract_rejects_exposure_and_extra_actions(self):
         for mutation in ('exported', 'permission', 'action', 'subtype', 'activity'):
             with self.subTest(mutation=mutation):

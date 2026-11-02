@@ -63,6 +63,9 @@ public final class BackgroundSettingsActivity extends Activity {
         controls.addView(Pages.text(this,"Scene selection changes only the scenery. Choose a transparent overlay separately, or use the scene's suggestion. Off returns to your saved background and wallpaper.",16));
         section(controls,"Background");
         row(controls,"base","",new View.OnClickListener() { @Override public void onClick(View view) { choose("Background","base",AppearanceOptions.BASES,AppearanceOptions.BASE_LABELS,options.base); } });
+        row(controls,"legacy_gradient","",new View.OnClickListener() { @Override public void onClick(View view) {
+            choose("Saved gradient", "legacy_gradient", LegacyGradients.IDS, LegacyGradients.LABELS, options.legacyGradient);
+        } });
         row(controls,"base_frozen","",new View.OnClickListener() { @Override public void onClick(View view) { flag("base_frozen",!options.baseFrozen); } });
         number(controls,"base_speed","Background speed"); number(controls,"base_intensity","Background intensity"); number(controls,"base_brightness","Background brightness");
         palette(controls,"base_palette","Background palette recipe");
@@ -165,6 +168,8 @@ public final class BackgroundSettingsActivity extends Activity {
         rows.get("wallpaper_video_frozen").setText("Video motion: "+(AppearancePreferences.videoFrozen(this)?"Still":"Playing"));
         rows.get("wallpaper_video_frozen").setEnabled(wallpaperMode.equals("video"));
         rows.get("base").setText("Background: "+(selectedScene!=null?selectedScene.name:label(AppearanceOptions.BASES,AppearanceOptions.BASE_LABELS,options.base)));
+        int gradient = LegacyGradients.index(options.legacyGradient);
+        rows.get("legacy_gradient").setText("Saved gradient: "+(gradient < 0 ? "Not selected" : LegacyGradients.LABELS[gradient]));
         rows.get("base_frozen").setText("Background motion: "+(options.baseFrozen?"Still":"Animated"));
         rows.get("overlay").setText("Overlay: "+label(AppearanceOptions.OVERLAYS,AppearanceOptions.OVERLAY_LABELS,options.overlay));
         rows.get("overlay_frozen").setText("Overlay motion: "+(options.overlayFrozen?"Still":"Animated"));
@@ -173,11 +178,11 @@ public final class BackgroundSettingsActivity extends Activity {
         for(int i=0;i<numbers.length;i++) rows.get(numbers[i]).setText(labels[i]+": "+value(numbers[i])+"%");
         rows.get("base_frozen").setEnabled(!options.scene.isEmpty() || (!options.base.equals("off")&&!options.base.startsWith("still_")));
         rows.get("base_speed").setEnabled(!reduced && (options.baseAnimated() || (!options.scene.isEmpty()&&!options.baseFrozen))); rows.get("base_intensity").setEnabled(!options.base.equals("off")&&!options.base.startsWith("still_")&&options.scene.isEmpty());
-        rows.get("base_brightness").setEnabled(!options.base.equals("off")&&options.scene.isEmpty());
+        rows.get("base_brightness").setEnabled(!options.base.equals("off")&&!options.base.equals("still_legacy_gradient")&&options.scene.isEmpty());
         rows.get("overlay_frozen").setEnabled(!options.overlay.equals("off")); rows.get("overlay_speed").setEnabled(!reduced && options.overlayAnimated());
         rows.get("overlay_intensity").setEnabled(!options.overlay.equals("off")); rows.get("overlay_opacity").setEnabled(!options.overlay.equals("off"));
         PaletteRecipes.Theme baseRecipe=PaletteRecipes.find(options.basePalette), overlayRecipe=PaletteRecipes.find(options.overlayPalette);
-        rows.get("base_palette").setEnabled(!options.base.equals("off")&&options.scene.isEmpty());
+        rows.get("base_palette").setEnabled(!options.base.equals("off")&&!options.base.equals("still_legacy_gradient")&&options.scene.isEmpty());
         rows.get("overlay_palette").setEnabled(!options.overlay.equals("off"));
         rows.get("base_palette").setText("Background palette recipe: "+(baseRecipe==null?"Default colors":baseRecipe.name));
         rows.get("overlay_palette").setText("Overlay palette recipe: "+(overlayRecipe==null?"Default colors":overlayRecipe.name));

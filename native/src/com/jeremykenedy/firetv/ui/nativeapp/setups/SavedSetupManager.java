@@ -183,8 +183,14 @@ public final class SavedSetupManager {
                             + " migration. The setup and all images have been kept.");
         Map<String, PreferenceSnapshot> target =
                 new LinkedHashMap<>(PresentationState.capture(context));
-        Map<String, Set<String>> owned =
-                LegacyPresentationMapper.ownedNativeKeys(saved.keySet(), identities);
+        Map<String, Set<String>> owned = new LinkedHashMap<>(
+                LegacyPresentationMapper.ownedNativeKeys(saved.keySet(), identities));
+        if (saved.containsKey("mode") && !"custom".equals(present.get("mode"))) {
+            Set<String> appearance = new LinkedHashSet<>(owned.get(LegacyPresentationMapper.APPEARANCE));
+            owned.put(LegacyPresentationMapper.APPEARANCE, appearance);
+            appearance.remove("scene");
+            if (!saved.containsKey("menu_animation")) appearance.remove("base");
+        }
         for (Map.Entry<String, Set<String>> file : owned.entrySet()) {
             if (!target.containsKey(file.getKey()))
                 throw new IOException("Unsupported legacy target.");

@@ -14,11 +14,15 @@ public final class ClockWidgetProvider implements WidgetProvider {
     @Override public String message(Context context) { return "Uses this TV's time zone and an explicitly saved launcher time format when present. Otherwise it follows the TV's 12/24-hour setting."; }
     @Override public int widthDp() { return 320; }
     @Override public int heightDp() { return 160; }
-    @Override public View createView(Context context) { return new ClockWidgetView(context); }
+    @Override public View createView(Context context) {
+        ClockWidgetView view = new ClockWidgetView(context);
+        view.useManagedLifecycle();
+        return view;
+    }
     @Override public void configure(Activity activity) {
         new AlertDialog.Builder(activity).setTitle(title()).setMessage(message(activity))
                 .setPositiveButton("Done", null).show();
     }
-    @Override public void onStart(View view) {}
-    @Override public void onStop(View view) {}
+    @Override public void onStart(View view) { ((ClockWidgetView) view).startUpdates(); }
+    @Override public void onStop(View view) { ((ClockWidgetView) view).stopUpdates(); }
 }

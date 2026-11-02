@@ -156,6 +156,9 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.photos.PhotoSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.screensavers.ScreensaverMemoryActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.screensavers.ScreensaverCatalogActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.LegacyPlexCardActivity" android:exported="false" />
+        <activity-alias android:name="com.jeremykenedy.firetv.ui.PlexItemActivity" android:targetActivity="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.LegacyPlexCardActivity" android:exported="false" />
+        <provider android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.plex.LegacyPlexArtworkProvider" android:authorities="com.jeremykenedy.firetv.ui.plex.art" android:exported="false" android:grantUriPermissions="false" />
         <activity-alias android:name="com.jeremykenedy.firetv.ui.MainActivity" android:targetActivity="com.jeremykenedy.firetv.ui.nativeapp.MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
