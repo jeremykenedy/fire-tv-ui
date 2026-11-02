@@ -1,5 +1,6 @@
 package com.jeremykenedy.firetv.ui.nativeapp.migration;
 
+import com.jeremykenedy.firetv.ui.nativeapp.device.protection.LegacyDeviceProtection;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,6 +30,11 @@ public final class ProductionMigrationGate {
         try {
             LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(legacy, identities, nativeBefore, folders, true);
             Set<String> unresolved = new LinkedHashSet<>(plan.unmappedLegacyKeys);
+            LegacyDeviceProtection.validateMigration(legacy.values());
+            for (String key : new String[]{"fire_tv_ui_protect_settings", "fire_tv_ui_keep_adb",
+                    "fire_tv_ui_deep_sleep_enabled", "fire_tv_ui_dream_unlocked", "fire_tv_ui_preview_pending",
+                    "fire_tv_ui_dream_enabled", "fire_tv_ui_sleep", "fire_tv_ui_sleep_saved",
+                    "fire_tv_ui_auto_wake", "fire_tv_ui_idle", "fire_tv_ui_dream"}) unresolved.remove(key);
             for (String key : new String[]{"fire_tv_ui_home_enabled", "start_on_boot", "override_home_button", "better_home_detection", "use_24h_clock", "featured_artwork_fit"}) {
                 if (legacy.values().get(key) instanceof Boolean) unresolved.remove(key);
             }

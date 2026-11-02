@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 import java.io.IOException;
@@ -46,6 +47,7 @@ public final class WeatherPlaceInstrumentation extends Instrumentation {
     @Override public void onCreate(Bundle args) { super.onCreate(args); start(); }
     @Override public void onStart() {
         Bundle result = new Bundle();
+        String focusBeforeSelect = "not reached";
         Map<String, ?> before = getTargetContext().getSharedPreferences(WeatherPreferences.FILE, Context.MODE_PRIVATE).getAll();
         try {
             check(!WeatherPreferences.load(getTargetContext()).configured, "Use a disposable unconfigured weather profile.");
@@ -57,11 +59,16 @@ public final class WeatherPlaceInstrumentation extends Instrumentation {
             edit("weather:label", "Portland");
             String unit = text("weather:units");
             String oldLatitude = text("weather:latitude"), oldLongitude = text("weather:longitude");
-            search("success"); awaitStatus("Choose a place");
+            search("success"); awaitStatus("Choose a place"); awaitPlaceDialog();
             sendKeyDownUpSync(KeyEvent.KEYCODE_BACK); awaitStatus("Search cancelled");
             check(text("weather:label").equals("Portland") && text("weather:latitude").equals(oldLatitude)
                     && text("weather:longitude").equals(oldLongitude), "Cancel must keep entered values");
             search("success"); awaitStatus("Choose a place");
+            focusBeforeSelect = awaitPlaceDialog();
+            result.putString("dialog_focus_before_navigation", focusBeforeSelect);
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
+            waitForIdleSync();
+            result.putString("dialog_focus_before_select", activeWindow());
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER); awaitStatus("Review and save");
             check(text("weather:label").equals("Portland city, OR") && text("weather:latitude").equals("45.5371363")
                     && text("weather:longitude").equals("-122.6500207"), "Selection must fill the chosen location");
@@ -80,25 +87,60 @@ public final class WeatherPlaceInstrumentation extends Instrumentation {
             check(before.equals(getTargetContext().getSharedPreferences(WeatherPreferences.FILE, Context.MODE_PRIVATE).getAll()),
                     "Searching and choosing without Save must not write weather preferences");
             result.putString("status", "PASS");
-            result.putString("limits", "Test source only; real Census and NWS requests, Settings navigation and physical TV remain unverified.");
-        } catch (Throwable failure) { result.putString("status", "FAIL"); result.putString("reason", failure.toString()); }
+            result.putString("limits", "Search uses test activation. Real Census and NWS requests, D-pad search activation, Settings navigation and physical TV remain unverified.");
+        } catch (Throwable failure) { result.putString("status", "FAIL"); result.putString("reason", failure.toString()); result.putString("dialog_focus_before_select", focusBeforeSelect); result.putString("active_window", activeWindow()); }
         finally { if (activity != null && !activity.isFinishing()) runOnMainSync(new Runnable() { @Override public void run() { activity.finish(); } }); }
         finish(0, result);
     }
     private void search(String next) {
         scenario = next;
-        runOnMainSync(new Runnable() { @Override public void run() { check(view("weather:find-place").requestFocus(), "Search must accept focus"); } });
-        sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
+        awaitActivityFocus();
+        runOnMainSync(new Runnable() { @Override public void run() { check(view("weather:find-place").performClick(), "Search must accept activation"); } });
+    }
+    private void awaitActivityFocus() {
+        long deadline = SystemClock.uptimeMillis() + 4000;
+        while (SystemClock.uptimeMillis() < deadline) {
+            final boolean[] focused = new boolean[1];
+            runOnMainSync(new Runnable() { @Override public void run() { focused[0] = activity.getWindow().getDecorView().hasWindowFocus(); } });
+            if (focused[0]) return;
+            SystemClock.sleep(25);
+        }
+        throw new AssertionError("Settings window did not regain focus: " + activeWindow());
     }
     private void edit(final String tag, final String value) { runOnMainSync(new Runnable() { @Override public void run() { ((EditText) view(tag)).setText(value); } }); }
     private View view(String tag) { View v = activity.getWindow().getDecorView().findViewWithTag(tag); check(v != null, "Missing " + tag); return v; }
     private String text(final String tag) {
         final String[] value = new String[1]; runOnMainSync(new Runnable() { @Override public void run() { value[0] = ((TextView) view(tag)).getText().toString(); } }); return value[0];
     }
+    private String awaitPlaceDialog() {
+        long deadline = SystemClock.uptimeMillis() + 4000;
+        while (SystemClock.uptimeMillis() < deadline) {
+            AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
+            if (root != null) {
+                try {
+                    if (!root.findAccessibilityNodeInfosByText("Portland city, OR").isEmpty()) return describeFocus(root);
+                } finally { root.recycle(); }
+            }
+            SystemClock.sleep(25);
+        }
+        throw new AssertionError("Place dialog did not become the active window: " + activeWindow());
+    }
+    private String activeWindow() {
+        AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
+        if (root == null) return "no active window";
+        try { return "focus=" + describeFocus(root) + ", root=" + root.toString(); }
+        finally { root.recycle(); }
+    }
+    private String describeFocus(AccessibilityNodeInfo root) {
+        AccessibilityNodeInfo focus = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+        if (focus == null) return "no input focus";
+        try { return "text=" + focus.getText() + ", description=" + focus.getContentDescription() + ", class=" + focus.getClassName(); }
+        finally { focus.recycle(); }
+    }
     private void awaitStatus(String expected) {
         long deadline = SystemClock.uptimeMillis() + 4000;
         while (SystemClock.uptimeMillis() < deadline) { if (text("weather:place-status").contains(expected)) return; SystemClock.sleep(25); }
-        throw new AssertionError("Missing status: " + expected);
+        throw new AssertionError("Missing status: " + expected + "; actual: " + text("weather:place-status"));
     }
     private static void check(boolean condition, String message) { if (!condition) throw new AssertionError(message); }
 }

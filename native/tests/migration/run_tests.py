@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-migration-') as directory:
     target = Path(directory)
     sources = sorted(path for path in SOURCE.glob('*.java') if not path.name.startswith('Android'))
     models = [ROOT / ('src/com/jeremykenedy/firetv/ui/nativeapp/' + name) for name in (
-        'holidays/HolidayScenes.java', 'folders/FolderOptions.java', 'appgrid/AppGridOptions.java', 'appgrid/HomeTileOrder.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
+        'device/protection/LegacyDeviceProtection.java', 'holidays/HolidayScenes.java', 'folders/FolderOptions.java', 'appgrid/AppGridOptions.java', 'appgrid/HomeTileOrder.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
         'layout/LayoutItem.java', 'cards/CardOptions.java', 'appearance/AppearanceOptions.java', 'appearance/LegacyGradients.java', 'appearance/PaletteRecipes.java', 'inputs/InputEntry.java', 'inputs/InputOptions.java')]
     sources += models
     subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', str(target),

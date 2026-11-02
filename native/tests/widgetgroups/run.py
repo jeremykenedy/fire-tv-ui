@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-widgetgroups-') as folder:
     subprocess.run(['java', '-cp', folder, 'com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupsTest'], check=True)
     journal_sources = sorted(path for path in (source / 'migration').glob('*.java') if not path.name.startswith('Android'))
     journal_sources += [source / name for name in (
-        'holidays/HolidayScenes.java', 'folders/FolderOptions.java', 'appgrid/AppGridOptions.java',
+        'device/protection/LegacyDeviceProtection.java', 'holidays/HolidayScenes.java', 'folders/FolderOptions.java', 'appgrid/AppGridOptions.java',
         'appgrid/HomeTileOrder.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
         'layout/LayoutItem.java', 'cards/CardOptions.java', 'appearance/AppearanceOptions.java',
         'appearance/PaletteRecipes.java', 'inputs/InputEntry.java', 'inputs/InputOptions.java',

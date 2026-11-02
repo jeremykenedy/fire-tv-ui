@@ -11,7 +11,7 @@ public final class PresentationMappingTest {
     private static final String ALPHA = "fixture.alpha/fixture.alpha.Main", BETA = "fixture.beta/fixture.beta.Main";
     private static final String INPUT_ALIAS = "tvinput_name:HDMI 1", INPUT_ID = "fixture.input/.Service/HDMI1000001";
     public static void main(String[] args) throws Exception {
-        actualMapping(); plexAliasMapping(); focusOwnedDefaults(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate();
+        actualMapping(); plexAliasMapping(); focusOwnedDefaults(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate(); protectionPreflight();
         System.out.println("Native presentation mappings, unsupported-value rejection and interrupted multi-store recovery passed.");
     }
     private static void plexAliasMapping() throws Exception {
@@ -541,6 +541,54 @@ public final class PresentationMappingTest {
         hiddenItems.put(ITEM_A, new PresentationMappingContext.Item("fixture.alpha", "program:one", "Fixture", false));
         PresentationMappingContext transientIdentity = new PresentationMappingContext(Collections.emptyMap(), Collections.emptyMap(), hiddenItems, Collections.emptyMap());
         reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(hiddenPlan.before), transientIdentity, null));
+    }
+    private static void protectionPreflight() throws Exception {
+        Map<String, Object> saved = new LinkedHashMap<>();
+        saved.put("fire_tv_ui_protect_settings", true);
+        saved.put("fire_tv_ui_keep_adb", true);
+        saved.put("fire_tv_ui_deep_sleep_enabled", true);
+        saved.put("fire_tv_ui_dream_unlocked", false);
+        saved.put("fire_tv_ui_preview_pending", false);
+        saved.put("fire_tv_ui_dream_enabled", true);
+        saved.put("fire_tv_ui_sleep", 5000);
+        saved.put("fire_tv_ui_sleep_saved", 1200000);
+        saved.put("fire_tv_ui_auto_wake", 1);
+        saved.put("fire_tv_ui_idle", 300000);
+        saved.put("fire_tv_ui_dream", "fixture.dream/.Service");
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(saved), identities(), Collections.emptyMap());
+        FixtureDisk disk = new FixtureDisk(new PresentationSnapshot(plan.before));
+        ProductionMigrationGate.commit(new FixtureStore(disk), new FixtureStore(disk).read(), identities(), null);
+        Map<String, Object> retained = new LinkedHashMap<>(disk.files.get(LauncherMigration.PREFERENCES).values());
+        retained.remove("source_ui_strict_migration_version");
+        retained.remove(LegacyPresentationMapper.VERSION_KEY);
+        check(saved.equals(retained), "Device choices and their exact types survive strict commit.");
+        for (String key : saved.keySet()) {
+            Map<String, Object> invalid = new LinkedHashMap<>(saved);
+            invalid.put(key, key.equals("fire_tv_ui_dream") ? 1 : "invalid");
+            assertProtectionRejected(invalid);
+        }
+        for (Object[] invalid : new Object[][]{
+                {"fire_tv_ui_sleep", 0}, {"fire_tv_ui_sleep_saved", -1},
+                {"fire_tv_ui_auto_wake", 2}, {"fire_tv_ui_idle", 0},
+                {"fire_tv_ui_preview_pending", true}, {"fire_tv_ui_dream", "invalid"},
+                {"fire_tv_ui_dream", "fixture.dream/."}, {"fire_tv_ui_dream", "fixture.dream/$."},
+                {"fire_tv_ui_dream", "fixture.dream/.Service..Child"}, {"fire_tv_ui_dream", "fixture.dream/.1Service"}}) {
+            Map<String, Object> choices = new LinkedHashMap<>(saved);
+            choices.put((String) invalid[0], invalid[1]);
+            assertProtectionRejected(choices);
+        }
+        Map<String, Object> dormant = new LinkedHashMap<>(saved);
+        dormant.put("fire_tv_ui_protect_settings", false);
+        dormant.put("fire_tv_ui_idle", "invalid");
+        assertProtectionRejected(dormant);
+    }
+    private static void assertProtectionRejected(Map<String, Object> source) throws Exception {
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap());
+        PresentationSnapshot original = new PresentationSnapshot(plan.before);
+        FixtureDisk disk = new FixtureDisk(original);
+        reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), original, identities(), null));
+        check(disk.events.isEmpty() && disk.journal == null && original.sameValues(new FixtureStore(disk).read()),
+                "Invalid protection settings are rejected before journaling or preference writes.");
     }
     private static final class FixtureDisk {
         final Map<String, PreferenceSnapshot> files;

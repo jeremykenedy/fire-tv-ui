@@ -77,6 +77,27 @@ public final class LegacyDeviceProtection {
         return Collections.unmodifiableList(changes);
     }
 
+    /** Validate retained preferences without accessing device settings. */
+    public static void validateMigration(Map<String, ?> prefs) {
+        for (String key : new String[]{"fire_tv_ui_protect_settings", "fire_tv_ui_keep_adb",
+                "fire_tv_ui_deep_sleep_enabled", "fire_tv_ui_dream_unlocked",
+                "fire_tv_ui_preview_pending", "fire_tv_ui_dream_enabled"}) bool(prefs, key);
+        Integer sleep = integer(prefs, "fire_tv_ui_sleep");
+        Integer savedSleep = integer(prefs, "fire_tv_ui_sleep_saved");
+        Integer auto = integer(prefs, "fire_tv_ui_auto_wake");
+        Integer idle = integer(prefs, "fire_tv_ui_idle");
+        if (sleep != null && sleep <= 0 || savedSleep != null && savedSleep < 0
+                || auto != null && auto != 0 && auto != 1 || idle != null && idle <= 0
+                || Boolean.TRUE.equals(prefs.get("fire_tv_ui_preview_pending"))) throw invalid();
+        if (prefs.containsKey("fire_tv_ui_dream")) {
+            Object dream = prefs.get("fire_tv_ui_dream");
+            if (!(dream instanceof String) || ((String) dream).length() > 512
+                    || !((String) dream).isEmpty() && !((String) dream).matches(
+                    "[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+/\\.?[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*")) throw invalid();
+        }
+        plan(prefs, false);
+    }
+
     /** Read-only upgrade reconciliation. A mismatch is never applied during startup. */
     public static Result inspect(Store store, Map<String, ?> prefs) {
         List<String> unavailable = new ArrayList<>();
