@@ -20,7 +20,7 @@ To demonstrate independence, copy only the `native` directory into an empty temp
 
 ## Implemented preview surface
 
-The [source preview guide](../docs/source-preview.md#what-is-included) defines the frozen alpha feature scope, including app organization, inputs, cards, local widgets, appearance controls, saved setups, portable backup, device pages and original Help. Preview data remains separate from production. New widgets start hidden, private connections require explicit setup and platform capability failures stay visible.
+The [source preview guide](../docs/source-preview.md#what-is-included) defines the current alpha feature scope, including app organization, inputs, cards, local widgets, appearance controls, saved setups, portable backup, device pages and original Help. Preview data remains separate from production. New widgets start hidden, private connections require explicit setup and platform capability failures stay visible.
 
 The preview registers no production Home or accessibility service and applies no production preference migration. Supported app/title handoffs do not establish entitlement, exact playback or physical-device behavior.
 

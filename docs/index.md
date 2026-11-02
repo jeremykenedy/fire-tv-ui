@@ -1,6 +1,7 @@
 # Documentation
 
-- [Source Preview 2.0.0-alpha.1](source-preview.md): separate preview installation, included first-cut scope and qualification limits.
+- [Source Preview 2.0.0-alpha.2](source-preview.md): separate preview installation, included preview scope and qualification limits.
+- [Source Preview 2.0.0-alpha.2 release notes](releases/v2.0.0-alpha.2.md)
 
 The guides below describe the retained stable 1.x product unless explicitly labeled otherwise.
 

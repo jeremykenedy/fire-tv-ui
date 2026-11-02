@@ -1,6 +1,6 @@
 # Build and source layout
 
-The default build creates a source-native production-package candidate from the maintained Java and Android resources in `native/`. It does not decode, patch, or package the supplied launcher APK. The candidate is not a released production upgrade: migration, parity, signing, and device acceptance remain separate gates. Stable Fire TV UI 1.17.0 and Source Preview 2.0.0-alpha.1 remain the published builds described in the README and [preview guide](source-preview.md).
+The default build creates a source-native production-package candidate from the maintained Java and Android resources in `native/`. It does not decode, patch, or package the supplied launcher APK. The candidate is not a released production upgrade: migration, parity, signing, and device acceptance remain separate gates. Stable Fire TV UI 1.17.0 and Source Preview 2.0.0-alpha.2 remain the published builds described in the README and [preview guide](source-preview.md).
 
 | Path | Purpose |
 | --- | --- |

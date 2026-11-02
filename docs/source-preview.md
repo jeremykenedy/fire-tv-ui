@@ -1,6 +1,6 @@
 # Fire TV UI Source Preview
 
-Version 2.0.0-alpha.1 is a separately installed preview of the new native interface. Stable [Fire TV UI 1.17.0](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.17.0) remains the latest stable release.
+Version 2.0.0-alpha.2 is a separately installed preview of the new native interface. Stable [Fire TV UI 1.17.0](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.17.0) remains the latest stable release.
 
 This early alpha is a separate application, not a production replacement. Its APK, checksum and `release-artifact.json` are distributed together through the alpha release.
 
@@ -10,7 +10,10 @@ This early alpha is a separate application, not a production replacement. Its AP
 | --- | --- |
 | Apps and inputs | App ordering, favorites, hide/show, folders, launcher-scoped locks, input names and per-tile artwork. |
 | Cards and widgets | Shared order, visibility and card size; Android TV published recommendations, rotation controls and item/series hide/restore where verified identity is available. |
-| Local widgets | Clock, world clocks, countdowns, timers, notes, reminders, selected photos, quick actions, breathing and configured sun/moon information. New widgets start hidden. |
+| Local widgets | Clock, world clocks, countdowns, timers, notes, reminders, selected photos, quick actions, breathing, sun/moon information and additional optional widgets. New widgets start hidden. |
+| Tonight watchlist | Keep a local list, mark titles watched and look up exact Plex items when an authorized Plex connection is available. Availability and playback depend on the target service. |
+| On This Day | Show dated historical events from Wikipedia with source and license attribution. Internet access is required. |
+| Weather | Choose a supported U.S. location for National Weather Service forecasts. A saved city without exact coordinates requires a one-time location selection; the saved city and units are retained. |
 | Appearance | Focus speed, growth, border/fill choices, curated and selected personal icons, supported icon packs, backgrounds, overlays and the included holiday scenes. |
 | Saved setups | Named preview presentation snapshots with optional icon restoration and retained local images. Missing media produces an error without deleting the setup. |
 | Portable backup | Explicit document export/import of reviewed preview settings. Credentials, device controls and lock secrets remain local; personal media is not embedded. Notes/reminders require their separate local export consent and an explicit choice for that export. |
@@ -22,17 +25,17 @@ These are alpha interfaces, not a statement of complete 1.x parity. A launcher l
 
 The declared minimum is Android 8.1 / API 27. Sideloading requires ADB access. Runtime qualification is recorded separately from this minimum; no physical Fire TV, Google TV, voice, CEC or receiver acceptance is claimed for this alpha.
 
-Download its APK, checksum and `release-artifact.json` from the [alpha release](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v2.0.0-alpha.1). Use the source-preview assets, not the stable 1.x installer or APK.
+Download its APK, checksum and `release-artifact.json` from the [alpha release](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v2.0.0-alpha.2). Use the source-preview assets, not the stable 1.x installer or APK.
 
 ```bash
-shasum -a 256 -c fire-tv-ui-source-preview-2.0.0-alpha.1.apk.sha256
+shasum -a 256 -c fire-tv-ui-source-preview-2.0.0-alpha.2.apk.sha256
 adb devices -l
-adb -s YOUR_TV_SERIAL install fire-tv-ui-source-preview-2.0.0-alpha.1.apk
+adb -s YOUR_TV_SERIAL install fire-tv-ui-source-preview-2.0.0-alpha.2.apk
 ```
 
 Open **Fire TV UI Source Preview** from the TV's app list. Its package is `com.jeremykenedy.firetv.ui.preview`; stable Fire TV UI and its settings remain separate. Do not uninstall stable Fire TV UI or change Home routing to try this preview. The preview is not registered as a replacement Home or accessibility service.
 
-The approved maintained preview certificate SHA-256 is `c64ca640cab78e75fd52a6bb43bcbf145aa1b951f0c719b471df241bf70669c6`. The release retains that existing preview identity; it does not require a new incompatible signer. The qualified first-public-preview path is a fresh separate installation. Nonempty local review-preview upgrades remain unqualified; a matching signer alone is not data-continuity proof.
+The approved maintained preview certificate SHA-256 is `c64ca640cab78e75fd52a6bb43bcbf145aa1b951f0c719b471df241bf70669c6`. The release retains that existing preview identity; it does not require a new incompatible signer. A matching signer allows Android to consider an in-place preview update, but data continuity from earlier preview installations has not been qualified. Export the supported data you want to keep before updating.
 
 For a preview signed with another key, Android will refuse an in-place update. Preserve any needed preview data before deciding whether to remove that app; there is no automatic migration across signers. Production 1.x data is not imported by this installation.
 
@@ -44,7 +47,7 @@ Use **Appearance** for focus, backgrounds and icon packs. Long-press an app/inpu
 
 Use **Updates and backup > Saved setups** for local presentation snapshots, or **Backup and import** for a selected portable document. A preview backup is not a production migration tool. Unsupported legacy formats are retained and rejected for application until their mapping is verified. Notes, reminders, photos, connection credentials and device controls have separate privacy and persistence boundaries; a saved appearance is not a household/account backup.
 
-The Updates screen has no configured compatible public preview feed in this first cut. It does not offer the legacy production APK as a preview update.
+Preview updates remain separate from the stable production APK. Check the Updates screen for the available preview release and review its details before installing.
 
 ## Data and rollback
 
@@ -52,7 +55,7 @@ The alpha keeps its own app data. It does not open another package's private set
 
 To stop using the preview, close it and open the stable Fire TV UI or the TV's existing Home. No production downgrade is needed. Uninstalling the preview deletes its local data. Export the supported preview data you want to keep before removing it, and retain selected personal source files separately. Restoring a preview document does not restore Android URI grants or account credentials.
 
-## Limits of this first alpha
+## Preview limits
 
 - Production 1.x migration, Home takeover, Alexa/receiver/CEC behavior and full feature parity are not delivered by this preview.
 - A separate package cannot read the existing production app's private data. Unsupported legacy setups/backups are not silently converted or reset.
@@ -60,29 +63,29 @@ To stop using the preview, close it and open the stable Fire TV UI or the TV's e
 - General cleartext HTTP is disabled. The included loopback exception does not establish support for arbitrary HTTP Plex/NAS servers.
 - Personal media and sensitive widget content are not automatically portable. A missing source remains an explicit unavailable state.
 - API 27 runtime coverage, physical-TV performance and visual acceptance remain qualification gates. Build success or an emulator result does not establish those results.
-- Exact-alpha native card checks pass, including D-pad custom-timer Save, ordering and item hide/restore. The tested Android TV provider has no series identity; Plex series behavior has separate coverage.
-- Exact-alpha migration interruption/recovery checks pass with an isolated synthetic fixture at three write boundaries. They do not qualify a production upgrade or recovery using a corrective build.
-- Later optional work, including dashboard scheduling, calendar, weather/radar, Now Playing and ambient audio, is outside this first-cut scope.
+- Prior alpha native card checks passed, including D-pad custom-timer Save, ordering and item hide/restore. The tested Android TV provider has no series identity; Plex series behavior has separate coverage.
+- Prior alpha migration interruption/recovery checks passed with an isolated synthetic fixture at three write boundaries. They do not qualify a production upgrade or recovery using a corrective build.
+- Widget availability depends on source configuration, network access and platform support. Plex access requires an authorized connection, and a local watchlist does not synchronize viewing history with other services.
 
 ## Screenshots
 
-Captured from the nondebug Source Preview 2.0.0-alpha.1/code 2 interface on an API 34 TV emulator at 1920x1080. These captures use signed candidate APK `24cc669fc9f27d377c34a2a833ebd4037d50cd97eb85e6a9a90317113e809f51`. The release build is verified against the same runtime source and resources. These show fresh default state: stock app tiles, clock and no cards because TV listings access was not granted. No personal content or injected fixtures are shown. The native Settings/focus route, Back restoration and guarded app/system-state restoration passed; this does not establish physical-TV behavior.
+These captures show the signed Source Preview 2.0.0-alpha.2 candidate on an Android TV API 34 emulator at 1920x1080. The candidate APK has SHA-256 `e2e6391f32c42ac08aafe8e02d7e6778c2592cd0e8a8b1892083d994998e76ed`. Home shows the default clock and stock apps with no TV listings access; the other captures show the native Settings and Widgets pages. No personal accounts or content were used. These images do not establish physical-TV behavior.
 
 <table>
   <tr>
-    <td><a href="../art/screenshots/source-alpha-home-api34.png"><img src="../art/screenshots/source-alpha-home-api34.png" alt="Source Preview 2.0.0-alpha.1 Home on API 34: default clock, stock apps and TV listings access state" width="290"></a></td>
-    <td><a href="../art/screenshots/source-alpha-settings-api34.png"><img src="../art/screenshots/source-alpha-settings-api34.png" alt="Source Preview 2.0.0-alpha.1 native Settings on API 34, showing Appearance and its routes" width="290"></a></td>
-    <td><a href="../art/screenshots/source-alpha-appearance-api34.png"><img src="../art/screenshots/source-alpha-appearance-api34.png" alt="Source Preview 2.0.0-alpha.1 Focus and motion settings on API 34, showing speed, growth and the focused preview tile" width="290"></a></td>
+    <td><a href="../art/screenshots/source-alpha2-home-api34.png"><img src="../art/screenshots/source-alpha2-home-api34.png" alt="Source Preview 2.0.0-alpha.2 Home with clock and stock apps on Android TV" width="290"></a></td>
+    <td><a href="../art/screenshots/source-alpha2-settings-api34.png"><img src="../art/screenshots/source-alpha2-settings-api34.png" alt="Source Preview 2.0.0-alpha.2 Settings showing appearance controls" width="290"></a></td>
+    <td><a href="../art/screenshots/source-alpha2-widgets-api34.png"><img src="../art/screenshots/source-alpha2-widgets-api34.png" alt="Source Preview 2.0.0-alpha.2 Widgets settings and Home visibility guidance" width="290"></a></td>
   </tr>
-  <tr><td>Home: fresh default state</td><td>Native Settings: Appearance</td><td>Focus and motion</td></tr>
+  <tr><td>Home</td><td>Settings</td><td>Widgets</td></tr>
 </table>
 
-The [stable gallery](screenshots.md) retains earlier captures labeled by release. It is separate from these alpha images.
+The [stable gallery](screenshots.md) retains the separately labeled Fire TV UI 1.17.0 captures and earlier releases.
 
 ## Source and licenses
 
-The preview build uses the reviewed `native/` Java/resources and documented Android toolchain. Its artifact does not fetch, decode, patch or package the inherited launcher. This statement applies to the preview build inputs; the repository retains its legacy implementation, truthful Git history and applicable attribution.
+The preview and production candidate builds use the maintained `native/` Java and resources. Neither build fetches, decodes, patches or packages the inherited launcher. Historical attribution and applicable third-party notices remain.
 
 Owned project material remains under the [MIT license](../LICENSE). Bundled artwork and other third-party material retain their notices, including the [native icon notice](../native/icons/NOTICE.txt). Do not infer one license for every historical asset from the repository's MIT license.
 
-The [alpha release notes](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v2.0.0-alpha.1) record verification results and limitations. The [documentation index](index.md) retains the separately labeled 1.x guides.
+The [alpha release notes](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v2.0.0-alpha.2) record verification results and limitations. The [documentation index](index.md) retains the separately labeled 1.x guides.

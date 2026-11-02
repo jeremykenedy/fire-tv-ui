@@ -1,6 +1,6 @@
 # Installation and updates
 
-Stable Fire TV UI 1.17.0 and Source Preview 2.0.0-alpha.1 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview has a separate package and settings; see the [preview guide](source-preview.md).
+Stable Fire TV UI 1.17.0 and Source Preview 2.0.0-alpha.2 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview has a separate package and settings; see the [preview guide](source-preview.md).
 
 The repository installer is currently unavailable. The source-native production candidate is not a verified upgrade, and its unsigned build must not be installed. Keep the existing app and its data while migration and device acceptance are pending. For the previously published 1.17.0 instructions, use the [1.17.0 release notes](releases/v1.17.0.md) and the installer from that release's tagged source.
 
