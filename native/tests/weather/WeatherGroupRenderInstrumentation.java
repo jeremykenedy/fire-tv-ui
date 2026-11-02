@@ -75,7 +75,7 @@ public final class WeatherGroupRenderInstrumentation extends Instrumentation {
         check(text(weather).contains("Stale") && text(weather).contains("Updated"), size + " stale source must remain visible.");
         check(node(group, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa").contains("Stale"), size + " stale status inaccessible.");
         weather.render(options, WeatherForecast.state(WeatherForecast.State.SETUP_REQUIRED, "setup", System.currentTimeMillis())); layout(group, width, height); checkBounds(weather, size);
-        check(text(weather).contains("Choose a weather location") && text(weather).contains("National Weather Service"), size + " setup state missing.");
+        check(text(weather).contains("Choose exact location") && text(weather).contains("National Weather Service"), size + " setup state missing.");
         weather.render(options, WeatherForecast.state(WeatherForecast.State.UNAVAILABLE, "error", System.currentTimeMillis())); layout(group, width, height); checkBounds(weather, size);
         check(text(weather).contains("Forecast unavailable") && text(weather).contains("National Weather Service"), size + " error state missing.");
         accessible = node(group, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");

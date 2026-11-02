@@ -73,7 +73,7 @@ public class WeatherSettingsActivity extends com.jeremykenedy.firetv.ui.nativeap
         body.addView(Pages.text(this, "National Weather Service hourly forecasts for supported U.S. forecast locations. Coastal marine and worldwide coverage are not provided. Air quality and pollen are not included. Radar and UV are separate widgets.", 17));
         body.addView(Pages.text(this, "Search U.S. Census places by city name, or enter coordinates manually. Search sends the name to the U.S. Census Bureau. The selected coordinates are sent to api.weather.gov when saved and while the widget is visible. Device location permission is not requested.", 17));
         if (!options.configured && !options.label.isEmpty()) {
-            body.addView(Pages.text(this, "Your saved location name is retained below. Search for the city or enter coordinates, then save to check NWS coverage. NWS does not cover every location.", 17));
+            body.addView(Pages.text(this, "Your saved city and units are retained. Choose the exact location once: search for the city and select a result, or enter coordinates, then save. NWS coverage varies by location.", 17));
         }
         label = field(body, "Location name", "weather:label", options.label, false);
         findPlace = Pages.button(this, "Find U.S. city or town", new View.OnClickListener() {
