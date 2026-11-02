@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.worldclockproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="World clocks verification" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.worldclock.WorldClockInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

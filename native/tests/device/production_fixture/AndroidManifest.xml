@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.homepermissionfixture">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <queries><package android:name="com.jeremykenedy.firetv.ui" /></queries>
+    <application android:label="Home permission boundary fixture" android:allowBackup="false">
+        <receiver android:name="com.jeremykenedy.firetv.ui.homepermissionfixture.UnprivilegedSender" android:exported="true" />
+    </application>
+</manifest>

@@ -1,0 +1,3 @@
+<resources>
+    <item component="ComponentInfo{proof.one/.Main}" drawable="fixture_icon" />
+</resources>

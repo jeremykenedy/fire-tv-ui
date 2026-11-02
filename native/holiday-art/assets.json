@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "halloween",
+      "path": "native/res/drawable-nodpi/holiday_scene_halloween.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2755695,
+      "sha256": "25dcb73785c1e7dcec28d75c4fc260fc02a062f44642371aa11d6c3d57de75b5",
+      "origin": "Original image generated for this project with built-in imagegen; no input images or stock artwork."
+    },
+    {
+      "id": "christmas",
+      "path": "native/res/drawable-nodpi/holiday_scene_christmas.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2774097,
+      "sha256": "4f2223dadcec190c289a97c4020a0c2b2363d390dab6bc86fc2a1bce60d7db4e",
+      "origin": "Original image generated for this project with built-in imagegen; no input images or stock artwork."
+    },
+    {
+      "id": "winter",
+      "path": "native/res/drawable-nodpi/holiday_scene_winter.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3053149,
+      "sha256": "25fed129f5c9ff05d353e3e8848ddb449da8634d6d40a8ad4fb7880fd0e81bb7",
+      "origin": "Original image generated for this project with built-in imagegen; no input images or stock artwork."
+    },
+    {
+      "id": "halloween_clean",
+      "path": "native/res/drawable-nodpi/holiday_scene_halloween_clean.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 2613211,
+      "sha256": "624a313ea9f8fbb172a7a0e4554bbd718dcd6af89a835849b781b06c090bf55a",
+      "origin": "Original derived artwork made with built-in imagegen from project original Halloween scene; no external input artwork."
+    },
+    {
+      "id": "halloween_walk",
+      "path": "native/res/drawable-nodpi/holiday_characters_halloween_walk.png",
+      "width": 1774,
+      "height": 887,
+      "bytes": 1603070,
+      "sha256": "e22b398446302068656ac9b2fc9e912f0a11eacabd8cfb7231efa408428d6e45",
+      "origin": "Original derived artwork made with built-in imagegen from project original Halloween scene; no external input artwork.",
+      "columns": 3,
+      "rows": 2,
+      "frames": 6,
+      "alpha": true
+    }
+  ]
+}

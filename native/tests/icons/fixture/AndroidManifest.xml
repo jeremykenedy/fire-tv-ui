@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="proof.icons.pack">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Icon pack proof" android:hasCode="false">
+        <activity android:name="android.app.Activity" android:exported="true">
+            <intent-filter><action android:name="org.adw.launcher.THEMES" /></intent-filter>
+        </activity>
+    </application>
+</manifest>

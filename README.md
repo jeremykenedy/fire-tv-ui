@@ -3,7 +3,7 @@
   <a href="https://github.com/jeremykenedy/fire-tv-ui#gh-dark-mode-only"><picture><source media="(max-width: 600px) and (prefers-reduced-motion: reduce)" srcset="art/banner-mobile-still-dark.a324d51d0cd9.svg"><source media="(prefers-reduced-motion: reduce)" srcset="art/banner-still-dark.c72c1431c05d.svg"><source media="(max-width: 600px)" srcset="art/banner-mobile-dark.6cfcbd32ad7d.svg"><img src="art/banner-dark.bf78d582be0e.svg#gh-dark-mode-only" alt="Fire TV UI" width="800"></picture></a>
 </p>
 
-<p align="center">A customizable home screen for Fire TV, with screensavers, persistent backups, local device protection, and every feature included.</p>
+<p align="center">A customizable Fire TV home screen, with a separately installed source preview.</p>
 
 <p align="center">
   <a href="https://github.com/jeremykenedy/fire-tv-ui/releases"><img src="https://img.shields.io/github/downloads/jeremykenedy/fire-tv-ui/total" alt="Total downloads"></a>
@@ -18,8 +18,21 @@
   <a href="https://github.com/sponsors/jeremykenedy"><img src="https://img.shields.io/badge/Sponsor-EA4AAA?logo=githubsponsors&amp;logoColor=white" alt="Sponsor"></a>
 </p>
 
+## Choose a version
+
+| Version | Use it for | Start here |
+| --- | --- | --- |
+| Stable 1.17.0 | The existing Fire TV UI installation and supported 1.x updates. | [Stable download](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.17.0) |
+| Source Preview 2.0.0-alpha.1 | Testing the new native interface in a separate alpha app. | [Source preview guide](docs/source-preview.md) |
+
+Stable 1.17.0 remains the latest stable release. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. The alpha is an early preview with the scope and limits described below. See the [source preview guide](docs/source-preview.md) for scope and limits.
+
+The installation, feature guides and screenshots below describe stable 1.17 unless explicitly labeled as source preview.
+
 ## Table of Contents
 
+- [Choose a version](#choose-a-version)
+- [Source preview](#source-preview)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
@@ -32,6 +45,16 @@
 - [Screensaver Skill](#screensaver-skill)
 - [Screenshots](#screenshots)
 - [License](#license)
+
+## Source preview
+
+The separately installed alpha provides a native Home interface, app organization, cards/widgets, appearance controls and local presentation setups. It keeps production Home routing and production migration outside the preview contract. Provider content and system actions depend on platform support and explicit permissions.
+
+Use the [source preview guide](docs/source-preview.md) for installation, included features, data boundaries and known limits. Optional work beyond the frozen first cut is excluded.
+
+<p align="center"><a href="docs/source-preview.md#screenshots"><img src="art/screenshots/source-alpha-home-api34.png" alt="Fire TV UI Source Preview 2.0.0-alpha.1 Home on an API 34 TV emulator, showing the default clock, stock apps and TV listings access state" width="900"></a></p>
+
+Source Preview 2.0.0-alpha.1/code 2, captured from the verified signed alpha interface on an API 34 TV emulator. See the [preview gallery](docs/source-preview.md#screenshots) for Settings and Focus and motion. Physical-TV acceptance remains separate.
 
 ## Requirements
 
@@ -126,6 +149,7 @@ Device testing is described in [Verification](docs/verification.md).
 
 ## Documentation
 
+- [Source Preview 2.0.0-alpha.1 guide](docs/source-preview.md)
 - [Documentation index](docs/index.md)
 - [Configuration](docs/configuration.md)
 - [Full screenshot gallery](docs/screenshots.md)
@@ -165,7 +189,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-Fire TV UI 1.17.0/code 78 on Android TV API 34. Audio brand artwork and individual factory resets are available from each tile. The [full gallery](docs/screenshots.md) includes input naming and earlier features labeled by version.
+Stable Fire TV UI 1.17.0/code 78 on Android TV API 34. This historical stable image is separate from the [source-preview gallery](docs/source-preview.md#screenshots). Audio brand artwork and individual factory resets are available from each tile. The [full gallery](docs/screenshots.md) includes input naming and earlier features labeled by version.
 
 <p align="center"><img src="art/screenshots/audio-brand-picker-ui117-code78-api34.png" alt="Fire TV UI 1.17 native audio brand icon picker" width="900"></p>
 

@@ -1,0 +1,24 @@
+# Portable presentation and optional household backup
+
+Entry point: `com.jeremykenedy.firetv.ui.nativeapp.backup.BackupActivity.open(Context)`. The integration owner registers this activity as unexported and adds the Settings route. Backup owns only `backup/` and `tests/backup/`; no Main/Settings/manifest/build tooling edits were made by this lane.
+
+The preview offers Android document-picker export/import, validation and confirmation, both cancellation paths, bounded malformed/unknown-document handling and interrupted-transaction recovery. Export suggests the maintained `fire-tv-ui-backup.txt` filename; the chooser accepts `fire-tv-ui-import.txt` or another document name. No broad storage permission, Downloads scan or broadcast import exists.
+
+`PortableBackup` v1 carries reviewed presentation stores with exact primitive/StringSet types and stored-presence semantics. The migration module supplies strict duplicate-key/depth/node-bounded JSON parsing. Input UTF-8 is strict; input/output are limited to 1 MiB. `PresentationState.validatePortable` supplies the shared whitelist, rejects unknown fields, local media dependencies and opaque unsupported legacy settings. Missing owned choices remove stored values; explicitly stored defaults remain explicit. Account/hardware/lock/private-file stores stay outside this boundary.
+
+`BackupPayload` adds a separately identified optional household envelope. Export requires fresh per-operation checkboxes plus the existing local export permission for each selected notes/reminders store. Unselected private content is never captured. `HouseholdContent` validates the source schemas and always forces imported notes/reminders `summaryOnly=true`, `allowExport=false`; reminders additionally remain disabled until enabled locally. A document cannot activate consent or show household details. Import confirmation explicitly explains replacement of the included private documents. Base setup snapshots never automatically capture household content.
+
+`BackupTransaction` adds a private AtomicFile pre-journal around shared presentation apply and selected household document writes. The complete before state is written and read back before mutation; private writes commit synchronously and verify readback. Failure restores both base presentation and selected household documents. Interrupted transactions expose explicit recovery, coordinate the shared presentation journal, and retain recovery if restoration is unverified. The binary pre-journal is private recovery only, never portable output. Other keys in the household stores are preserved. No raw notes, reminders or credentials are logged.
+
+The original flat JSON backup is recognized and refused, rather than silently partially applied. Its replace-all semantics, legacy identity/media mapping and full domain coverage still need production migration gates. Portable personal media packaging is absent and explicitly refused; named local setups separately preserve their local choices. The widget boundary audit is `WIDGET-STORE-INVENTORY.md`; in-place preservation is distinct from portable inclusion.
+
+## Verification
+
+- `python3 native/tests/backup/run.py`: 36 checks passed (26 strict codec checks and 10 household-consent/privacy checks).
+- `python3 native/tests/backup/compile.py`: real aapt2 resources plus API36 Java8 SDK compilation passed, including Activity, coordinator and native instrumentation, with temporary outputs only.
+- `python3 native/tests/backup/build_native_test.py`: wrapper builds `tests/backup/.build/backup-proof.apk` against the existing compiled preview classes and debug key. It does not rebuild the app.
+- Runner: `com.jeremykenedy.firetv.ui.backupproof/com.jeremykenedy.firetv.ui.nativeapp.backup.BackupInstrumentation`.
+
+The test-only APK registers a fixed controlled document provider. Native instrumentation requests the ordinary SAF intents through controlled picker results and performs actual resolver file I/O. It covers base export/import, picker and confirmation cancellation, malformed documents, an explicit optional-notes export/import, imported consent/detail reset, a commit failure after private preference memory mutation, exact rollback and fixture restoration. It captures/restores presentation and original notes/reminders document keys in `finally`. The provider accepts only this test package or the preview caller and exposes no arbitrary path. It has no production manifest entry.
+
+This lane compiled but did not run native instrumentation. The integration/device owner must record native results. The fixture proves controlled provider behavior when run, not every external document provider. Production migration, process termination during native writes, physical TVs and owner acceptance remain separate gates. No device/shared build/commit/push/release was performed by this lane.

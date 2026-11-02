@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.saverfixture">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Screensaver administration fixture" android:theme="@android:style/Theme.Material.NoActionBar">
+        <service android:name=".FixtureDream" android:label="Administration fixture" android:permission="android.permission.BIND_DREAM_SERVICE" android:exported="true">
+            <intent-filter><action android:name="android.service.dreams.DreamService" /><category android:name="android.intent.category.DEFAULT" /></intent-filter>
+            <meta-data android:name="android.service.dream" android:resource="@xml/dream" />
+        </service>
+        <activity android:name=".FixtureSettings" android:exported="true" />
+    </application>
+</manifest>

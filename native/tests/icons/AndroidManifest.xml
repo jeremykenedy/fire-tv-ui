@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.iconproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Icon verification" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.icons.IconInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

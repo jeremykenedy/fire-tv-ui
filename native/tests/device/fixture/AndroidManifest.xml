@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.routingfixture">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <queries>
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.HOME" /></intent>
+        <intent><action android:name="android.settings.SETTINGS" /></intent>
+        <package android:name="com.amazon.tv.livetv" />
+    </queries>
+    <application android:label="Home routing callback fixture" android:allowBackup="false" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.device.RoutingFixture"
+        android:targetPackage="com.jeremykenedy.firetv.ui.routingfixture" />
+</manifest>

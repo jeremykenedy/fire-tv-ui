@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.quickactionsproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
+    <application android:label="Quick actions proof">
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.quickactions.QuickActionFixture" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="quick-action.example" />
+            </intent-filter>
+        </activity>
+    </application>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.quickactions.QuickActionsInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+</manifest>

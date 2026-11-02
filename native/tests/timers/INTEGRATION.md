@@ -1,0 +1,19 @@
+# Local countdown and timer integration
+
+`CountdownWidgetProvider` and `TimerWidgetProvider` implement the shared widget interface. Their stable identities are `widget:countdown` and `widget:timer`, their native sizes are 360 by 220dp, and both inherit hidden initial visibility. Configuration uses native dialogs and requires no activity, manifest entry, account, network or additional dependency. The layout owner registered both providers. Home refreshes readiness on dialog dismissal through its existing window focus callback.
+
+The countdown stores one label, target instant and explicit IANA time zone. Inputs accept 1970 through 2099, strict calendar dates and 24 hour times. Daylight saving gaps are rejected. Repeated times use the first occurrence and the configuration form states that policy. Changing the TV's zone does not change the stored target.
+
+The local timer stores one label and a duration of 1 through 604800 seconds. Save creates a ready timer. Start, pause, resume, reset and confirmed cancel are native actions. Sound defaults to off. Elapsed realtime and the boot identity preserve running progress through process death and wall clock changes within the same boot. Recovery after a boot change uses the saved wall deadline and reanchors to elapsed realtime. Devices withholding BOOT_COUNT use a private process identity, preserving monotonic behavior within the process and using the wall deadline once after process restart.
+
+No alarm, service, wake lock, power preference or alarm permission is introduced. Standby alarms are explicitly unsupported in configuration. The optional short beep occurs when a visible running widget observes completion. Completion is saved once before playing it. Returning Home can observe a timer that finished while Home was closed. Boot recovery of an already elapsed timer marks it finished without sounding. A manually changed wall clock while the TV is rebooted or while a restricted device's process is dead can affect recovery; this is not an exact alarm feature.
+
+Storage is private SharedPreferences file `native_local_timers`. It contains labels, countdown zone/instant, timer duration/remaining, running/sound flags, elapsed/wall deadlines and boot identity. It contains no credentials. Portable setup/backup integration should treat a running timer as transient device state rather than copying an elapsed deadline to a different device.
+
+## Checks
+
+`python3 native/tests/timers/run.py` passes focused timezone, DST gap/overlap, fractional zone offset, past target, elapsed clock, pause/resume/reset, process restart and boot recovery tests. It also compiles all widget and native instrumentation classes against Android 36 in a temporary output directory. This check does not write shared build outputs.
+
+Native proof was prepared by this module worker. Current Timer-v4 requires an explicit durable StateGuard case and manifest hash before fixture writes. Follow the [guarded disposable-only sequence](../../DEVELOPMENT.md#guarded-native-timer-checks); a bare instrumentation command is insufficient. The suite uses actual Home slot actions and native dialogs, validates readiness refresh, quiet default, timer actions and Activity recreation, and snapshots/restores the timer and layout preference files. A passing result includes `restored=true`.
+
+The operator must also inspect a native screenshot for label/target readability, run D-pad and Back through the native forms and menus, and observe the optional beep only after explicit enablement. Actual process death across relaunch, TV standby, reboot recovery and physical remote behavior remain separate native gates. Do not reboot a TV to test this assignment. Host recovery tests cover the time math without changing device power state.
