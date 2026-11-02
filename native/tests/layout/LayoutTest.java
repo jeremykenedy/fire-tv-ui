@@ -1,6 +1,7 @@
 package com.jeremykenedy.firetv.ui.nativeapp.layout;
 
 import android.content.Context;
+import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,6 +32,21 @@ public final class LayoutTest {
         }
         check(options.widthDp(clock, 300) == 300 && options.heightDp(clock, 72) == 72, "Widget dimensions remain independent.");
         check(LayoutOptions.fromBackup(options.backupValues()).backupValues().equals(options.backupValues()), "Backup round-trip preserves complete layout.");
+        TvRecommendations.Feed feed = new TvRecommendations.Feed("com.example.tv:preview:12", "Shared movies");
+        List<TvRecommendations.Feed> feeds = Collections.singletonList(feed);
+        List<LayoutItem> discovered = HomeSlots.available(feeds);
+        check(discovered.equals(Arrays.asList(HomeSlots.CLOCK, feed.item)), "Real feeds join the clock as stable slots.");
+        check(HomeSlots.available().equals(Collections.singletonList(HomeSlots.CLOCK)), "The local-only baseline stays available.");
+        check(HomeSlots.title(feed.item.key(), feeds).equals("Shared movies"), "Editor uses the publisher's feed title.");
+        check(HomeSlots.title(feed.item.key(), Collections.<TvRecommendations.Feed>emptyList()).equals("Unavailable channel"),
+                "Missing feeds keep an explicit unavailable title.");
+        LayoutOptions feedLayout = HomeSlots.defaults().discover(discovered).moveBefore(feed.item.key(), HomeSlots.CLOCK.key())
+                .setVisible(feed.item.key(), false);
+        LayoutOptions missingFeed = feedLayout.discover(HomeSlots.available());
+        check(missingFeed.order.equals(feedLayout.order) && missingFeed.hidden.equals(feedLayout.hidden),
+                "A missing real feed preserves saved order and visibility.");
+        check(missingFeed.discover(discovered).visible(discovered).equals(HomeSlots.available()),
+                "A reappearing hidden feed stays hidden.");
         Context context = new Context();
         context.prefs.values.put("unrelated", "keep");
         LayoutPreferences.save(context, options);

@@ -24,6 +24,7 @@ public final class FocusTileView extends FrameLayout {
     private ValueAnimator animation;
     private float progress;
     private boolean preview;
+    private boolean compact;
 
     public FocusTileView(Context context) {
         super(context);
@@ -61,6 +62,18 @@ public final class FocusTileView extends FrameLayout {
     }
 
     public void setIcon(Drawable value) { icon.setImageDrawable(value); }
+
+    public void setCompact(boolean compact) {
+        if (this.compact == compact) return;
+        this.compact = compact;
+        surface.setOrientation(compact ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        surface.setPadding(dp(compact ? 4 : 12), dp(compact ? 4 : 12),
+                dp(compact ? 4 : 12), dp(compact ? 4 : 10));
+        icon.setLayoutParams(new LinearLayout.LayoutParams(compact ? 0 : -1, compact ? -1 : 0, 1));
+        title.setLayoutParams(compact ? new LinearLayout.LayoutParams(0, -2, 2)
+                : new LinearLayout.LayoutParams(-1, -2));
+        title.setPadding(dp(compact ? 4 : 0), dp(compact ? 0 : 8), 0, 0);
+    }
 
     public void setPreviewFocused(boolean value) {
         preview = value;
@@ -135,8 +148,7 @@ public final class FocusTileView extends FrameLayout {
         int color = options.borderArgb();
         int alpha = options.borderEnabled ? Math.round(Color.alpha(color) * progress) : 0;
         background.setStroke(dp(3), (alpha << 24) | options.borderRgb);
-        background.setColor(Color.rgb(Math.round(37 + progress * 23),
-                Math.round(31 + progress * 19), Math.round(57 + progress * 24)));
+        background.setColor(options.surfaceRgb(progress));
         title.setTextColor(progress > 0.5f ? Color.WHITE : 0xffcec7df);
     }
 

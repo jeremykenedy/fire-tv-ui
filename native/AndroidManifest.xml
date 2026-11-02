@@ -1,8 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.preview">
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <queries><intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent></queries>
-    <application android:label="Fire TV UI Source Preview" android:theme="@style/AppTheme" android:icon="@drawable/icon" android:banner="@drawable/banner" android:allowBackup="false" android:supportsRtl="true">
+    <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <queries>
+        <provider android:authorities="android.media.tv" />
+        <package android:name="com.amazon.tv.livetv" />
+        <package android:name="com.android.tv" />
+        <package android:name="com.google.android.tv" />
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.HOME" /></intent>
+        <intent><action android:name="android.settings.SETTINGS" /></intent>
+        <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="livetv" /></intent>
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent>
+    </queries>
+    <application android:label="Fire TV UI Source Preview" android:theme="@style/AppTheme" android:icon="@drawable/icon" android:banner="@drawable/banner" android:allowBackup="false" android:supportsRtl="true" android:usesCleartextTraffic="false">
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.MainActivity" android:exported="true" android:launchMode="singleTop">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent-filter>
         </activity>
@@ -12,5 +23,7 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.icons.IconPickerActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.cards.CardsSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.DeviceSettingsActivity" android:exported="false" />
     </application>
 </manifest>

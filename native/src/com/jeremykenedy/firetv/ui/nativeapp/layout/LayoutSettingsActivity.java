@@ -3,6 +3,8 @@ package com.jeremykenedy.firetv.ui.nativeapp.layout;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -13,6 +15,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
+import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
+import java.util.Collections;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,9 +28,18 @@ public final class LayoutSettingsActivity extends Activity {
     private List<LayoutItem> available;
     private LinearLayout rows;
     private TextView size;
+    private TextView providerStatus;
+    private Button providerAction;
+    private List<TvRecommendations.Feed> feeds = Collections.emptyList();
+    private TvRecommendations.Status status;
+    private final ExecutorService reader = Executors.newSingleThreadExecutor();
+    private int readGeneration;
+    private boolean permissionDenied;
+    private static final int LISTINGS_REQUEST = 41;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        permissionDenied = state != null && state.getBoolean("listings_denied", false);
         available = HomeSlots.available();
         options = LayoutPreferences.load(this, HomeSlots.defaults()).discover(available);
         LinearLayout page = Pages.page(this);
@@ -45,12 +60,92 @@ public final class LayoutSettingsActivity extends Activity {
             @Override public void onClick(View view) { customSize(); }
         }));
         content.addView(presets);
-        content.addView(Pages.text(this,
-                "No channel cards are available yet. This size is saved for future channel cards. Widget sizes stay independent.", 16));
+        content.addView(Pages.text(this, "Every channel card shares this size. Widget sizes stay independent.", 16));
+        providerStatus = Pages.text(this, "Checking TV recommendations…", 17);
+        providerStatus.setTag("layout:provider-status");
+        content.addView(providerStatus);
+        providerAction = Pages.button(this, "Refresh channel cards", new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                if (status == TvRecommendations.Status.PERMISSION_REQUIRED) requestListings();
+                else refreshFeeds();
+            }
+        });
+        providerAction.setTag("layout:provider-action");
+        content.addView(providerAction);
         content.addView(Pages.text(this, "Order and visibility", 22));
         rows = column();
         content.addView(rows);
         render(null);
+    }
+
+    @Override protected void onStart() {
+        super.onStart();
+        refreshFeeds();
+    }
+
+    @Override protected void onSaveInstanceState(Bundle state) {
+        state.putBoolean("listings_denied", permissionDenied);
+        super.onSaveInstanceState(state);
+    }
+
+    @Override protected void onDestroy() {
+        readGeneration++;
+        reader.shutdownNow();
+        super.onDestroy();
+    }
+
+    private void refreshFeeds() {
+        final int generation = ++readGeneration;
+        providerStatus.setText("Checking TV recommendations…");
+        providerAction.setEnabled(false);
+        reader.execute(new Runnable() {
+            @Override public void run() {
+                final TvRecommendations.Result result = TvRecommendations.read(getApplicationContext());
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        if (isFinishing() || isDestroyed() || generation != readGeneration) return;
+                        View focused = getCurrentFocus();
+                        String tag = focused != null && focused.getTag() instanceof String ? (String) focused.getTag() : null;
+                        status = result.status;
+                        feeds = result.feeds;
+                        available = HomeSlots.available(feeds);
+                        try {
+                            options = options.discover(available);
+                        } catch (IllegalArgumentException full) {
+                            providerStatus.setText("Your saved layout is full. Existing slots and their order are preserved.");
+                            providerAction.setEnabled(true);
+                            return;
+                        }
+                        providerStatus.setText(permissionDenied && status == TvRecommendations.Status.PERMISSION_REQUIRED
+                                ? "TV listings access was denied. Your saved cards and order are preserved. Allow access to read shared recommendations."
+                                : result.message());
+                        providerAction.setText(status == TvRecommendations.Status.PERMISSION_REQUIRED
+                                ? "Allow TV listings access" : "Refresh channel cards");
+                        providerAction.setEnabled(true);
+                        render(tag);
+                    }
+                });
+            }
+        });
+    }
+
+    private void requestListings() {
+        if (Build.VERSION.SDK_INT < 23) {
+            providerStatus.setText("TV listings permission cannot be requested on this Android version.");
+            return;
+        }
+        try {
+            requestPermissions(new String[]{TvRecommendations.PERMISSION}, LISTINGS_REQUEST);
+        } catch (RuntimeException unsupported) {
+            providerStatus.setText("TV listings access cannot be requested on this device.");
+        }
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode != LISTINGS_REQUEST) return;
+        permissionDenied = results.length == 0 || results[0] != PackageManager.PERMISSION_GRANTED;
+        refreshFeeds();
     }
 
     private void preset(LinearLayout row, String label, final int width, final int height) {
@@ -69,7 +164,7 @@ public final class LayoutSettingsActivity extends Activity {
             final int position = index;
             LinearLayout item = column();
             String status = present.contains(key) ? (options.hidden.contains(key) ? "Hidden" : "Shown") : "Source unavailable";
-            item.addView(Pages.text(this, (index + 1) + ". " + HomeSlots.title(key) + "\n" + status, 19));
+            item.addView(Pages.text(this, (index + 1) + ". " + HomeSlots.title(key, feeds) + "\n" + status, 19));
             LinearLayout actions = new LinearLayout(this);
             Button visibility = Pages.button(this, options.hidden.contains(key) ? "Show" : "Hide", new View.OnClickListener() {
                 @Override public void onClick(View view) { save(options.setVisible(key, options.hidden.contains(key)), key + ":visibility"); }
@@ -97,7 +192,7 @@ public final class LayoutSettingsActivity extends Activity {
         if (focusTag != null) {
             View target = rows.findViewWithTag(focusTag);
             if (target != null && target.isEnabled()) target.requestFocus();
-            else {
+            else if (focusTag.startsWith("channel:") || focusTag.startsWith("widget:")) {
                 int separator = focusTag.lastIndexOf(':');
                 View fallback = rows.findViewWithTag(focusTag.substring(0, separator) + ":visibility");
                 if (fallback != null) fallback.requestFocus();

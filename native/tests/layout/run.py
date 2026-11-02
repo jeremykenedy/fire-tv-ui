@@ -7,6 +7,15 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'src/com/jeremykenedy/firetv/ui/nativeapp/layout'
 STUBS = {
+    'com/jeremykenedy/firetv/ui/nativeapp/providers/TvRecommendations.java': '''package com.jeremykenedy.firetv.ui.nativeapp.providers;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem;
+public final class TvRecommendations {
+ public static final class Feed {
+  public final LayoutItem item;
+  public final String title;
+  public Feed(String id,String title){item=new LayoutItem(id,LayoutItem.Kind.CHANNEL_CARD);this.title=title;}
+ }
+}''',
     'android/content/Context.java': '''package android.content;
 public class Context {
  public static final int MODE_PRIVATE=0;
@@ -45,7 +54,7 @@ with tempfile.TemporaryDirectory() as folder:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(source)
     subprocess.run(['javac', '-d', work, *[work / p for p in STUBS],
-                    SOURCE / 'LayoutItem.java', SOURCE / 'LayoutOptions.java',
+                    SOURCE / 'LayoutItem.java', SOURCE / 'LayoutOptions.java', SOURCE / 'HomeSlots.java',
                     SOURCE / 'LayoutPreferences.java', ROOT / 'tests/layout/LayoutTest.java'], check=True)
     subprocess.run(['java', '-cp', work,
                     'com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutTest'], check=True)

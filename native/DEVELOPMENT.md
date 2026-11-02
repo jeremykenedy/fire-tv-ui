@@ -19,15 +19,18 @@ To demonstrate independence, copy only the `native` directory into an empty temp
 ## Implemented review surface
 
 - Native app grid using installed Leanback metadata, contained TV banner artwork and stable component launch targets. Favorites, remembered order, hide/show, custom columns and optional horizontal scrolling use preview-local preferences.
-- Settings routes: Appearance > Icons and focus; Home layout > Apps grid; Home layout > Your cards and widgets.
-- A real local clock widget with hide/show and shared slot-order storage. Other widgets and channel producers are not yet integrated.
+- Settings routes: Appearance > Icons and focus; Cards; Home layout > Apps grid; Home layout > Your cards and widgets; Device > Device screens.
+- A real local clock and read-only TV recommendation feeds share saved order and visibility. Each channel occupies one card with internal title rotation, global/per-channel timers and individual item hiding/restoration.
+- TV listings access is requested only through the Channel Cards access action. Empty, denied and unavailable states remain distinct. Artwork loads asynchronously with size/time limits; title links are restricted to the publishing app and remain distinct from opening that app.
 - A per-app icon picker with curated licensed artwork, image import and factory reset. Hold an app tile to open its actions.
-- Original topic-based Help with a real focus-settings link and Back navigation.
-- Separate app storage and no production permission requests.
+- Original topic-based Help with app, focus, layout and Cards links, an original remote diagram, artwork notices and Back/focus restoration.
+- Independent focus fill color/opacity, border-only rendering and custom growth retain the existing defaults.
+- Capability-checked Factory UI, native Settings and Live TV handoffs. Availability and successful dispatch do not establish physical-device behavior.
+- Separate app storage. The Home service and migration foundation compile but are not registered or applied; production settings remain separate.
 
 ## Not a replacement yet
 
-Production Home/key routing, channel cards, the full widget catalog, themes, folders, screensaver administration, private account data, imports, device controls and the existing update flows are not integrated. The full feature and migration inventory is tracked in `working-files/execution-2026-11-01/source-independent-ui.md` in the Fire TV workspace. Do not publish or deploy this review shell as the production UI.
+Production Home/key routing, real-service playback, series hiding, the full widget catalog, themes, folders, screensaver administration, private account data, complete imports/device controls and existing update flows remain incomplete. Typed migration code is a preservation/recovery foundation, not a proven production upgrade. The full feature and migration inventory is tracked in `working-files/execution-2026-11-01/source-independent-ui.md` in the Fire TV workspace. Do not publish or deploy this review shell as the production UI.
 
 The original release build remains unchanged. Historical attribution and third-party notices remain in the repository.
 

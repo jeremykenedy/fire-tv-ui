@@ -8,11 +8,13 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -97,10 +99,48 @@ public final class FocusInstrumentation extends Instrumentation {
             }
             check(Color.red(pixels[0]) < Color.red(pixels[1]) && Color.red(pixels[1]) < Color.red(pixels[2]),
                     "Rendered 50-percent border must differ from both transparent and opaque borders.");
-            FocusPreferences.save(activity, new FocusOptions(180, 3, false, 0x345678, 27));
+            final int[] fillPixels = new int[3];
+            for (int i = 0; i < 3; i++) {
+                configure(new FocusOptions(0, 0, true, 0x25a6e7, 43,
+                        i != 0, 0xffffff, i == 1 ? 50 : 100));
+                final int index = i;
+                onMain(new Runnable() {
+                    @Override public void run() {
+                        FocusTileView sample = new FocusTileView(activity);
+                        sample.setTitle("Artwork sample");
+                        sample.setIcon(new ColorDrawable(Color.RED));
+                        sample.setPreviewFocused(true);
+                        float density = activity.getResources().getDisplayMetrics().density;
+                        int width = Math.round(320 * density);
+                        int height = Math.round(180 * density);
+                        sample.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+                        sample.layout(0, 0, width, height);
+                        ViewGroup surface = (ViewGroup) sample.getChildAt(0);
+                        Bitmap image = Bitmap.createBitmap(surface.getWidth(), surface.getHeight(), Bitmap.Config.ARGB_8888);
+                        surface.draw(new Canvas(image));
+                        ImageView artwork = (ImageView) surface.getChildAt(0);
+                        check(image.getPixel(artwork.getLeft() + artwork.getWidth() / 2,
+                                artwork.getTop() + artwork.getHeight() / 2) == Color.RED,
+                                "Border and fill must never whiten or cover the logo.");
+                        image.eraseColor(Color.TRANSPARENT);
+                        surface.getBackground().draw(new Canvas(image));
+                        fillPixels[index] = image.getPixel(image.getWidth() / 2, image.getHeight() / 2);
+                        image.recycle();
+                    }
+                });
+            }
+            result.putString("fill_samples", java.util.Arrays.toString(fillPixels));
+            check(fillPixels[0] == 0xff251f39, "Border-only focus keeps the ordinary surface color: expected ff251f39, actual "
+                    + Integer.toHexString(fillPixels[0]));
+            check(Color.red(fillPixels[0]) < Color.red(fillPixels[1])
+                    && Color.red(fillPixels[1]) < Color.red(fillPixels[2]),
+                    "Rendered fill opacity must be independent from the unchanged border.");
+            FocusPreferences.save(activity, new FocusOptions(180, 7, false, 0x345678, 27, false, 0xaabbcc, 61));
             FocusOptions read = FocusPreferences.load(getTargetContext());
-            check(read.durationMillis == 180 && read.growthPercent == 3 && !read.borderEnabled
-                    && read.borderRgb == 0x345678 && read.borderOpacity == 27,
+            check(read.durationMillis == 180 && read.growthPercent == 7 && !read.borderEnabled
+                    && read.borderRgb == 0x345678 && read.borderOpacity == 27
+                    && !read.fillEnabled && read.fillRgb == 0xaabbcc && read.fillOpacity == 61,
                     "Native preferences must preserve every independent control.");
             result.putString("status", "PASS");
             result.putInt("tiles", tiles.size());
@@ -108,6 +148,10 @@ public final class FocusInstrumentation extends Instrumentation {
             result.putBoolean("no_queued_animation", true);
             result.putBoolean("growth_contained", true);
             result.putBoolean("independent_border_alpha", true);
+            result.putBoolean("border_only_surface_unchanged", true);
+            result.putBoolean("independent_fill_opacity", true);
+            result.putBoolean("artwork_unchanged", true);
+            result.putString("fill_samples", java.util.Arrays.toString(fillPixels));
         } catch (Throwable error) {
             result.putString("status", "FAIL");
             result.putString("reason", error.toString());
@@ -144,7 +188,7 @@ public final class FocusInstrumentation extends Instrumentation {
     }
 
     private void collect(View view) {
-        if (view instanceof FocusTileView) tiles.add((FocusTileView) view);
+        if (view instanceof FocusTileView && view.isFocusable()) tiles.add((FocusTileView) view);
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) collect(group.getChildAt(i));

@@ -130,7 +130,7 @@ public final class IconInstrumentation extends Instrumentation {
         if(failure[0]!=null) throw new AssertionError(failure[0]);
     }
     private void collect(View view) {
-        if(view instanceof FocusTileView) tiles.add((FocusTileView)view);
+        if(view instanceof FocusTileView && view.isFocusable()) tiles.add((FocusTileView)view);
         if(view instanceof ViewGroup) for(int i=0;i<((ViewGroup)view).getChildCount();i++) collect(((ViewGroup)view).getChildAt(i));
     }
     private ImageView imageView(View view) {

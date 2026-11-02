@@ -22,6 +22,8 @@ public final class FocusSettingsActivity extends Activity {
     private FocusOptions options;
     private FocusTileView preview;
     private TextView summary;
+    private RadioGroup growthChoices;
+    private SeekBar growthSlider;
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -69,17 +71,24 @@ public final class FocusSettingsActivity extends Activity {
                 new int[]{0, 100, 180, 280}, options.durationMillis, new Choice() {
                     @Override public void selected(int value) {
                         save(new FocusOptions(value, options.growthPercent, options.borderEnabled,
-                                options.borderRgb, options.borderOpacity));
+                                options.borderRgb, options.borderOpacity, options.fillEnabled, options.fillRgb, options.fillOpacity));
                     }
                 });
         section(controls, "Focus growth");
-        choices(controls, new String[]{"None", "3%", "6%", "10%"},
+        growthChoices = choices(controls, new String[]{"None", "3%", "6%", "10%"},
                 new int[]{0, 3, 6, 10}, options.growthPercent, new Choice() {
                     @Override public void selected(int value) {
+                        if (value == options.growthPercent) return;
                         save(new FocusOptions(options.durationMillis, value, options.borderEnabled,
-                                options.borderRgb, options.borderOpacity));
+                                options.borderRgb, options.borderOpacity, options.fillEnabled, options.fillRgb, options.fillOpacity));
                     }
                 });
+        growthSlider = slider(controls, "Custom growth", options.growthPercent, FocusOptions.MAX_GROWTH, "%", new Choice() {
+            @Override public void selected(int value) {
+                save(new FocusOptions(options.durationMillis, value, options.borderEnabled,
+                        options.borderRgb, options.borderOpacity, options.fillEnabled, options.fillRgb, options.fillOpacity));
+            }
+        });
         section(controls, "Focus border");
         Switch enabled = new Switch(this);
         enabled.setText("Show a border");
@@ -90,37 +99,61 @@ public final class FocusSettingsActivity extends Activity {
         enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override public void onCheckedChanged(CompoundButton button, boolean checked) {
                 save(new FocusOptions(options.durationMillis, options.growthPercent, checked,
-                        options.borderRgb, options.borderOpacity));
+                        options.borderRgb, options.borderOpacity, options.fillEnabled, options.fillRgb, options.fillOpacity));
             }
         });
         controls.addView(enabled);
-        color(controls, "Red", 16);
-        color(controls, "Green", 8);
-        color(controls, "Blue", 0);
-        slider(controls, "Opacity", options.borderOpacity, 100, "%", new Choice() {
+        color(controls, "Border red", 16, false);
+        color(controls, "Border green", 8, false);
+        color(controls, "Border blue", 0, false);
+        slider(controls, "Border opacity", options.borderOpacity, 100, "%", new Choice() {
             @Override public void selected(int value) {
                 save(new FocusOptions(options.durationMillis, options.growthPercent,
-                        options.borderEnabled, options.borderRgb, value));
+                        options.borderEnabled, options.borderRgb, value, options.fillEnabled, options.fillRgb, options.fillOpacity));
             }
         });
-        TextView note = text("The border has its own opacity. Artwork stays unchanged. With growth and border off, the focused tile still brightens.", 16, 0xffc8bfdc);
+        section(controls, "Focus fill");
+        Switch fill = new Switch(this);
+        fill.setText("Show a focus fill");
+        fill.setTextColor(Color.WHITE);
+        fill.setTextSize(17);
+        fill.setMinHeight(dp(48));
+        fill.setChecked(options.fillEnabled);
+        fill.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override public void onCheckedChanged(CompoundButton button, boolean checked) {
+                save(new FocusOptions(options.durationMillis, options.growthPercent, options.borderEnabled,
+                        options.borderRgb, options.borderOpacity, checked, options.fillRgb, options.fillOpacity));
+            }
+        });
+        controls.addView(fill);
+        color(controls, "Fill red", 16, true);
+        color(controls, "Fill green", 8, true);
+        color(controls, "Fill blue", 0, true);
+        slider(controls, "Fill opacity", options.fillOpacity, 100, "%", new Choice() {
+            @Override public void selected(int value) {
+                save(new FocusOptions(options.durationMillis, options.growthPercent, options.borderEnabled,
+                        options.borderRgb, options.borderOpacity, options.fillEnabled, options.fillRgb, value));
+            }
+        });
+        TextView note = text("Turn off focus fill for a border-only highlight. Fill stays behind artwork; each layer has its own color and opacity.", 16, 0xffc8bfdc);
         note.setPadding(0, dp(12), 0, 0);
         controls.addView(note);
         setContentView(root);
         updateSummary();
     }
 
-    private void color(LinearLayout parent, String label, final int shift) {
-        slider(parent, label, (options.borderRgb >> shift) & 255, 255, "", new Choice() {
+    private void color(LinearLayout parent, String label, final int shift, final boolean fill) {
+        slider(parent, label, ((fill ? options.fillRgb : options.borderRgb) >> shift) & 255, 255, "", new Choice() {
             @Override public void selected(int value) {
-                int rgb = (options.borderRgb & ~(255 << shift)) | (value << shift);
+                int rgb = ((fill ? options.fillRgb : options.borderRgb) & ~(255 << shift)) | (value << shift);
                 save(new FocusOptions(options.durationMillis, options.growthPercent,
-                        options.borderEnabled, rgb, options.borderOpacity));
+                        options.borderEnabled, fill ? options.borderRgb : rgb, options.borderOpacity,
+                        options.fillEnabled, fill ? rgb : options.fillRgb, options.fillOpacity));
             }
         });
     }
 
-    private void slider(LinearLayout parent, String label, int value, int max, String suffix, final Choice action) {
+    private SeekBar slider(LinearLayout parent, String label, int value, int max, String suffix, final Choice action) {
         final TextView caption = text(label + ": " + value + suffix, 17, 0xffe5dff0);
         parent.addView(caption);
         SeekBar bar = new SeekBar(this);
@@ -138,9 +171,10 @@ public final class FocusSettingsActivity extends Activity {
             }
         });
         parent.addView(bar, new LinearLayout.LayoutParams(-1, dp(44)));
+        return bar;
     }
 
-    private void choices(LinearLayout parent, String[] labels, int[] values, int selected, final Choice action) {
+    private RadioGroup choices(LinearLayout parent, String[] labels, int[] values, int selected, final Choice action) {
         final RadioGroup group = new RadioGroup(this);
         group.setOrientation(LinearLayout.HORIZONTAL);
         for (int i = 0; i < labels.length; i++) {
@@ -161,6 +195,7 @@ public final class FocusSettingsActivity extends Activity {
             }
         });
         parent.addView(group);
+        return group;
     }
 
     private void save(FocusOptions value) {
@@ -176,9 +211,17 @@ public final class FocusSettingsActivity extends Activity {
     }
 
     private void updateSummary() {
+        growthSlider.setProgress(options.growthPercent);
+        int selected = -1;
+        for (int i = 0; i < growthChoices.getChildCount(); i++) {
+            View button = growthChoices.getChildAt(i);
+            if ((Integer) button.getTag() == options.growthPercent) selected = button.getId();
+        }
+        if (growthChoices.getCheckedRadioButtonId() != selected) growthChoices.check(selected);
         summary.setText((options.durationMillis == 0 ? "Instant transition" : options.durationMillis + " ms transition")
                 + "\n" + options.growthPercent + "% growth"
-                + "\n" + (options.borderEnabled ? "Border " + options.borderOpacity + "% opacity" : "Border off"));
+                + "\n" + (options.borderEnabled ? "Border " + options.borderOpacity + "% opacity" : "Border off")
+                + "\n" + (options.fillEnabled ? "Fill " + options.fillOpacity + "% opacity" : "Fill off"));
     }
 
     private void section(LinearLayout parent, String label) {

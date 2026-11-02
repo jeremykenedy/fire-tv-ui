@@ -106,7 +106,7 @@ public final class AppGridInstrumentation extends Instrumentation {
     }
     private List<String> keys() { List<String> result = new ArrayList<>(); for (FocusTileView tile : tiles) result.add(String.valueOf(tile.getTag())); return result; }
     private void collect(View view) {
-        if (view instanceof FocusTileView) tiles.add((FocusTileView) view);
+        if (view instanceof FocusTileView && view.isFocusable()) tiles.add((FocusTileView) view);
         if (view instanceof ViewGroup) for (int i=0;i<((ViewGroup)view).getChildCount();i++) collect(((ViewGroup)view).getChildAt(i));
     }
     private Button button(View view, String prefix) {

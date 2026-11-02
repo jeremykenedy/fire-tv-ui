@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextClock;
+import android.widget.TextView;
+import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.ClockWidgetView;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,6 +38,22 @@ public final class LayoutInstrumentation extends Instrumentation {
             waitForIdleSync();
             check(count(main.getWindow().getDecorView(), ClockWidgetView.class) == 1, "Real clock must be on Home.");
             editor = openEditor();
+            final TvRecommendations.Result recommendations = TvRecommendations.read(getTargetContext());
+            waitForProviders();
+            onMain(new Runnable() {
+                @Override public void run() {
+                    ViewGroup decor = (ViewGroup) editor.getWindow().getDecorView();
+                    TextView status = (TextView) decor.findViewWithTag("layout:provider-status");
+                    check(status != null && recommendations.message().contentEquals(status.getText()),
+                            "Editor distinguishes available, empty, permission and unavailable provider states.");
+                    for (TvRecommendations.Feed feed : recommendations.feeds) {
+                        check(decor.findViewWithTag(feed.item.key() + ":visibility") != null,
+                                "Published feed must appear as one manageable stable slot.");
+                    }
+                    check(decor.findViewWithTag("channel:emulator-proof-unavailable:visibility") != null,
+                            "Missing saved provider must remain manageable.");
+                }
+            });
             onMain(new Runnable() {
                 @Override public void run() {
                     View move = editor.getWindow().getDecorView().findViewWithTag(HomeSlots.CLOCK.key() + ":up");
@@ -74,7 +92,10 @@ public final class LayoutInstrumentation extends Instrumentation {
             result.putBoolean("hide_show_clock_on_home", true);
             result.putBoolean("native_size_persistence", true);
             result.putBoolean("real_text_clock", true);
-            result.putString("limits", "Unavailable channel is test state only; no real channel provider or card sizing visuals claimed.");
+            result.putString("provider_status", recommendations.status.name());
+            result.putInt("published_feed_slots", recommendations.feeds.size());
+            result.putBoolean("editor_provider_state", true);
+            result.putString("limits", "Feed assertions reflect the target's currently published data. Runtime permission dialog and physical card sizing require separate native proof.");
         } catch (Throwable error) {
             result.putString("status", "FAIL");
             result.putString("reason", error.toString());
@@ -101,6 +122,22 @@ public final class LayoutInstrumentation extends Instrumentation {
         check(opened != null, "Editor must open.");
         waitForIdleSync();
         return opened;
+    }
+
+    private void waitForProviders() {
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        final boolean[] ready = new boolean[1];
+        while (SystemClock.uptimeMillis() < deadline) {
+            onMain(new Runnable() {
+                @Override public void run() {
+                    View action = editor.getWindow().getDecorView().findViewWithTag("layout:provider-action");
+                    ready[0] = action != null && action.isEnabled();
+                }
+            });
+            if (ready[0]) return;
+            SystemClock.sleep(25);
+        }
+        throw new AssertionError("Provider discovery did not finish.");
     }
 
     private void clickTag(final String tag) {
