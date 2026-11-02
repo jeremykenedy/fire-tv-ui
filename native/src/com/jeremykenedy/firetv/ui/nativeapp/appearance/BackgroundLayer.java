@@ -19,6 +19,10 @@ public final class BackgroundLayer extends FrameLayout {
     public interface MediaListener { void changed(MediaState state, String message); }
 
     private final ImageView wallpaper;
+    private final ImageView featured;
+    private final ImageView blurred;
+    private boolean scrollBlur;
+    private Bitmap blurFrame;
     private final HolidaySceneView scene;
     private final VideoView video;
     private final AppearanceView base, overlay;
@@ -29,6 +33,13 @@ public final class BackgroundLayer extends FrameLayout {
     private MediaState mediaState = MediaState.SYSTEM;
     private String mediaMessage = "Using system wallpaper";
     private MediaListener mediaListener;
+    private Runnable contentChanged;
+    private final android.content.SharedPreferences.OnSharedPreferenceChangeListener appearanceChanged =
+            new android.content.SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override public void onSharedPreferenceChanged(android.content.SharedPreferences preferences, String key) {
+                    post(new Runnable() { @Override public void run() { if (isAttachedToWindow()) refresh(); } });
+                }
+            };
 
     public BackgroundLayer(Context context) {
         super(context);
@@ -66,9 +77,19 @@ public final class BackgroundLayer extends FrameLayout {
         addView(base, new LayoutParams(-1, -1));
         scene = new HolidaySceneView(context);
         addView(scene, new LayoutParams(-1, -1));
+        featured = new ImageView(context);
+        featured.setTag("appearance:featured");
+        featured.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        featured.setVisibility(GONE);
+        addView(featured, new LayoutParams(-1, -1));
         overlay = new AppearanceView(context, true);
         overlay.setTag("appearance:overlay");
         addView(overlay, new LayoutParams(-1, -1));
+        blurred = new ImageView(context);
+        blurred.setTag("appearance:scroll-blur");
+        blurred.setScaleType(ImageView.ScaleType.FIT_XY);
+        blurred.setVisibility(GONE);
+        addView(blurred, new LayoutParams(-1, -1));
     }
 
     public static BackgroundLayer attach(Activity activity, View content) {
@@ -90,6 +111,44 @@ public final class BackgroundLayer extends FrameLayout {
 
     public MediaState mediaState() { return mediaState; }
 
+    public void setContentChangedListener(Runnable listener) { contentChanged = listener; }
+
+    public void setFeaturedArtwork(Bitmap artwork) {
+        featured.setImageBitmap(artwork);
+        featured.setVisibility(artwork == null ? GONE : VISIBLE);
+        refreshBlur();
+        if (contentChanged != null) contentChanged.run();
+    }
+
+    public void setScrollBlur(boolean enabled) {
+        if (scrollBlur == enabled) return;
+        scrollBlur = enabled;
+        refreshBlur();
+    }
+
+    public Bitmap blurredRegion(android.graphics.Rect region) {
+        if (region.width() <= 0 || region.height() <= 0) return null;
+        Bitmap result = Bitmap.createBitmap(Math.max(1, region.width() / 20), Math.max(1, region.height() / 20), Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(result);
+        canvas.scale(result.getWidth() / (float) region.width(), result.getHeight() / (float) region.height());
+        canvas.translate(-region.left, -region.top);
+        for (View layer : new View[]{wallpaper, base, scene, featured, overlay})
+            if (layer.getVisibility() == VISIBLE) layer.draw(canvas);
+        return result;
+    }
+
+    private void refreshBlur() {
+        if (!scrollBlur || getWidth() == 0 || getHeight() == 0) {
+            blurred.setVisibility(GONE);
+            return;
+        }
+        blurFrame = blurredRegion(new android.graphics.Rect(0, 0, getWidth(), getHeight()));
+        blurred.setImageBitmap(blurFrame);
+        if (blurred.getDrawable() instanceof android.graphics.drawable.BitmapDrawable)
+            ((android.graphics.drawable.BitmapDrawable) blurred.getDrawable()).setFilterBitmap(true);
+        blurred.setVisibility(VISIBLE);
+    }
+
     public void retryMedia() {
         mediaKey = "";
         refresh();
@@ -110,6 +169,7 @@ public final class BackgroundLayer extends FrameLayout {
         if (!mediaKey.equals(nextMedia)) loadMedia(mode, options, nextMedia);
         scene.setScene(HolidayScenes.find(options.scene), !options.baseFrozen && !reducedMotion, options.baseSpeed);
         updateVideo();
+        refreshBlur();
     }
 
     private void loadMedia(String mode, AppearanceOptions options, String key) {
@@ -128,6 +188,8 @@ public final class BackgroundLayer extends FrameLayout {
                     if (request != generation) { if (bitmap != null) bitmap.recycle(); return; }
                     imageRequest = null;
                     wallpaper.setImageBitmap(bitmap);
+                    refreshBlur();
+                    if (contentChanged != null) contentChanged.run();
                     mediaStatus(bitmap == null ? MediaState.UNAVAILABLE : MediaState.READY,
                             bitmap == null ? "Saved image is unavailable. Retry or choose an image again. The saved reference is kept." : "Saved image ready");
                 }
@@ -188,9 +250,16 @@ public final class BackgroundLayer extends FrameLayout {
     @Override protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         if (base != null && resumed) refresh();
+        else if (blurred != null) refreshBlur();
+    }
+
+    @Override protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        AppearancePreferences.file(getContext()).registerOnSharedPreferenceChangeListener(appearanceChanged);
     }
 
     @Override protected void onDetachedFromWindow() {
+        AppearancePreferences.file(getContext()).unregisterOnSharedPreferenceChangeListener(appearanceChanged);
         setResumed(false);
         generation++;
         mediaKey = "";

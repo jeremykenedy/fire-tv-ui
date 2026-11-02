@@ -49,16 +49,23 @@ public final class SettingsActivity extends MenuActivity {
         if ("ui".equals(screen)) {
             heading.setText("UI settings");
             route("Apps", AppGridSettingsActivity.class, 0x2010);
-            submenu("App Icons", "icons", 0x2001);
-            route("Widgets", LayoutSettingsActivity.class, 0x2041);
-            submenu("Cards", "cards", 0x2020);
+            route("App Icons", FocusSettingsActivity.class, 0x2001);
+            item("Widgets", 0x2041, new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    startActivity(new Intent(SettingsActivity.this, LayoutSettingsActivity.class).putExtra("widgets", true));
+                }
+            });
+            route("Cards", CardsSettingsActivity.class, 0x2020);
             item("Status bar", 0x2071, new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     com.jeremykenedy.firetv.ui.nativeapp.statusbar.StatusBarSettings.show(SettingsActivity.this);
                 }
             });
-            route("Favorites", AppGridSettingsActivity.class, 0x2072);
+            submenu("Favorites", "favorites", 0x2072);
             submenu("Layout and focus", "layout", 0x2003);
+        } else if ("favorites".equals(screen)) {
+            heading.setText("Favorites");
+            favoritesControls();
         } else if ("icons".equals(screen)) {
             heading.setText("App Icons");
             route("Icons and focus", FocusSettingsActivity.class, 0x2002);
@@ -67,15 +74,7 @@ public final class SettingsActivity extends MenuActivity {
             });
         } else if ("layout".equals(screen)) {
             heading.setText("Layout and focus");
-            route("Apps grid", AppGridSettingsActivity.class, 0x2010);
-            route("Your cards and widgets", LayoutSettingsActivity.class, 0x2011);
-            route("Icons and focus", FocusSettingsActivity.class, 0x2002);
-            route("App folders", com.jeremykenedy.firetv.ui.nativeapp.folders.FolderActivity.class, 0x2012);
-            route("TV inputs", com.jeremykenedy.firetv.ui.nativeapp.inputs.InputsSettingsActivity.class, 0x2014);
-            route("All apps", com.jeremykenedy.firetv.ui.nativeapp.allapps.AllAppsActivity.class, 0x2015);
-            AllAppsPreferences.addControl(this, menu).setId(0x2016);
-            route("Dashboards and schedules", com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleActivity.class, 0x2017);
-            route("Text and contrast", com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilitySettingsActivity.class, 0x2006);
+            gridControls();
             final Button transitions = item("Settings transitions: " + MenuTransition.label(this), 0x2007, null);
             transitions.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
@@ -86,6 +85,15 @@ public final class SettingsActivity extends MenuActivity {
                     });
                 }
             });
+            com.jeremykenedy.firetv.ui.nativeapp.focus.FocusStyleControls.addLegacyControls(this, menu);
+            route("Your cards and widgets", LayoutSettingsActivity.class, 0x2011);
+            route("Icons and focus", FocusSettingsActivity.class, 0x2002);
+            route("App folders", com.jeremykenedy.firetv.ui.nativeapp.folders.FolderActivity.class, 0x2012);
+            route("TV inputs", com.jeremykenedy.firetv.ui.nativeapp.inputs.InputsSettingsActivity.class, 0x2014);
+            route("All apps", com.jeremykenedy.firetv.ui.nativeapp.allapps.AllAppsActivity.class, 0x2015);
+            AllAppsPreferences.addControl(this, menu).setId(0x2016);
+            route("Dashboards and schedules", com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleActivity.class, 0x2017);
+            route("Text and contrast", com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilitySettingsActivity.class, 0x2006);
         } else if ("cards".equals(screen)) {
             heading.setText("Cards");
             route("Channel cards and timers", CardsSettingsActivity.class, 0x2021);
@@ -94,7 +102,7 @@ public final class SettingsActivity extends MenuActivity {
             route("What to Watch from Plex", com.jeremykenedy.firetv.ui.nativeapp.providers.discovery.DiscoveryActivity.class, 0x2024);
         } else if ("backup".equals(screen)) {
             heading.setText("Backup/Restore");
-            route("Backup and import", com.jeremykenedy.firetv.ui.nativeapp.backup.BackupActivity.class, 0x2052);
+            route("Manage TV backups", com.jeremykenedy.firetv.ui.nativeapp.backup.BackupActivity.class, 0x2052);
             route("Saved setups", com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupsActivity.class, 0x2053);
         } else if ("advanced".equals(screen)) {
             heading.setText("Advanced");
@@ -115,9 +123,9 @@ public final class SettingsActivity extends MenuActivity {
         } else {
             screen = "root"; heading.setText("Settings");
             route("Screensavers", com.jeremykenedy.firetv.ui.nativeapp.device.screensavers.ScreensaverSettingsActivity.class, 0x2032);
-            route("Theme and wallpaper", com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundSettingsActivity.class, 0x2004);
+            route("Theme and wallpaper", com.jeremykenedy.firetv.ui.nativeapp.appearance.WallpaperThemeActivity.class, 0x2004);
             submenu("UI settings", "ui", 0x2070);
-            route("Remote controls", com.jeremykenedy.firetv.ui.nativeapp.device.remotebuttons.RemoteButtonsActivity.class, 0x2036);
+            route("Remote controls", com.jeremykenedy.firetv.ui.nativeapp.device.RemoteControlsActivity.class, 0x2036);
             submenu("Backup/Restore", "backup", 0x2050);
             submenu("About", "about", 0x2080);
             route("Help", HelpActivity.class, 0x2061);
@@ -129,6 +137,112 @@ public final class SettingsActivity extends MenuActivity {
             if (menu.getChildAt(i).isFocusable()) { focus = menu.getChildAt(i); break; }
         }
         if (focus != null) focus.requestFocus();
+    }
+
+    private void favoritesControls() {
+        item("Keep favorites at bottom" + (com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(this) ? "   ✓" : ""), 0x2090, new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                try {
+                    com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.setDockBottom(SettingsActivity.this,
+                            !com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(SettingsActivity.this));
+                    show("favorites", 0x2090);
+                } catch (IllegalStateException failure) { settingError(failure); }
+            }
+        });
+        item("All Apps button" + (AllAppsPreferences.enabled(this) ? "   ✓" : ""), 0x2091, new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                try { AllAppsPreferences.setEnabled(SettingsActivity.this, !AllAppsPreferences.enabled(SettingsActivity.this)); show("favorites", 0x2091); }
+                catch (IllegalStateException failure) { settingError(failure); }
+            }
+        });
+        menu.addView(Pages.text(this, "Favorites background", 20));
+        String mode = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.favoritesBackgroundMode(this);
+        item("Default" + ("Default".equals(mode) ? "   ✓" : ""), 0x2092, new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                try { com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.setFavoritesBackgroundDefault(SettingsActivity.this); show("favorites", 0x2092); }
+                catch (IllegalStateException failure) { settingError(failure); }
+            }
+        });
+        item("Hide favorites background" + ("Hide".equals(mode) ? "   ✓" : ""), 0x2093, new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                try { com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.setFavoritesBackgroundHide(SettingsActivity.this); show("favorites", 0x2093); }
+                catch (IllegalStateException failure) { settingError(failure); }
+            }
+        });
+        item("Blur favorites background" + (com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isFavoritesBackgroundBlurred(this) ? "   ✓" : ""), 0x2094, new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                try {
+                    com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.setFavoritesBackgroundBlurred(SettingsActivity.this,
+                            !com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isFavoritesBackgroundBlurred(SettingsActivity.this));
+                    show("favorites", 0x2094);
+                } catch (IllegalStateException failure) { settingError(failure); }
+            }
+        });
+        item("Pick color", 0x2095, new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.choose(SettingsActivity.this, "Favorites Background",
+                        new com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.ColorStore() {
+                    @Override public int color() { return com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.favoritesBackgroundColor(SettingsActivity.this, 0xff000000); }
+                    @Override public int opacity() { return com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.favoritesBackgroundOpacity(SettingsActivity.this); }
+                    @Override public boolean save(int color, int opacity) {
+                        try { com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.setFavoritesBackgroundColor(SettingsActivity.this, color, opacity); return true; }
+                        catch (IllegalStateException failure) { settingError(failure); return false; }
+                    }
+                }, null);
+            }
+        });
+    }
+
+    private void settingError(IllegalStateException failure) {
+        new android.app.AlertDialog.Builder(this).setMessage(failure.getMessage()).setPositiveButton("OK", null).show();
+    }
+
+    private void gridControls() {
+        final com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions grid =
+                com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.load(this);
+        item("Apps per row: " + grid.columns, 0x2010, new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                final android.widget.EditText value = new android.widget.EditText(SettingsActivity.this);
+                value.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+                value.setText(String.valueOf(grid.columns)); value.selectAll();
+                final android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(SettingsActivity.this)
+                        .setTitle("Apps per row").setMessage("Choose from 1 to 20 apps per row.").setView(value)
+                        .setNegativeButton("Cancel", null).setPositiveButton("Save", null).create();
+                dialog.setOnShowListener(new android.content.DialogInterface.OnShowListener() {
+                    @Override public void onShow(android.content.DialogInterface owner) {
+                        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                            @Override public void onClick(View button) {
+                                int columns;
+                                try { columns = Integer.parseInt(value.getText().toString()); }
+                                catch (NumberFormatException invalid) { value.setError("Enter a whole number from 1 to 20."); return; }
+                                if (columns < 1 || columns > 20) { value.setError("Enter a whole number from 1 to 20."); return; }
+                                com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions current =
+                                        com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.load(SettingsActivity.this);
+                                com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.save(SettingsActivity.this,
+                                        current.grid(columns, current.rows, current.horizontal));
+                                dialog.dismiss(); show("layout", 0x2010);
+                            }
+                        });
+                    }
+                });
+                dialog.show();
+            }
+        });
+        item("App scrolling: " + (grid.horizontal ? "Horizontal" : "Vertical (Default)"), 0x2018, new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                new android.app.AlertDialog.Builder(SettingsActivity.this).setTitle("App scrolling")
+                        .setSingleChoiceItems(new String[]{"Vertical (Default)", "Horizontal"}, grid.horizontal ? 1 : 0,
+                                new android.content.DialogInterface.OnClickListener() {
+                            @Override public void onClick(android.content.DialogInterface dialog, int which) {
+                                com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions current =
+                                        com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.load(SettingsActivity.this);
+                                com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.save(SettingsActivity.this,
+                                        current.grid(current.columns, current.rows, which == 1));
+                                dialog.dismiss(); show("layout", 0x2018);
+                            }
+                        }).setNegativeButton("Cancel", null).show();
+            }
+        });
     }
 
     private Button item(String label, int id, View.OnClickListener click) {
@@ -153,6 +267,7 @@ public final class SettingsActivity extends MenuActivity {
         if ("icons".equals(screen)) show("ui", 0x2001);
         else if ("layout".equals(screen)) show("ui", 0x2003);
         else if ("cards".equals(screen)) show("ui", 0x2020);
+        else if ("favorites".equals(screen)) show("ui", 0x2072);
         else show("root", "ui".equals(screen) ? 0x2070 : "backup".equals(screen) ? 0x2050
                 : "about".equals(screen) ? 0x2080 : 0x2030);
     }

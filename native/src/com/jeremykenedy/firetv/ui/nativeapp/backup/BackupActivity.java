@@ -49,12 +49,16 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
         LinearLayout page = Pages.page(this);
         ScrollView scroll = new ScrollView(this);
         LinearLayout body = new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL);
-        scroll.addView(body); page.addView(scroll);
-        body.addView(Pages.text(this, "Backup and import", 28));
+        scroll.addView(body); page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        body.addView(Pages.text(this, "Backup and restore", 28));
         body.addView(Pages.text(this, "Source preview presentation only. Export saves reviewed layout and appearance choices in a document you select. Import replaces those choices after validation and confirmation. Account credentials, device settings, lock PINs and encrypted connection files stay local.", 18));
         body.addView(Pages.text(this, "Legacy backups are recognized but require verified migration before they can be applied. Personal image files are not included in portable documents.", 16));
         notesOption = new CheckBox(this); notesOption.setTextColor(android.graphics.Color.WHITE); notesOption.setText("Include notes in this export (requires local notes export permission)");
         remindersOption = new CheckBox(this); remindersOption.setTextColor(android.graphics.Color.WHITE); remindersOption.setText("Include reminders in this export (requires local reminders export permission)");
+        if (state != null) {
+            notesOption.setChecked(state.getBoolean("includeNotes", false));
+            remindersOption.setChecked(state.getBoolean("includeReminders", false));
+        }
         body.addView(notesOption); body.addView(remindersOption);
         status = Pages.text(this, "Choose a document action. Press Back to return.", 16);
         body.addView(status);
@@ -194,13 +198,20 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
         });
     }
     private void setBusy(boolean value) {
-        busy = value; exportButton.setEnabled(!value); importButton.setEnabled(!value); recoveryButton.setEnabled(!value);
+        busy = value; exportButton.setEnabled(!value && preview()); importButton.setEnabled(!value && preview()); recoveryButton.setEnabled(!value && preview());
         notesOption.setEnabled(!value); remindersOption.setEnabled(!value);
         if (value) status.setText("Working with the selected document...");
     }
     private void finishWork(String message) {
         setBusy(false); status.setText(message);
         recoveryButton.setVisibility(hasRecovery() ? View.VISIBLE : View.GONE);
+    }
+    @Override protected void onSaveInstanceState(Bundle state) {
+        if (!startupBlocked) {
+            state.putBoolean("includeNotes", notesOption.isChecked());
+            state.putBoolean("includeReminders", remindersOption.isChecked());
+        }
+        super.onSaveInstanceState(state);
     }
     @Override protected void onDestroy() {
         if (startupBlocked) { super.onDestroy(); return; } destroyed = true; worker.shutdown(); super.onDestroy(); }

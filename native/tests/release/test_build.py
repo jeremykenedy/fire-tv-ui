@@ -39,7 +39,8 @@ class PreviewReleaseTest(unittest.TestCase):
         return module.release_config(self.path)
 
     def test_reviewed_alpha_config_and_unsigned_never_require_a_secret(self):
-        self.assertEqual(self.load()['version'], '2.0.0-alpha.1')
+        self.assertEqual(self.load()['version'], '2.0.0-alpha.2')
+        self.assertEqual(self.load()['versionCode'], 3)
         with patch.dict(os.environ, {}, clear=True):
             module.signing_options(self.args(), self.config)
 
@@ -99,7 +100,7 @@ class PreviewReleaseTest(unittest.TestCase):
         self.assertFalse(output.exists())
 
     def actual_manifest(self, **values):
-        current = dict(package=self.config['applicationId'], code=2, version=self.config['version'], floor=27, target=36, debug='false', backup='false')
+        current = dict(package=self.config['applicationId'], code=self.config['versionCode'], version=self.config['version'], floor=27, target=36, debug='false', backup='false')
         current.update(values)
         badging = "package: name='{package}' versionCode='{code}' versionName='{version}'\nminSdkVersion:'{floor}'\ntargetSdkVersion:'{target}'\n".format(**current)
         tree = ('  E: manifest (line=1)\n      E: application (line=2)\n'

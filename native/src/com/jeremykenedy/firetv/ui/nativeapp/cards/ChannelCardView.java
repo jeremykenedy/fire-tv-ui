@@ -24,10 +24,15 @@ public final class ChannelCardView extends LinearLayout {
         void onLongPress(TvRecommendations.Feed feed, TvRecommendations.Program program);
     }
 
+    public interface ArtworkListener {
+        void onArtworkChanged(ChannelCardView card, Bitmap artwork);
+    }
+
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final CardRotationDeadline rotationDeadline = new CardRotationDeadline();
     private final FocusTileView tile;
     private final TextView channel;
+    private final TextView outsideTitle;
     private final Listener listener;
     private final List<TvRecommendations.Program> programs = new ArrayList<>();
     private TvRecommendations.Feed feed;
@@ -42,6 +47,8 @@ public final class ChannelCardView extends LinearLayout {
     private int artworkEdge;
     private long artworkGeneration;
     private ArtworkLoader.Request artwork;
+    private Bitmap artworkBitmap;
+    private ArtworkListener artworkListener;
     private final Runnable rotate = new Runnable() {
         @Override public void run() {
             rotationDeadline.reset();
@@ -72,6 +79,14 @@ public final class ChannelCardView extends LinearLayout {
         tile.setClickable(false);
         tile.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         addView(tile, new LayoutParams(-1, 0, 1));
+        outsideTitle = new TextView(context);
+        outsideTitle.setTextColor(0xffcec7df);
+        outsideTitle.setTextSize(17);
+        outsideTitle.setSingleLine(true);
+        outsideTitle.setEllipsize(TextUtils.TruncateAt.END);
+        outsideTitle.setGravity(android.view.Gravity.CENTER);
+        outsideTitle.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+        addView(outsideTitle, new LayoutParams(-1, -2));
         setOnClickListener(new OnClickListener() {
             @Override public void onClick(View view) {
                 if (ChannelCardView.this.listener != null)
@@ -90,6 +105,16 @@ public final class ChannelCardView extends LinearLayout {
 
     public TvRecommendations.Feed feed() { return feed; }
 
+    public void setArtworkListener(ArtworkListener listener) {
+        artworkListener = listener;
+        notifyArtwork();
+    }
+
+    private void notifyArtwork() {
+        if (artworkListener != null)
+            artworkListener.onArtworkChanged(this, active() && (isFocused() || hostFocused) ? artworkBitmap : null);
+    }
+
     public TvRecommendations.Program currentProgram() {
         return programs.isEmpty() ? null : programs.get(index);
     }
@@ -106,6 +131,7 @@ public final class ChannelCardView extends LinearLayout {
     public void setHostFocused(boolean focused) {
         hostFocused = focused;
         tile.setPreviewFocused(focused || isFocused());
+        notifyArtwork();
     }
 
     public void updateFeed(TvRecommendations.Feed value) {
@@ -170,7 +196,9 @@ public final class ChannelCardView extends LinearLayout {
         schedule();
         cancelArtwork();
         artworkVisible = false;
+        artworkBitmap = null;
         tile.setIcon(null);
+        notifyArtwork();
     }
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
@@ -188,6 +216,7 @@ public final class ChannelCardView extends LinearLayout {
     @Override protected void onFocusChanged(boolean focused, int direction, Rect previous) {
         super.onFocusChanged(focused, direction, previous);
         if (tile != null) tile.setPreviewFocused(focused || hostFocused);
+        notifyArtwork();
     }
 
     @Override protected void onAttachedToWindow() {
@@ -200,6 +229,7 @@ public final class ChannelCardView extends LinearLayout {
 
     @Override protected void onDetachedFromWindow() {
         attached = false;
+        notifyArtwork();
         schedule();
         cancelArtwork();
         super.onDetachedFromWindow();
@@ -210,6 +240,7 @@ public final class ChannelCardView extends LinearLayout {
         if (tile == null) return;
         if (visibility == VISIBLE) display();
         else cancelArtwork();
+        notifyArtwork();
         schedule();
     }
 
@@ -218,6 +249,7 @@ public final class ChannelCardView extends LinearLayout {
         if (tile == null) return;
         if (isShown()) display();
         else cancelArtwork();
+        notifyArtwork();
         schedule();
     }
 
@@ -240,10 +272,20 @@ public final class ChannelCardView extends LinearLayout {
     }
 
     private void display() {
+        if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(getContext())) return;
         final TvRecommendations.Program program = currentProgram();
         if (program != null) selectedKey = program.key;
         String title = program == null ? "No visible items" : program.title;
         tile.setTitle(title);
+        boolean visible = !CardDisplayPreferences.hideTitles(getContext());
+        boolean outside = CardDisplayPreferences.textOutside(getContext());
+        tile.setTitleVisible(visible && !outside);
+        Integer color = CardDisplayPreferences.textColor(getContext());
+        tile.setTitleColor(color);
+        outsideTitle.setTextColor(color == null ? 0xffcec7df : color);
+        channel.setTextColor(color == null ? 0xffcec7df : color);
+        outsideTitle.setText(title);
+        outsideTitle.setVisibility(visible && outside ? VISIBLE : GONE);
         tile.setArtworkFit(CardPreferences.artworkFits(getContext()));
         setContentDescription(feed.title + ": " + title);
         Uri nextArtwork = program == null ? null : program.artwork;
@@ -255,7 +297,9 @@ public final class ChannelCardView extends LinearLayout {
         artworkUri = nextArtwork;
         artworkEdge = edge;
         artworkVisible = false;
+        artworkBitmap = null;
         tile.setIcon(null);
+        notifyArtwork();
         if (program == null || program.artwork == null || !active()) return;
         if ("android.resource".equals(program.artwork.getScheme())
                 && !feed.source.equals(program.artwork.getAuthority())) return;
@@ -266,7 +310,9 @@ public final class ChannelCardView extends LinearLayout {
                     artwork = null;
                     if (active() && bitmap != null) {
                         artworkVisible = true;
+                        artworkBitmap = bitmap;
                         tile.setIcon(new BitmapDrawable(getResources(), bitmap));
+                        notifyArtwork();
                     }
                 }
             }

@@ -114,17 +114,19 @@
             </activity>
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.SettingsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.HelpActivity" android:exported="false" />
-        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.focus.FocusSettingsActivity" android:exported="false" />
-        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.focus.FocusSettingsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridSettingsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.allapps.AllAppsActivity" android:exported="false" />
-        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.icons.IconPickerActivity" android:exported="false" />
-        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.cards.CardsSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.cards.CardsSettingsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.DeviceSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.RemoteControlsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.remotebuttons.RemoteButtonsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilitySettingsActivity" android:exported="false" />
-        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundSettingsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.WallpaperThemeActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundSettingsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundPreviewActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.folders.FolderActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.locks.LockSettingsActivity" android:exported="false" />
@@ -139,7 +141,7 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.discovery.DiscoveryActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.updates.UpdatesActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.backup.BackupActivity" android:exported="false" />
-        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupsActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.notes.NotesActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.watchlist.WatchlistActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.widget.calendar.CalendarActivity" android:exported="false" />

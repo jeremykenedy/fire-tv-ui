@@ -45,18 +45,20 @@ public final class AppearanceView extends View {
     @Override protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) { gradient(); }
     private void gradient() {
         int top = 0xff111c35, bottom = 0xff29334c;
-        if (options.base.equals("still_graphite")) { top=0xff171b20; bottom=0xff424044; }
+        if (options.base.equals("still_light")) { top=0xffe0e5f7; bottom=0xffafb5c8; }
+        else if (options.base.equals("still_dark")) { top=0xff232229; bottom=0xff34393a; }
+        else if (options.base.equals("still_graphite")) { top=0xff171b20; bottom=0xff424044; }
         else if (options.base.equals("still_forest")) { top=0xff102d2b; bottom=0xff395149; }
         else if (options.base.equals("still_plum") || options.base.equals("silk")) { top=0xff241a36; bottom=0xff59405b; }
         else if (options.base.equals("embers")) { top=0xff231924; bottom=0xff613e30; }
         else if (options.base.equals("aurora") || options.base.equals("waves")) { top=0xff102834; bottom=0xff28534f; }
         int legacy = options.base.equals("still_legacy_gradient") ? LegacyGradients.index(options.legacyGradient) : -1;
         if (legacy >= 0) { top = LegacyGradients.top(legacy); bottom = LegacyGradients.bottom(legacy); }
-        else {
+        else if (!options.base.equals("still_light") && !options.base.equals("still_dark")) {
             PaletteRecipes.Theme recipe=PaletteRecipes.find(options.basePalette);
             if(recipe!=null) { top=recipe.dark; bottom=recipe.middle; }
         }
-        ground.setShader(new LinearGradient(0, 0, legacy >= 0 ? 0 : Math.max(1,getWidth()), Math.max(1,getHeight()), top, bottom, Shader.TileMode.CLAMP));
+        ground.setShader(new LinearGradient(0, 0, legacy >= 0 || options.base.equals("still_light") || options.base.equals("still_dark") ? 0 : Math.max(1,getWidth()), Math.max(1,getHeight()), top, bottom, Shader.TileMode.CLAMP));
     }
     @Override protected void onDraw(Canvas canvas) {
         String style = overlay ? options.overlay : options.base;
@@ -68,7 +70,7 @@ public final class AppearanceView extends View {
         double phase = clock.phaseSeconds();
         if (!overlay) {
             canvas.drawRect(0,0,getWidth(),getHeight(),ground);
-            if (!style.equals("still_legacy_gradient")) { paint.setColor(Color.BLACK); paint.setAlpha(Math.round((100-strength)*1.5f)); canvas.drawRect(0,0,getWidth(),getHeight(),paint); }
+            if (!style.equals("still_legacy_gradient") && !style.equals("still_light") && !style.equals("still_dark")) { paint.setColor(Color.BLACK); paint.setAlpha(Math.round((100-strength)*1.5f)); canvas.drawRect(0,0,getWidth(),getHeight(),paint); }
         }
         if (style.startsWith("still_") || density == 0 || (overlay && strength == 0)) return;
         float scale = Math.max(0.5f, getHeight()/1080f);

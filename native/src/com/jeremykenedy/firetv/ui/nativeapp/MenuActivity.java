@@ -6,10 +6,30 @@ import android.os.Bundle;
 /** Shared lifecycle for launcher settings pages. */
 public abstract class MenuActivity extends Activity {
     private boolean transitionReady;
+    private float menuDim;
+    private boolean panel;
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         transitionReady = SourceStartup.ready(this);
+        android.content.res.TypedArray attributes = obtainStyledAttributes(new int[]{android.R.attr.windowIsTranslucent});
+        panel = attributes.getBoolean(0, false);
+        attributes.recycle();
+        menuDim = getWindow().getAttributes().dimAmount;
         if (transitionReady) MenuTransition.apply(this, true);
+    }
+    @Override protected void onResume() {
+        super.onResume();
+        if (panel) {
+            findViewById(android.R.id.content).setVisibility(android.view.View.VISIBLE);
+            getWindow().setDimAmount(menuDim);
+        }
+    }
+    @Override protected void onPause() {
+        if (panel) {
+            findViewById(android.R.id.content).setVisibility(android.view.View.INVISIBLE);
+            getWindow().setDimAmount(0);
+        }
+        super.onPause();
     }
     @Override public void finish() {
         super.finish();

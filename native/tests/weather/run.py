@@ -64,7 +64,7 @@ with tempfile.TemporaryDirectory(prefix='weather-tests-') as directory:
                     str(SOURCE / 'WeatherPreferences.java'), str(Path(__file__).parent / 'WeatherPreferencesTest.java')], check=True)
     subprocess.run(['java', '-cp', str(work), 'com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherPreferencesTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
-                    '-bootclasspath', str(ANDROID), '-sourcepath', str(ROOT / 'src') + ':' + str(ROOT / '.build/gen'),
+                    '-bootclasspath', str(ANDROID), '-classpath', str(ROOT / '.build/classes'), '-sourcepath', str(ROOT / 'src') + ':' + str(ROOT / '.build/gen'),
                     '-d', str(work / 'integration'), *map(str, SOURCE.glob('*.java')),
                     str(Path(__file__).parent / 'WeatherFixture.java')], check=True)
     print('Weather widget/settings isolated API36 compilation passed.')

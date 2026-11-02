@@ -110,6 +110,7 @@ public final class SetupTest {
         prefs(context, "native_app_grid").values.put("columns", 16);
         prefs(context, "native_app_grid").values.put("owner_future_metadata", "keep");
         prefs(context, "native_focus").values.put("growth_percent", 6);
+        prefs(context, "native_cards").values.put("hidden_packages", "fixture.retained\nfixture.second");
         prefs(context, "native_inputs").values.put("name:vendor/.Input/HDMI1", "Receiver");
         prefs(context, "native_inputs").values.put("known:vendor/.Input/HDMI1", true);
         prefs(context, "native_icon_packs").values.put("package", "clean-line");
@@ -134,6 +135,8 @@ public final class SetupTest {
                 !first.get("native_inputs").values().containsKey("known:vendor/.Input/HDMI1"),
                 "input discovery metadata excluded");
         PresentationState.validatePortable(first);
+        check("fixture.retained\nfixture.second".equals(first.get("native_cards").values().get("hidden_packages")), "Package card choices are included in portable backup and setup state.");
+        check(same(first, PortableBackup.decode(PortableBackup.encode(first, portable), portable)), "Portable backup round trip retains package card choices and absence.");
         Map<String, PreferenceSnapshot> holidayPack = new LinkedHashMap<>(first);
         holidayPack.put("native_icon_packs", new PreferenceSnapshot(Collections.singletonMap("package", "builtin:holiday:hanukkah")));
         PresentationState.validatePortable(holidayPack);
@@ -153,6 +156,7 @@ public final class SetupTest {
         prefs(context, "native_breathing_break").values.put("running", false);
         final SavedSetupManager manager = new SavedSetupManager(context);
         final String id = manager.save("Evening", null);
+        prefs(context, "native_cards").values.put("hidden_packages", "fixture.changed");
         prefs(context, "native_focus").values.put("duration_millis", 100);
         prefs(context, "native_app_grid").values.put("columns", 3);
         prefs(context, "launcher_prefs").values.put("color_later", 77);

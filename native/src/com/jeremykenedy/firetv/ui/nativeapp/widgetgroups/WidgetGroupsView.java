@@ -93,10 +93,11 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         boolean unavailable = content == null;
         if (unavailable) content = label(record.type + " unavailable. Saved widget data was kept.");
         else live.add(new LiveWidget(provider, content));
+        if (WidgetAppearance.hasText(activity)) WidgetAppearance.applyText(content, WidgetAppearance.color(activity, true));
         if (content instanceof ClockWidgetView && record.size.equals("Small"))
             ((ClockWidgetView) content).setGroupedSmall();
         View tile = tile(content, record.id, unavailable
-                ? record.type + " unavailable. Saved widget data was kept." : record.type + " widget");
+                ? record.type + " unavailable. Saved widget data was kept." : record.type + " widget", !unavailable);
         tile.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) { editor.open(group, index, record); }
         });
@@ -107,13 +108,13 @@ public final class WidgetGroupsView extends HorizontalScrollView {
     }
     private View empty(final int group, final int index) {
         TextView view = label("Add widget");
-        View tile = tile(view, "group:empty:" + group + ":" + index, "Add widget");
+        View tile = tile(view, "group:empty:" + group + ":" + index, "Add widget", false);
         tile.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View ignored) { editor.open(group, index, null); }
         });
         return tile;
     }
-    private View tile(View content, String tag, String description) {
+    private View tile(View content, String tag, String description, boolean transparentSurface) {
         FrameLayout frame = new FrameLayout(activity);
         frame.setTag(tag);
         frame.setFocusable(true);
@@ -128,10 +129,20 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         });
         frame.setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
         final FocusTileView background = new FocusTileView(activity);
+        if (transparentSurface) background.useTransparentSurface();
         background.setFocusable(false);
         background.setClickable(false);
         background.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         background.setText("");
+        View color = new View(activity);
+        android.graphics.drawable.GradientDrawable fill = new android.graphics.drawable.GradientDrawable();
+        fill.setColor(WidgetAppearance.color(activity, false));
+        fill.setCornerRadius(dp(10));
+        color.setBackground(fill);
+        color.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+        FrameLayout.LayoutParams colorBounds = new FrameLayout.LayoutParams(-1, -1);
+        colorBounds.setMargins(dp(5), dp(5), dp(5), dp(5));
+        frame.addView(color, colorBounds);
         frame.addView(background, new FrameLayout.LayoutParams(-1, -1));
         content.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         int inset = dp(8);

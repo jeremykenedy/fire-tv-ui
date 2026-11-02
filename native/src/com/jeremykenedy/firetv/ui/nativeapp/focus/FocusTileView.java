@@ -27,10 +27,17 @@ public final class FocusTileView extends FrameLayout {
     private ValueAnimator animation;
     private float progress;
     private boolean preview;
+    private boolean transparentSurface;
     private boolean compact;
+    private boolean miniApp;
     private int legacyArtworkWidth;
     private boolean legacyPresentation;
     private boolean darkLegacySurface;
+    private boolean explicitAppGrowth, appShadow, appBorder;
+    private int appBackgroundColor;
+    private float appBackgroundAlpha;
+    private Integer titleColor;
+    private boolean titleVisible = true;
 
     public FocusTileView(Context context) {
         super(context);
@@ -62,6 +69,16 @@ public final class FocusTileView extends FrameLayout {
     }
 
     public void setTitle(String value) { setText(value); }
+
+    public void setTitleVisible(boolean visible) {
+        titleVisible = visible;
+        title.setVisibility(visible && !legacyPresentation && !miniApp ? View.VISIBLE : View.GONE);
+    }
+
+    public void setTitleColor(Integer color) {
+        titleColor = color;
+        updateVisual();
+    }
 
     public void setText(CharSequence value) {
         title.setText(value);
@@ -106,7 +123,7 @@ public final class FocusTileView extends FrameLayout {
     public void setCompact(boolean compact) {
         if (this.compact == compact) return;
         this.compact = compact;
-        if (!legacyPresentation) configureNativeSurface();
+        if (!legacyPresentation && !miniApp) configureNativeSurface();
     }
 
     private void configureNativeSurface() {
@@ -119,43 +136,59 @@ public final class FocusTileView extends FrameLayout {
         title.setPadding(dp(compact ? 4 : 0), dp(compact ? 0 : 8), 0, 0);
     }
 
-    /** Opt in only for an app tile with a measured legacy artwork width. */
+    /** Opt in only for an app tile with a measured artwork width. */
     public void useLegacyDefaultAppPresentation(int artworkWidth) {
         if (artworkWidth <= 0) throw new IllegalArgumentException("Artwork width must be positive.");
         legacyArtworkWidth = artworkWidth;
-        if (legacyPresentation) {
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) surface.getLayoutParams();
-            params.width = artworkWidth;
-            params.height = FocusOptions.legacyAppArtworkHeight(artworkWidth);
-            params.topMargin = FocusOptions.legacyAppTopInset(params.height);
-            surface.setLayoutParams(params);
-        }
         updatePresentation();
+        layoutAppSurface();
         updateVisual();
+    }
+
+    /** Home supplies square app artwork for its compact favorites dock. */
+    public void setMiniAppPresentation(boolean enabled) {
+        if (miniApp == enabled) return;
+        miniApp = enabled;
+        if (legacyArtworkWidth > 0) {
+            layoutAppSurface();
+            updateVisual();
+        }
     }
 
     private void updatePresentation() {
         boolean legacy = legacyArtworkWidth > 0 && FocusPreferences.legacyDefaultAppMode(getContext());
         if (legacy == legacyPresentation) return;
         legacyPresentation = legacy;
-        surface.setClipToOutline(legacy);
         if (legacy) updateLegacyContrast(icon.getDrawable());
-        background.setCornerRadius(dp(legacy ? 16 : 14));
-        if (legacy) {
+        layoutAppSurface();
+    }
+
+    private void layoutAppSurface() {
+        boolean artworkOnly = legacyPresentation || (miniApp && legacyArtworkWidth > 0);
+        surface.setClipToOutline(artworkOnly);
+        background.setCornerRadius(dp(legacyPresentation ? 16 : 14));
+        updateAppVisualOptions();
+        if (artworkOnly) {
             surface.setOrientation(LinearLayout.VERTICAL);
             surface.setPadding(0, 0, 0, 0);
+            int height = miniApp ? legacyArtworkWidth : FocusOptions.legacyAppArtworkHeight(legacyArtworkWidth);
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(legacyArtworkWidth,
-                    FocusOptions.legacyAppArtworkHeight(legacyArtworkWidth), Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-            params.topMargin = FocusOptions.legacyAppTopInset(params.height);
+                    height, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+            params.topMargin = FocusOptions.legacyAppTopInset(height);
             surface.setLayoutParams(params);
             icon.setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
             title.setVisibility(View.GONE);
         } else {
             surface.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
-            title.setVisibility(View.VISIBLE);
+            title.setVisibility(titleVisible ? View.VISIBLE : View.GONE);
             configureNativeSurface();
         }
         requestLayout();
+    }
+
+    public void useTransparentSurface() {
+        transparentSurface = true;
+        updateVisual();
     }
 
     public void setPreviewFocused(boolean value) {
@@ -167,6 +200,7 @@ public final class FocusTileView extends FrameLayout {
         if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(getContext())) { cancelAnimation(); return; }
         options = FocusPreferences.load(getContext());
         updatePresentation();
+        updateAppVisualOptions();
         cancelAnimation();
         progress = isFocused() && hasWindowFocus() || preview ? 1f : 0f;
         updateVisual();
@@ -206,6 +240,7 @@ public final class FocusTileView extends FrameLayout {
         if (!com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(getContext())) { cancelAnimation(); return; }
         options = FocusPreferences.load(getContext());
         updatePresentation();
+        updateAppVisualOptions();
         cancelAnimation();
         float target = isFocused() && hasWindowFocus() || preview ? 1f : 0f;
         if (options.durationMillis == 0 || !ValueAnimator.areAnimatorsEnabled()) {
@@ -233,20 +268,60 @@ public final class FocusTileView extends FrameLayout {
         }
     }
 
+    private void updateAppVisualOptions() {
+        if (legacyArtworkWidth <= 0) return;
+        try { background.setCornerRadius(dp(FocusPreferences.iconRadius(getContext()))); }
+        catch (IllegalStateException unavailable) { background.setCornerRadius(dp(16)); }
+        try { appShadow = FocusPreferences.iconShadow(getContext()); }
+        catch (IllegalStateException unavailable) { appShadow = false; }
+        explicitAppGrowth = FocusPreferences.hasExplicitGrowth(getContext());
+        appBorder = FocusPreferences.appBorder(getContext());
+        appBackgroundColor = FocusPreferences.iconBackgroundColor(getContext());
+        appBackgroundAlpha = FocusPreferences.iconBackgroundOpacity(getContext()) / 100f
+                * Color.alpha(appBackgroundColor) / 255f;
+        surface.setClipToOutline(true);
+    }
+
     private void updateVisual() {
-        float scale = legacyPresentation ? 1f + (FocusOptions.LEGACY_APP_SCALE - 1f) * progress : options.scale(progress);
+        float scale = legacyPresentation && !explicitAppGrowth
+                ? 1f + (FocusOptions.LEGACY_APP_SCALE - 1f) * progress : options.scale(progress);
         surface.setScaleX(scale);
         surface.setScaleY(scale);
+        if (legacyArtworkWidth > 0) {
+            surface.setElevation(appShadow ? dp(6) * progress : 0);
+        }
+        if (transparentSurface) {
+            background.setColor(Color.TRANSPARENT);
+            background.setStroke(dp(3), (Math.round(255f * progress) << 24) | 0x00ffffff);
+            return;
+        }
         if (legacyPresentation) {
-            background.setStroke(0, Color.TRANSPARENT);
-            background.setColor((Math.round(255f * progress) << 24) | (darkLegacySurface ? 0x251f39 : 0xffffff));
+            int alpha = appBorder ? Math.round(Color.alpha(options.borderArgb()) * progress) : 0;
+            background.setStroke(dp(3), (alpha << 24) | options.borderRgb);
+            int focused = darkLegacySurface ? 0x251f39 : 0xffffff;
+            float surfaceAlpha = progress + appBackgroundAlpha * (1f - progress);
+            int color = surfaceAlpha == 0 ? focused : mix(appBackgroundColor, focused, progress / surfaceAlpha);
+            background.setColor((Math.round(255f * surfaceAlpha) << 24) | color);
             return;
         }
         int color = options.borderArgb();
         int alpha = options.borderEnabled ? Math.round(Color.alpha(color) * progress) : 0;
         background.setStroke(dp(3), (alpha << 24) | options.borderRgb);
-        background.setColor(options.surfaceRgb(progress));
-        title.setTextColor(progress > 0.5f ? Color.WHITE : 0xffcec7df);
+        int surfaceColor = options.surfaceRgb(progress);
+        if (legacyArtworkWidth > 0 && appBackgroundAlpha > 0)
+            surfaceColor = 0xff000000 | mix(surfaceColor, appBackgroundColor, appBackgroundAlpha * (1f - progress));
+        background.setColor(surfaceColor);
+        title.setTextColor(titleColor != null ? titleColor : (progress > 0.5f ? Color.WHITE : 0xffcec7df));
+    }
+
+    private static int mix(int from, int to, float fraction) {
+        float amount = Math.max(0f, Math.min(1f, fraction));
+        int rgb = 0;
+        for (int shift = 16; shift >= 0; shift -= 8) {
+            int start = (from >> shift) & 255, end = (to >> shift) & 255;
+            rgb |= Math.round(start + (end - start) * amount) << shift;
+        }
+        return rgb;
     }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

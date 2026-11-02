@@ -42,7 +42,7 @@ public final class AppGridOptions {
     }
 
     public static AppGridOptions defaults() {
-        return new AppGridOptions(6, 1, true, Collections.<String>emptyList(),
+        return new AppGridOptions(6, 1, false, Collections.<String>emptyList(),
                 Collections.<String>emptySet(), Collections.<String>emptySet());
     }
 

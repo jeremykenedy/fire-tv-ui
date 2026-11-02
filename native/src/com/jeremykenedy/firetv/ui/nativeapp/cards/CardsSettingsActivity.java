@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
+import android.widget.TextView;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
@@ -27,6 +28,7 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
     private String status = "Reading channel cards...";
     private String section = "cards";
     private String selectedFeed;
+    private String initialSection = "cards";
     private CardOptions options;
     private LinearLayout content;
     private String focusTag;
@@ -34,7 +36,10 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
-        if (state != null) { section = state.getString("section", "cards"); selectedFeed = state.getString("feed"); }
+        String requested = getIntent().getStringExtra("section");
+        if ("channels".equals(requested) || "timers".equals(requested)) initialSection = requested;
+        if (state != null) { section = state.getString("section", initialSection); selectedFeed = state.getString("feed"); }
+        else section = initialSection;
         options = CardPreferences.load(this);
         render(null);
         recommendations = new RecommendationLoader(this, new RecommendationLoader.Listener() {
@@ -73,7 +78,7 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
 
     @Override public void onBackPressed() {
         if (startupBlocked) { super.onBackPressed(); return; }
-        if (section.equals("cards")) super.onBackPressed();
+        if (section.equals("cards") || section.equals(initialSection) && !initialSection.equals("cards")) super.onBackPressed();
         else if (section.equals("items")) { section = "channels"; render(selectedFeed); }
         else {
             String previous = section;
@@ -83,15 +88,23 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
     }
 
     private void render(String target) {
-        LinearLayout page = Pages.page(this);
-        page.addView(Pages.text(this, section.equals("timers") ? "Card timers" : section.equals("hidden") ? "Hidden items"
-                : section.equals("channels") ? "Channel Cards" : section.equals("items") ? "Channel titles" : "Cards", 30));
+        LinearLayout page = Pages.sidePanel(this);
+        TextView heading = Pages.text(this, section.equals("timers") ? "Card timers" : section.equals("hidden") ? "Hidden items"
+                : section.equals("channels") ? "Channel Cards" : section.equals("items") ? "Channel titles" : "Cards", 26);
+        heading.setTextColor(0xff8d8d8d);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        page.addView(heading);
         ScrollView scroll = new ScrollView(this);
         page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(content);
         if (section.equals("cards")) {
+            action("Featured card setup", "sources", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    startActivity(new Intent(CardsSettingsActivity.this, com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationSourcesActivity.class));
+                }
+            });
             action("Channel Cards", "channels", new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     section = "channels";
@@ -101,8 +114,62 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
             action("Card timers", "timers", new View.OnClickListener() {
                 @Override public void onClick(View view) { section = "timers"; render(null); }
             });
+            action("Big picture wallpaper mode: " + (CardDisplayPreferences.bigPicture(this) ? "On" : "Off"), "big-picture", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    try { CardDisplayPreferences.setBigPicture(CardsSettingsActivity.this, !CardDisplayPreferences.bigPicture(CardsSettingsActivity.this)); render("big-picture"); }
+                    catch (IllegalStateException failed) { Toast.makeText(CardsSettingsActivity.this, failed.getMessage(), Toast.LENGTH_LONG).show(); }
+                }
+            });
+            com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions layout =
+                    com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences.load(this, com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots.defaults());
+            boolean cardsShown = layout.includes(com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem.Kind.CHANNEL_CARD);
+            action("Hide featured cards: " + (cardsShown ? "Off" : "On"), "hide-cards", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    try {
+                        com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions current = com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences.load(CardsSettingsActivity.this, com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots.defaults());
+                        boolean cards = current.includes(com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem.Kind.CHANNEL_CARD);
+                        boolean widgets = current.includes(com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem.Kind.WIDGET);
+                        com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode mode = cards
+                                ? (widgets ? com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode.WIDGETS_ONLY : com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode.NONE)
+                                : (widgets ? com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode.BOTH : com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode.CARDS_ONLY);
+                        com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences.save(CardsSettingsActivity.this, current.withMode(mode));
+                        render("hide-cards");
+                    } catch (IllegalStateException failed) {
+                        Toast.makeText(CardsSettingsActivity.this, failed.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            action("Hide featured cards titles: " + (CardDisplayPreferences.hideTitles(this) ? "On" : "Off"), "hide-titles", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    try { CardDisplayPreferences.setHideTitles(CardsSettingsActivity.this, !CardDisplayPreferences.hideTitles(CardsSettingsActivity.this)); render("hide-titles"); }
+                    catch (IllegalStateException failed) { Toast.makeText(CardsSettingsActivity.this, failed.getMessage(), Toast.LENGTH_LONG).show(); }
+                }
+            });
+            action("Text outside cards: " + (CardDisplayPreferences.textOutside(this) ? "On" : "Off"), "text-outside", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    try { CardDisplayPreferences.setTextOutside(CardsSettingsActivity.this, !CardDisplayPreferences.textOutside(CardsSettingsActivity.this)); render("text-outside"); }
+                    catch (IllegalStateException failed) { Toast.makeText(CardsSettingsActivity.this, failed.getMessage(), Toast.LENGTH_LONG).show(); }
+                }
+            });
+            action("Cards text color", "cards-text-color", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.choose(CardsSettingsActivity.this,
+                            "Cards text color", CardDisplayPreferences.TEXT_COLOR, CardDisplayPreferences.TEXT_OPACITY,
+                            android.graphics.Color.WHITE, 100, null);
+                }
+            });
             action("Hidden items and series (" + (options.hiddenItems().size() + options.hiddenSeries().size()) + ")", "hidden", new View.OnClickListener() {
                 @Override public void onClick(View view) { section = "hidden"; render(null); }
+            });
+            action("Plex", "plex", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    startActivity(new Intent(CardsSettingsActivity.this, com.jeremykenedy.firetv.ui.nativeapp.providers.plex.PlexSettingsActivity.class));
+                }
+            });
+            action("What to Watch from Plex", "discovery", new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    startActivity(new Intent(CardsSettingsActivity.this, com.jeremykenedy.firetv.ui.nativeapp.providers.discovery.DiscoveryActivity.class));
+                }
             });
         } else if (section.equals("channels")) {
             action("Artwork: " + (CardPreferences.artworkFits(this) ? "Fit entire image" : "Fill and crop"),
@@ -208,14 +275,14 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
                     }
                 });
             } else content.addView(Pages.text(this, "Series hiding is unavailable: this source has not supplied a trusted series identity. You can hide this item.", 16));
-            Button up = Pages.button(this, "Move title up", new View.OnClickListener() {
+            Button up = Pages.menuButton(this, "Move title up", new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     CardOptions value = options.discoverItems(feed.source, feed.item.id, CardPreferences.programKeys(feed));
                     save(value.moveItemBefore(feed.source, feed.item.id, program.key, programs.get(position - 1).key), program.key + ":up");
                 }
             });
             up.setTag(program.key + ":up"); up.setEnabled(index > 0); content.addView(up);
-            Button down = Pages.button(this, "Move title down", new View.OnClickListener() {
+            Button down = Pages.menuButton(this, "Move title down", new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     CardOptions value = options.discoverItems(feed.source, feed.item.id, CardPreferences.programKeys(feed));
                     String before = position + 2 < programs.size() ? programs.get(position + 2).key : null;
@@ -233,8 +300,13 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
     }
 
     private void action(String label, String tag, View.OnClickListener listener) {
-        Button button = Pages.button(this, label, listener);
+        Button button = Pages.menuButton(this, label, listener);
         button.setTag(tag);
+        if (label.indexOf('\n') >= 0) {
+            LinearLayout.LayoutParams bounds = (LinearLayout.LayoutParams) button.getLayoutParams();
+            bounds.height = Pages.dp(this, 64);
+            button.setTextSize(16);
+        }
         content.addView(button);
     }
 

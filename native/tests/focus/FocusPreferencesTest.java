@@ -68,6 +68,59 @@ public final class FocusPreferencesTest {
         check(read.fillEnabled && read.fillRgb == 0x3c3251 && read.fillOpacity == 100
                 && read.borderRgb == 0x123456,
                 "Existing preferences retain their border and historical fill appearance.");
+        Context motion = new Context();
+        FocusPreferences.saveMotion(motion, "duration_millis", 180);
+        check(FocusPreferences.legacyDefaultAppMode(motion) && !FocusPreferences.hasExplicitGrowth(motion),
+                "Changing speed keeps the default app appearance and does not invent a growth choice.");
+        FocusPreferences.saveMotion(motion, "growth_percent", 0);
+        check(FocusPreferences.legacyDefaultAppMode(motion) && FocusPreferences.hasExplicitGrowth(motion),
+                "Explicit zero growth stays active with default app style.");
+        FocusPreferences.setAppStyle(motion, "color");
+        check(!FocusPreferences.legacyDefaultAppMode(motion) && FocusPreferences.load(motion).growthPercent == 0
+                && FocusPreferences.load(motion).durationMillis == 180, "Style selection retains independent motion.");
+        FocusPreferences.setAppStyle(motion, "default");
+        check(FocusPreferences.legacyDefaultAppMode(motion) && FocusPreferences.hasExplicitGrowth(motion),
+                "Returning to default retains selected growth.");
+        Map<String, Object> beforeStyle = new HashMap<>(motion.prefs.values);
+        motion.prefs.fail = true;
+        try { FocusPreferences.setAppStyle(motion, "border"); throw new AssertionError("Failed style save accepted."); }
+        catch (IllegalStateException expected) { check(beforeStyle.equals(motion.prefs.values), "Failed style save restores all prior values."); }
+        motion.prefs.fail = false;
+        motion.prefs.fail = true;
+        try { FocusPreferences.saveMotion(motion, "growth_percent", 3); throw new AssertionError("Failed motion save accepted."); }
+        catch (IllegalStateException expected) { check(beforeStyle.equals(motion.prefs.values), "Failed motion save restores value and style."); }
+        motion.prefs.fail = false;
+        Context appearance = new Context();
+        check(!FocusPreferences.appBorder(appearance) && FocusPreferences.iconShadow(appearance)
+                && FocusPreferences.iconRadius(appearance) == 16, "Original app icon defaults are read without writes.");
+        check(FocusPreferences.appColor(appearance, true) == 0x263a5c
+                && FocusPreferences.appColor(appearance, false) == 0xffffff, "Original app focus color defaults.");
+        check(FocusPreferences.iconBackgroundOpacity(appearance) == 0, "Absent app background stays transparent.");
+        check(appearance.prefs.values.isEmpty(), "Reading icon defaults does not write preferences.");
+        appearance.prefs.values.put("color_back_color_argb", 0xffe53935);
+        appearance.prefs.values.put("color_back_color_opacity", 50);
+        check(FocusPreferences.iconBackgroundColor(appearance) == 0xffe53935
+                && FocusPreferences.iconBackgroundOpacity(appearance) == 50, "Original typed app background color and opacity are read.");
+        FocusPreferences.saveAppColorAndOpacity(appearance, true, 0xffe53935, 50);
+        check(FocusPreferences.legacyDefaultAppMode(appearance) && FocusPreferences.load(appearance).fillRgb == 0xe53935
+                && FocusPreferences.load(appearance).fillOpacity == 50, "Focus color and opacity retain default app style.");
+        Map<String, Object> beforeColorFailure = new HashMap<>(appearance.prefs.values);
+        appearance.prefs.fail = true;
+        try { FocusPreferences.saveAppColorAndOpacity(appearance, true, 0xff112233, 25); throw new AssertionError("Failed color save accepted."); }
+        catch (IllegalStateException expected) { check(beforeColorFailure.equals(appearance.prefs.values), "Color failure restores color, opacity and style."); }
+        appearance.prefs.fail = false;
+        FocusPreferences.setAppBorder(appearance, true);
+        check(FocusPreferences.appBorder(appearance) && FocusPreferences.legacyDefaultAppMode(appearance),
+                "Border can be enabled without replacing the default app style.");
+        FocusPreferences.saveIconOption(appearance, "icon_shadow", false);
+        FocusPreferences.saveIconOption(appearance, "icon_radius", 18);
+        check(!FocusPreferences.iconShadow(appearance) && FocusPreferences.iconRadius(appearance) == 18,
+                "Explicit shadow and radius persist.");
+        Map<String, Object> beforeIconFailure = new HashMap<>(appearance.prefs.values);
+        appearance.prefs.fail = true;
+        try { FocusPreferences.saveIconOption(appearance, "icon_radius", 20); throw new AssertionError("Failed icon save accepted."); }
+        catch (IllegalStateException expected) { check(beforeIconFailure.equals(appearance.prefs.values), "Failed icon save restores prior values."); }
+        appearance.prefs.fail = false;
         System.out.println("Focus persistence, failed-save rollback and malformed settings passed.");
     }
 

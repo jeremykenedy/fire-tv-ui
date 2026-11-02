@@ -14,7 +14,7 @@ public final class AppGridPreferences {
         SharedPreferences prefs = context.getSharedPreferences("native_app_grid", Context.MODE_PRIVATE);
         try {
             return new AppGridOptions(prefs.getInt("columns", 6), prefs.getInt("rows", 1),
-                    prefs.getBoolean("horizontal", true), split(prefs.getString("order", "")),
+                    prefs.getBoolean("horizontal", false), split(prefs.getString("order", "")),
                     new LinkedHashSet<>(split(prefs.getString("hidden", ""))),
                     new LinkedHashSet<>(split(prefs.getString("favorites", ""))));
         } catch (RuntimeException malformed) { return AppGridOptions.defaults(); }

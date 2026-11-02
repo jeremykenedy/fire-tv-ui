@@ -54,7 +54,8 @@ public final class StatusBarView extends LinearLayout {
         content.setPadding(0, 0, Pages.dp(activity, 4), 0);
         if (options.tinted) {
             GradientDrawable background = new GradientDrawable();
-            background.setColor(0x66000000);
+            boolean lightTheme = "still_light".equals(activity.getSharedPreferences("source_appearance", Context.MODE_PRIVATE).getAll().get("base"));
+            background.setColor(lightTheme ? 0x33ffffff : 0x66000000);
             background.setCornerRadius(Pages.dp(activity, 32));
             content.setBackground(background);
         }

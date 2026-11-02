@@ -15,6 +15,7 @@ public final class CardOptions {
     public static final int MAX_SECONDS = 86400;
     public final int globalSeconds;
     public final Map<String, Integer> feedSeconds;
+    public final Set<String> hiddenPackages;
     private final Map<String, HiddenItem> hidden;
     private final Map<String, HiddenItem> series;
     private final Map<String, List<String>> itemOrder;
@@ -29,8 +30,9 @@ public final class CardOptions {
     }
 
     private CardOptions(int seconds, Map<String, Integer> timers, Map<String, HiddenItem> hidden,
-            Map<String, HiddenItem> series, Map<String, List<String>> order) {
+            Map<String, HiddenItem> series, Map<String, List<String>> order, Set<String> hiddenPackages) {
         validateSeconds(seconds);
+        this.hiddenPackages = decodePackages(encodePackages(hiddenPackages));
         if (timers.size() > 256 || hidden.size() + series.size() > 512 || order.size() > 256)
             throw new IllegalArgumentException("Too many saved card settings.");
         int items = 0;
@@ -51,7 +53,7 @@ public final class CardOptions {
     public static CardOptions defaults() {
         return new CardOptions(DEFAULT_SECONDS, Collections.<String, Integer>emptyMap(),
                 Collections.<String, HiddenItem>emptyMap(), Collections.<String, HiddenItem>emptyMap(),
-                Collections.<String, List<String>>emptyMap());
+                Collections.<String, List<String>>emptyMap(), Collections.<String>emptySet());
     }
 
     public int timerSeconds(String feed) {
@@ -59,19 +61,19 @@ public final class CardOptions {
         return seconds == null ? globalSeconds : seconds;
     }
 
-    public CardOptions withGlobalSeconds(int seconds) { return new CardOptions(seconds, feedSeconds, hidden, series, itemOrder); }
+    public CardOptions withGlobalSeconds(int seconds) { return new CardOptions(seconds, feedSeconds, hidden, series, itemOrder, hiddenPackages); }
 
     public CardOptions withFeedSeconds(String feed, int seconds) {
         identity(feed); validateSeconds(seconds);
         Map<String, Integer> copy = new LinkedHashMap<>(feedSeconds);
         copy.put(feed, seconds);
-        return new CardOptions(globalSeconds, copy, hidden, series, itemOrder);
+        return new CardOptions(globalSeconds, copy, hidden, series, itemOrder, hiddenPackages);
     }
 
     public CardOptions useGlobal(String feed) {
         Map<String, Integer> copy = new LinkedHashMap<>(feedSeconds);
         copy.remove(feed);
-        return new CardOptions(globalSeconds, copy, hidden, series, itemOrder);
+        return new CardOptions(globalSeconds, copy, hidden, series, itemOrder, hiddenPackages);
     }
 
     public boolean isHidden(String source, String key) { return hidden.containsKey(scopedKey(source, key)); }
@@ -87,25 +89,25 @@ public final class CardOptions {
     public CardOptions hide(String source, String key, String title) {
         Map<String, HiddenItem> copy = new LinkedHashMap<>(hidden);
         copy.put(scopedKey(source, key), entry(source, key, title));
-        return new CardOptions(globalSeconds, feedSeconds, copy, series, itemOrder);
+        return new CardOptions(globalSeconds, feedSeconds, copy, series, itemOrder, hiddenPackages);
     }
 
     public CardOptions hideSeries(String source, String key, String title) {
         Map<String, HiddenItem> copy = new LinkedHashMap<>(series);
         copy.put(scopedKey(source, key), entry(source, key, title));
-        return new CardOptions(globalSeconds, feedSeconds, hidden, copy, itemOrder);
+        return new CardOptions(globalSeconds, feedSeconds, hidden, copy, itemOrder, hiddenPackages);
     }
 
     public CardOptions restore(String source, String key) {
         Map<String, HiddenItem> copy = new LinkedHashMap<>(hidden);
         copy.remove(scopedKey(source, key));
-        return new CardOptions(globalSeconds, feedSeconds, copy, series, itemOrder);
+        return new CardOptions(globalSeconds, feedSeconds, copy, series, itemOrder, hiddenPackages);
     }
 
     public CardOptions restoreSeries(String source, String key) {
         Map<String, HiddenItem> copy = new LinkedHashMap<>(series);
         copy.remove(scopedKey(source, key));
-        return new CardOptions(globalSeconds, feedSeconds, hidden, copy, itemOrder);
+        return new CardOptions(globalSeconds, feedSeconds, hidden, copy, itemOrder, hiddenPackages);
     }
 
     public List<HiddenItem> hiddenItems() { return Collections.unmodifiableList(new ArrayList<>(hidden.values())); }
@@ -124,7 +126,7 @@ public final class CardOptions {
     public CardOptions withItemOrder(String source, String feed, List<String> order) {
         Map<String, List<String>> copy = new LinkedHashMap<>(itemOrder);
         copy.put(scopedKey(source, feed), validatedOrder(order));
-        return new CardOptions(globalSeconds, feedSeconds, hidden, series, copy);
+        return new CardOptions(globalSeconds, feedSeconds, hidden, series, copy, hiddenPackages);
     }
 
     public CardOptions discoverItems(String source, String feed, List<String> available) {
@@ -149,12 +151,12 @@ public final class CardOptions {
     public CardOptions resetItemOrder(String source, String feed) {
         Map<String, List<String>> copy = new LinkedHashMap<>(itemOrder);
         copy.remove(scopedKey(source, feed));
-        return new CardOptions(globalSeconds, feedSeconds, hidden, series, copy);
+        return new CardOptions(globalSeconds, feedSeconds, hidden, series, copy, hiddenPackages);
     }
 
     public Map<String, Object> backupValues() {
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("schema_version", 2);
+        result.put("schema_version", 3);
         result.put("global_seconds", globalSeconds);
         StringBuilder timers = new StringBuilder();
         for (Map.Entry<String, Integer> entry : feedSeconds.entrySet()) append(timers, entry.getKey() + "\t" + entry.getValue());
@@ -168,15 +170,21 @@ public final class CardOptions {
             append(order, line.toString());
         }
         result.put("item_order", order.toString());
+        result.put("hidden_packages", encodePackages(hiddenPackages));
         return result;
     }
 
     public static CardOptions fromBackup(Map<String, ?> values) {
         boolean legacy = values != null && values.size() == 3 && !values.containsKey("schema_version");
-        if (values == null || (!legacy && (values.size() != 6 || !Integer.valueOf(2).equals(values.get("schema_version"))))
+        boolean version2 = values != null && Integer.valueOf(2).equals(values.get("schema_version"))
+                && (values.size() == 6 || values.size() == 7 && values.containsKey("hidden_packages"));
+        boolean version3 = values != null && Integer.valueOf(3).equals(values.get("schema_version")) && values.size() == 7;
+        if (values == null || (!legacy && !version2 && !version3)
                 || !(values.get("global_seconds") instanceof Integer) || !(values.get("feed_seconds") instanceof String)
                 || !(values.get("hidden_items") instanceof String) || (!legacy && (!(values.get("hidden_series") instanceof String)
-                || !(values.get("item_order") instanceof String)))) throw new IllegalArgumentException("Invalid card settings.");
+                || !(values.get("item_order") instanceof String)))
+                || (values.containsKey("hidden_packages") && !(values.get("hidden_packages") instanceof String))
+                || (version3 && !values.containsKey("hidden_packages"))) throw new IllegalArgumentException("Invalid card settings.");
         CardOptions result = defaults().withGlobalSeconds((Integer) values.get("global_seconds"));
         String timers = bounded(values, "feed_seconds", 60000);
         if (!timers.isEmpty()) for (String line : timers.split("\n", -1)) {
@@ -198,7 +206,30 @@ public final class CardOptions {
                 result = result.withItemOrder(parts[0], parts[1], keys);
             }
         }
-        return result;
+        return new CardOptions(result.globalSeconds, result.feedSeconds, result.hidden, result.series,
+                result.itemOrder, decodePackages(values.containsKey("hidden_packages") ? (String) values.get("hidden_packages") : ""));
+    }
+
+    public static Set<String> decodePackages(String value) {
+        if (value == null || value.length() > 411648) throw new IllegalArgumentException("Invalid hidden card packages.");
+        Set<String> packages = new LinkedHashSet<>();
+        if (!value.isEmpty()) for (String source : value.split("\n", -1)) {
+            validatePackage(source);
+            if (!packages.add(source) || packages.size() > 2048) throw new IllegalArgumentException("Invalid hidden card packages.");
+        }
+        return Collections.unmodifiableSet(packages);
+    }
+
+    public static String encodePackages(Set<String> packages) {
+        if (packages == null || packages.size() > 2048) throw new IllegalArgumentException("Invalid hidden card packages.");
+        StringBuilder result = new StringBuilder();
+        for (String source : packages) { validatePackage(source); append(result, source); }
+        return result.toString();
+    }
+
+    public static void validatePackage(String source) {
+        if (source == null || !source.matches("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+") || source.length() > 200)
+            throw new IllegalArgumentException("Invalid card source.");
     }
 
     private static String bounded(Map<String, ?> values, String key, int max) {
@@ -247,8 +278,7 @@ public final class CardOptions {
     }
 
     private static String scopedKey(String source, String key) {
-        if (source == null || !source.matches("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+") || source.length() > 200)
-            throw new IllegalArgumentException("Invalid card source.");
+        validatePackage(source);
         identity(key);
         return source + "\t" + key;
     }

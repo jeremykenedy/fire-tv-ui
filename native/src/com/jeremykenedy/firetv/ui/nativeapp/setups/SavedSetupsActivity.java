@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.*;
 
 import org.json.JSONObject;
+import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidPresentationInventory;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
@@ -22,10 +23,17 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
     private boolean startupBlocked;
     private SavedSetupManager manager;
     private LinearLayout rows;
+    private ScrollView scroll;
     private boolean includeIcons = true;
     private boolean destroyed;
     private AlertDialog pending;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        state.putBoolean("includeIcons", includeIcons);
+        super.onSaveInstanceState(state);
+    }
 
     @Override
     public void onDestroy() {
@@ -40,28 +48,41 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
     public void onCreate(Bundle state) {
         super.onCreate(state);
         if (com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.redirectIfBlocked(this)) { startupBlocked = true; return; }
+        if (state != null) includeIcons = state.getBoolean("includeIcons", true);
         manager = new SavedSetupManager(this);
+        LinearLayout page = Pages.sidePanel(this);
+        TextView heading = new TextView(this);
+        heading.setText("Saved setups");
+        heading.setTextSize(26);
+        heading.setTextColor(0xff8d8d8d);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setPadding(0, Pages.dp(this, 4), 0, Pages.dp(this, 26));
+        page.addView(heading);
+        scroll = new ScrollView(this);
+        scroll.setClipChildren(false); scroll.setClipToPadding(false);
+        scroll.setVerticalScrollBarEnabled(false);
+        rows = new LinearLayout(this);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        rows.setClipChildren(false); rows.setClipToPadding(false);
+        rows.setPadding(0, Pages.dp(this, 4), 0, Pages.dp(this, 8));
+        scroll.addView(rows);
+        page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         refresh();
     }
 
     private void refresh() {
-        ScrollView scroll = new ScrollView(this);
-        rows = new LinearLayout(this);
-        rows.setOrientation(LinearLayout.VERTICAL);
-        rows.setPadding(48, 32, 48, 32);
-        scroll.addView(rows);
-        setContentView(scroll);
-        TextView title = new TextView(this);
-        title.setText("Saved setups");
-        title.setTextSize(26);
-        rows.addView(title);
-        TextView detail = new TextView(this);
-        detail.setText(
+        final int previousScroll = scroll.getScrollY();
+        View focused = getCurrentFocus();
+        final Object previousTag = focused == null ? null : focused.getTag();
+        final int previousIndex = focused == null ? 0 : Math.max(0, rows.indexOfChild(focused));
+        rows.removeAllViews();
+        rows.addView(Pages.text(this,
                 "Save your appearance, app arrangement, folders and artwork on this TV. Account"
-                        + " connections and TV controls are excluded.");
-        rows.addView(detail);
+                        + " connections and TV controls are excluded.", 16));
         CheckBox artwork = new CheckBox(this);
         artwork.setText("Include app icon choices when applying");
+        artwork.setTextColor(android.graphics.Color.WHITE);
+        artwork.setTag("artwork");
         artwork.setChecked(includeIcons);
         artwork.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
@@ -72,7 +93,7 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
                 });
         rows.addView(artwork);
         button(
-                "Save current setup",
+                "Save current setup", "save",
                 new Runnable() {
                     @Override
                     public void run() {
@@ -81,7 +102,7 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
                 });
         if (PresentationState.hasRecovery(this))
             button(
-                    "Restore interrupted setup change",
+                    "Restore interrupted setup change", "recovery",
                     new Runnable() {
                         @Override
                         public void run() {
@@ -99,7 +120,7 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
             for (JSONObject item : manager.list()) {
                 final String id = item.getString("id"), name = item.getString("name");
                 button(
-                        name,
+                        name, "setup:" + id,
                         new Runnable() {
                             @Override
                             public void run() {
@@ -166,6 +187,17 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
         } catch (Exception failure) {
             error(failure);
         }
+        View target = previousTag == null ? null : rows.findViewWithTag(previousTag);
+        if (target == null && previousTag != null) {
+            for (int i = Math.min(previousIndex, rows.getChildCount() - 1); i >= 0; i--) {
+                if (rows.getChildAt(i).isFocusable()) { target = rows.getChildAt(i); break; }
+            }
+        }
+        if (target == null) target = rows.findViewWithTag("save");
+        if (target != null) target.requestFocus();
+        if (previousTag != null) scroll.post(new Runnable() {
+            @Override public void run() { scroll.scrollTo(0, previousScroll); }
+        });
     }
 
     private void confirm(String message, String label, final Action action) {
@@ -183,16 +215,15 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
                 .show();
     }
 
-    private void button(String label, final Runnable action) {
-        Button button = new Button(this);
-        button.setText(label);
-        button.setOnClickListener(
+    private void button(String label, String tag, final Runnable action) {
+        Button button = Pages.menuButton(this, label,
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         action.run();
                     }
                 });
+        button.setTag(tag);
         rows.addView(button);
     }
 
