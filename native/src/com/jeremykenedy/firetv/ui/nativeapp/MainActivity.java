@@ -80,6 +80,7 @@ public final class MainActivity extends Activity {
     private Button allApps;
     private HomeContentView homeContent;
     private ScrollView slotViewport;
+    private boolean groupedWidgetsVisible;
     private BackgroundLayer background;
     private ChannelCardView artworkOwner;
     private final java.util.List<View> appScrolls = new java.util.ArrayList<>();
@@ -199,6 +200,10 @@ public final class MainActivity extends Activity {
             @Override public void onLongPress(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
         }, new HomeContentView.Listener() {
             @Override public void onSlotFocused(String key) { focusedApp = null; }
+            @Override public void onGroupedWidgetsVisibilityChanged(boolean visible) {
+                groupedWidgetsVisible = visible;
+                refreshHomeInsets();
+            }
             @Override public void onArtworkChanged(ChannelCardView card, android.graphics.Bitmap artwork) {
                 if (background == null) return;
                 if (!com.jeremykenedy.firetv.ui.nativeapp.cards.CardDisplayPreferences.bigPicture(MainActivity.this)) {
@@ -264,6 +269,13 @@ public final class MainActivity extends Activity {
         });
         AppearancePreferences.file(this).registerOnSharedPreferenceChangeListener(appearanceChanged);
         awake = new LauncherAwakeController(body);
+    }
+
+    private void refreshHomeInsets() {
+        int bottom = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(this)
+                ? 40 : groupedWidgetsVisible ? 24 : 96;
+        homeBody.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32), Pages.dp(this, bottom));
+        if (slotViewport != null) slotViewport.setFillViewport(groupedWidgetsVisible);
     }
 
     private void refreshStatusBar() {
@@ -390,8 +402,7 @@ public final class MainActivity extends Activity {
                 : Math.min(maxHeight, rows * tileHeight + Pages.dp(this, 28));
         appArea.setPadding(Pages.dp(this, mini ? 4 : 10), Pages.dp(this, mini ? 6 : 14),
                 Pages.dp(this, mini ? 4 : 10), Pages.dp(this, mini ? 6 : 14));
-        homeBody.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32),
-                Pages.dp(this, com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(this) ? 40 : 96));
+        refreshHomeInsets();
         appArea.requestLayout();
         if (mini || options.horizontal) {
             int availableHeight = Math.max(tileHeight, appArea.getLayoutParams().height - Pages.dp(this, 28));
