@@ -2,29 +2,37 @@ package com.jeremykenedy.firetv.ui.nativeapp.widgetgroups;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction;
+import com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState;
 
 /** Owns only the grouped-layout key and never clears other Home settings. */
 public final class WidgetGroupsStore {
-    private static final Object LOCK = new Object();
+    private final Context context;
     private final SharedPreferences preferences;
     public WidgetGroupsStore(Context context) {
-        preferences = context.getSharedPreferences("native_layout", Context.MODE_PRIVATE);
+        this.context = context.getApplicationContext();
+        preferences = this.context.getSharedPreferences("native_layout", Context.MODE_PRIVATE);
     }
     public String raw() {
-        Object value = preferences.getAll().get(WidgetGroupMigration.KEY);
-        if (value == null && !preferences.contains(WidgetGroupMigration.KEY)) return null;
-        if (!(value instanceof String)) throw new IllegalStateException("Saved widget groups could not be read. Their data was kept.");
-        return (String) value;
+        synchronized (PresentationState.class) {
+            Object value = preferences.getAll().get(WidgetGroupMigration.KEY);
+            if (value == null && !preferences.contains(WidgetGroupMigration.KEY)) return null;
+            if (!(value instanceof String)) throw new IllegalStateException("Saved widget groups could not be read. Their data was kept.");
+            return (String) value;
+        }
     }
     public WidgetGroups load() {
-        String raw = raw();
-        if (raw == null) return null;
-        try { return WidgetGroups.decode(raw); }
-        catch (IllegalArgumentException invalid) { throw new IllegalStateException("Saved widget groups could not be read. Their data was kept.", invalid); }
+        synchronized (PresentationState.class) {
+            String raw = raw();
+            if (raw == null) return null;
+            try { return WidgetGroups.decode(raw); }
+            catch (IllegalArgumentException invalid) { throw new IllegalStateException("Saved widget groups could not be read. Their data was kept.", invalid); }
+        }
     }
     public boolean save(String expected, WidgetGroups value) {
         if (value == null) throw new IllegalArgumentException("Missing widget groups.");
-        synchronized (LOCK) {
+        synchronized (PresentationState.class) {
+            HolidayPresetTransaction.assertWritable(context);
             String current = raw();
             if (!(current == null ? expected == null : current.equals(expected))) return false;
             String next = value.encode();

@@ -47,7 +47,72 @@ public final class SetupTest {
         return a.keySet().equals(b.keySet());
     }
 
+    private static void widgetGroupWrites(File folder) throws Exception {
+        final java.util.concurrent.CountDownLatch verifying = new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        Context context = new Context(folder) {
+            @Override public android.content.ContentResolver getContentResolver() {
+                return new android.content.ContentResolver() {
+                    @Override public InputStream openInputStream(Uri uri) throws IOException {
+                        if (Thread.currentThread().getName().equals("group-setup-apply")) {
+                            verifying.countDown();
+                            try {
+                                if (!release.await(5, java.util.concurrent.TimeUnit.SECONDS)) throw new IOException("Fixture timeout");
+                            } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IOException(interrupted); }
+                        }
+                        return super.openInputStream(uri);
+                    }
+                };
+            }
+        };
+        File image = new File(folder, "wallpaper.png");
+        Files.write(image.toPath(), new byte[] {1, 2, 3});
+        prefs(context, "source_appearance").values.put("wallpaper_image_uri", Uri.fromFile(image).toString());
+        prefs(context, "source_appearance").values.put("wallpaper_mode", "image");
+        SavedSetupManager manager = new SavedSetupManager(context);
+        String id = manager.save("Older native setup", null);
+        File index = new File(folder, "saved-setups/setups.json");
+        JSONObject saved = new JSONObject(new String(Files.readAllBytes(index.toPath()), java.nio.charset.StandardCharsets.UTF_8));
+        saved.getJSONArray("setups").getJSONObject(0).remove("nativeVersion");
+        Files.write(index.toPath(), saved.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String original = "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Big\",\"data\":{}}]]";
+        prefs(context, "native_layout").values.put("widget_groups", original);
+        com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupsStore store = new com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupsStore(context);
+        com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups edited = store.load().appendEmptyGroup();
+        java.util.concurrent.atomic.AtomicReference<Throwable> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.atomic.AtomicReference<Boolean> committed = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.CountDownLatch editStarted = new java.util.concurrent.CountDownLatch(1);
+        Thread apply = new Thread(() -> { try { manager.apply(id, true); } catch (Throwable error) { failure.set(error); } }, "group-setup-apply");
+        Thread edit = new Thread(() -> { editStarted.countDown(); try { committed.set(store.save(original, edited)); } catch (Throwable error) { failure.set(error); } }, "group-edit");
+        apply.start();
+        try {
+            check(verifying.await(5, java.util.concurrent.TimeUnit.SECONDS), "Setup reaches media validation after preserving old-setup groups.");
+            edit.start();
+            check(editStarted.await(2, java.util.concurrent.TimeUnit.SECONDS), "Concurrent widget edit starts.");
+            long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(2);
+            while (edit.isAlive() && edit.getState() != Thread.State.BLOCKED && System.nanoTime() < deadline) Thread.sleep(1);
+            check(edit.getState() == Thread.State.BLOCKED, "Widget edit waits while setup validation and application are in progress.");
+        } finally { release.countDown(); }
+        apply.join(5000); edit.join(5000);
+        check(!apply.isAlive() && !edit.isAlive() && failure.get() == null, "Concurrent setup and widget edit complete without failure.");
+        check(Boolean.TRUE.equals(committed.get()) && edited.encode().equals(store.raw()), "An acknowledged widget edit survives older-setup application.");
+        Map<String, PreferenceSnapshot> before = PresentationState.capture(context);
+        Map<String, PreferenceSnapshot> target = new LinkedHashMap<>(before);
+        Map<String, Object> layout = new LinkedHashMap<>(before.get("native_layout").values());
+        layout.put("widget_groups", original);
+        target.put("native_layout", new PreferenceSnapshot(layout));
+        AtomicFile.failDelete = true;
+        try { rejects(() -> PresentationState.apply(context, target, true), "Interrupted cleanup retains recovery."); }
+        finally { AtomicFile.failDelete = false; }
+        check(PresentationState.hasRecovery(context), "Private setup recovery remains pending.");
+        rejects(() -> store.save(original, edited), "Pending recovery blocks widget edits.");
+        check(original.equals(store.raw()), "Rejected widget edit leaves current groups intact.");
+        PresentationState.recover(context);
+        check(same(before, PresentationState.capture(context)), "Recovery restores the original groups and presentation without losing an acknowledged edit.");
+    }
+
     public static void main(String[] args) throws Exception {
+        widgetGroupWrites(new File(args[0], "group-writer-fixture"));
         holidayPresets(new File(args[0], "holiday-fixtures"));
         for (String style : Arrays.asList("default", "none", "fade", "slide")) {
             Context transitionContext = new Context(new File(args[0], "transition-" + style));
