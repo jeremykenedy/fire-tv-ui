@@ -32,6 +32,8 @@ public final class WeatherView extends LinearLayout {
         int horizontal = Math.round(12 * getResources().getDisplayMetrics().density);
         int vertical = Math.round(6 * getResources().getDisplayMetrics().density);
         setPadding(horizontal, vertical, horizontal, vertical);
+        com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.applyText(this,
+                com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.groupColor(getContext(), true));
         title.setTextSize(15); title.setSingleLine(true);
         status.setTextSize(14); status.setSingleLine(true);
         periods.setLayoutParams(new LayoutParams(-1, LayoutParams.WRAP_CONTENT));
@@ -40,7 +42,8 @@ public final class WeatherView extends LinearLayout {
     }
     private TextView text(int size) {
         TextView view = new TextView(getContext());
-        view.setTextColor(com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.hasText(getContext())
+        view.setTextColor(grouped ? com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.groupColor(getContext(), true)
+                : com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.hasText(getContext())
                 ? com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetAppearance.color(getContext(), true) : Color.WHITE);
         view.setTextSize(size);
         view.setEllipsize(TextUtils.TruncateAt.END); return view;

@@ -95,6 +95,17 @@ public final class LegacyPresentationMapper {
         Object opacity = legacy.get("color_back_color_opacity");
         if (opacity instanceof Integer && (Integer) opacity >= 0 && (Integer) opacity <= 100)
             accepted.add("color_back_color_opacity");
+        Object weatherUnit = legacy.get("status_bar_weather_unit");
+        Object weatherLocation = legacy.get("status_bar_weather_loc");
+        if (weatherUnit instanceof String && (!legacy.containsKey("status_bar_weather_loc") || weatherLocation instanceof String)) {
+            try {
+                com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherOptions.fromLegacy((String) weatherLocation, (String) weatherUnit);
+                accepted.add("status_bar_weather_unit");
+                if (legacy.containsKey("status_bar_weather_loc")) accepted.add("status_bar_weather_loc");
+            } catch (IllegalArgumentException invalid) {
+                // Unsupported typed choices remain blocked and untouched.
+            }
+        }
         if (legacy.get("minimal_status_bar") instanceof Boolean) {
             accepted.add("minimal_status_bar");
             for (String key : new String[]{"hide_status_bar_unless_focused", "tinted_status_bar"})
@@ -148,13 +159,16 @@ public final class LegacyPresentationMapper {
     private void contentMode() {
         if (legacy.containsKey("hide_watch_next")) bool("hide_watch_next");
         if (legacy.containsKey("enable_widgets")) bool("enable_widgets");
-        // Without both explicit choices the inherited widget default cannot be inferred from its stored type.
-        if (!legacy.containsKey("hide_watch_next") || !legacy.containsKey("enable_widgets")) return;
-        boolean cards = !bool("hide_watch_next"), widgets = bool("enable_widgets");
-        // Widget visibility with a visible recommendation feed remains unverified.
-        if (widgets) return;
+        boolean hasHide = legacy.containsKey("hide_watch_next");
+        boolean hasWidgets = legacy.containsKey("enable_widgets");
+        if (!hasHide && !hasWidgets) return;
+        // Visible Watch Next observations establish the missing counterpart for disabled widgets.
+        // Enabled widgets remain gated until preview-channel behavior is observed.
+        if (hasWidgets && bool("enable_widgets")) return;
+        boolean cards = !hasHide || !bool("hide_watch_next");
         put(LAYOUT, "mode", cards ? "CARDS_ONLY" : "NONE");
-        mapped.add("hide_watch_next"); mapped.add("enable_widgets");
+        if (hasHide) mapped.add("hide_watch_next");
+        if (hasWidgets) mapped.add("enable_widgets");
     }
     private void appearance() {
         for (Map.Entry<String, Object> entry : LegacyAppearanceMapper.map(legacy, mapped, identities).entrySet()) put(APPEARANCE, entry.getKey(), entry.getValue());

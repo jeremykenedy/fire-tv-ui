@@ -27,12 +27,18 @@ public final class WidgetGroupMigration {
         Map<String, Object> patch = new LinkedHashMap<>(patch(legacy, nativeLayout));
         if (patch.isEmpty()) return Collections.emptyMap();
         Object enabled = legacy.get("enable_widgets");
-        if (!Boolean.FALSE.equals(enabled) || !(legacy.get("hide_watch_next") instanceof Boolean)) throw invalid();
+        Object hide = legacy.get("hide_watch_next");
+        if (legacy.containsKey("enable_widgets") && !Boolean.FALSE.equals(enabled)) throw invalid();
+        if (legacy.containsKey("hide_watch_next") && !(hide instanceof Boolean)) throw invalid();
+        if (!legacy.containsKey("enable_widgets") && !legacy.containsKey("hide_watch_next")) throw invalid();
         WidgetGroups groups = WidgetGroups.decode((String) patch.get(KEY));
         for (java.util.List<WidgetGroups.Entry> group : groups.groups)
             for (WidgetGroups.Entry entry : group) {
-                if (!(entry.type.equals("DigitalClock") || entry.type.equals("YearProgress"))
-                        || !entry.hasOnlyKnownFields() || !entry.data.isEmpty()) throw invalid();
+                if (!entry.hasOnlyKnownFields()) throw invalid();
+                if (entry.type.equals("Weather")) {
+                    if (entry.data.size() != 2 || !entry.data.containsKey("location") || !entry.data.containsKey("unit")) throw invalid();
+                    WeatherGroupOptions.read(entry);
+                } else if (!(entry.type.equals("DigitalClock") || entry.type.equals("YearProgress")) || !entry.data.isEmpty()) throw invalid();
             }
 
         java.util.List<String> order = lines(nativeLayout.get("order"));

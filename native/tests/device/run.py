@@ -3,6 +3,7 @@
 from pathlib import Path
 import os
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,3 +44,5 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-device-') as folder:
                     *[str(SOURCE / 'screensavers' / name) for name in ('ScreensaverEntry.java', 'ScreensaverSystem.java', 'ReviewedPreviews.java', 'LegacyDreamSelection.java')], str(ROOT / 'tests/device/DeviceInstrumentation.java'), *map(str, adapters),
                     str(ROOT / 'tests/device/fixture/RoutingFixture.java')], check=True)
     print('Device module Android SDK compilation passed')
+
+subprocess.run([sys.executable, str(ROOT / 'tests/device/boot_receiver_test.py')], check=True)
