@@ -258,6 +258,26 @@ public final class SetupTest {
                 "Saved setup restores imported header and exact native widget groups.");
         prefs(groupContext, "launcher_prefs").values.remove("source_status_bar_off");
         prefs(groupContext, "native_layout").values.remove("widget_groups");
+        String emptyGroup = groupManager.save("No groups", null);
+        prefs(groupContext, "native_layout").values.put("widget_groups", grouped);
+        groupManager.apply(emptyGroup, true);
+        check(!prefs(groupContext, "native_layout").values.containsKey("widget_groups"),
+                "A new setup restores the explicit absence of groups.");
+        File groupFile = new File(groupContext.getFilesDir(), "saved-setups/setups.json");
+        JSONObject oldSetups = new JSONObject(new String(Files.readAllBytes(groupFile.toPath()), java.nio.charset.StandardCharsets.UTF_8));
+        JSONObject oldSetup = oldSetups.getJSONArray("setups").getJSONObject(1);
+        oldSetup.remove("nativeVersion");
+        Files.write(groupFile.toPath(), oldSetups.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        prefs(groupContext, "native_layout").values.put("widget_groups", grouped);
+        groupManager.apply(emptyGroup, true);
+        check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
+                "An older setup preserves groups it could not capture.");
+        oldSetup.put("nativeVersion", 3);
+        Files.write(groupFile.toPath(), oldSetups.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        Map<String, PreferenceSnapshot> beforeUnknownSetup = PresentationState.capture(groupContext);
+        rejects(() -> groupManager.apply(emptyGroup, true), "Unsupported setup versions are rejected.");
+        check(same(beforeUnknownSetup, PresentationState.capture(groupContext)),
+                "Unsupported setup versions leave presentation unchanged.");
         Map<String, PreferenceSnapshot> beforeDirect = PresentationState.capture(context);
         prefs(context, "launcher_prefs").values.put("use_24h_clock", false);
         prefs(context, "launcher_prefs").values.put("featured_artwork_fit", true);
