@@ -10,6 +10,7 @@ source = root / 'src/com/jeremykenedy/firetv/ui/nativeapp'
 with tempfile.TemporaryDirectory(prefix='fire-tv-widgetgroups-') as folder:
     subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', folder,
                     str(source / 'migration/LegacyJson.java'),
+                    str(source / 'layout/LayoutItem.java'), str(source / 'layout/LayoutOptions.java'),
                     str(source / 'widgetgroups/WidgetGroups.java'),
                     str(source / 'widgetgroups/WidgetGroupMigration.java'),
                     str(source / 'widgetgroups/LegacyYearProgressModel.java'),
@@ -22,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-widgetgroups-') as folder:
         'appgrid/HomeTileOrder.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
         'layout/LayoutItem.java', 'cards/CardOptions.java', 'appearance/AppearanceOptions.java',
         'appearance/PaletteRecipes.java', 'inputs/InputEntry.java', 'inputs/InputOptions.java',
-        'widgetgroups/WidgetGroupMigration.java', 'widgetgroups/WidgetGroups.java')]
+        'widgetgroups/WidgetGroupMigration.java', 'widgetgroups/WidgetGroupPresentationPlan.java', 'widgetgroups/WidgetGroups.java')]
     # The appearance model depends on the observed gradient registry.
     journal_sources.append(source / 'appearance/LegacyGradients.java')
     subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', folder, *map(str, journal_sources),

@@ -1,6 +1,7 @@
 package com.jeremykenedy.firetv.ui.nativeapp.migration;
 
 import com.jeremykenedy.firetv.ui.nativeapp.device.protection.LegacyDeviceProtection;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupPresentationPlan;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,7 +13,7 @@ public final class ProductionMigrationGate {
     private static final String COMPLETE = "source_ui_strict_migration_version";
     private ProductionMigrationGate() {}
 
-    static LegacyPresentationMapper.Plan preflight(PresentationSnapshot before, PresentationMappingContext identities,
+    static WidgetGroupPresentationPlan preflight(PresentationSnapshot before, PresentationMappingContext identities,
             LegacyFolderMigration.Plan folders) throws IOException {
         PreferenceSnapshot legacy = before.stores.get(LauncherMigration.PREFERENCES);
         if (legacy.values().containsKey(LegacyPresentationMapper.VERSION_KEY))
@@ -29,7 +30,8 @@ public final class ProductionMigrationGate {
         nativeBefore.remove(LauncherMigration.PREFERENCES);
         try {
             LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(legacy, identities, nativeBefore, folders, true, true);
-            Set<String> unresolved = new LinkedHashSet<>(plan.unmappedLegacyKeys);
+            WidgetGroupPresentationPlan prepared = WidgetGroupPresentationPlan.prepare(plan);
+            Set<String> unresolved = new LinkedHashSet<>(prepared.unmappedLegacyKeys);
             LegacyDeviceProtection.validateMigration(legacy.values());
             for (String key : new String[]{"fire_tv_ui_protect_settings", "fire_tv_ui_keep_adb",
                     "fire_tv_ui_deep_sleep_enabled", "fire_tv_ui_dream_unlocked", "fire_tv_ui_preview_pending",
@@ -39,17 +41,22 @@ public final class ProductionMigrationGate {
                 if (legacy.values().get(key) instanceof Boolean) unresolved.remove(key);
             }
             unresolved.removeAll(LegacyPresentationMapper.directlyConsumedPresentationKeys(legacy.values()));
+            if (legacy.values().get("source_status_bar_off") instanceof Boolean) unresolved.remove("source_status_bar_off");
             // The maintained legacy launcher forces this compatibility flag on; the source UI
             // has no premium gate. Keep its original typed value for recovery.
             if (Boolean.TRUE.equals(legacy.values().get("is_premium"))) unresolved.remove("is_premium");
             for (String key : new String[]{"fire_tv_ui_block_updates", "fire_tv_ui_block_appstore"})
                 if (Boolean.FALSE.equals(legacy.values().get(key))) unresolved.remove(key);
+            if (Boolean.TRUE.equals(legacy.values().get("fire_tv_ui_block_appstore"))
+                    && (!legacy.values().containsKey("fire_tv_ui_block_updates")
+                    || Boolean.FALSE.equals(legacy.values().get("fire_tv_ui_block_updates"))))
+                unresolved.remove("fire_tv_ui_block_appstore");
             // The maintained legacy initializer removes both obsolete rating counters.
             unresolved.remove("app_launch_count");
             unresolved.remove("rate_app_shown");
             if (!unresolved.isEmpty())
                 throw new IOException("Some saved settings do not yet have a verified migration. Original settings were kept.");
-            return plan;
+            return prepared;
         } catch (IllegalArgumentException invalid) {
             throw new IOException("Saved settings could not be migrated safely. Original settings were kept.", invalid);
         }
@@ -64,8 +71,13 @@ public final class ProductionMigrationGate {
 
     static void commit(PresentationUpgrade.Store store, PresentationSnapshot before,
             PresentationMappingContext identities, LegacyFolderMigration.Plan folders) throws IOException {
-        LegacyPresentationMapper.Plan plan = preflight(before, identities, folders);
-        Map<String, PreferenceSnapshot> after = new LinkedHashMap<>(plan.after);
+        commit(store, before, preflight(before, identities, folders));
+    }
+
+    static void commit(PresentationUpgrade.Store store, PresentationSnapshot before,
+            WidgetGroupPresentationPlan plan) throws IOException {
+        if (!plan.before.sameValues(before)) throw new IOException("Prepared settings no longer match the original state.");
+        Map<String, PreferenceSnapshot> after = new LinkedHashMap<>(plan.target.stores);
         Map<String, Object> legacy = new LinkedHashMap<>(after.get(LauncherMigration.PREFERENCES).values());
         legacy.put(COMPLETE, 1);
         after.put(LauncherMigration.PREFERENCES, new PreferenceSnapshot(legacy));

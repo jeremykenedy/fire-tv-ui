@@ -21,4 +21,38 @@ public final class WidgetGroupMigration {
         patch.put(KEY, source);
         return Collections.unmodifiableMap(patch);
     }
+
+    /** Accept only widget records with verified migration semantics. */
+    public static Map<String, Object> supportedPatch(Map<String, ?> legacy, Map<String, ?> nativeLayout) {
+        Map<String, Object> patch = new LinkedHashMap<>(patch(legacy, nativeLayout));
+        if (patch.isEmpty()) return Collections.emptyMap();
+        Object enabled = legacy.get("enable_widgets");
+        if (!Boolean.FALSE.equals(enabled) || !(legacy.get("hide_watch_next") instanceof Boolean)) throw invalid();
+        WidgetGroups groups = WidgetGroups.decode((String) patch.get(KEY));
+        for (java.util.List<WidgetGroups.Entry> group : groups.groups)
+            for (WidgetGroups.Entry entry : group) {
+                if (!(entry.type.equals("DigitalClock") || entry.type.equals("YearProgress"))
+                        || !entry.hasOnlyKnownFields() || !entry.data.isEmpty()) throw invalid();
+            }
+
+        java.util.List<String> order = lines(nativeLayout.get("order"));
+        java.util.List<String> hidden = lines(nativeLayout.get("hidden"));
+        // Discovery persists visible clocks in order, so their origin is ambiguous.
+        if (order.contains("widget:clock") && !hidden.contains("widget:clock")) throw invalid();
+        if (!hidden.contains("widget:clock")) {
+            hidden.add("widget:clock");
+            patch.put("hidden", String.join("\n", hidden));
+        }
+        new com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions(320, 180, order, hidden);
+        return Collections.unmodifiableMap(patch);
+    }
+    private static java.util.List<String> lines(Object value) {
+        if (value == null) return new java.util.ArrayList<>();
+        if (!(value instanceof String)) throw invalid();
+        return new java.util.ArrayList<>(((String) value).isEmpty() ? Collections.<String>emptyList()
+                : java.util.Arrays.asList(((String) value).split("\n", -1)));
+    }
+    private static IllegalArgumentException invalid() {
+        return new IllegalArgumentException("Saved widgets need further migration support. Original settings were kept.");
+    }
 }

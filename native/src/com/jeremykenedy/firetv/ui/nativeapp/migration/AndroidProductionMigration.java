@@ -53,9 +53,10 @@ public final class AndroidProductionMigration {
             ProductionMigrationGate.preflight(before, withIcons(inventory, placeholders), folders);
             Map<String, String> icons = AndroidLegacyIconMigration.prepare(context, references);
             PresentationMappingContext identities = withIcons(inventory, icons);
-            ProductionMigrationGate.preflight(before, identities, folders);
+            com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupPresentationPlan plan =
+                    ProductionMigrationGate.preflight(before, identities, folders);
             if (folders != null) AndroidLegacyFolderMigration.transferPrivatePin(context, legacy, packages);
-            ProductionMigrationGate.commit(store, before, identities, folders);
+            ProductionMigrationGate.commit(store, before, plan);
         }
     }
 

@@ -244,6 +244,20 @@ public final class SetupTest {
         check(
                 legacyPlan.get("launcher_prefs").values().get("menu_overlay_frozen").equals(false),
                 "legacy subset preserves unrelated presentation keys");
+        Context groupContext = new Context(new File(args[0], "grouped-fixture"));
+        SavedSetupManager groupManager = new SavedSetupManager(groupContext);
+        String grouped = "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Big\",\"data\":{}}]]";
+        prefs(groupContext, "launcher_prefs").values.put("source_status_bar_off", true);
+        prefs(groupContext, "native_layout").values.put("widget_groups", grouped);
+        String importedGroup = groupManager.save("Imported group fixture", null);
+        prefs(groupContext, "launcher_prefs").values.remove("source_status_bar_off");
+        prefs(groupContext, "native_layout").values.remove("widget_groups");
+        groupManager.apply(importedGroup, true);
+        check(Boolean.TRUE.equals(prefs(groupContext, "launcher_prefs").values.get("source_status_bar_off"))
+                && grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
+                "Saved setup restores imported header and exact native widget groups.");
+        prefs(groupContext, "launcher_prefs").values.remove("source_status_bar_off");
+        prefs(groupContext, "native_layout").values.remove("widget_groups");
         Map<String, PreferenceSnapshot> beforeDirect = PresentationState.capture(context);
         prefs(context, "launcher_prefs").values.put("use_24h_clock", false);
         prefs(context, "launcher_prefs").values.put("featured_artwork_fit", true);
