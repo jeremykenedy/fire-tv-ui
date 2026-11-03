@@ -11,10 +11,12 @@ import com.jeremykenedy.firetv.ui.nativeapp.SourceStartup;
 import com.jeremykenedy.firetv.ui.nativeapp.device.HomeCommandHandler;
 import com.jeremykenedy.firetv.ui.nativeapp.device.HomeSetupPolicy;
 
-/** Honors an existing boot opt-in without selecting Home or enabling system services. */
+/** Restores saved protection after boot or replacement; Home remains a boot opt-in. */
 public final class DeviceBootReceiver extends BroadcastReceiver {
     @Override public void onReceive(final Context context, Intent intent) {
-        if (intent == null || !Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;
+        if (intent == null) return;
+        final boolean boot = Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction());
+        if (!boot && !Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) return;
         final PendingResult pending = goAsync();
         final Handler handler = new Handler(Looper.getMainLooper());
         final AtomicBoolean finished = new AtomicBoolean();
@@ -28,7 +30,7 @@ public final class DeviceBootReceiver extends BroadcastReceiver {
                     if (finished.get()) return;
                     try {
                         if (SourceStartup.ready(context)) {
-                            launchIfEnabled(context);
+                            if (boot) launchIfEnabled(context);
                             SourceStartup.startProtection(context, finish, finished);
                         } else finish.run();
                     } catch (RuntimeException unavailable) { finish.run(); }

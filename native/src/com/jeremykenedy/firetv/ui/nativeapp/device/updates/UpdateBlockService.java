@@ -24,9 +24,11 @@ import java.util.Map;
 /** Package-scoped, discard-only legacy update protection; no packet data is retained. */
 public class UpdateBlockService extends VpnService {
     public static final String MANUAL_START = "com.jeremykenedy.firetv.ui.UPDATE_PROTECTION_MANUAL";
+    public static final String RETAINED_START = "com.jeremykenedy.firetv.ui.UPDATE_PROTECTION_RETAINED";
     private static final String CHANNEL = "legacy_update_blocking";
     private static final int NOTICE = 143;
     private static final UpdateBlockStatus STATUS = new UpdateBlockStatus();
+    private final UpdateBlockStarts starts = new UpdateBlockStarts();
     private static volatile boolean active;
     private HandlerThread worker;
     private Handler handler;
@@ -76,21 +78,24 @@ public class UpdateBlockService extends VpnService {
         handler = new Handler(worker.getLooper());
     }
     private void beginStartup() {
-        if (destroyed || handler == null || preferences != null) return;
+        if (destroyed || revoked || handler == null || preferences != null || !starts.pending()) return;
         SourceStartup.start(this, new Runnable() {
             @Override public void run() {
-                if (!destroyed && handler != null) handler.post(new Runnable() {
+                if (!destroyed && !revoked && handler != null && starts.pending()) handler.post(new Runnable() {
                     @Override public void run() {
-                        if (destroyed) return;
+                        if (destroyed || revoked || !starts.pending()) return;
                         if (SourceStartup.ready(UpdateBlockService.this)) initialize();
-                        else show("Saved settings could not be prepared. Open Fire TV UI to review.");
+                        else {
+                            show("Saved settings could not be prepared. Open Fire TV UI to review.");
+                            starts.cancel(); stopSelf();
+                        }
                     }
                 });
             }
         });
     }
     private synchronized void initialize() {
-        if (destroyed || preferences != null) return;
+        if (destroyed || revoked || !starts.pending() || preferences != null) return;
         preferences = getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE);
         preferences.registerOnSharedPreferenceChangeListener(listener);
         IntentFilter packages = new IntentFilter();
@@ -112,6 +117,7 @@ public class UpdateBlockService extends VpnService {
             preferences.unregisterOnSharedPreferenceChangeListener(listener);
             preferences = null;
             show("Package change monitoring is unavailable. Update protection was not started.");
+            starts.cancel(); stopSelf();
         }
     }
     private void schedule() {
@@ -120,14 +126,19 @@ public class UpdateBlockService extends VpnService {
     }
     private final Runnable reconcile = new Runnable() {
         @Override public void run() {
-            if (destroyed || revoked || preferences == null || !SourceStartup.ready(UpdateBlockService.this)) return;
+            if (destroyed || revoked || !starts.pending() || preferences == null || !SourceStartup.ready(UpdateBlockService.this)) return;
             try {
                 Map<String, ?> saved = preferences.getAll();
                 if (!UpdateBlockPolicy.enabled(saved)) {
                     closeTunnel(); show("Update protection is off."); stopSelf(); return;
                 }
                 final boolean appstore = UpdateBlockPolicy.includesAppstore(saved);
-                if (android.os.Build.VERSION.SDK_INT >= 29 && isLockdownEnabled()) {
+                boolean lockdown = android.os.Build.VERSION.SDK_INT >= 29 && isLockdownEnabled();
+                if (!starts.manual() && !UpdateBlockStarts.automaticAllowed(android.os.Build.VERSION.SDK_INT, lockdown)) {
+                    closeTunnel(); show(lockdown ? "VPN lockdown is active. Other apps may be offline. Review TV VPN settings."
+                            : "Update protection needs a manual retry on this TV."); return;
+                }
+                if (lockdown) {
                     closeTunnel();
                     show("VPN lockdown is active. Other apps may be offline. Review TV VPN settings."); return;
                 }
@@ -148,7 +159,18 @@ public class UpdateBlockService extends VpnService {
                     }
                 }, packages);
                 synchronized (UpdateBlockService.this) {
-                    if (destroyed || revoked) { connection.close(); return; }
+                    boolean currentChoice;
+                    try {
+                        Map<String, ?> current = preferences.getAll();
+                        currentChoice = UpdateBlockPolicy.enabled(current) && UpdateBlockPolicy.includesAppstore(current) == appstore;
+                    } catch (RuntimeException invalid) {
+                        connection.close(); throw invalid;
+                    }
+                    if (destroyed || revoked || !starts.pending() || !currentChoice) {
+                        connection.close();
+                        if (!destroyed && !revoked && starts.pending()) schedule();
+                        return;
+                    }
                     tunnel = connection; selectedStore = appstore; active = true;
                     show("Blocking " + packages.packages.size() + " Amazon update packages on this TV.");
                     if (android.os.Build.VERSION.SDK_INT >= 29) handler.postDelayed(checkLockdown, 5000);
@@ -211,22 +233,37 @@ public class UpdateBlockService extends VpnService {
         };
     }
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null || !MANUAL_START.equals(intent.getAction())) {
-            show("Saved update protection needs an explicit retry. No VPN was started.");
-            stopSelf(startId);
+        if (handler == null || destroyed || revoked) { stopSelf(startId); return START_NOT_STICKY; }
+        String action = intent == null ? null : intent.getAction();
+        boolean manual = MANUAL_START.equals(action);
+        boolean retained = RETAINED_START.equals(action);
+        boolean system = false;
+        if (!manual && !retained && (action == null || SERVICE_INTERFACE.equals(action))
+                && android.os.Build.VERSION.SDK_INT >= 29) {
+            try { system = isAlwaysOn(); } catch (RuntimeException unavailable) { system = false; }
+        }
+        if (!manual && !retained && !system) {
+            if (!starts.pending() && !active) {
+                show("Saved update protection needs an explicit retry. No VPN was started.");
+                stopSelf(startId);
+            }
             return START_NOT_STICKY;
         }
-        if (preferences == null) beginStartup(); else schedule();
+        boolean first = starts.request(manual);
+        if (preferences == null) { if (first) beginStartup(); }
+        else schedule();
         return START_NOT_STICKY;
     }
     @Override public void onRevoke() {
         revoked = true;
+        starts.cancel();
         closeTunnel();
         show("VPN permission was revoked. The saved update protection choice was kept; select Retry to review.");
         stopSelf();
     }
     @Override public synchronized void onDestroy() {
         destroyed = true;
+        starts.cancel();
         if (preferences != null) preferences.unregisterOnSharedPreferenceChangeListener(listener);
         if (packageReceiverRegistered) unregisterReceiver(packageChanges);
         if (lockdownObserver != null) getContentResolver().unregisterContentObserver(lockdownObserver);
