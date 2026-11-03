@@ -269,8 +269,15 @@ public final class PresentationMappingTest {
             reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), original, identities(), null));
             check(disk.events.isEmpty() && original.sameValues(new FixtureStore(disk).read()), "Unverified content mode blocks before writing any store.");
         }
-        LegacyPresentationMapper.Plan unknownDefault = LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("hide_watch_next", false)), identities(), Collections.emptyMap());
-        check(unknownDefault.patches.isEmpty() && unknownDefault.unmappedLegacyKeys.equals(set("hide_watch_next")), "Absent widget default is not guessed.");
+        for (Object[] choice : new Object[][] {{"hide_watch_next", false, "CARDS_ONLY"}, {"hide_watch_next", true, "NONE"}, {"enable_widgets", false, "CARDS_ONLY"}}) {
+            LegacyPresentationMapper.Plan lone = LegacyPresentationMapper.plan(snapshot(Collections.<String,Object>singletonMap((String) choice[0], choice[1])), identities(), Collections.emptyMap());
+            check(lone.unmappedLegacyKeys.isEmpty() && choice[2].equals(lone.after.get(LegacyPresentationMapper.LAYOUT).values().get("mode")),
+                    "Observed lone flag preserves visible Watch Next and disabled widgets.");
+            check(!lone.after.get(LauncherMigration.PREFERENCES).values().containsKey(choice[0].equals("enable_widgets") ? "hide_watch_next" : "enable_widgets"),
+                    "Absent original flag remains absent.");
+        }
+        LegacyPresentationMapper.Plan enabledOnly = LegacyPresentationMapper.plan(snapshot(Collections.<String,Object>singletonMap("enable_widgets", true)), identities(), Collections.emptyMap());
+        check(enabledOnly.unmappedLegacyKeys.equals(set("enable_widgets")), "Enabled widgets remain blocked pending preview-channel behavior.");
     }
     private static void iconPackMapping() throws Exception {
         PresentationMappingContext standard = identities();
@@ -763,6 +770,40 @@ public final class PresentationMappingTest {
                 check(groups.equals(restarted.read().stores.get(LegacyPresentationMapper.LAYOUT).values().get("widget_groups")), "Retry restores the exact grouped configuration.");
             }
         }
+        String weather = "[[],[{\"id\":\"33333333-3333-3333-3333-333333333333\",\"type\":\"Weather\",\"size\":\"Big\",\"data\":{\"unit\":\"C\",\"location\":\"Portland\"}}],[{\"id\":\"44444444-4444-4444-4444-444444444444\",\"type\":\"Weather\",\"size\":\"Big\",\"data\":{\"unit\":\"F\",\"location\":\"\"}}]]";
+        for (Map<String, Object> flags : Arrays.asList(
+                Collections.<String,Object>singletonMap("enable_widgets", false),
+                Collections.<String,Object>singletonMap("hide_watch_next", false),
+                Collections.<String,Object>singletonMap("hide_watch_next", true))) {
+            Map<String,Object> values = new LinkedHashMap<>(flags); values.put("widgets_config", weather);
+            values.put("status_bar_weather_unit", "F");
+            LegacyPresentationMapper.Plan base = LegacyPresentationMapper.plan(snapshot(values), identities(), Collections.emptyMap());
+            PresentationSnapshot before = new PresentationSnapshot(base.before); FixtureDisk disk = new FixtureDisk(before);
+            ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null);
+            check(weather.equals(disk.files.get(LegacyPresentationMapper.LAYOUT).values().get("widget_groups"))
+                    && weather.equals(disk.files.get(LauncherMigration.PREFERENCES).values().get("widgets_config")),
+                    "Weather IDs, distinct city/unit choices, empty records and exact JSON survive migration.");
+            check("F".equals(disk.files.get(LauncherMigration.PREFERENCES).values().get("status_bar_weather_unit")),
+                    "Global weather unit remains unchanged and does not replace per-record units.");
+            com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups decoded = com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups.decode(weather);
+            com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherOptions first = com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WeatherGroupOptions.read(decoded.groups.get(1).get(0));
+            com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherOptions second = com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WeatherGroupOptions.read(decoded.groups.get(2).get(0));
+            check(!first.configured && first.label.equals("Portland") && first.metric && !second.configured && second.label.isEmpty() && !second.metric,
+                    "Each legacy Weather record keeps its own city and unit and requires exact location selection.");
+        }
+        for (Object invalidUnit : Arrays.<Object>asList("K", 3, true)) {
+            Map<String,Object> values = new LinkedHashMap<>(); values.put("widgets_config", weather); values.put("enable_widgets", false);
+            values.put("status_bar_weather_unit", invalidUnit); assertWidgetRejected(values);
+        }
+        Map<String,Object> locationWithoutUnit = new LinkedHashMap<>(); locationWithoutUnit.put("widgets_config", weather);
+        locationWithoutUnit.put("enable_widgets", false); locationWithoutUnit.put("status_bar_weather_loc", "Portland");
+        assertWidgetRejected(locationWithoutUnit);
+        for (String badWeather : Arrays.asList(weather.replace("\"C\"", "\"K\""),
+                weather.replace("\"Portland\"", "\" Portland\""),
+                weather.replace("\"location\":\"Portland\"", "\"location\":\"Portland\",\"unknown\":true"))) {
+            Map<String,Object> values = new LinkedHashMap<>(); values.put("widgets_config",badWeather); values.put("enable_widgets",false); values.put("hide_watch_next",false);
+            assertWidgetRejected(values);
+        }
         for (String bad : Arrays.asList(groups.replace("DigitalClock", "Weather"), groups.replace("DigitalClock", "Future"), groups.replace("\"data\":{}", "\"data\":{\"extra\":1}"), groups.replace("\"data\":{}", "\"data\":{},\"extra\":1"))) {
             Map<String, Object> values = new LinkedHashMap<>(); values.put("widgets_config", bad); values.put("enable_widgets", false); values.put("hide_watch_next", false);
             assertWidgetRejected(values);
@@ -771,9 +812,7 @@ public final class PresentationMappingTest {
             Map<String, Object> values = new LinkedHashMap<>(); values.put("widgets_config", groups); values.put("enable_widgets", enabled); values.put("hide_watch_next", false);
             assertWidgetRejected(values);
         }
-        Map<String, Object> missing = new LinkedHashMap<>(); missing.put("widgets_config", groups); missing.put("enable_widgets", false);
-        assertWidgetRejected(missing);
-        missing.remove("enable_widgets"); missing.put("hide_watch_next", false);
+        Map<String, Object> missing = new LinkedHashMap<>(); missing.put("widgets_config", groups);
         assertWidgetRejected(missing);
         Map<String, Object> source = new LinkedHashMap<>();
         source.put("widgets_config", groups); source.put("enable_widgets", false); source.put("hide_watch_next", false);
