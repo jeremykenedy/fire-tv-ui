@@ -1,0 +1,28 @@
+{
+  "applicationId": "com.jeremykenedy.firetv.ui.preview",
+  "version": "2.0.0-alpha.3",
+  "versionCode": 4,
+  "apkSha256": "ebc9ea0ef3d358df1126ab77a9d8ae6e6512cdf8df1eaeb477175198a86d56a1",
+  "signerSha256": "c64ca640cab78e75fd52a6bb43bcbf145aa1b951f0c719b471df241bf70669c6",
+  "archivedSourceCommit": "190214d624fd92131a893de6b2bcd8c1722d0f41",
+  "buildRecordedCommit": null,
+  "buildRecordedDirty": null,
+  "sourceInputsSha256": "b2dd015778114ceb7f6b3967fd24f8f5034527dbe41b4cf1d4522971e7fa6376",
+  "sourceInputsCanonicalization": "JSON sorted keys, compact separators, UTF-8",
+  "sourceInputCount": 456,
+  "platform": "Android TV API 34 emulator",
+  "resolution": [
+    1920,
+    1080
+  ],
+  "density": 320,
+  "capture": "Unmodified native screenshots of the signed alpha.3 candidate. Stock apps, default Home appearance, no personal accounts. Runtime inputs match an archive of the stated commit.",
+  "images": {
+    "source-alpha3-apps-api34.png": "09b524e7d454da536c0c373b1bbd48270c71758eeb5f196e0e017ad80ddc4da1",
+    "source-alpha3-backgrounds-api34.png": "99747d0c82bc955fe1d971d2bdb4dd40363bafb77b9333f48cda92af0ffefe05",
+    "source-alpha3-home-api34.png": "51422421c8af9ba7300176754d2232fd2aac6f90585d09cf386b3c1a24e8d9c3",
+    "source-alpha3-icons-api34.png": "912a97f56efb48badd6d87e408f84a21bd832328476c3974470c9a6fab1a3506",
+    "source-alpha3-settings-api34.png": "dd59874934246ee62264f12fd1234681f328d39f287dea74f75d8da03edf6e84",
+    "source-alpha3-wallpaper-api34.png": "ca8eabe61f7b3d66fa9c8627ff12bdbbc7497a21b4444647bd240421fba3d7ad"
+  }
+}
