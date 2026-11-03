@@ -13,6 +13,10 @@ public final class UpdateBlockPolicyTest {
         status.add(listener); status.report("Consent required"); check(calls[0] == 1 && status.text().equals("Consent required"));
         status.remove(listener); status.report("Retry"); check(calls[0] == 1 && status.text().equals("Retry"));
         check(!UpdateBlockPolicy.enabled(prefs) && !UpdateBlockPolicy.includesAppstore(prefs));
+        prefs.put(UpdateBlockPolicy.APPSTORE, true);
+        check(UpdateBlockPolicy.safeChoices(true, prefs) && !UpdateBlockPolicy.enabled(prefs) && UpdateBlockPolicy.includesAppstore(prefs));
+        prefs.put(UpdateBlockPolicy.UPDATES, false);
+        check(UpdateBlockPolicy.safeChoices(true, prefs) && !UpdateBlockPolicy.enabled(prefs) && UpdateBlockPolicy.includesAppstore(prefs));
         prefs.put(UpdateBlockPolicy.UPDATES, "bad");
         check(!UpdateBlockPolicy.safeChoices(false, prefs));
         reject(() -> UpdateBlockPolicy.safeChoices(true, prefs));

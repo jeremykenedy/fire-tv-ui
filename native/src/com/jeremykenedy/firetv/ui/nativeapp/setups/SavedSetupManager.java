@@ -81,6 +81,7 @@ public final class SavedSetupManager {
                                 .put("savedAt", System.currentTimeMillis())
                                 .put("settings", snapshot)
                                 .put("native", nativeSnapshot)
+                                .put("nativeVersion", 2)
                                 .put("nativeImages", nativeImages);
                 if (index < 0) items.put(item);
                 else items.put(index, item);
@@ -134,20 +135,30 @@ public final class SavedSetupManager {
             int index = index(items, id);
             if (index < 0) throw new IOException("This setup no longer exists.");
             JSONObject item = items.getJSONObject(index);
-            Map<String, PreferenceSnapshot> target =
-                    item.has("native")
-                            ? decodeNative(item.getJSONObject("native"))
-                            : prepareLegacy(
-                                    item.getJSONObject("settings"),
-                                    identities,
-                                    icons);
-            Map<String, Object> legacy = target.get("launcher_prefs").values();
-            verifyVideo(legacy);
-            Map<String, Object> imagesToVerify = new LinkedHashMap<>(legacy);
-            if (!icons) imagesToVerify.remove("app_visibility");
-            verifyImages(imagesToVerify);
-            verifyNativeMedia(target, item.optJSONObject("nativeImages"), icons);
-            PresentationState.apply(context, target, icons);
+            synchronized (PresentationState.class) {
+                Map<String, PreferenceSnapshot> target =
+                        item.has("native")
+                                ? decodeNative(item.getJSONObject("native"))
+                                : prepareLegacy(
+                                        item.getJSONObject("settings"),
+                                        identities,
+                                        icons);
+                if (item.has("native") && !item.has("nativeVersion")) {
+                    Map<String, Object> layout = new LinkedHashMap<>(target.get("native_layout").values());
+                    Object groups = context.getSharedPreferences("native_layout", Context.MODE_PRIVATE)
+                            .getAll().get("widget_groups");
+                    if (groups != null) layout.put("widget_groups", groups);
+                    target = new LinkedHashMap<>(target);
+                    target.put("native_layout", new PreferenceSnapshot(layout));
+                }
+                Map<String, Object> legacy = target.get("launcher_prefs").values();
+                verifyVideo(legacy);
+                Map<String, Object> imagesToVerify = new LinkedHashMap<>(legacy);
+                if (!icons) imagesToVerify.remove("app_visibility");
+                verifyImages(imagesToVerify);
+                verifyNativeMedia(target, item.optJSONObject("nativeImages"), icons);
+                PresentationState.apply(context, target, icons);
+            }
         }
     }
 
@@ -246,6 +257,10 @@ public final class SavedSetupManager {
                         "The saved setup list contains duplicate or invalid entries.");
             if (!(item.get("savedAt") instanceof Number) || item.getLong("savedAt") < 0)
                 throw new IOException("Invalid setup date.");
+            if (item.has("nativeVersion") && (!item.has("native")
+                    || !(item.get("nativeVersion") instanceof Integer)
+                    || item.getInt("nativeVersion") != 2))
+                throw new IOException("This native setup version is not supported.");
             LegacySetupSettings.validate(item.getJSONObject("settings"));
             if (item.has("native")) decodeNative(item.getJSONObject("native"));
         }

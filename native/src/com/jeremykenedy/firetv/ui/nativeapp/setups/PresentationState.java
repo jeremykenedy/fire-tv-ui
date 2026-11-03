@@ -37,7 +37,7 @@ public final class PresentationState {
                 "native_focus",
                 "duration_millis growth_percent border_enabled border_rgb border_opacity"
                         + " fill_enabled fill_rgb fill_opacity legacy_app_default app_focus_style");
-        add("native_layout", "card_width_dp card_height_dp order hidden mode");
+        add("native_layout", "card_width_dp card_height_dp order hidden mode widget_groups");
         add(
                 "native_cards",
                 "schema_version global_seconds feed_seconds hidden_items hidden_series item_order hidden_packages");
@@ -154,8 +154,13 @@ public final class PresentationState {
                 new LinkedHashSet<>(lines(grid.get("favorites"))));
         Object homeOrder = state.get("native_app_grid").values().get("home_order");
         if (homeOrder != null) new HomeTileOrder(lines(homeOrder));
-        LayoutOptions.fromBackup(
-                defaults("native_layout", state, LayoutOptions.defaults(320, 180).backupValues()));
+        Map<String, Object> layout = defaults("native_layout", state, LayoutOptions.defaults(320, 180).backupValues());
+        Object groups = layout.remove("widget_groups");
+        if (groups != null) {
+            if (!(groups instanceof String)) throw new IOException("Invalid saved widget groups.");
+            com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups.decode((String) groups);
+        }
+        LayoutOptions.fromBackup(layout);
         CardOptions.fromBackup(
                 defaults("native_cards", state, CardOptions.defaults().backupValues()));
         Map<String, Object> f = state.get("native_focus").values();
@@ -235,6 +240,8 @@ public final class PresentationState {
 
     public static void validatePortable(Map<String, PreferenceSnapshot> state) throws Exception {
         validate(state);
+        if (state.get("native_layout").values().containsKey("widget_groups"))
+            throw new IOException("Saved widget groups cannot be exported or imported in a portable backup.");
         Map<String, Object> legacy = state.get("launcher_prefs").values();
         for (String key :
                 Arrays.asList("app_order", "folders", "widgets_config", "channel_visibility")) {
@@ -297,6 +304,28 @@ public final class PresentationState {
         Map<String, Object> values = new LinkedHashMap<>(initial);
         values.putAll(state.get(file).values());
         return values;
+    }
+
+    public static synchronized Map<String, PreferenceSnapshot> capturePortable(Context context)
+            throws Exception {
+        Map<String, PreferenceSnapshot> state = new LinkedHashMap<>(capture(context));
+        Map<String, Object> layout = new LinkedHashMap<>(state.get("native_layout").values());
+        layout.remove("widget_groups");
+        state.put("native_layout", new PreferenceSnapshot(layout));
+        validatePortable(state);
+        return Collections.unmodifiableMap(state);
+    }
+
+    public static synchronized void applyPortable(Context context,
+            Map<String, PreferenceSnapshot> state) throws Exception {
+        validatePortable(state);
+        Map<String, PreferenceSnapshot> target = new LinkedHashMap<>(state);
+        Map<String, Object> layout = new LinkedHashMap<>(state.get("native_layout").values());
+        Object groups = context.getSharedPreferences("native_layout", Context.MODE_PRIVATE)
+                .getAll().get("widget_groups");
+        if (groups != null) layout.put("widget_groups", groups);
+        target.put("native_layout", new PreferenceSnapshot(layout));
+        apply(context, target, true);
     }
 
     public static synchronized void apply(

@@ -3,7 +3,7 @@
 SOURCES = {
     'android/content/SharedPreferences.java': '''package android.content;
 import java.util.*;
-public interface SharedPreferences { Map<String,?> getAll(); Editor edit(); default String getString(String key,String value){return (String)getAll().getOrDefault(key,null)==null?value:(String)getAll().get(key);}
+public interface SharedPreferences { Map<String,?> getAll(); Editor edit(); default boolean contains(String key){return getAll().containsKey(key);} default String getString(String key,String value){return (String)getAll().getOrDefault(key,null)==null?value:(String)getAll().get(key);}
  default int getInt(String k,int d){Object v=getAll().get(k);return v instanceof Integer?(Integer)v:d;}
  default Set<String> getStringSet(String k,Set<String> d){Object v=getAll().get(k);return v instanceof Set?(Set<String>)v:d;}
  interface Editor { Editor remove(String k); Editor putString(String k,String v); Editor putBoolean(String k,boolean v); Editor putInt(String k,int v); Editor putLong(String k,long v); Editor putFloat(String k,float v); Editor putStringSet(String k,Set<String> v); boolean commit(); }
@@ -18,6 +18,7 @@ public class Context {
  public SharedPreferences getSharedPreferences(String name,int mode){if(!stores.containsKey(name))stores.put(name,new Prefs());return stores.get(name);}
  public java.io.File getNoBackupFilesDir(){java.io.File dir=new java.io.File(files,"no-backup");dir.mkdirs();return dir;}
  public final java.io.File files; public final Prefs prefs=new Prefs(); public Context(java.io.File f){files=f;files.mkdirs();}
+ public Context getApplicationContext(){return this;}
  public java.io.File getFilesDir(){return files;} public ContentResolver getContentResolver(){return new ContentResolver();}
  public static class Prefs implements SharedPreferences {
   public final Map<String,Object> values=new LinkedHashMap<>(); public int failures;

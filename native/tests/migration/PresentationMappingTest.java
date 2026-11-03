@@ -11,7 +11,7 @@ public final class PresentationMappingTest {
     private static final String ALPHA = "fixture.alpha/fixture.alpha.Main", BETA = "fixture.beta/fixture.beta.Main";
     private static final String INPUT_ALIAS = "tvinput_name:HDMI 1", INPUT_ID = "fixture.input/.Service/HDMI1000001";
     public static void main(String[] args) throws Exception {
-        actualMapping(); packageCardVisibility(); menuTransitionGate(); savedGridColumns(); plexAliasMapping(); focusOwnedDefaults(); legacyAppFocusMode(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate(); protectionPreflight();
+        actualMapping(); packageCardVisibility(); menuTransitionGate(); savedGridColumns(); plexAliasMapping(); focusOwnedDefaults(); legacyAppFocusMode(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate(); groupedWidgetProduction(); protectionPreflight();
         System.out.println("Native presentation mappings, unsupported-value rejection and interrupted multi-store recovery passed.");
     }
     private static void packageCardVisibility() throws Exception {
@@ -573,6 +573,28 @@ public final class PresentationMappingTest {
                 "Complete marker is committed with verified native settings and resolved recovery.");
         for (String key : Arrays.asList("is_premium", "app_launch_count", "rate_app_shown", "use_24h_clock", "featured_artwork_fit", "minimal_status_bar", "status_bar_position", "hide_status_bar_unless_focused", "tinted_status_bar", "fire_tv_ui_block_updates", "fire_tv_ui_block_appstore", "fire_tv_ui_home_enabled", "start_on_boot", "override_home_button", "better_home_detection"))
             check(source.get(key).equals(disk.files.get(LauncherMigration.PREFERENCES).values().get(key)), "Directly consumed compatibility choice remains intact.");
+        Map<String, Object> direct = new LinkedHashMap<>();
+        direct.put("icon_shadow", false); direct.put("icon_radius", 20);
+        direct.put("mini_mode", true); direct.put("blur_on_scroll", false); direct.put("keep_dock_bottom", true);
+        direct.put("override_back_button", false); direct.put("blur_favorites_background", true);
+        direct.put("color_back_color_argb", -1754827); direct.put("color_back_color_opacity", 50);
+        LegacyPresentationMapper.Plan directPlan = LegacyPresentationMapper.plan(snapshot(direct), identities(), Collections.emptyMap(), null, false, true);
+        FixtureDisk directDisk = new FixtureDisk(new PresentationSnapshot(directPlan.before));
+        ProductionMigrationGate.commit(new FixtureStore(directDisk), new FixtureStore(directDisk).read(), identities(), null);
+        for (Map.Entry<String, Object> entry : direct.entrySet())
+            check(entry.getValue().equals(directDisk.files.get(LauncherMigration.PREFERENCES).values().get(entry.getKey())), "Typed direct presentation choice retained.");
+        for (Object[] bad : new Object[][]{{"icon_shadow", "true"}, {"icon_radius", -1}, {"icon_radius", 21},
+                {"icon_radius", 16L}, {"mini_mode", 1}, {"blur_on_scroll", "false"}, {"keep_dock_bottom", 1},
+                {"override_back_button", "false"}, {"blur_favorites_background", 0}, {"color_back_color_argb", "red"},
+                {"color_back_color_opacity", -1}, {"color_back_color_opacity", 101}, {"color_back_color_opacity", 50L},
+                {"hide_favorites_background", true}, {"unknown_presentation_choice", true}}) {
+            Map<String, Object> malformed = new LinkedHashMap<>(direct); malformed.put((String) bad[0], bad[1]);
+            LegacyPresentationMapper.Plan badPlan = LegacyPresentationMapper.plan(snapshot(malformed), identities(), Collections.emptyMap(), null, false, true);
+            PresentationSnapshot original = new PresentationSnapshot(badPlan.before);
+            FixtureDisk badDisk = new FixtureDisk(original);
+            reject(() -> ProductionMigrationGate.commit(new FixtureStore(badDisk), original, identities(), null));
+            check(badDisk.events.isEmpty() && original.sameValues(new FixtureStore(badDisk).read()), "Unsupported choice blocks without mutation.");
+        }
         Map<String, Object> leftStatus = new LinkedHashMap<>(source); leftStatus.put("minimal_status_bar", true); leftStatus.put("status_bar_position", "Left");
         LegacyPresentationMapper.Plan leftPlan = LegacyPresentationMapper.plan(snapshot(leftStatus), identities(), Collections.emptyMap());
         ProductionMigrationGate.preflight(new PresentationSnapshot(leftPlan.before), identities(), null);
@@ -606,7 +628,7 @@ public final class PresentationMappingTest {
         LegacyPresentationMapper.Plan invalidArt = LegacyPresentationMapper.plan(snapshot(malformedArt), identities(), Collections.emptyMap());
         reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(invalidArt.before), identities(), null));
         for (String key : Arrays.asList("fire_tv_ui_block_updates", "fire_tv_ui_block_appstore")) {
-            for (Object unsupported : Arrays.<Object>asList(true, "false", 0)) {
+            for (Object unsupported : Arrays.<Object>asList("false", 0)) {
                 Map<String, Object> changed = new LinkedHashMap<>(source); changed.put(key, unsupported);
                 LegacyPresentationMapper.Plan unsafe = LegacyPresentationMapper.plan(snapshot(changed), identities(), Collections.emptyMap());
                 FixtureDisk unchanged = new FixtureDisk(new PresentationSnapshot(unsafe.before));
@@ -614,6 +636,28 @@ public final class PresentationMappingTest {
                 check(unchanged.events.isEmpty() && new PresentationSnapshot(unsafe.before).sameValues(new FixtureStore(unchanged).read()),
                         "Enabled or malformed update protection blocks without changing preferences.");
             }
+        }
+        for (boolean updatesPresent : Arrays.asList(false, true)) {
+            Map<String, Object> dormant = new LinkedHashMap<>(source);
+            if (!updatesPresent) dormant.remove("fire_tv_ui_block_updates");
+            dormant.put("fire_tv_ui_block_appstore", true);
+            LegacyPresentationMapper.Plan dormantPlan = LegacyPresentationMapper.plan(snapshot(dormant), identities(), Collections.emptyMap());
+            FixtureDisk dormantDisk = new FixtureDisk(new PresentationSnapshot(dormantPlan.before));
+            ProductionMigrationGate.commit(new FixtureStore(dormantDisk), new FixtureStore(dormantDisk).read(), identities(), null);
+            Map<String, Object> saved = dormantDisk.files.get(LauncherMigration.PREFERENCES).values();
+            check(Boolean.TRUE.equals(saved.get("fire_tv_ui_block_appstore"))
+                    && (updatesPresent ? Boolean.FALSE.equals(saved.get("fire_tv_ui_block_updates")) : !saved.containsKey("fire_tv_ui_block_updates")),
+                    "Dormant Appstore choice and the update flag's absence or false value survive migration.");
+        }
+        for (boolean appstore : Arrays.asList(false, true)) {
+            Map<String, Object> enabledUpdates = new LinkedHashMap<>(source);
+            enabledUpdates.put("fire_tv_ui_block_updates", true);
+            enabledUpdates.put("fire_tv_ui_block_appstore", appstore);
+            LegacyPresentationMapper.Plan enabledPlan = LegacyPresentationMapper.plan(snapshot(enabledUpdates), identities(), Collections.emptyMap());
+            FixtureDisk enabledDisk = new FixtureDisk(new PresentationSnapshot(enabledPlan.before));
+            reject(() -> ProductionMigrationGate.commit(new FixtureStore(enabledDisk), new FixtureStore(enabledDisk).read(), identities(), null));
+            check(enabledDisk.events.isEmpty() && new PresentationSnapshot(enabledPlan.before).sameValues(new FixtureStore(enabledDisk).read()),
+                    "Enabled update protection remains blocked without any migration writes.");
         }
         source.put("unknown_future", true);
         LegacyPresentationMapper.Plan unsupported = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap(), null, false, true);
@@ -682,6 +726,87 @@ public final class PresentationMappingTest {
         reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), original, identities(), null));
         check(disk.events.isEmpty() && disk.journal == null && original.sameValues(new FixtureStore(disk).read()),
                 "Invalid protection settings are rejected before journaling or preference writes.");
+    }
+    private static void groupedWidgetProduction() throws Exception {
+        String clock = "{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Small\",\"data\":{}}";
+        String year = "{\"id\":\"22222222-2222-2222-2222-222222222222\",\"type\":\"YearProgress\",\"size\":\"Small\",\"data\":{}}";
+        String groups = "[[" + clock + "," + year + "]]";
+        for (boolean hide : new boolean[]{false, true}) {
+            Map<String, Object> values = new LinkedHashMap<>();
+            values.put("widgets_config", groups); values.put("enable_widgets", false); values.put("hide_watch_next", hide);
+            LegacyPresentationMapper.Plan base = LegacyPresentationMapper.plan(snapshot(values), identities(), Collections.emptyMap());
+            PresentationSnapshot before = new PresentationSnapshot(base.before);
+            FixtureDisk disk = new FixtureDisk(before);
+            com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupPresentationPlan prepared = ProductionMigrationGate.preflight(before, identities(), null);
+            ProductionMigrationGate.commit(new FixtureStore(disk), before, prepared);
+            for (String file : LegacyPresentationMapper.FILES) if (!file.equals(LauncherMigration.PREFERENCES))
+                check(prepared.target.stores.get(file).values().equals(disk.files.get(file).values()), "Commit writes the exact preflight target.");
+            Map<String, Object> layout = disk.files.get(LegacyPresentationMapper.LAYOUT).values();
+            check(groups.equals(layout.get("widget_groups")) && groups.equals(disk.files.get(LauncherMigration.PREFERENCES).values().get("widgets_config")), "Group IDs, order and original JSON are retained exactly.");
+            check((hide ? "NONE" : "CARDS_ONLY").equals(layout.get("mode")), "Original mapped content mode remains intact.");
+            check(((String) layout.get("hidden")).contains("widget:clock"), "Duplicate singleton content clock is hidden.");
+            check(!disk.files.get(LauncherMigration.PREFERENCES).values().containsKey("minimal_status_bar")
+                    && !disk.files.get(LauncherMigration.PREFERENCES).values().containsKey("source_status_bar_off"),
+                    "The original absent status choice remains absent.");
+            check(ProductionMigrationGate.completed(new FixtureStore(disk).read()) && disk.journal == null, "Grouped settings and completion commit together.");
+            int writeCount = disk.events.size() - 1;
+            for (int death = 1; death <= writeCount; death++) {
+                FixtureDisk interrupted = new FixtureDisk(before); FixtureStore process = new FixtureStore(interrupted); process.dieAt = death;
+                try { ProductionMigrationGate.commit(process, before, identities(), null); throw new AssertionError("Fixture process did not stop."); }
+                catch (ProcessDeath expected) {}
+                FixtureStore restarted = new FixtureStore(interrupted);
+                PresentationSnapshot original = PresentationSnapshot.decode(interrupted.journal);
+                PresentationTransaction.recover(restarted, original);
+                check(before.sameValues(restarted.read()), "Interrupted grouped publication restores all original stores.");
+                restarted.resolveRecovery(original, original);
+                ProductionMigrationGate.commit(restarted, before, identities(), null);
+                check(groups.equals(restarted.read().stores.get(LegacyPresentationMapper.LAYOUT).values().get("widget_groups")), "Retry restores the exact grouped configuration.");
+            }
+        }
+        for (String bad : Arrays.asList(groups.replace("DigitalClock", "Weather"), groups.replace("DigitalClock", "Future"), groups.replace("\"data\":{}", "\"data\":{\"extra\":1}"), groups.replace("\"data\":{}", "\"data\":{},\"extra\":1"))) {
+            Map<String, Object> values = new LinkedHashMap<>(); values.put("widgets_config", bad); values.put("enable_widgets", false); values.put("hide_watch_next", false);
+            assertWidgetRejected(values);
+        }
+        for (Object enabled : Arrays.<Object>asList(true, "false", 0)) {
+            Map<String, Object> values = new LinkedHashMap<>(); values.put("widgets_config", groups); values.put("enable_widgets", enabled); values.put("hide_watch_next", false);
+            assertWidgetRejected(values);
+        }
+        Map<String, Object> missing = new LinkedHashMap<>(); missing.put("widgets_config", groups); missing.put("enable_widgets", false);
+        assertWidgetRejected(missing);
+        missing.remove("enable_widgets"); missing.put("hide_watch_next", false);
+        assertWidgetRejected(missing);
+        Map<String, Object> source = new LinkedHashMap<>();
+        source.put("widgets_config", groups); source.put("enable_widgets", false); source.put("hide_watch_next", false);
+        for (Map<String, Object> layout : Arrays.asList(
+                Collections.<String, Object>singletonMap("widget_groups", "[]"),
+                Collections.<String, Object>singletonMap("order", "widget:clock"))) {
+            Map<String, PreferenceSnapshot> files = new LinkedHashMap<>();
+            for (String file : LegacyPresentationMapper.FILES) files.put(file, snapshot(Collections.emptyMap()));
+            files.put(LauncherMigration.PREFERENCES, snapshot(source)); files.put(LegacyPresentationMapper.LAYOUT, snapshot(layout));
+            PresentationSnapshot before = new PresentationSnapshot(files); FixtureDisk disk = new FixtureDisk(before);
+            reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null));
+            check(disk.events.isEmpty() && before.sameValues(new FixtureStore(disk).read()), "Conflicting native layout blocks without writes.");
+        }
+        for (boolean off : new boolean[]{true, false}) {
+            Map<String, Object> retained = new LinkedHashMap<>(source); retained.put("source_status_bar_off", off);
+            LegacyPresentationMapper.Plan base = LegacyPresentationMapper.plan(snapshot(retained), identities(), Collections.emptyMap());
+            PresentationSnapshot before = new PresentationSnapshot(base.before); FixtureDisk disk = new FixtureDisk(before);
+            ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null);
+            check(Boolean.valueOf(off).equals(disk.files.get(LauncherMigration.PREFERENCES).values().get("source_status_bar_off")),
+                    "Explicit native status Off choice remains exact.");
+        }
+        Map<String, Object> malformedOff = new LinkedHashMap<>(source); malformedOff.put("source_status_bar_off", "true");
+        assertWidgetRejected(malformedOff);
+        source.put("future_widget_flag", true);
+        assertWidgetRejected(source);
+    }
+    private static void assertWidgetRejected(Map<String, Object> values) throws Exception {
+        Map<String, PreferenceSnapshot> files = new LinkedHashMap<>();
+        for (String file : LegacyPresentationMapper.FILES) files.put(file, snapshot(Collections.emptyMap()));
+        files.put(LauncherMigration.PREFERENCES, snapshot(values));
+        PresentationSnapshot before = new PresentationSnapshot(files); FixtureDisk disk = new FixtureDisk(before);
+        reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), before, identities(), null));
+        check(disk.events.isEmpty() && disk.journal == null && before.sameValues(new FixtureStore(disk).read()), "Unsupported grouped settings leave all stores untouched.");
     }
     private static final class FixtureDisk {
         final Map<String, PreferenceSnapshot> files;
