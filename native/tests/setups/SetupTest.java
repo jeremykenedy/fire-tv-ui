@@ -263,6 +263,23 @@ public final class SetupTest {
         groupManager.apply(emptyGroup, true);
         check(!prefs(groupContext, "native_layout").values.containsKey("widget_groups"),
                 "A new setup restores the explicit absence of groups.");
+        Map<String, PreferenceSnapshot> oldPortable = new LinkedHashMap<>(PresentationState.capture(groupContext));
+        Map<String, Object> portableLayout = new LinkedHashMap<>(oldPortable.get("native_layout").values());
+        portableLayout.remove("widget_groups");
+        oldPortable.put("native_layout", new PreferenceSnapshot(portableLayout));
+        prefs(groupContext, "native_layout").values.put("widget_groups", grouped);
+        byte[] exportedWithoutGroups = PortableBackup.encode(PresentationState.capturePortable(groupContext), portable);
+        check(!PortableBackup.decode(exportedWithoutGroups, portable).get("native_layout").values().containsKey("widget_groups")
+                && grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
+                "Portable export leaves groups on the TV and exports supported presentation.");
+        byte[] oldBackup = PortableBackup.encode(oldPortable, portable);
+        PresentationState.applyPortable(groupContext, PortableBackup.decode(oldBackup, portable));
+        check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
+                "Older portable backup preserves groups it could not capture.");
+        Map<String, PreferenceSnapshot> privateGroup = new LinkedHashMap<>(oldPortable);
+        portableLayout.put("widget_groups", "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Big\",\"data\":{\"token\":\"private\"}}]]");
+        privateGroup.put("native_layout", new PreferenceSnapshot(portableLayout));
+        rejects(() -> PortableBackup.encode(privateGroup, portable), "Portable nested widget data rejected on export.");
         File groupFile = new File(groupContext.getFilesDir(), "saved-setups/setups.json");
         JSONObject oldSetups = new JSONObject(new String(Files.readAllBytes(groupFile.toPath()), java.nio.charset.StandardCharsets.UTF_8));
         JSONObject oldSetup = oldSetups.getJSONArray("setups").getJSONObject(1);

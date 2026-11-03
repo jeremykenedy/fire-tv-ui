@@ -107,13 +107,13 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
             @Override public void run() {
                 String message;
                 try {
-                    byte[] bytes = new BackupPayload(PresentationState.capture(BackupActivity.this),
+                    byte[] bytes = new BackupPayload(PresentationState.capturePortable(BackupActivity.this),
                             HouseholdContent.capture(BackupActivity.this, notes, reminders)).encode(VALIDATOR);
                     try (OutputStream output = getContentResolver().openOutputStream(uri, "wt")) {
                         if (output == null) throw new java.io.IOException();
                         output.write(bytes); output.flush();
                     }
-                    message = "Presentation backup exported to your selected document.";
+                    message = "Presentation backup exported to your selected document. Widget groups stay on this TV.";
                 } catch (Exception failed) {
                     message = "Export failed. The selected document may be incomplete. No settings were changed. Personal images require a named local setup; household exports require local permission.";
                 }

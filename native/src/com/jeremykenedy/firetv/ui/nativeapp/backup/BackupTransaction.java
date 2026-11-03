@@ -24,7 +24,7 @@ public final class BackupTransaction {
         PresentationState.validatePortable(payload.stores);
         Map<String,String> documents = HouseholdContent.sanitize(payload.household);
         if (hasRecovery(context) || PresentationState.hasRecovery(context)) throw new IOException("Restore the interrupted presentation change first.");
-        if (documents.isEmpty()) { PresentationState.apply(context,payload.stores,true); return; }
+        if (documents.isEmpty()) { PresentationState.applyPortable(context,payload.stores); return; }
         Map<String,PreferenceSnapshot> originals = new LinkedHashMap<>();
         for (String name : documents.keySet()) {
             Map<String,?> saved = context.getSharedPreferences(HouseholdContent.store(name),0).getAll();
@@ -42,7 +42,7 @@ public final class BackupTransaction {
         catch(Exception failure) { if(output!=null)file.failWrite(output); throw failure; }
         if (!Arrays.equals(bytes,readBytes(context))) throw new IOException("Private recovery could not be verified.");
         try {
-            PresentationState.apply(context,payload.stores,true);
+            PresentationState.applyPortable(context,payload.stores);
             if(PresentationState.hasRecovery(context))throw new IOException("Presentation recovery could not be resolved.");
             for (Map.Entry<String,String> entry : documents.entrySet()) {
                 write(context,entry.getKey(),Collections.<String,Object>singletonMap("document",entry.getValue()));
