@@ -18,6 +18,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.breathing.BreathingSession;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.worldclock.WorldClocks;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups;
 
 import org.json.JSONObject;
 
@@ -240,11 +241,10 @@ public final class PresentationState {
 
     public static void validatePortable(Map<String, PreferenceSnapshot> state) throws Exception {
         validate(state);
-        if (state.get("native_layout").values().containsKey("widget_groups"))
-            throw new IOException("Saved widget groups cannot be exported or imported in a portable backup.");
+        validatePortableGroups(state.get("native_layout").values().get("widget_groups"));
         Map<String, Object> legacy = state.get("launcher_prefs").values();
         for (String key :
-                Arrays.asList("app_order", "folders", "widgets_config", "channel_visibility")) {
+                Arrays.asList("app_order", "folders", "channel_visibility")) {
             Object value = legacy.get(key);
             if (value instanceof String && !((String) value).isEmpty())
                 throw new IOException(
@@ -252,6 +252,7 @@ public final class PresentationState {
                                 + " settings have been kept; portable export requires migration"
                                 + " first.");
         }
+        validatePortableGroups(legacy.get("widgets_config"));
         if (legacy.containsKey("app_visibility")) {
             JSONObject apps = new JSONObject((String) legacy.get("app_visibility"));
             for (Iterator<String> keys = apps.keys(); keys.hasNext(); ) {
@@ -284,6 +285,19 @@ public final class PresentationState {
             }
     }
 
+    private static void validatePortableGroups(Object value) throws IOException {
+        if (value == null) return;
+        try {
+            WidgetGroups groups = WidgetGroups.decode((String) value);
+            for (List<WidgetGroups.Entry> group : groups.groups)
+                for (WidgetGroups.Entry entry : group)
+                    if (!entry.isRenderable())
+                        throw new IOException("This widget has location or unsupported settings that cannot be included in a portable backup.");
+        } catch (IllegalArgumentException | ClassCastException invalid) {
+            throw new IOException("Invalid portable widget groups.", invalid);
+        }
+    }
+
     private static int integer(Map<String, Object> v, String k, int d) {
         return v.containsKey(k) ? (Integer) v.get(k) : d;
     }
@@ -309,9 +323,6 @@ public final class PresentationState {
     public static synchronized Map<String, PreferenceSnapshot> capturePortable(Context context)
             throws Exception {
         Map<String, PreferenceSnapshot> state = new LinkedHashMap<>(capture(context));
-        Map<String, Object> layout = new LinkedHashMap<>(state.get("native_layout").values());
-        layout.remove("widget_groups");
-        state.put("native_layout", new PreferenceSnapshot(layout));
         validatePortable(state);
         return Collections.unmodifiableMap(state);
     }
@@ -323,7 +334,7 @@ public final class PresentationState {
         Map<String, Object> layout = new LinkedHashMap<>(state.get("native_layout").values());
         Object groups = context.getSharedPreferences("native_layout", Context.MODE_PRIVATE)
                 .getAll().get("widget_groups");
-        if (groups != null) layout.put("widget_groups", groups);
+        if (groups != null && !layout.containsKey("widget_groups")) layout.put("widget_groups", groups);
         target.put("native_layout", new PreferenceSnapshot(layout));
         apply(context, target, true);
     }

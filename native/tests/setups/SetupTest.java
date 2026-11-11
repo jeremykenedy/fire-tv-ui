@@ -333,10 +333,18 @@ public final class SetupTest {
         portableLayout.remove("widget_groups");
         oldPortable.put("native_layout", new PreferenceSnapshot(portableLayout));
         prefs(groupContext, "native_layout").values.put("widget_groups", grouped);
-        byte[] exportedWithoutGroups = PortableBackup.encode(PresentationState.capturePortable(groupContext), portable);
-        check(!PortableBackup.decode(exportedWithoutGroups, portable).get("native_layout").values().containsKey("widget_groups")
-                && grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
-                "Portable export leaves groups on the TV and exports supported presentation.");
+        byte[] exportedGroups = PortableBackup.encode(PresentationState.capturePortable(groupContext), portable);
+        check(grouped.equals(PortableBackup.decode(exportedGroups, portable).get("native_layout").values().get("widget_groups")),
+                "Portable export includes exact supported widget layout.");
+        prefs(groupContext, "native_layout").values.put("widget_groups", "[]");
+        PresentationState.applyPortable(groupContext, PortableBackup.decode(exportedGroups, portable));
+        check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
+                "Portable import restores exported groups over destination layout.");
+        prefs(groupContext, "launcher_prefs").values.put("widgets_config", grouped);
+        byte[] migratedGroups = PortableBackup.encode(PresentationState.capturePortable(groupContext), portable);
+        check(grouped.equals(PortableBackup.decode(migratedGroups, portable).get("launcher_prefs").values().get("widgets_config")),
+                "Portable backup retains supported original widget records after migration.");
+        prefs(groupContext, "launcher_prefs").values.remove("widgets_config");
         byte[] oldBackup = PortableBackup.encode(oldPortable, portable);
         PresentationState.applyPortable(groupContext, PortableBackup.decode(oldBackup, portable));
         check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
