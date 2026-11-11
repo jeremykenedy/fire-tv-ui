@@ -610,7 +610,12 @@ public final class MainActivity extends Activity {
                 AppGridOptions current = AppGridPreferences.load(MainActivity.this);
                 if (which == 1) current = current.toggleFavorite(app.key());
                 else if (which == 4) current = current.toggleHidden(app.key());
-                AppGridPreferences.save(MainActivity.this, current); loadApps();
+                try {
+                    AppGridPreferences.save(MainActivity.this, current);
+                    loadApps();
+                } catch (IllegalStateException failure) {
+                    Toast.makeText(MainActivity.this, failure.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
         }).setNegativeButton("Cancel", null).show();
         actions.getListView().requestFocus();

@@ -218,9 +218,11 @@ public final class SettingsActivity extends MenuActivity {
                                 if (columns < 1 || columns > 20) { value.setError("Enter a whole number from 1 to 20."); return; }
                                 com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions current =
                                         com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.load(SettingsActivity.this);
-                                com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.save(SettingsActivity.this,
-                                        current.grid(columns, current.rows, current.horizontal));
-                                dialog.dismiss(); show("layout", 0x2010);
+                                try {
+                                    com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.save(SettingsActivity.this,
+                                            current.grid(columns, current.rows, current.horizontal));
+                                    dialog.dismiss(); show("layout", 0x2010);
+                                } catch (IllegalStateException failure) { settingError(failure); }
                             }
                         });
                     }
@@ -236,9 +238,11 @@ public final class SettingsActivity extends MenuActivity {
                             @Override public void onClick(android.content.DialogInterface dialog, int which) {
                                 com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions current =
                                         com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.load(SettingsActivity.this);
-                                com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.save(SettingsActivity.this,
-                                        current.grid(current.columns, current.rows, which == 1));
-                                dialog.dismiss(); show("layout", 0x2018);
+                                try {
+                                    com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridPreferences.save(SettingsActivity.this,
+                                            current.grid(current.columns, current.rows, which == 1));
+                                    dialog.dismiss(); show("layout", 0x2018);
+                                } catch (IllegalStateException failure) { settingError(failure); }
                             }
                         }).setNegativeButton("Cancel", null).show();
             }
