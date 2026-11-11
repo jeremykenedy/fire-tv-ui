@@ -86,12 +86,19 @@ public final class LegacyPresentationMapper {
         if (transition instanceof String && Arrays.asList("default", "none", "fade", "slide").contains(transition))
             accepted.add("menu_transition_style");
         for (String key : new String[]{"use_24h_clock", "featured_artwork_fit", "icon_shadow",
+                "poster_mode", "hide_watch_next_titles", "text_outside_cards",
                 "mini_mode", "blur_on_scroll", "keep_dock_bottom", "override_back_button",
                 "blur_favorites_background"})
             if (legacy.get(key) instanceof Boolean) accepted.add(key);
         Object radius = legacy.get("icon_radius");
         if (radius instanceof Integer && (Integer) radius >= 0 && (Integer) radius <= 20) accepted.add("icon_radius");
         if (legacy.get("color_back_color_argb") instanceof Integer) accepted.add("color_back_color_argb");
+        for (String prefix : new String[]{"color_cards_text_color_", "color_widget_bg_color_", "color_widget_text_color_"}) {
+            if (legacy.get(prefix + "argb") instanceof Integer) accepted.add(prefix + "argb");
+            Object alpha = legacy.get(prefix + "opacity");
+            if (alpha instanceof Integer && (Integer) alpha >= 0 && (Integer) alpha <= 100)
+                accepted.add(prefix + "opacity");
+        }
         Object opacity = legacy.get("color_back_color_opacity");
         if (opacity instanceof Integer && (Integer) opacity >= 0 && (Integer) opacity <= 100)
             accepted.add("color_back_color_opacity");
