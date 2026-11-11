@@ -874,7 +874,7 @@ index 91cbc0a5de03189ff56400782341448cc00c4e20..4056aeb2db35f47d445be169655b5348
 +.end method
 +'''
 diff --git a/scripts/patch_launcher.py b/scripts/patch_launcher.py
-index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..73614410641f6da9987719bd8a180c5be44ae680 100644
+index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..185e7d94d097a8b8d51319b7f3304f42c399621d 100644
 --- a/scripts/patch_launcher.py
 +++ b/scripts/patch_launcher.py
 @@ -14,6 +14,7 @@ from icon_pack_patch import patch_builtin_icon_packs
@@ -885,7 +885,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..73614410641f6da9987719bd8a180c5b
  
  ROOT = Path(__file__).resolve().parents[1]
  CONFIG = json.loads((ROOT / "build.json").read_text())
-@@ -27,6 +28,39 @@ def replace_once(text, old, new):
+@@ -27,6 +28,49 @@ def replace_once(text, old, new):
      return text.replace(old, new, 1)
  
  
@@ -917,15 +917,25 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..73614410641f6da9987719bd8a180c5b
 +              '    if-eqz v0, :cond_39\n\n'
 +              '    if-nez v39, :cond_39\n\n')
 +    return replace_once(text, bottom, bottom +
-+            '    invoke-virtual/range {v42 .. v42}, LQ3/T3;->j()Z\n\n'
-+            '    move-result v0\n\n'
-+            '    if-eqz v0, :cond_39\n\n')
++            '    goto :cond_39\n\n')
++
++
++def patch_widget_focus(text):
++    for register, label in (('v3', ':cond_40'), ('v2', ':cond_67')):
++        hidden = (f'    invoke-virtual {{v0}}, LQ3/T3;->m()Z\n\n'
++                  f'    move-result {register}\n\n'
++                  f'    if-nez {register}, {label}\n\n')
++        widgets = (f'    invoke-virtual {{v0}}, LQ3/T3;->j()Z\n\n'
++                   f'    move-result {register}\n\n'
++                   f'    if-eqz {register}, {label}\n')
++        text = replace_once(text, hidden + widgets, widgets)
++    return text
 +
 +
  def java_hash(value):
      result = 0
      for character in value:
-@@ -162,6 +196,7 @@ def patch(decoded):
+@@ -162,6 +206,7 @@ def patch(decoded):
          '    move-result-wide v1\n'
          '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
          '    invoke-virtual {v0}, LQ3/T3;->refreshFeaturedRotation()V\n'
@@ -933,7 +943,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..73614410641f6da9987719bd8a180c5b
          '    invoke-virtual {v0}, LQ3/T3;->refreshLauncherLayout()V\n'
          '    :resume_idle_reset_done\n'
          '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->start(Landroid/content/Context;)V\n'
-@@ -382,11 +417,52 @@ def patch(decoded):
+@@ -382,11 +427,52 @@ def patch(decoded):
      pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
      copy = pattern.search(text).group(0)
      copy = replace_once(copy, '    .locals 13',
@@ -987,7 +997,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..73614410641f6da9987719bd8a180c5b
  
      mapper = class_paths["Landroid/support/v4/media/session/b;"]
      mapper.write_text(replace_method(mapper.read_text(),
-@@ -422,10 +498,33 @@ def patch(decoded):
+@@ -422,10 +508,33 @@ def patch(decoded):
                  '    iget-object v0, v1, LQ3/F8;->l:Landroid/content/Context;\n'
                  '    invoke-static {v0, v7}, Lcom/jeremykenedy/firetv/ui/CardOrder;->prepare(Landroid/content/Context;Landroid/database/Cursor;)Landroid/database/Cursor;\n'
                  '    move-result-object v7\n')
@@ -1022,16 +1032,16 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..73614410641f6da9987719bd8a180c5b
          '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;',
          '    iget-object v0, v1, LQ3/E7;->r:Landroid/content/Context;\n'
          '    invoke-static {v0, v10}, Lcom/jeremykenedy/firetv/ui/FeedOrderBridge;->order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;\n'
-@@ -433,6 +532,8 @@ def patch(decoded):
+@@ -433,6 +542,8 @@ def patch(decoded):
          '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;'))
  
      main_background = class_paths["LQ3/T5;"]
 +    main_background.write_text(patch_hidden_card_spacing(
-+        patch_hidden_card_widget_row(main_background.read_text())))
++        patch_widget_focus(patch_hidden_card_widget_row(main_background.read_text()))))
      main_background.write_text(replace_once(main_background.read_text(),
          '    if-eqz v4, :cond_f',
          '    iget-object v14, v0, LQ3/T5;->z:Landroid/content/Context;\n'
-@@ -478,6 +579,7 @@ def patch(decoded):
+@@ -478,6 +589,7 @@ def patch(decoded):
          '    move-object/from16 v4, v54\n'
          '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
      featured_image.write_text(replace_method(renderer, renderer_signature, card_render))
@@ -1039,7 +1049,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..73614410641f6da9987719bd8a180c5b
  
      rotation = class_paths["LQ3/h8;"]
      rotation.write_text(replace_method(rotation.read_text(),
-@@ -508,6 +610,21 @@ def patch(decoded):
+@@ -508,6 +620,21 @@ def patch(decoded):
      invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
      return-void
  .end method
@@ -1549,6 +1559,169 @@ index 0000000000000000000000000000000000000000..af7d79356acf6c3501de27f3256c0f4b
 +
 +    if-nez v39, :cond_2e
 +
+diff --git a/tests/fixtures/widget-focus.smali b/tests/fixtures/widget-focus.smali
+new file mode 100644
+index 0000000000000000000000000000000000000000..1ba565ed796c5b00acc6bf8651be3368c913eba4
+--- /dev/null
++++ b/tests/fixtures/widget-focus.smali
+@@ -0,0 +1,157 @@
++    if-eqz v39, :cond_3f
++
++    const v3, -0x163fd6e
++
++    invoke-virtual {v7, v3}, LN/p;->V(I)V
++
++    invoke-virtual {v7, v0}, LN/p;->f(Ljava/lang/Object;)Z
++
++    move-result v3
++
++    move/from16 v34, v3
++
++    invoke-virtual {v7}, LN/p;->K()Ljava/lang/Object;
++
++    move-result-object v3
++
++    move-wide/from16 v36, v8
++
++    move-object/from16 v8, v51
++
++    if-nez v34, :cond_3d
++
++    if-ne v3, v8, :cond_3e
++
++    :cond_3d
++    new-instance v3, LQ3/Q4;
++
++    const/4 v9, 0x7
++
++    invoke-direct {v3, v0, v9}, LQ3/Q4;-><init>(LQ3/T3;I)V
++
++    invoke-virtual {v7, v3}, LN/p;->f0(Ljava/lang/Object;)V
++
++    :cond_3e
++    check-cast v3, Ln4/a;
++
++    const/4 v9, 0x0
++
++    invoke-virtual {v7, v9}, LN/p;->p(Z)V
++
++    goto :goto_1e
++
++    :cond_3f
++    move-wide/from16 v36, v8
++
++    move-object/from16 v8, v51
++
++    const/4 v9, 0x0
++
++    invoke-virtual {v0}, LQ3/T3;->m()Z
++
++    move-result v3
++
++    if-nez v3, :cond_40
++
++    invoke-virtual {v0}, LQ3/T3;->j()Z
++
++    move-result v3
++
++    if-eqz v3, :cond_40
++
++    const/4 v3, 0x0
++
++    goto :goto_1e
++
++    :cond_40
++    move-object/from16 v3, v22
++
++    :goto_1e
++    invoke-virtual {v7, v9}, LN/p;->p(Z)V
++
++
++    # remaining apps
++    invoke-virtual {v0}, LQ3/T3;->k()Ljava/util/List;
++
++    move-result-object v5
++
++    invoke-interface {v5}, Ljava/util/List;->isEmpty()Z
++
++    move-result v5
++
++    if-eqz v5, :cond_68
++
++    if-eqz v39, :cond_66
++
++    const v5, -0x1628cae
++
++    invoke-virtual {v7, v5}, LN/p;->V(I)V
++
++    invoke-virtual {v7, v0}, LN/p;->f(Ljava/lang/Object;)Z
++
++    move-result v5
++
++    move-object/from16 v57, v2
++
++    invoke-virtual {v7}, LN/p;->K()Ljava/lang/Object;
++
++    move-result-object v2
++
++    if-nez v5, :cond_64
++
++    if-ne v2, v1, :cond_65
++
++    :cond_64
++    new-instance v2, LQ3/Q4;
++
++    const/4 v5, 0x5
++
++    invoke-direct {v2, v0, v5}, LQ3/Q4;-><init>(LQ3/T3;I)V
++
++    invoke-virtual {v7, v2}, LN/p;->f0(Ljava/lang/Object;)V
++
++    :cond_65
++    check-cast v2, Ln4/a;
++
++    const/4 v5, 0x0
++
++    invoke-virtual {v7, v5}, LN/p;->p(Z)V
++
++    goto :goto_27
++
++    :cond_66
++    move-object/from16 v57, v2
++
++    invoke-virtual {v0}, LQ3/T3;->m()Z
++
++    move-result v2
++
++    if-nez v2, :cond_67
++
++    invoke-virtual {v0}, LQ3/T3;->j()Z
++
++    move-result v2
++
++    if-eqz v2, :cond_67
++
++    goto :goto_28
++
++    :cond_67
++    move-object/from16 v2, v51
++
++    :goto_27
++    const/4 v5, 0x0
++
++    goto :goto_29
++
++    :cond_68
++    move-object/from16 v57, v2
++
++    :goto_28
++    const/4 v2, 0x0
++
++    goto :goto_27
++
++    :goto_29
++    invoke-virtual {v7, v5}, LN/p;->p(Z)V
++
 diff --git a/tests/test_build.py b/tests/test_build.py
 index a837a77720c4c855a15deaa107ca67b536e4bc66..9e93b58885697a59cb561c9f6310fff734f2a3ec 100644
 --- a/tests/test_build.py
@@ -1693,7 +1866,7 @@ index 0000000000000000000000000000000000000000..fb88a6d9a6e6bf46da9db6eee1d22c07
 +                            'com.jeremykenedy.firetv.ui.CardControlsTest'], check=True)
 diff --git a/tests/test_hidden_card_spacing.py b/tests/test_hidden_card_spacing.py
 new file mode 100644
-index 0000000000000000000000000000000000000000..01867f2aa1b895299071ebc0e5e21c40349f4d8c
+index 0000000000000000000000000000000000000000..61957ac441937ccf6b41a4a98ffc30013a4c9bad
 --- /dev/null
 +++ b/tests/test_hidden_card_spacing.py
 @@ -0,0 +1,98 @@
@@ -1779,7 +1952,7 @@ index 0000000000000000000000000000000000000000..01867f2aa1b895299071ebc0e5e21c40
 +                                    if hidden and not widgets and not picture and mini:
 +                                        self.assertEqual(before, [350])
 +                                        self.assertEqual(after, [50])
-+                                    elif hidden and not widgets and not picture and bottom:
++                                    elif hidden and not picture and bottom and not mini:
 +                                        self.assertEqual(before, [288 + 20 * (columns - 5)])
 +                                        self.assertEqual(after, [])
 +                                    else:
@@ -1970,3 +2143,89 @@ index a674f1dd0cfe5b82b07d936cd612b8a04a87048b..91f5e0dc82297ac3f7147dd76685f09e
   }
  }''',
          }
+diff --git a/tests/test_widget_focus.py b/tests/test_widget_focus.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..d9080c6e396e2c5c812b930cf8444742f1fb28bc
+--- /dev/null
++++ b/tests/test_widget_focus.py
+@@ -0,0 +1,80 @@
++from pathlib import Path
++import re
++import sys
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / 'scripts'))
++from patch_launcher import patch_widget_focus
++
++SOURCE = (ROOT / 'tests/fixtures/widget-focus.smali').read_text()
++
++
++def up_callback(source, hidden, widgets, picture, favorites_empty):
++    lines = [line.strip() for line in source.splitlines() if line.strip()]
++    labels = {line: index for index, line in enumerate(lines) if line.startswith(':')}
++    values = {'v39': picture, 'v22': 'fallback', 'v51': 'fallback', 'v2': None, 'v1': 'remember', 'v8': 0}
++    index = 0
++    while index < len(lines):
++        line = lines[index]
++        operation = line.split()[0]
++        if 'LQ3/T3;->' in line:
++            result = {'m': hidden, 'j': widgets, 'k': 'favorites'}[re.search(r'->(\w)\(', line).group(1)]
++        elif 'List;->isEmpty()' in line:
++            result = favorites_empty
++        elif 'LN/p;->f(' in line:
++            result = True
++        elif 'LN/p;->K()' in line:
++            result = 'remember'
++        elif operation == 'move-result' or operation == 'move-result-object':
++            values[line.split()[1]] = result
++        elif operation.startswith('const'):
++            register, literal = line.split(' ', 1)[1].split(', ')
++            values[register] = int(literal, 16)
++        elif operation.startswith('move-object') or operation == 'move/from16':
++            destination, origin = line.split(' ', 1)[1].split(', ')
++            values[destination] = values[origin]
++        elif operation == 'new-instance':
++            values[line.split()[1].rstrip(',')] = 'picture'
++        elif operation in ('if-eqz', 'if-nez', 'if-ne'):
++            arguments = line.split(' ', 1)[1].split(', ')
++            condition = values[arguments[0]] != values[arguments[1]] if operation == 'if-ne' else bool(values[arguments[0]]) == (operation == 'if-nez')
++            if condition:
++                index = labels[arguments[-1]]
++                continue
++        elif operation.startswith('goto'):
++            index = labels[line.split()[1]]
++            continue
++        elif not (line.startswith(':') or operation.startswith(('invoke-', 'move-wide', 'check-cast'))):
++            raise AssertionError('Unsupported focus fixture instruction: ' + line)
++        index += 1
++    return values['v2'] if ':goto_29' in labels else values['v3']
++
++
++class WidgetFocusChecks(unittest.TestCase):
++    def test_visible_widgets_use_default_up_search_in_both_app_grids(self):
++        patched = patch_widget_focus(SOURCE)
++        for hidden in (False, True):
++            for widgets in (False, True):
++                for picture in (False, True):
++                    for empty in (False, True):
++                        for before, after in zip(SOURCE.split('    # remaining apps\n'), patched.split('    # remaining apps\n')):
++                            with self.subTest(hidden=hidden, widgets=widgets, picture=picture, empty=empty, remaining=':goto_29' in before):
++                                old = up_callback(before, hidden, widgets, picture, empty)
++                                new = up_callback(after, hidden, widgets, picture, empty)
++                                if hidden and widgets and not picture:
++                                    self.assertEqual(new, 0)
++                                    self.assertEqual(old, 'fallback' if empty or ':goto_29' not in before else 0)
++                                else:
++                                    self.assertEqual(new, old)
++
++    def test_source_drift_and_reapplication_fail_closed(self):
++        for changed in (SOURCE.replace('if-nez v3, :cond_40', 'if-nez v3, :cond_41'),
++                        SOURCE.replace('if-nez v2, :cond_67', 'if-nez v2, :cond_68'),
++                        SOURCE + SOURCE, patch_widget_focus(SOURCE)):
++            with self.assertRaises(ValueError):
++                patch_widget_focus(changed)
++
++
++if __name__ == '__main__':
++    unittest.main()
