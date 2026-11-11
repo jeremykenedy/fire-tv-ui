@@ -208,7 +208,7 @@ def release_config(path=ROOT / 'production-release.json'):
             or not re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', config['version'])):
         raise ValueError('Production version must be a stable semantic version')
     if (type(config['versionCode']) is not int or type(config['previousVersionCode']) is not int
-            or config['previousVersionCode'] < 78 or config['versionCode'] <= config['previousVersionCode']
+            or config['previousVersionCode'] < 80 or config['versionCode'] <= config['previousVersionCode']
             or config['versionCode'] > 2100000000):
         raise ValueError('Production version code must increase from the shipped version')
     if config['signerSha256'] != '9a6416b9dc3c996d591b185d600b8ab76e1c7b01846db8d6063b399caf7b5a11':

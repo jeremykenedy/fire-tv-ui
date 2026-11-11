@@ -1,0 +1,67 @@
+{
+  "version": "1.18.0",
+  "versionCode": 80,
+  "package": "com.jeremykenedy.firetv.ui",
+  "apkSha256": "55756da77502ff4f4b6a0fc8c8387fb3ff758f4937e8c3403932c33495714a43",
+  "signerSha256": "9a6416b9dc3c996d591b185d600b8ab76e1c7b01846db8d6063b399caf7b5a11",
+  "reviewedSourceCommit": "4cacceabe8fca8adaf3ad93dccf13661fbdac6e3",
+  "sourceTree": "88ff0aaf5d7f11f818daf44754523cfe79a42c7c",
+  "platform": "Android TV API 34 emulator",
+  "capture": "Unmodified native screenshots with safe sample data",
+  "images": [
+    {
+      "file": "home-ui118-code80-api34.png",
+      "sha256": "38704ae58f9453f6d26f4d05aa180fde40f8e6b2c40d02689a7127a194b7343f",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "home-sample-cards-ui118-code80-api34.png",
+      "sha256": "390579a060db63cb6f140d7efcd2807d9da03c3b06f8e488395f326b114692f6",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "settings-ui118-code80-api34.png",
+      "sha256": "7c6a83146e4be4e91571d62a290d2dc0d8ebd7d2bfcccb9f8a207f439278017e",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "ui-settings-ui118-code80-api34.png",
+      "sha256": "7f5acc765bb2b89a25a60a029913e73a9fc22b95ae9b09ac8516da0923559068",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "layout-focus-ui118-code80-api34.png",
+      "sha256": "465ad26be6f6f6a7c890905373a9ee67479a87dfbb75747498dd07452230e14f",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "app-growth-ui118-code80-api34.png",
+      "sha256": "24835c0253e993ba482ff4766b91ca3d5d46b2e6dce151fba1660155f30b5dd1",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "app-shadow-ui118-code80-api34.png",
+      "sha256": "8597613bd60521ffdde89a0d26f1e2d48726edfe952b18076f9f98733704f24e",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "card-menu-ui118-code80-api34.png",
+      "sha256": "257e8ceb259a1da1e343161fd898be95ceeebbe433936aa16dddfec0f0daa946",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "hidden-cards-ui118-code80-api34.png",
+      "sha256": "3e1d636a5149465fa45859be00ee995d1c692d1f61ab7abc2dd1684e4159a7d2",
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}

@@ -19,6 +19,14 @@ Open **UI settings > Layout and focus**. Apps per row offers presets and a custo
 
 Focus style offers Default, Border only, and Color and border. Choose a preset color or enter a six-digit RGB hex color for the fill and border. Default preserves the existing focus behavior while correcting a low-contrast focused background behind transparent icon-pack artwork. The artwork itself is not recolored. Border only leaves the resting tile background visible.
 
+### App focus growth and shadow
+
+In **UI settings > Layout and focus**, **App focus growth** offers Default (18%), Off, 6%, 12%, 24% and 30%. Off removes enlargement while keeping the other focus styling. **App focus shadow** offers Off, Default (18 dp), Large (28 dp) and Extra large (38 dp). Existing installations keep their current choices; without an override, growth and shadow retain the original 18% and 18 dp behavior. A saved disabled shadow stays disabled until you change it.
+
+Growth and shadow changes apply on return with Back, including when focusing the same app tile again; a process restart is not required. The native Settings route still returns Home focus to the first app, including visits where no setting changed. Preserving the previously focused app through that route remains unresolved.
+
+These choices are validated preferences included in launcher backups and saved setups. No new permissions or migration are required.
+
 ## Settings transitions
 
 In **UI settings > Layout and focus**, Settings transitions offers Default, None, Fade and Short slide. These options control native settings pages opening and closing. Default preserves existing behavior; None removes those page transitions. Fade and Short slide finish quickly and respect disabled system animations. Choosing Default removes the override. This control does not replace Home tile focus animation or the upstream pop-up menu animations.
@@ -29,7 +37,9 @@ Open **Theme and wallpaper > Icon pack** to select Clean line or Muted solid. Bo
 
 ## Cards
 
-Open **UI settings > Cards**. **Channel Cards** manages channel visibility and individual items. **Card timers** sets the global title interval and optional individual channel timers, including Manual and custom whole seconds. Each channel can return to the global timer independently.
+Open **UI settings > Cards**. Select a Home card or press Menu for **Open**, **Hide this title**, and **Hide all cards from &lt;app&gt;**. The menu names the current title. Open keeps the original provider action; title hiding uses the exact selected item identity. The app action hides every feed published by that app while keeping its app tile.
+
+Turning cards Off removes the reserved card band when widgets are also disabled. Enabled widgets retain their row. **Channel Cards** manages channel visibility and individual items. **Card timers** sets the global title interval and optional individual channel timers, including Manual and custom whole seconds. Each channel can return to the global timer independently.
 
 ## Backgrounds and saved setups
 

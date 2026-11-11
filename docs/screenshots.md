@@ -2,6 +2,30 @@
 
 ## Current stable interface
 
+Unmodified native captures from the production-signed Fire TV UI 1.18.0/code 80 APK on Android TV API 34 at 1920x1080. Home uses stock apps and a saved sample appearance. Card examples use a local sample feed without personal accounts or watch history. Your apps, inputs, widgets and saved appearance determine your Home layout.
+
+<table>
+  <tr>
+    <td><a href="../art/screenshots/home-ui118-code80-api34.png"><img src="../art/screenshots/home-ui118-code80-api34.png" alt="Fire TV UI 1.18.0 Home with stock app tiles and no reserved card band"></a><br>Home with cards off</td>
+    <td><a href="../art/screenshots/settings-ui118-code80-api34.png"><img src="../art/screenshots/settings-ui118-code80-api34.png" alt="Fire TV UI 1.18.0 Settings menu over the existing Home interface"></a><br>Settings</td>
+    <td><a href="../art/screenshots/ui-settings-ui118-code80-api34.png"><img src="../art/screenshots/ui-settings-ui118-code80-api34.png" alt="Fire TV UI 1.18.0 UI settings with layout and card routes"></a><br>UI settings</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/layout-focus-ui118-code80-api34.png"><img src="../art/screenshots/layout-focus-ui118-code80-api34.png" alt="Native Layout and focus controls for Fire TV UI 1.18.0"></a><br>Layout and focus</td>
+    <td><a href="../art/screenshots/app-growth-ui118-code80-api34.png"><img src="../art/screenshots/app-growth-ui118-code80-api34.png" alt="App focus growth choices including Off and 30 percent"></a><br>App focus growth</td>
+    <td><a href="../art/screenshots/app-shadow-ui118-code80-api34.png"><img src="../art/screenshots/app-shadow-ui118-code80-api34.png" alt="App focus shadow choices including Off and Extra large"></a><br>App focus shadow</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/home-sample-cards-ui118-code80-api34.png"><img src="../art/screenshots/home-sample-cards-ui118-code80-api34.png" alt="Fire TV UI 1.18.0 Home with a safe local sample card feed"></a><br>Home with sample cards</td>
+    <td><a href="../art/screenshots/card-menu-ui118-code80-api34.png"><img src="../art/screenshots/card-menu-ui118-code80-api34.png" alt="Selecting a sample card offers Open, Hide this title and publisher-wide hiding"></a><br>Card controls</td>
+    <td><a href="../art/screenshots/hidden-cards-ui118-code80-api34.png"><img src="../art/screenshots/hidden-cards-ui118-code80-api34.png" alt="Fire TV UI 1.18.0 hidden card management with safe sample content"></a><br>Hidden cards</td>
+  </tr>
+</table>
+
+[Capture provenance](../art/screenshots/ui118-code80-provenance.json) records the exact signed APK and raw image hashes. The [source preview gallery](source-preview.md#screenshots) describes the separate alpha interface. Earlier captures remain labeled by version below.
+
+## Fire TV UI 1.17.1, code 79
+
 Unmodified captures from the final production-signed Fire TV UI 1.17.1/code 79 APK at 1920x1080 on Android TV API 34. Home and Settings use stock apps with no personal accounts. The card examples use a local sample feed to demonstrate hiding one item without hiding another item that shares its playback link. Your apps, inputs, widgets and saved appearance determine your Home layout.
 
 <table>

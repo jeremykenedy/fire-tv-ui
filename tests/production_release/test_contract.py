@@ -31,6 +31,15 @@ class ProductionReleaseContractTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.check_config()
 
+    def test_native_candidate_must_upgrade_the_current_maintenance_code(self):
+        self.assertEqual(self.config['previousVersionCode'], 80)
+        self.assertEqual(self.config['versionCode'], 81)
+        for previous, current in [(78, 79), (79, 80), (80, 80)]:
+            with self.subTest(previous=previous, current=current):
+                self.config.update(previousVersionCode=previous, versionCode=current)
+                with self.assertRaises(ValueError):
+                    self.check_config()
+
     def test_certificate_pin_cannot_be_replaced(self):
         self.config['signerSha256'] = 'a' * 64
         with self.assertRaises(ValueError):
@@ -40,14 +49,14 @@ class ProductionReleaseContractTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             build.verify_signer_output('Signer #1 certificate SHA-256 digest: ' + 'a' * 64,
                                        self.config['signerSha256'])
-        header = ("package: name='com.jeremykenedy.firetv.ui' "
-                  f"versionCode='{self.config['versionCode']}' versionName='{self.config['version']}'")
+        header = ("package: name='com.jeremykenedy.firetv.ui' versionCode='" + str(self.config['versionCode'])
+                  + "' versionName='" + self.config['version'] + "'")
         build.verify_apk_metadata(header, self.config)
         with self.assertRaises(ValueError):
             build.verify_apk_metadata(header + "\napplication-debuggable", self.config)
         with self.assertRaises(ValueError):
-            build.verify_apk_metadata(header.replace(
-                f"versionCode='{self.config['versionCode']}'", "versionCode='78'"), self.config)
+            build.verify_apk_metadata(header.replace("versionCode='" + str(self.config['versionCode']) + "'",
+                                                     "versionCode='" + str(self.config['previousVersionCode']) + "'"), self.config)
 
     def test_release_labels_are_verified_in_compiled_manifest(self):
         badging = "application-label:'Fire TV UI'"

@@ -1,3 +1,4 @@
 # Preserve catalog-hashed original SVG bytes, including upstream whitespace.
 icons/sources/*.svg -text -whitespace
 maintenance/1.17.1/repair.patch -text -whitespace
+maintenance/1.18.0/repair.patch -text -whitespace
