@@ -14,6 +14,7 @@ import android.os.SystemClock;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
 import java.io.ByteArrayInputStream;
@@ -116,8 +117,22 @@ public final class IconInstrumentation extends Instrumentation {
             onMain(new Runnable() { @Override public void run() { tiles.clear(); collect(picker.getWindow().getDecorView()); }});
             check(tiles.size() == IconCatalog.ALL.size(), "Picker must contain only reviewed catalog tiles.");
             for (FocusTileView tile : tiles) check(IconCatalog.find(String.valueOf(tile.getTag())) != null, "No device image may enter the curated catalog.");
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
+            onMain(new Runnable() { @Override public void run() {
+                View focused = picker.getCurrentFocus();
+                check(focused instanceof Button && "Use factory icon".contentEquals(((Button) focused).getText()),
+                        "Factory reset must be reachable above the first curated icon.");
+            }});
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+            onMain(new Runnable() { @Override public void run() { check(tiles.get(0).isFocused(), "D-pad down must return to the catalog."); }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
             onMain(new Runnable() { @Override public void run() { check(tiles.get(1).isFocused(), "D-pad must move to the next curated icon."); }});
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+            onMain(new Runnable() { @Override public void run() { check(tiles.get(5).isFocused(), "D-pad down must move to next curated row."); }});
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+            onMain(new Runnable() { @Override public void run() { check(tiles.get(9).isFocused(), "D-pad down must cross category headings."); }});
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
             waitForIdleSync();
             check(("catalog:" + IconCatalog.ALL.get(1).id).equals(IconSelectionStore.choice(context, key)), "Selecting an icon must persist for the actual app component.");
