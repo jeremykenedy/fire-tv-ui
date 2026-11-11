@@ -28,6 +28,20 @@ def replace_once(text, old, new):
     return text.replace(old, new, 1)
 
 
+def patch_hidden_card_widget_row(text):
+    gate = ('    iget-object v6, v4, LQ3/T5;->R:LN/R0;\n\n'
+            '    if-eqz v2, :cond_1f\n\n'
+            '    if-eqz v39, :cond_1e\n\n'
+            '    goto :goto_f\n\n'
+            '    :cond_1e\n')
+    return replace_once(text, gate, gate.replace(
+            '    if-eqz v39, :cond_1e',
+            '    invoke-virtual {v1}, LQ3/T3;->j()Z\n\n'
+            '    move-result v2\n\n'
+            '    if-nez v2, :cond_1f\n\n'
+            '    if-eqz v39, :cond_1e'))
+
+
 def patch_hidden_card_spacing(text):
     mini = ('    :cond_36\n'
             '    const v0, -0x2b40f54a\n\n'
@@ -518,7 +532,8 @@ def patch(decoded):
         '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;'))
 
     main_background = class_paths["LQ3/T5;"]
-    main_background.write_text(patch_hidden_card_spacing(main_background.read_text()))
+    main_background.write_text(patch_hidden_card_spacing(
+        patch_hidden_card_widget_row(main_background.read_text())))
     main_background.write_text(replace_once(main_background.read_text(),
         '    if-eqz v4, :cond_f',
         '    iget-object v14, v0, LQ3/T5;->z:Landroid/content/Context;\n'
