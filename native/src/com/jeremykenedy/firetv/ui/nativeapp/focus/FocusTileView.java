@@ -17,7 +17,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/** A stable focus target with growth reserved inside its measured bounds. */
+/** Stable focus targets with independent app artwork motion inside the viewport. */
 public final class FocusTileView extends FrameLayout {
     private final LinearLayout surface;
     private final ImageView icon;
@@ -33,11 +33,19 @@ public final class FocusTileView extends FrameLayout {
     private int legacyArtworkWidth;
     private boolean legacyPresentation;
     private boolean darkLegacySurface;
-    private boolean explicitAppGrowth, appShadow, appBorder;
+    private boolean appFocus, appBorder, fixedAppArtwork;
+    private int appGrowth, appShadowSize;
     private int appBackgroundColor;
     private float appBackgroundAlpha;
     private Integer titleColor;
     private boolean titleVisible = true;
+    private final android.view.ViewTreeObserver.OnPreDrawListener focusBounds =
+            new android.view.ViewTreeObserver.OnPreDrawListener() {
+                @Override public boolean onPreDraw() {
+                    if (appFocus && !preview && progress > 0) positionAppSurface();
+                    return true;
+                }
+            };
 
     public FocusTileView(Context context) {
         super(context);
@@ -123,7 +131,7 @@ public final class FocusTileView extends FrameLayout {
     public void setCompact(boolean compact) {
         if (this.compact == compact) return;
         this.compact = compact;
-        if (!legacyPresentation && !miniApp) configureNativeSurface();
+        if (!legacyPresentation && !miniApp && !fixedAppArtwork) configureNativeSurface();
     }
 
     private void configureNativeSurface() {
@@ -139,9 +147,22 @@ public final class FocusTileView extends FrameLayout {
     /** Opt in only for an app tile with a measured artwork width. */
     public void useLegacyDefaultAppPresentation(int artworkWidth) {
         if (artworkWidth <= 0) throw new IllegalArgumentException("Artwork width must be positive.");
+        appFocus = true;
         legacyArtworkWidth = artworkWidth;
         updatePresentation();
         layoutAppSurface();
+        updateVisual();
+    }
+
+    public void useAppArtworkPresentation(int artworkWidth) {
+        fixedAppArtwork = true;
+        useLegacyDefaultAppPresentation(artworkWidth);
+    }
+
+    public void useAppFocusPresentation() {
+        appFocus = true;
+        updateAppVisualOptions();
+        requestLayout();
         updateVisual();
     }
 
@@ -164,7 +185,7 @@ public final class FocusTileView extends FrameLayout {
     }
 
     private void layoutAppSurface() {
-        boolean artworkOnly = legacyPresentation || (miniApp && legacyArtworkWidth > 0);
+        boolean artworkOnly = legacyPresentation || fixedAppArtwork || (miniApp && legacyArtworkWidth > 0);
         surface.setClipToOutline(artworkOnly);
         background.setCornerRadius(dp(legacyPresentation ? 16 : 14));
         updateAppVisualOptions();
@@ -208,8 +229,8 @@ public final class FocusTileView extends FrameLayout {
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
         super.onMeasure(widthSpec, heightSpec);
-        int horizontal = legacyPresentation ? 0 : FocusOptions.growthInset(getMeasuredWidth());
-        int vertical = legacyPresentation ? 0 : FocusOptions.growthInset(getMeasuredHeight());
+        int horizontal = legacyPresentation || fixedAppArtwork ? 0 : FocusOptions.growthInset(getMeasuredWidth());
+        int vertical = legacyPresentation || fixedAppArtwork ? 0 : FocusOptions.growthInset(getMeasuredHeight());
         if (getPaddingLeft() != horizontal || getPaddingTop() != vertical) {
             setPadding(horizontal, vertical, horizontal, vertical);
             super.onMeasure(widthSpec, heightSpec);
@@ -228,10 +249,12 @@ public final class FocusTileView extends FrameLayout {
 
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        getViewTreeObserver().addOnPreDrawListener(focusBounds);
         refreshPreferences();
     }
 
     @Override protected void onDetachedFromWindow() {
+        if (getViewTreeObserver().isAlive()) getViewTreeObserver().removeOnPreDrawListener(focusBounds);
         cancelAnimation();
         super.onDetachedFromWindow();
     }
@@ -269,12 +292,14 @@ public final class FocusTileView extends FrameLayout {
     }
 
     private void updateAppVisualOptions() {
+        if (!appFocus) return;
+        try { appGrowth = FocusPreferences.appGrowth(getContext()); }
+        catch (IllegalStateException unavailable) { appGrowth = 18; }
+        try { appShadowSize = FocusPreferences.appShadowSize(getContext()); }
+        catch (IllegalStateException unavailable) { appShadowSize = 0; }
         if (legacyArtworkWidth <= 0) return;
         try { background.setCornerRadius(dp(FocusPreferences.iconRadius(getContext()))); }
         catch (IllegalStateException unavailable) { background.setCornerRadius(dp(16)); }
-        try { appShadow = FocusPreferences.iconShadow(getContext()); }
-        catch (IllegalStateException unavailable) { appShadow = false; }
-        explicitAppGrowth = FocusPreferences.hasExplicitGrowth(getContext());
         appBorder = FocusPreferences.appBorder(getContext());
         appBackgroundColor = FocusPreferences.iconBackgroundColor(getContext());
         appBackgroundAlpha = FocusPreferences.iconBackgroundOpacity(getContext()) / 100f
@@ -283,12 +308,22 @@ public final class FocusTileView extends FrameLayout {
     }
 
     private void updateVisual() {
-        float scale = legacyPresentation && !explicitAppGrowth
-                ? 1f + (FocusOptions.LEGACY_APP_SCALE - 1f) * progress : options.scale(progress);
+        float scale = appFocus ? 1f + appGrowth * progress / 100f : options.scale(progress);
+        Rect viewport = new Rect();
+        if (appFocus && !preview && surface.getWidth() > 0 && surface.getHeight() > 0) {
+            getWindowVisibleDisplayFrame(viewport);
+            float shadow = dp(appShadowSize) * progress;
+            if (viewport.width() > 0 && viewport.height() > 0)
+                scale = Math.min(scale, Math.max(1f,Math.min((viewport.width() - 2 * shadow) / surface.getWidth(),
+                        (viewport.height() - 2 * shadow) / surface.getHeight())));
+        }
         surface.setScaleX(scale);
         surface.setScaleY(scale);
-        if (legacyArtworkWidth > 0) {
-            surface.setElevation(appShadow ? dp(6) * progress : 0);
+        if (!appFocus || preview || progress == 0) { surface.setTranslationX(0); surface.setTranslationY(0); }
+        if (appFocus) {
+            float shadow = dp(appShadowSize) * progress;
+            surface.setElevation(shadow);
+            if (!preview && progress > 0) positionAppSurface();
         }
         if (transparentSurface) {
             background.setColor(Color.TRANSPARENT);
@@ -312,6 +347,26 @@ public final class FocusTileView extends FrameLayout {
             surfaceColor = 0xff000000 | mix(surfaceColor, appBackgroundColor, appBackgroundAlpha * (1f - progress));
         background.setColor(surfaceColor);
         title.setTextColor(titleColor != null ? titleColor : (progress > 0.5f ? Color.WHITE : 0xffcec7df));
+    }
+
+    @Override protected void onLayout(boolean changed,int left,int top,int right,int bottom) {
+        super.onLayout(changed,left,top,right,bottom);
+        updateVisual();
+    }
+
+    private void positionAppSurface() {
+        Rect viewport = new Rect(); getWindowVisibleDisplayFrame(viewport);
+        if (viewport.width() <= 0 || viewport.height() <= 0 || surface.getWidth() <= 0) return;
+        int[] location = new int[2]; surface.getLocationOnScreen(location);
+        float shadow = surface.getElevation();
+        float x = edgeOffset(location[0] - surface.getTranslationX(),surface.getWidth() * surface.getScaleX(),viewport.left + shadow,viewport.right - shadow);
+        float y = edgeOffset(location[1] - surface.getTranslationY(),surface.getHeight() * surface.getScaleY(),viewport.top + shadow,viewport.bottom - shadow);
+        if (Math.abs(x - surface.getTranslationX()) >= 1f) surface.setTranslationX(x);
+        if (Math.abs(y - surface.getTranslationY()) >= 1f) surface.setTranslationY(y);
+    }
+
+    private static float edgeOffset(float start,float size,float min,float max) {
+        return start < min ? min - start : start + size > max ? max - start - size : 0;
     }
 
     private static int mix(int from, int to, float fraction) {

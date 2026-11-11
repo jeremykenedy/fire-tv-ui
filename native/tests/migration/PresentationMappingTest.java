@@ -633,6 +633,7 @@ public final class PresentationMappingTest {
             check(source.get(key).equals(disk.files.get(LauncherMigration.PREFERENCES).values().get(key)), "Directly consumed compatibility choice remains intact.");
         Map<String, Object> direct = new LinkedHashMap<>();
         direct.put("icon_shadow", false); direct.put("icon_radius", 20);
+        direct.put("icon_focus_growth",30); direct.put("icon_focus_shadow_size",38);
         direct.put("mini_mode", true); direct.put("blur_on_scroll", false); direct.put("keep_dock_bottom", true);
         direct.put("override_back_button", false); direct.put("blur_favorites_background", true);
         direct.put("color_back_color_argb", -1754827); direct.put("color_back_color_opacity", 50);
@@ -642,7 +643,8 @@ public final class PresentationMappingTest {
         for (Map.Entry<String, Object> entry : direct.entrySet())
             check(entry.getValue().equals(directDisk.files.get(LauncherMigration.PREFERENCES).values().get(entry.getKey())), "Typed direct presentation choice retained.");
         for (Object[] bad : new Object[][]{{"icon_shadow", "true"}, {"icon_radius", -1}, {"icon_radius", 21},
-                {"icon_radius", 16L}, {"mini_mode", 1}, {"blur_on_scroll", "false"}, {"keep_dock_bottom", 1},
+                {"icon_radius", 16L}, {"icon_focus_growth",-1}, {"icon_focus_growth",31}, {"icon_focus_growth",18L},
+                {"icon_focus_shadow_size",0}, {"icon_focus_shadow_size",39}, {"icon_focus_shadow_size","18"}, {"mini_mode", 1}, {"blur_on_scroll", "false"}, {"keep_dock_bottom", 1},
                 {"override_back_button", "false"}, {"blur_favorites_background", 0}, {"color_back_color_argb", "red"},
                 {"color_back_color_opacity", -1}, {"color_back_color_opacity", 101}, {"color_back_color_opacity", 50L},
                 {"hide_favorites_background", true}, {"unknown_presentation_choice", true}}) {

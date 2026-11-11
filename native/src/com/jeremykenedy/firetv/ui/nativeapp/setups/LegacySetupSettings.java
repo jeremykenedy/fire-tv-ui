@@ -79,6 +79,8 @@ final class LegacySetupSettings {
                 "app_max_rows",
                 "featured_rotation_seconds",
                 "icon_radius",
+                "icon_focus_growth",
+                "icon_focus_shadow_size",
                 "menu_animation_speed",
                 "menu_animation_intensity",
                 "menu_animation_brightness",
@@ -172,6 +174,8 @@ final class LegacySetupSettings {
         }
         if ("featured_rotation_seconds".equals(key)
                 && ((Integer) value < 0 || (Integer) value > 86400)) throw invalid();
+        if ("icon_focus_growth".equals(key) && ((Integer)value < 0 || (Integer)value > 30)) throw invalid();
+        if ("icon_focus_shadow_size".equals(key) && ((Integer)value < 1 || (Integer)value > 38)) throw invalid();
         if ("app_max_rows".equals(key) && ((Integer) value < 0 || (Integer) value > 6))
             throw invalid();
         if ("app_scroll_direction".equals(key)

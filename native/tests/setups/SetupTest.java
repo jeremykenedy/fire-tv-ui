@@ -349,6 +349,47 @@ public final class SetupTest {
         PresentationState.applyPortable(groupContext, PortableBackup.decode(oldBackup, portable));
         check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
                 "Older portable backup preserves groups it could not capture.");
+        Context appFocusContext = new Context(new File(args[0],"app-focus-sizes"));
+        SavedSetupManager appFocusSetups = new SavedSetupManager(appFocusContext);
+        prefs(appFocusContext,"launcher_prefs").values.put("icon_focus_growth",30);
+        prefs(appFocusContext,"launcher_prefs").values.put("icon_focus_shadow_size",38);
+        prefs(appFocusContext,"launcher_prefs").values.put("icon_shadow",false);
+        prefs(appFocusContext,"native_focus").values.put("growth_percent",7);
+        Map<String,PreferenceSnapshot> existingAppFocusSetup=appFocusSetups.prepareLegacy(
+                LegacySetupSettings.capture(prefs(appFocusContext,"launcher_prefs").values),
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(),true);
+        check(Integer.valueOf(30).equals(existingAppFocusSetup.get("launcher_prefs").values().get("icon_focus_growth"))
+                && Integer.valueOf(38).equals(existingAppFocusSetup.get("launcher_prefs").values().get("icon_focus_shadow_size"))
+                && Boolean.FALSE.equals(existingAppFocusSetup.get("launcher_prefs").values().get("icon_shadow")),
+                "Existing version-one setup preserves stable app focus sizes and shadow Off.");
+        String appFocusId=appFocusSetups.save("App focus sizes",null);
+        byte[] appFocusBackup=PortableBackup.encode(PresentationState.capturePortable(appFocusContext),portable);
+        prefs(appFocusContext,"launcher_prefs").values.remove("icon_focus_growth");
+        prefs(appFocusContext,"launcher_prefs").values.remove("icon_focus_shadow_size");
+        appFocusSetups.apply(appFocusId,true);
+        check(Integer.valueOf(30).equals(prefs(appFocusContext,"launcher_prefs").values.get("icon_focus_growth"))
+                && Integer.valueOf(38).equals(prefs(appFocusContext,"launcher_prefs").values.get("icon_focus_shadow_size"))
+                && Boolean.FALSE.equals(prefs(appFocusContext,"launcher_prefs").values.get("icon_shadow")),"Named setup restores app focus sizes and authoritative shadow Off.");
+        PresentationState.applyPortable(appFocusContext,PortableBackup.decode(appFocusBackup,portable));
+        check(Integer.valueOf(7).equals(prefs(appFocusContext,"native_focus").values.get("growth_percent"))
+                && Integer.valueOf(30).equals(prefs(appFocusContext,"launcher_prefs").values.get("icon_focus_growth")),"Portable app focus roundtrip retains independent generic growth choice.");
+        for(String key:new String[]{"icon_focus_growth","icon_focus_shadow_size"}) {
+            Object previous=prefs(appFocusContext,"launcher_prefs").values.get(key);
+            for(Object invalid:new Object[]{-1,39,18L,"18",true}) {
+                prefs(appFocusContext,"launcher_prefs").values.put(key,invalid);
+                rejects(()->PresentationState.capture(appFocusContext),"Invalid app focus type/bounds refuse snapshot without dropping choice.");
+            }
+            prefs(appFocusContext,"launcher_prefs").values.put(key,previous);
+        }
+        Context absentAppFocus = new Context(new File(args[0],"absent-app-focus-sizes"));
+        SavedSetupManager absentAppFocusSetups = new SavedSetupManager(absentAppFocus);
+        String absentAppFocusId=absentAppFocusSetups.save("App defaults",null);
+        prefs(absentAppFocus,"launcher_prefs").values.put("icon_focus_growth",30);
+        prefs(absentAppFocus,"launcher_prefs").values.put("icon_focus_shadow_size",38);
+        absentAppFocusSetups.apply(absentAppFocusId,true);
+        check(!prefs(absentAppFocus,"launcher_prefs").values.containsKey("icon_focus_growth")
+                && !prefs(absentAppFocus,"launcher_prefs").values.containsKey("icon_focus_shadow_size"),
+                "Named setup restores exact absent app focus defaults without persisting invented values.");
         Context upgradedBackup = new Context(new File(args[0], "upgraded-portable"));
         String historicalIcons = "{ \n \"fixture.player/.Main\": { \"customIconUri\": \"content://fixture.invalid/previous-image\" } }";
         prefs(upgradedBackup, "launcher_prefs").values.put("app_visibility", historicalIcons);

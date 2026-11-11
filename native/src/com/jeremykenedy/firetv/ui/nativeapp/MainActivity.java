@@ -183,6 +183,7 @@ public final class MainActivity extends Activity {
         focusInitialApp = saved == null;
         LinearLayout body = Pages.page(this);
         homeBody = body;
+        body.setClipChildren(false); body.setClipToPadding(false);
         body.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32), Pages.dp(this, 96));
         statusBarArea = new LinearLayout(this);
         statusBarState = null;
@@ -246,6 +247,7 @@ public final class MainActivity extends Activity {
             }
         });
         appArea = new LinearLayout(this); appArea.setOrientation(LinearLayout.VERTICAL);
+        appArea.setClipChildren(false); appArea.setClipToPadding(false);
         appArea.setPadding(Pages.dp(this, 10), Pages.dp(this, 14), Pages.dp(this, 10), Pages.dp(this, 14));
         android.graphics.drawable.GradientDrawable tray = new android.graphics.drawable.GradientDrawable();
         tray.setColor(0x55000000);
@@ -412,7 +414,8 @@ public final class MainActivity extends Activity {
             scroll.setClipChildren(false); scroll.setClipToPadding(false);
             scroll.addView(grid);
             if (rows * tileHeight > availableHeight) {
-                ScrollView vertical = new ScrollView(this); watchAppScroll(vertical); vertical.addView(scroll); appArea.addView(vertical);
+                ScrollView vertical = new ScrollView(this); vertical.setClipChildren(false); vertical.setClipToPadding(false);
+                watchAppScroll(vertical); vertical.addView(scroll); appArea.addView(vertical);
             } else appArea.addView(scroll);
         } else {
             grid.setColumnCount(options.columns);
@@ -464,6 +467,7 @@ public final class MainActivity extends Activity {
                 });
             } else if (folder != null) {
                 tile = new FocusTileView(this);
+                tile.useAppFocusPresentation();
                 tile.setTitle(folder.name); tile.setIcon(artwork.get(key)); tile.setTag(key);
                 tile.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {

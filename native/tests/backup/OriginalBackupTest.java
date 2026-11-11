@@ -18,6 +18,15 @@ public final class OriginalBackupTest {
         rejects("{}");rejects("{\"apps_per_row\":4.5}");rejects("{\"apps_per_row\":true}");
         rejects("{\"use_24h_clock\":1}");rejects("{\"featured_card_order\":[\"one\",\"one\"]}");
         rejects("{\"apps_per_row\":4,\"apps_per_row\":5}");rejects("{\"unexpected\\nname\":true}");
+        for(String key:new String[]{"icon_focus_growth","icon_focus_shadow_size"}) {
+            for(int value:key.equals("icon_focus_growth")?new int[]{0,18,30}:new int[]{1,18,28,38}) {
+                OriginalBackup focus=decode("{\""+key+"\":"+value+"}");
+                check(focus.unsupported.isEmpty()&&Integer.valueOf(value).equals(focus.settings.values().get(key)));
+            }
+            rejects("{\""+key+"\":\"18\"}");rejects("{\""+key+"\":true}");rejects("{\""+key+"\":18.5}");
+            rejects("{\""+key+"\":"+(key.equals("icon_focus_growth")?31:39)+"}");
+            rejects("{\""+key+"\":"+(key.equals("icon_focus_growth")?-1:0)+"}");
+        }
         System.out.println("Original backup checks passed: "+checks);
     }
 }

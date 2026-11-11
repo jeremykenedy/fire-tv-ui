@@ -16,7 +16,7 @@ public final class OriginalBackup {
     static {
         add("String", "app_order app_visibility channel_visibility custom_gradient custom_wallpaper_uri custom_video_uri display_order favorites_bg_mode folders icon_pack_package mode size status_bar_position status_bar_weather_loc status_bar_weather_unit subreddit_wallpaper_name widgets_config menu_animation menu_transition_style app_scroll_direction icon_focus_style menu_background_palette menu_overlay menu_overlay_palette input_names overlay_mode");
         add("Boolean", "blur_favorites_background blur_on_scroll enable_widgets featured_artwork_fit hide_favorites_background hide_status_bar_unless_focused hide_watch_next hide_watch_next_titles icon_shadow keep_dock_bottom mini_mode minimal_status_bar poster_mode show_all_apps_button text_outside_cards tinted_status_bar use_24h_clock white_border menu_animation_frozen menu_overlay_frozen");
-        add("Int", "apps_per_row app_max_rows featured_rotation_seconds icon_radius menu_animation_speed menu_animation_intensity menu_animation_brightness icon_focus_background icon_focus_border menu_overlay_speed menu_overlay_intensity menu_overlay_opacity");
+        add("Int", "apps_per_row app_max_rows featured_rotation_seconds icon_radius icon_focus_growth icon_focus_shadow_size menu_animation_speed menu_animation_intensity menu_animation_brightness icon_focus_background icon_focus_border menu_overlay_speed menu_overlay_intensity menu_overlay_opacity");
         add("StringSet", "featured_card_order featured_feed_order hidden_featured_cards featured_feed_rotation_seconds factory_icon_packages");
     }
     public final PreferenceSnapshot settings;
@@ -51,6 +51,8 @@ public final class OriginalBackup {
             }
             if(!("Int".equals(type)&&value instanceof Integer||"Boolean".equals(type)&&value instanceof Boolean
                     ||"String".equals(type)&&value instanceof String||"StringSet".equals(type)&&value instanceof Set))throw invalid();
+            if (key.equals("icon_focus_growth") && ((Integer)value < 0 || (Integer)value > 30)
+                    || key.equals("icon_focus_shadow_size") && ((Integer)value < 1 || (Integer)value > 38)) throw invalid();
             values.put(key,value);
         }
         return new OriginalBackup(values,unsupported);

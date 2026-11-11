@@ -100,6 +100,11 @@ public final class LegacyPresentationMapper {
             if (legacy.get(key) instanceof Boolean) accepted.add(key);
         Object radius = legacy.get("icon_radius");
         if (radius instanceof Integer && (Integer) radius >= 0 && (Integer) radius <= 20) accepted.add("icon_radius");
+        for (String key : new String[]{"icon_focus_growth", "icon_focus_shadow_size"}) {
+            Object value = legacy.get(key);
+            if (value instanceof Integer && (Integer)value >= (key.equals("icon_focus_growth") ? 0 : 1)
+                    && (Integer)value <= (key.equals("icon_focus_growth") ? 30 : 38)) accepted.add(key);
+        }
         if (legacy.get("color_back_color_argb") instanceof Integer) accepted.add("color_back_color_argb");
         for (String prefix : new String[]{"color_cards_text_color_", "color_widget_bg_color_", "color_widget_text_color_"}) {
             if (legacy.get(prefix + "argb") instanceof Integer) accepted.add(prefix + "argb");
