@@ -187,7 +187,26 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
             action("Card size, channel order and visibility", "layout", new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     focusTag = "layout";
-                    startActivity(new Intent(CardsSettingsActivity.this, LayoutSettingsActivity.class));
+                    try {
+                        Intent editor = new Intent(CardsSettingsActivity.this, LayoutSettingsActivity.class);
+                        if (getIntent().hasExtra(LayoutSettingsActivity.DASHBOARD_PROFILE)) {
+                            String target = getIntent().getStringExtra(LayoutSettingsActivity.DASHBOARD_PROFILE);
+                            if (target == null) throw new IllegalStateException("This card layout is unavailable.");
+                            editor.putExtra(LayoutSettingsActivity.DASHBOARD_PROFILE, target);
+                        } else {
+                            com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.Decision selected =
+                                    new com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore(CardsSettingsActivity.this)
+                                            .resolve(System.currentTimeMillis());
+                            if (selected.status == com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.Status.READY)
+                                editor.putExtra(LayoutSettingsActivity.DASHBOARD_PROFILE, selected.profile.id);
+                            else if (selected.status == com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.Status.BASE_LAYOUT)
+                                editor.putExtra(LayoutSettingsActivity.DASHBOARD_PROFILE, LayoutSettingsActivity.BASE_LAYOUT);
+                            else throw new IllegalStateException("Choose an available dashboard in Dashboards and schedules first.");
+                        }
+                        startActivity(editor);
+                    } catch (Exception unavailable) {
+                        Toast.makeText(CardsSettingsActivity.this, unavailable.getMessage(), Toast.LENGTH_LONG).show();
+                    }
                 }
             });
             content.addView(Pages.text(this, "Choose a channel to change its title order or hide items and supported series.", 18));

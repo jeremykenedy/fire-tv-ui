@@ -28,7 +28,10 @@ import java.util.List;
 import java.util.Set;
 
 public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    public static final String DASHBOARD_PROFILE = "dashboard_profile";
+    public static final String BASE_LAYOUT = "base";
     private boolean startupBlocked;
+    private String profileId, profileName;
     private LayoutOptions options;
     private List<LayoutItem> available;
     private LinearLayout rows;
@@ -59,8 +62,27 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
         enteredWidgets = state == null ? getIntent().getBooleanExtra("widgets", false) : state.getBoolean("entered_widgets", false);
         widgetPage = state == null ? enteredWidgets : state.getBoolean("widgets", false);
         permissionDenied = state != null && state.getBoolean("listings_denied", false);
+        profileId = getIntent().getStringExtra(DASHBOARD_PROFILE);
+        if (BASE_LAYOUT.equals(profileId)) profileId = null;
         available = availableItems();
-        options = HomeSlots.discover(LayoutPreferences.load(this, HomeSlots.defaults()), feeds).discover(available);
+        try {
+            LayoutOptions selected = LayoutPreferences.load(this, HomeSlots.defaults());
+            if (profileId != null) {
+                if (!com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.validId(profileId))
+                    throw new IllegalStateException("This dashboard is unavailable.");
+                com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.Profile profile =
+                        new com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore(this).read().profile(profileId);
+                if (profile == null) throw new IllegalStateException("This dashboard no longer exists.");
+                profileName = profile.name;
+                selected = profile.layout;
+                enteredWidgets = false; widgetPage = false;
+            }
+            options = HomeSlots.discover(selected, feeds).discover(available);
+        } catch (Exception unavailable) {
+            startupBlocked = true;
+            Toast.makeText(this, unavailable.getMessage(), Toast.LENGTH_LONG).show();
+            finish(); return;
+        }
         LinearLayout page = Pages.sidePanel(this);
         heading = Pages.text(this, "", 26);
         heading.setTextColor(0xff8d8d8d);
@@ -96,7 +118,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
             @Override public void onClick(View view) { addWidgetColumn(); }
         });
         addGroup.setTag("layout:add-widget-column");
-        content.addView(addGroup);
+        if (profileId == null) content.addView(addGroup);
         general = column();
         content.addView(general);
         Button statusBar = Pages.menuButton(this, "Status bar", new View.OnClickListener() {
@@ -105,7 +127,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
             }
         });
         statusBar.setTag("layout:statusbar-settings");
-        general.addView(statusBar);
+        if (profileId == null) general.addView(statusBar);
         general.addView(Pages.text(this, "Home content", 22));
         mode = Pages.text(this, "", 18);
         mode.setTag("layout:mode-status");
@@ -302,14 +324,16 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
     }
 
     private void render(String focusTag) {
-        heading.setText(widgetPage ? "Widgets" : "Your cards and widgets");
+        heading.setText(profileName == null ? (widgetPage ? "Widgets" : "Your cards and widgets") : "Dashboard: " + profileName);
+        widgetSettings.setVisibility(profileId == null ? View.VISIBLE : View.GONE);
         enableWidgets.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
         widgetBackground.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
         widgetText.setVisibility(widgetPage ? View.VISIBLE : View.GONE);
         enableWidgets.setText("Enable widgets: " + (LayoutPreferences.widgetsEnabled(this, options) ? "On" : "Off"));
         explanation.setVisibility(widgetPage ? View.GONE : View.VISIBLE);
         explanation.setText(widgetPage ? "Configure your local widgets and choose which ones appear on Home. Set shared order in Your cards and widgets."
-                : "Keep cards and widgets together in the order you choose.");
+                : profileName == null ? "Keep cards and widgets together in the order you choose."
+                : "Card visibility, order and size apply only to this dashboard. Your base layout and other dashboards stay unchanged.");
         widgetSettings.setText(widgetPage ? "Your cards and widgets" : "Widget settings");
         general.setVisibility(widgetPage ? View.GONE : View.VISIBLE);
         orderHeading.setText(widgetPage ? "Widgets" : "Order and visibility");
@@ -385,11 +409,19 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
 
     private boolean save(LayoutOptions value, String focusTag) {
         try {
-            LayoutPreferences.save(this, value);
+            if (profileId == null) LayoutPreferences.save(this, value);
+            else {
+                com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore store =
+                        new com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore(this);
+                com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.Profile profile = store.read().profile(profileId);
+                if (profile == null) throw new IllegalStateException("This dashboard no longer exists.");
+                store.save(profile.name, profile.id, value);
+                profileName = profile.name;
+            }
             options = value;
             render(focusTag);
             return true;
-        } catch (IllegalStateException failed) {
+        } catch (Exception failed) {
             Toast.makeText(this, failed.getMessage(), Toast.LENGTH_LONG).show();
             return false;
         }

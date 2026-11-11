@@ -103,6 +103,7 @@ public final class MainActivity extends Activity {
     private int generation;
     private RemoteButtonDispatcher remoteButtons;
     private LayoutScheduleController dashboard;
+    private LayoutSchedule.Profile displayedDashboard;
     private boolean homeReady;
     private boolean activityResumed;
     private boolean contentStarted;
@@ -220,8 +221,13 @@ public final class MainActivity extends Activity {
         });
         dashboard = new LayoutScheduleController(this, new LayoutScheduleController.Listener() {
             @Override public void onDashboard(LayoutSchedule.Decision decision) {
-                if (decision.status == LayoutSchedule.Status.READY) homeContent.setDashboardLayout(decision.profile.layout);
-                else if (decision.status == LayoutSchedule.Status.BASE_LAYOUT) homeContent.setDashboardLayout(null);
+                if (decision.status == LayoutSchedule.Status.READY) {
+                    displayedDashboard = decision.profile;
+                    homeContent.setDashboardLayout(decision.profile.layout);
+                } else if (decision.status == LayoutSchedule.Status.BASE_LAYOUT) {
+                    displayedDashboard = null;
+                    homeContent.setDashboardLayout(null);
+                }
                 else Toast.makeText(MainActivity.this, "Dashboard settings need attention. Open Settings, Home layout, Dashboards and schedules.", Toast.LENGTH_LONG).show();
                 startHomeContent();
             }
@@ -661,13 +667,15 @@ public final class MainActivity extends Activity {
         final ChannelCardView card = findCard(feed.item.key());
         if (card == null) return;
         card.onHostPause();
+        final LayoutSchedule.Profile layoutTarget = displayedDashboard;
         final List<String> labels = new ArrayList<>();
         final List<Runnable> actions = new ArrayList<>();
         final View[] nextFocus = new View[1];
         final Runnable refreshVisibility = new Runnable() {
             @Override public void run() {
                 homeContent.refreshPreferences();
-                List<String> order = LayoutPreferences.load(MainActivity.this, HomeSlots.defaults()).order;
+                List<String> order = displayedDashboard == null
+                        ? LayoutPreferences.load(MainActivity.this, HomeSlots.defaults()).order : displayedDashboard.layout.order;
                 int current = order.indexOf(feed.item.key());
                 for (int i = current + 1; i < order.size() && nextFocus[0] == null; i++) {
                     View candidate = homeContent.findViewWithTag("slot:" + order.get(i));
@@ -732,11 +740,29 @@ public final class MainActivity extends Activity {
         labels.add("Hide this card"); actions.add(new Runnable() {
             @Override public void run() {
                 try {
-                    LayoutPreferences.save(MainActivity.this, LayoutPreferences.load(MainActivity.this, HomeSlots.defaults())
-                            .discover(java.util.Collections.singletonList(feed.item)).setVisible(feed.item.key(), false));
+                    String target = layoutTarget == null ? null : layoutTarget.id;
+                    String current = displayedDashboard == null ? null : displayedDashboard.id;
+                    if (!java.util.Objects.equals(target, current))
+                        throw new IllegalStateException("The dashboard changed. Open this card's controls again.");
+                    if (layoutTarget == null) {
+                        LayoutPreferences.save(MainActivity.this, LayoutPreferences.load(MainActivity.this, HomeSlots.defaults())
+                                .discover(java.util.Collections.singletonList(feed.item)).setVisible(feed.item.key(), false));
+                    } else {
+                        com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore store =
+                                new com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore(MainActivity.this);
+                        LayoutSchedule.Profile profile = store.read().profile(layoutTarget.id);
+                        if (profile == null) throw new IllegalStateException("This dashboard no longer exists.");
+                        com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions updated = profile.layout
+                                .discover(java.util.Collections.singletonList(feed.item)).setVisible(feed.item.key(), false);
+                        store.save(profile.name, profile.id, updated);
+                        dashboard.refresh();
+                        displayedDashboard = new LayoutSchedule.Profile(profile.id, profile.name, updated);
+                        homeContent.setDashboardLayout(updated);
+                    }
                     refreshVisibility.run();
                     Toast.makeText(MainActivity.this, "Card hidden. Restore it in Card settings.", Toast.LENGTH_SHORT).show();
-                } catch (RuntimeException failed) { Toast.makeText(MainActivity.this, "This card could not be hidden. Please try again.", Toast.LENGTH_SHORT).show(); }
+                } catch (Exception failed) { Toast.makeText(MainActivity.this, failed.getMessage() == null
+                        ? "This card could not be hidden. Please try again." : failed.getMessage(), Toast.LENGTH_LONG).show(); }
             }
         });
         String publisher = feed.source;
@@ -753,7 +779,11 @@ public final class MainActivity extends Activity {
             }
         });
         labels.add("Card settings"); actions.add(new Runnable() {
-            @Override public void run() { startActivity(new Intent(MainActivity.this, CardsSettingsActivity.class)); }
+            @Override public void run() {
+                startActivity(new Intent(MainActivity.this, CardsSettingsActivity.class)
+                        .putExtra(com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity.DASHBOARD_PROFILE,
+                                layoutTarget == null ? com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity.BASE_LAYOUT : layoutTarget.id));
+            }
         });
         AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(this).setTitle(program == null ? feed.title : program.title)
                 .setItems(labels.toArray(new String[0]), new DialogInterface.OnClickListener() {
