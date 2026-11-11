@@ -61,6 +61,13 @@ public final class FocusTileView extends FrameLayout {
         surface.setPadding(dp(12), dp(12), dp(12), dp(10));
         background.setCornerRadius(dp(14));
         surface.setBackground(background);
+        surface.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override public void getOutline(View view, android.graphics.Outline outline) {
+                if (!appFocus) { background.getOutline(outline); return; }
+                outline.setRoundRect(0,0,view.getWidth(),view.getHeight(),background.getCornerRadius());
+                outline.setAlpha(1f);
+            }
+        });
         addView(surface, new FrameLayout.LayoutParams(-1, -1));
         icon = new ImageView(context);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -297,7 +304,7 @@ public final class FocusTileView extends FrameLayout {
         catch (IllegalStateException unavailable) { appGrowth = 18; }
         try { appShadowSize = FocusPreferences.appShadowSize(getContext()); }
         catch (IllegalStateException unavailable) { appShadowSize = 0; }
-        if (legacyArtworkWidth <= 0) return;
+        if (legacyArtworkWidth <= 0) { surface.invalidateOutline(); return; }
         try { background.setCornerRadius(dp(FocusPreferences.iconRadius(getContext()))); }
         catch (IllegalStateException unavailable) { background.setCornerRadius(dp(16)); }
         appBorder = FocusPreferences.appBorder(getContext());
@@ -305,6 +312,7 @@ public final class FocusTileView extends FrameLayout {
         appBackgroundAlpha = FocusPreferences.iconBackgroundOpacity(getContext()) / 100f
                 * Color.alpha(appBackgroundColor) / 255f;
         surface.setClipToOutline(true);
+        surface.invalidateOutline();
     }
 
     private void updateVisual() {

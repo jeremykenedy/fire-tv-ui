@@ -387,6 +387,7 @@ public final class MainActivity extends Activity {
             messages.add("App order limit reached. New apps remain usable, but their order cannot be saved.");
         GridLayout grid = new GridLayout(this);
         grid.setClipChildren(false); grid.setClipToPadding(false);
+        com.jeremykenedy.firetv.ui.nativeapp.focus.AppFocusViewport.attach(grid,appArea);
         int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 84);
         boolean mini = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isMini(this);
         float density = getResources().getDisplayMetrics().density;
