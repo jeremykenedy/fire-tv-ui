@@ -228,7 +228,7 @@ public final class FolderActivity extends Activity {
         int height = Math.round(getResources().getDisplayMetrics().heightPixels * 0.82f);
         root.addView(body, new FrameLayout.LayoutParams(width, height, Gravity.CENTER));
         TextView heading = new TextView(this);
-        heading.setText(folder.name); heading.setTextSize(22); heading.setTextColor(0xffb5b2bd);
+        heading.setText(folder.name); heading.setTextSize(20); heading.setTextColor(0xffb5b2bd);
         heading.setSingleLine(true); heading.setEllipsize(android.text.TextUtils.TruncateAt.END);
         heading.setTypeface(null, Typeface.BOLD); heading.setGravity(Gravity.CENTER);
         AccessibilityStyle.apply(this, heading);
@@ -265,7 +265,7 @@ public final class FolderActivity extends Activity {
                 @Override public void onFocusChange(View view, boolean focused) { if (focused) focusKey = "app:" + key; }
             });
             TextView title = new TextView(this); title.setText(app == null ? loaded ? "Unavailable" : "Loading..." : app.label);
-            title.setTextSize(18); title.setTextColor(Color.WHITE); title.setTypeface(null, Typeface.BOLD);
+            title.setTextSize(14); title.setTextColor(Color.WHITE); title.setTypeface(null, Typeface.BOLD);
             title.setGravity(Gravity.CENTER); title.setSingleLine(true); title.setEllipsize(android.text.TextUtils.TruncateAt.END);
             title.setPadding(dp(4), dp(2), dp(4), 0);
             title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
