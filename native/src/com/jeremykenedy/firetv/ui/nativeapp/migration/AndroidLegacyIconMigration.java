@@ -55,7 +55,7 @@ public final class AndroidLegacyIconMigration {
             String choice = choice(reference, bytes);
             synchronized (LOCK) {
                 if (create) install(context, choice, bytes);
-                else verify(new File(new File(context.getFilesDir(), "icons"), choice.substring(6)), bytes);
+                else verify(new File(new File(context.getFilesDir().getCanonicalFile(), "icons"), choice.substring(6)), bytes);
             }
             result.put(reference, choice);
         }
