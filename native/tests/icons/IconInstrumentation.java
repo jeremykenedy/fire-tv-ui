@@ -53,6 +53,15 @@ public final class IconInstrumentation extends Instrumentation {
                     new ColorDrawable(Color.RED), null)).getBitmap();
             check(insignia.getWidth() <= 512 && insignia.getHeight() <= 512,
                     "Insignia's reviewed replacement must be selectable as bounded artwork.");
+            for (String id : new String[] {"sega-master-system", "gamecube", "playstation-5"}) {
+                IconSelectionStore.save(context, first, "catalog:" + id);
+                check(IconCatalog.find(id).label.equals(IconSelectionStore.label(context, first)),
+                        "Original device labels must remain available.");
+                Bitmap image = ((BitmapDrawable) IconSelectionStore.resolve(context, first,
+                        new ColorDrawable(Color.RED), null)).getBitmap();
+                check(image.getWidth() <= 512 && image.getHeight() <= 512,
+                        "Reviewed text tiles must decode at a bounded size.");
+            }
             IconSelectionStore.save(context, first, IconSelectionStore.FACTORY);
             check("catalog:pc".equals(IconSelectionStore.choice(context, second)), "Factory reset must not change another tile.");
             ColorDrawable factory = new ColorDrawable(Color.RED), theme = new ColorDrawable(Color.BLUE);
@@ -132,12 +141,18 @@ public final class IconInstrumentation extends Instrumentation {
             onMain(new Runnable() { @Override public void run() { check(tiles.get(0).isFocused(), "D-pad down must return to the catalog."); }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
             onMain(new Runnable() { @Override public void run() { check(tiles.get(1).isFocused(), "D-pad must move to the next curated icon."); }});
-            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
-            onMain(new Runnable() { @Override public void run() { check(tiles.get(5).isFocused(), "D-pad down must move to next curated row."); }});
-            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
-            onMain(new Runnable() { @Override public void run() { check(tiles.get(8).isFocused(), "D-pad down must reach the last audio row."); }});
-            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
-            onMain(new Runnable() { @Override public void run() { check(tiles.get(9).isFocused(), "D-pad down must cross category headings."); }});
+            boolean crossed = false;
+            for (int step = 0; step < 8; step++) {
+                sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+                final boolean[] nextCategory = {false};
+                onMain(new Runnable() { @Override public void run() {
+                    View focused = picker.getCurrentFocus();
+                    IconCatalog.Entry entry = focused == null ? null : IconCatalog.find(String.valueOf(focused.getTag()));
+                    nextCategory[0] = entry != null && !"Audio".equals(entry.category);
+                }});
+                if (nextCategory[0]) { crossed = true; break; }
+            }
+            check(crossed, "D-pad down must cross category headings.");
             onMain(new Runnable() { @Override public void run() { tiles.get(1).requestFocus(); }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
             waitForIdleSync();

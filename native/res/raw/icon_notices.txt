@@ -1,5 +1,6 @@
-This source preview includes 23 individually reviewed curated icons.
+This source preview includes 48 individually reviewed curated icons.
 27 legacy source variants remain excluded pending verified redistribution rights.
+Original plain-text tiles keep those catalog choices selectable without bundling the held variants.
 Denon uses a separately reviewed Wikimedia depiction instead of the held official-site SVG.
 
 Original project artwork and tile backgrounds/layout are MIT.

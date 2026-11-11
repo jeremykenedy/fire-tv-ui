@@ -586,6 +586,256 @@
       "rendererSha256": "7277a519f37a40e0eeed8498f601be92bfaed1a2940f8a19c14eb47de809ac8a",
       "renderAccent": "#ae704a",
       "sourceFileDate": "2010-04-17"
+    },
+    {
+      "id": "nes",
+      "sourceFile": "native/icons/sources/nes.svg",
+      "sourceUrl": null,
+      "sourceSha256": "a83cfe9c2e49e3f552bfc5eeb6015c90d87c2159bd720df0d87dbe7ead4dbe2e",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "snes",
+      "sourceFile": "native/icons/sources/snes.svg",
+      "sourceUrl": null,
+      "sourceSha256": "ff60d6ea0bb697033fa1dd680ffac26988caf51c826a9bc950c997e24bea852b",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "sega-genesis",
+      "sourceFile": "native/icons/sources/sega-genesis.svg",
+      "sourceUrl": null,
+      "sourceSha256": "7a23ea7e473c95be45c455347810c64318f864aacdef9db41eb7edf0170afb54",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "sega-master-system",
+      "sourceFile": "native/icons/sources/sega-master-system.svg",
+      "sourceUrl": null,
+      "sourceSha256": "879fbd18e9c5cc1464dc424312290f4cdec96be07b5f4eb7e7ba7c31b3a4507f",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "playstation-1",
+      "sourceFile": "native/icons/sources/playstation-1.svg",
+      "sourceUrl": null,
+      "sourceSha256": "b5225f8cba96f9d0595a28015525d3c4367002d9c10b96198fd1b2be37b3496b",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "playstation-2",
+      "sourceFile": "native/icons/sources/playstation-2.svg",
+      "sourceUrl": null,
+      "sourceSha256": "1b35eb39fe66a523a50510423038e19b1ced1a8af44ea7ca2ce667cef371baf7",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "playstation-3",
+      "sourceFile": "native/icons/sources/playstation-3.svg",
+      "sourceUrl": null,
+      "sourceSha256": "688b923227dc23e5f4a19be8a80bad07076d8a5f6e402591596d1ae28db8e011",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "playstation-4",
+      "sourceFile": "native/icons/sources/playstation-4.svg",
+      "sourceUrl": null,
+      "sourceSha256": "94b90c6253d1a0dbd7237a376a64807ff36bd7b4a76a54a962343bcc9c0e5b5c",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "playstation-5",
+      "sourceFile": "native/icons/sources/playstation-5.svg",
+      "sourceUrl": null,
+      "sourceSha256": "9b82d0ea5fe433b7dd452b40418802d2ec116720398e4633449a699145370666",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "xbox",
+      "sourceFile": "native/icons/sources/xbox.svg",
+      "sourceUrl": null,
+      "sourceSha256": "91f02570b5195309a2c4a3a690f2430c95ce1a9d4fc592c7db14a09ee15f2da1",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "xbox-360",
+      "sourceFile": "native/icons/sources/xbox-360.svg",
+      "sourceUrl": null,
+      "sourceSha256": "85d1b8bf1d02ecdca85544504d51d64f992b2dc378b4c32a4bb2a50a4f047dc7",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "xbox-one",
+      "sourceFile": "native/icons/sources/xbox-one.svg",
+      "sourceUrl": null,
+      "sourceSha256": "135b6c12bfe89144e3e9b2f094713c26e796331e6eec5ad780fe2450d808be37",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "wii",
+      "sourceFile": "native/icons/sources/wii.svg",
+      "sourceUrl": null,
+      "sourceSha256": "fe245a29797bf2c7af56c6b4cdca707b84b2cab91121b129bdad6e1211ff43ee",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "wii-u",
+      "sourceFile": "native/icons/sources/wii-u.svg",
+      "sourceUrl": null,
+      "sourceSha256": "dab60abb9b426bb13d0dd94d46ae99d4944de7dc01e195c3b549c1400f5dbae8",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "switch",
+      "sourceFile": "native/icons/sources/switch.svg",
+      "sourceUrl": null,
+      "sourceSha256": "380d3f27750a114b89cceacfb8385b547ab0dc38510b4f2d3ab93f76571e7c18",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "nintendo-64",
+      "sourceFile": "native/icons/sources/nintendo-64.svg",
+      "sourceUrl": null,
+      "sourceSha256": "f6a3aea0d9884aa2c9d5c6f3f288af18d4e0fe65c22291a379e675493704d490",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "gamecube",
+      "sourceFile": "native/icons/sources/gamecube.svg",
+      "sourceUrl": null,
+      "sourceSha256": "406c4a96a4bb8e262961114b30648847fb902e95be2a8cf3d2764715d929e925",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "dreamcast",
+      "sourceFile": "native/icons/sources/dreamcast.svg",
+      "sourceUrl": null,
+      "sourceSha256": "4b0c3ab517db702b3ff96f96d707ac007600461dfa541bef696d11e7a06ba51b",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "sega-saturn",
+      "sourceFile": "native/icons/sources/sega-saturn.svg",
+      "sourceUrl": null,
+      "sourceSha256": "eca3e8dbc90f124d72e4ecdb6a470f2673f40bce5b3b67339292ada860bc7482",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "yamaha",
+      "sourceFile": "native/icons/sources/yamaha.svg",
+      "sourceUrl": null,
+      "sourceSha256": "b891418af9baceaf014e71fa4b5e65b667acb279580c71b1498a007bfc5fb62c",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "onkyo",
+      "sourceFile": "native/icons/sources/onkyo.svg",
+      "sourceUrl": null,
+      "sourceSha256": "c38d60a47884984d822109209a47b43be418fcaf57effec6220002929e1be397",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "marantz",
+      "sourceFile": "native/icons/sources/marantz.svg",
+      "sourceUrl": null,
+      "sourceSha256": "05593c2e7549618177956dbddbf2807752093572eacf3effa3d2adc1da19069c",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "bose",
+      "sourceFile": "native/icons/sources/bose.svg",
+      "sourceUrl": null,
+      "sourceSha256": "203a2d2324cd6bef2f29f076bcf0f586272133e6b03a46650e3ce81ea8f1c2ff",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "vizio",
+      "sourceFile": "native/icons/sources/vizio.svg",
+      "sourceUrl": null,
+      "sourceSha256": "f04629c58e6a64828ad9bd84058104853cca22e2bbed4007928441e3027cab93",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
+    },
+    {
+      "id": "klipsch",
+      "sourceFile": "native/icons/sources/klipsch.svg",
+      "sourceUrl": null,
+      "sourceSha256": "fcc3ddbd4b1caa2e64bb9954a69ea528cd7e8ccd0a18ee9182b541d88aa11302",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text device label on the project tile background. The held legacy source remains excluded; no upstream paths or pixels are used."
     }
   ]
 }
