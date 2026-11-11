@@ -135,6 +135,8 @@ public final class HiddenCardsTest {
                 "The selected model must remain dismissible after its label cache entry is evicted.");
         check(HiddenCards.selected(firstKey, "source.shared", "||First shared title", 9).title.equals("First shared title"),
                 "A preview model's internal prefix must not appear in its menu title.");
+        check(HiddenCards.selected(firstKey, "source.shared", "||||Literal preview title", 9).title.equals("||Literal preview title"),
+                "Only the injected preview prefix may be removed from a literal title.");
         check(HiddenCards.selected(firstKey, "source.shared", "||Literal Watch Next title", -1).title.equals("||Literal Watch Next title"),
                 "Watch Next title text must remain literal.");
         HiddenCards.hide(context, selected.key);
