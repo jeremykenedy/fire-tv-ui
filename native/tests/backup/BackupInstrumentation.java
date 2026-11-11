@@ -38,10 +38,24 @@ public final class BackupInstrumentation extends Instrumentation {
             Map<String,PreferenceSnapshot> fixture=new LinkedHashMap<>();
             for(String file:PresentationState.files())fixture.put(file,new PreferenceSnapshot(Collections.emptyMap()));
             fixture.put("native_focus",new PreferenceSnapshot(Collections.singletonMap("fill_enabled",false)));
+            String groups="[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Small\",\"data\":{}},{\"id\":\"22222222-2222-2222-2222-222222222222\",\"type\":\"YearProgress\",\"size\":\"Small\",\"data\":{}}]]";
+            fixture.put("native_layout",new PreferenceSnapshot(Collections.singletonMap("widget_groups",groups)));
+            fixture.put("launcher_prefs",new PreferenceSnapshot(Collections.singletonMap("widgets_config",groups)));
+            fixture.put("native_cards",new PreferenceSnapshot(com.jeremykenedy.firetv.ui.nativeapp.cards.CardOptions.defaults()
+                    .withGlobalSeconds(12).withFeedSeconds("fixture-feed",4)
+                    .hide("com.example.fixture","fixture-item","Fixture title")
+                    .hideSeries("com.example.fixture","fixture-series","Fixture series")
+                    .withItemOrder("com.example.fixture","fixture-feed",Arrays.asList("second","first")).backupValues()));
             PresentationState.apply(context,fixture,true);
             screen=startActivitySync(new Intent().setClassName(context,BackupActivity.class.getName()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             waitForIdleSync();
-            check(text("Source preview presentation only."),"Native preview scope is visible.");
+            check(text("Export saves launcher layout"),"Native backup scope is visible.");
+            check(text("Backups from the original launcher"),"Original backup and local data boundaries are visible.");
+            android.graphics.Bitmap screenshot=getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES).takeScreenshot();
+            check(screenshot!=null,"Native backup screen capture is available.");
+            try(java.io.OutputStream output=new java.io.FileOutputStream(new java.io.File(getTargetContext().getExternalFilesDir(null),"backup-ui.png"))) {
+                check(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output),"Native backup capture saved.");
+            } finally { screenshot.recycle(); }
             ActivityMonitor canceled=addMonitor(pickerFilter(Intent.ACTION_OPEN_DOCUMENT),new ActivityResult(Activity.RESULT_CANCELED,null),true);
             click("Import presentation backup"); waitStatus("Canceled.");removeMonitor(canceled);
             check(canceled.getHits()==1,"Native document picker was requested.");
@@ -55,6 +69,8 @@ public final class BackupInstrumentation extends Instrumentation {
             same(fixture,roundtrip.stores,"Actual provider output preserves typed values and absence.");
             check(roundtrip.household.isEmpty(),"Ordinary export contains no household documents.");
             context.getSharedPreferences("native_focus",0).edit().putBoolean("fill_enabled",true).commit();
+            context.getSharedPreferences("native_layout",0).edit().putString("widget_groups","[]").commit();
+            context.getSharedPreferences("native_cards",0).edit().clear().commit();
             ActivityMonitor imported=selected(Intent.ACTION_OPEN_DOCUMENT);
             click("Import presentation backup");confirm("Import");waitStatus("Presentation backup imported.");removeMonitor(imported);
             same(fixture,PresentationState.capture(context),"Native provider import applies the exact exported presentation.");
@@ -67,6 +83,21 @@ public final class BackupInstrumentation extends Instrumentation {
             click("Import presentation backup");waitStatus("Malformed");removeMonitor(malformed);
             same(fixture,PresentationState.capture(context),"Malformed document changes nothing.");
 
+            runOnMainSync(new Runnable(){@Override public void run(){screen.finish();}});
+            Method saveRecovery=PresentationState.class.getDeclaredMethod("saveRecovery",Context.class,Map.class);
+            saveRecovery.setAccessible(true); saveRecovery.invoke(null,context,fixture);
+            context.getSharedPreferences("native_focus",0).edit().putBoolean("fill_enabled",true).commit();
+            screen=startActivitySync(new Intent().setClassName(context,BackupActivity.class.getName()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            waitForIdleSync();
+            runOnMainSync(new Runnable(){@Override public void run(){
+                check(!button(screen.getWindow().getDecorView(),"Export presentation backup").isEnabled(),"Pending recovery blocks export.");
+                check(!button(screen.getWindow().getDecorView(),"Import presentation backup").isEnabled(),"Pending recovery blocks import.");
+            }});
+            click("Restore interrupted presentation change");
+            confirm("Restore","Restore previous presentation?"); waitStatus("Previous presentation restored.");
+            same(fixture,PresentationState.capture(context),"Explicit native recovery restores exact presentation.");
+            check(!PresentationState.hasRecovery(context),"Verified explicit recovery resolves journal.");
+
             NotesOptions notes=new NotesOptions(true,false,true,Collections.singletonList(new NotesOptions.Item("fixture-note","Sanitized household fixture",false,false)));
             NotesPreferences.save(context,notes);
             Map<String,String> household=HouseholdContent.capture(context,true,false);
@@ -78,6 +109,9 @@ public final class BackupInstrumentation extends Instrumentation {
             byte[] privateBytes=context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"read",null,null).getByteArray("bytes");
             BackupPayload privatePayload=BackupPayload.decode(privateBytes,BackupActivity.VALIDATOR);
             check(privatePayload.household.keySet().equals(Collections.singleton(HouseholdContent.NOTES)),"Only explicitly selected household content is in the provider document.");
+            runOnMainSync(new Runnable(){@Override public void run(){
+                check(!((android.widget.CheckBox)button(screen.getWindow().getDecorView(),"Include notes in this export (requires local notes export permission)")).isChecked(),"Household selection resets after each export.");
+            }});
             NotesPreferences.save(context,NotesOptions.defaults());
             ActivityMonitor householdImport=selected(Intent.ACTION_OPEN_DOCUMENT);
             click("Import presentation backup");confirm("Import");waitStatus("Presentation backup imported.");removeMonitor(householdImport);
@@ -88,7 +122,7 @@ public final class BackupInstrumentation extends Instrumentation {
             same(fixture,PresentationState.capture(context),"Failure after private memory mutation rolls presentation back.");
             check(privateSnapshot.equals(NotesPreferences.encode(NotesPreferences.load(context))),"Private document rollback is exact.");
             check(!BackupTransaction.hasRecovery(context)&&!PresentationState.hasRecovery(context),"Verified rollback resolves both private journals.");
-            result.putString("result","PASS: real controlled provider export/import, cancellation, malformed input, privacy consent reset and rollback after commit mutation.");
+            result.putString("result","PASS: real controlled provider export/import, cancellation, malformed input, explicit recovery, privacy consent reset and rollback after commit mutation.");
         } catch(Throwable failure) {
             result.putString("result","FAIL: "+failure.getClass().getSimpleName()+": "+failure.getMessage());
         } finally {
@@ -125,7 +159,8 @@ public final class BackupInstrumentation extends Instrumentation {
         }
         runOnMainSync(new Runnable(){@Override public void run(){Button found=button(screen.getWindow().getDecorView(),label);check(found!=null,"Native action exists: "+label);found.performClick();}});
     }
-    private void confirm(String label) throws Exception {
+    private void confirm(String label) throws Exception { confirm(label,"Import presentation backup?"); }
+    private void confirm(String label,String dialogTitle) throws Exception {
         UiAutomation automation=getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES);
         AccessibilityServiceInfo info=automation.getServiceInfo();
         info.flags|=AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
@@ -150,12 +185,12 @@ public final class BackupInstrumentation extends Instrumentation {
             }
             targetWindows=roots.size();
             for(AccessibilityNodeInfo root:roots) {
-                AccessibilityNodeInfo title=matching(root,"Import presentation backup?",false,0,new int[]{0});
+                AccessibilityNodeInfo title=matching(root,dialogTitle,false,0,new int[]{0});
                 if(title!=null) {
                     titlePresent=true;title.recycle();
                     AccessibilityNodeInfo action=matching(root,label,true,0,new int[]{0});
                     if(action!=null) {
-                        same(beforeConfirmation,PresentationState.capture(getTargetContext()),"Presentation cannot change before explicit confirmation.");
+                        if (dialogTitle.equals("Import presentation backup?")) same(beforeConfirmation,PresentationState.capture(getTargetContext()),"Presentation cannot change before explicit confirmation.");
                         for(Map.Entry<String,Object> entry:privateBeforeConfirmation.entrySet())check(Objects.equals(entry.getValue(),getTargetContext().getSharedPreferences(HouseholdContent.store(entry.getKey()),0).getAll().get("document")),"Household content cannot change before explicit confirmation.");
                         boolean clicked=action.performAction(AccessibilityNodeInfo.ACTION_CLICK);action.recycle();
                         for(AccessibilityNodeInfo owned:roots)owned.recycle();

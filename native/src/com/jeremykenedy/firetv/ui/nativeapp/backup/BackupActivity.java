@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Explicit document selection only. No production preferences or external directory scanning. */
+/** Explicit document selection with validated presentation and private rollback. */
 public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
     private boolean startupBlocked;
     private static final int EXPORT = 71, IMPORT = 72;
@@ -51,8 +51,8 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
         LinearLayout body = new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(body); page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         body.addView(Pages.text(this, "Backup and restore", 28));
-        body.addView(Pages.text(this, "Source preview presentation only. Export saves reviewed layout and appearance choices in a document you select. Import replaces those choices after validation and confirmation. Account credentials, device settings, lock PINs and encrypted connection files stay local.", 18));
-        body.addView(Pages.text(this, "Legacy backups are recognized but require verified migration before they can be applied. Personal image files are not included in portable documents.", 16));
+        body.addView(Pages.text(this, "Export saves launcher layout, app organization, card choices and appearance in a document you select. Import replaces those choices after you confirm. Accounts, passwords, device settings and private connection files stay on this TV.", 18));
+        body.addView(Pages.text(this, "Backups from the original launcher cannot be imported here. Personal photos, videos, timers, location and quick actions stay on this TV. Export requires built-in artwork. Notes and reminders are included only when selected below and allowed in their settings.", 16));
         notesOption = new CheckBox(this); notesOption.setTextColor(android.graphics.Color.WHITE); notesOption.setText("Include notes in this export (requires local notes export permission)");
         remindersOption = new CheckBox(this); remindersOption.setTextColor(android.graphics.Color.WHITE); remindersOption.setText("Include reminders in this export (requires local reminders export permission)");
         if (state != null) {
@@ -74,15 +74,15 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
         });
         body.addView(recoveryButton);
         recoveryButton.setVisibility(hasRecovery() ? View.VISIBLE : View.GONE);
-        if (!preview()) {
-            exportButton.setEnabled(false); importButton.setEnabled(false); recoveryButton.setEnabled(false);
-            status.setText("Production backup and import remain unavailable until migration and recovery are verified.");
-        } else exportButton.requestFocus();
+        finishWork(hasRecovery() ? "Restore the interrupted presentation change before making another backup or import."
+                : "Choose a document action. Press Back to return.");
+        if (hasRecovery()) recoveryButton.requestFocus(); else exportButton.requestFocus();
     }
     private boolean hasRecovery() { return BackupTransaction.hasRecovery(this) || PresentationState.hasRecovery(this); }
-    private boolean preview() { return getPackageName().endsWith(".preview"); }
+    private boolean ready() { return com.jeremykenedy.firetv.ui.nativeapp.SourceStartup.ready(this); }
     private void choose(int request) {
-        if (busy || !preview()) return;
+        if (busy || !ready()) return;
+        if (hasRecovery()) { finishWork("Restore the interrupted presentation change first."); return; }
         Intent intent = new Intent(request == EXPORT ? Intent.ACTION_CREATE_DOCUMENT : Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType(request == EXPORT ? "text/plain" : "*/*");
         if (request == EXPORT) intent.putExtra(Intent.EXTRA_TITLE, PortableBackup.BACKUP_NAME);
@@ -93,7 +93,7 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
     @Override protected void onActivityResult(int request, int result, Intent data) {
         if (startupBlocked) { super.onActivityResult(request, result, data); return; }
         super.onActivityResult(request, result, data);
-        if ((request != EXPORT && request != IMPORT) || !preview()) return;
+        if ((request != EXPORT && request != IMPORT) || !ready()) return;
         if (result != RESULT_OK) { finishWork("Canceled. Presentation settings were not changed."); return; }
         Uri uri = data == null ? null : data.getData();
         if (uri == null || !"content".equals(uri.getScheme())) {
@@ -103,17 +103,19 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
     }
     private void export(final Uri uri) {
         final boolean notes = notesOption.isChecked(), reminders = remindersOption.isChecked();
+        notesOption.setChecked(false); remindersOption.setChecked(false);
         worker.execute(new Runnable() {
             @Override public void run() {
                 String message;
                 try {
+                    if (!ready() || hasRecovery()) throw new java.io.IOException("Restore the interrupted presentation change first.");
                     byte[] bytes = new BackupPayload(PresentationState.capturePortable(BackupActivity.this),
                             HouseholdContent.capture(BackupActivity.this, notes, reminders)).encode(VALIDATOR);
                     try (OutputStream output = getContentResolver().openOutputStream(uri, "wt")) {
                         if (output == null) throw new java.io.IOException();
                         output.write(bytes); output.flush();
                     }
-                    message = "Presentation backup exported to your selected document. Widget groups stay on this TV.";
+                    message = "Presentation backup exported to your selected document.";
                 } catch (Exception failed) {
                     message = "Export failed. The selected document may be incomplete. No settings were changed. Personal images require a named local setup; household exports require local permission.";
                 }
@@ -141,7 +143,7 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
     }
     private void confirmImport(final BackupPayload payload) {
         new AlertDialog.Builder(this).setTitle("Import presentation backup?")
-                .setMessage("This replaces the reviewed preview presentation settings. Missing choices return to defaults. "
+                .setMessage("This replaces launcher layout, app organization, cards and appearance. Missing choices return to defaults. "
                         + (payload.household.isEmpty() ? "Household content is unchanged. " : "Included household documents replace the selected notes or reminders. Imported details stay hidden, export permission stays off, and reminders stay disabled. ")
                         + "Accounts, device controls and other private files are preserved.")
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -155,7 +157,7 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
                 }).show();
     }
     private void apply(final BackupPayload payload) {
-        if (!preview()) return;
+        if (!ready()) return;
         setBusy(true);
         worker.execute(new Runnable() {
             @Override public void run() {
@@ -173,7 +175,7 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
         });
     }
     private void confirmRecovery() {
-        if (busy || !preview()) return;
+        if (busy || !ready()) return;
         new AlertDialog.Builder(this).setTitle("Restore previous presentation?")
                 .setMessage("This restores presentation choices saved before an interrupted import or setup change.")
                 .setNegativeButton("Cancel", null)
@@ -198,7 +200,11 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
         });
     }
     private void setBusy(boolean value) {
-        busy = value; exportButton.setEnabled(!value && preview()); importButton.setEnabled(!value && preview()); recoveryButton.setEnabled(!value && preview());
+        busy = value;
+        boolean available = !value && ready();
+        boolean recovery = hasRecovery();
+        exportButton.setEnabled(available && !recovery); importButton.setEnabled(available && !recovery);
+        recoveryButton.setEnabled(available && recovery);
         notesOption.setEnabled(!value); remindersOption.setEnabled(!value);
         if (value) status.setText("Working with the selected document...");
     }

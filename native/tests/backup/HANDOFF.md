@@ -22,3 +22,25 @@ The original flat JSON backup is recognized and refused, rather than silently pa
 The test-only APK registers a fixed controlled document provider. Native instrumentation requests the ordinary SAF intents through controlled picker results and performs actual resolver file I/O. It covers base export/import, picker and confirmation cancellation, malformed documents, an explicit optional-notes export/import, imported consent/detail reset, a commit failure after private preference memory mutation, exact rollback and fixture restoration. It captures/restores presentation and original notes/reminders document keys in `finally`. The provider accepts only this test package or the preview caller and exposes no arbitrary path. It has no production manifest entry.
 
 This lane compiled but did not run native instrumentation. The integration/device owner must record native results. The fixture proves controlled provider behavior when run, not every external document provider. Production migration, process termination during native writes, physical TVs and owner acceptance remain separate gates. No device/shared build/commit/push/release was performed by this lane.
+
+## Native backup controls completion
+
+The Backup and restore page now uses `SourceStartup.ready` and the existing startup redirect instead of checking the application package suffix. Production remains behind the integration owner's migration gate. An unresolved presentation or household import journal disables export and import and exposes the existing explicit Restore action. Recovery, validation and rollback remain mandatory.
+
+The page keeps its existing native menu styling and original Settings route. Scope text describes launcher organization, card choices, appearance, private local data and original launcher backup incompatibility. Household export checkboxes reset after each completed picker selection, requiring a new selection for another export.
+
+Shared `PresentationState` now exports validated Clock/Year widget groups and original supported widget records. Import replaces a supplied grouping, while older portable documents without a grouping retain destination groups. Unsupported or private widget record data rejects the operation rather than being removed. Native fixtures include typed card timing, hidden titles/series, title order and exact two-widget grouping, and change the destination before importing.
+
+Original flat launcher backups remain recognized and refused. Portable export is not a full original backup replacement: local media, private connections, location, timer runtime and quick actions remain on the TV. Production identity/signing/upgrade and physical device acceptance belong to the integration owner.
+
+Verification on November 11, 2026:
+
+* `python3 native/tests/backup/run.py`: 26 codec and 10 household privacy checks passed.
+* `python3 native/tests/backup/compile.py`: Android SDK compilation passed with real generated resources.
+* `python3 native/build.py --debug` and `python3 native/tests/backup/build_native_test.py`: passed.
+* Exact installed preview APK SHA256: `f86ca3e393f9724cf918f4387444d3ade3fd69c1a840906791afce65a248cddc`. Disposable debug signer SHA256: `60c7e4d9841b380bce6bfb0e751ccafd8f5a1afb41392c120a3640c8add21e91`. Package version `0.1.0-preview`, code 1.
+* Native instrumentation passed actual controlled-provider export/import, exact widget/card presentation roundtrip, cancellation before and after document selection, malformed input, explicit native recovery, household consent reset and failed-commit rollback. Fixture restoration reported exact original presentation and household values.
+* The uniquely owned API31 Android TV AVD `fire-tv-backup-controls-20261111`, serial `emulator-5620`, contained zero accounts and zero Keystore aliases. Guard case `backup-controls-receipt-20261111`, manifest `d25a194de23661e88d9b2c2ffaf6eb3b934fa458d802e8fbf13d9290db532d15`, completed capture, restore, independent stopped verification and resolution with `VERIFIED` and `matches=true` each time.
+* Sanitized native proof output and screen capture: `/tmp/fire-tv-backup-controls-20261111/`. Screen capture uses only this disposable application's external files directory; remove that owned file separately after pulling it. No physical device, owner account, production signer or production installation was used.
+
+A first test fixture used an invalid synthetic card source and failed before opening the screen. Its durable state guard was restored, independently verified and resolved before correcting the fixture. This was a test fixture error, not an accepted application result.
