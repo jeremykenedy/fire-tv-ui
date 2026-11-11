@@ -13,11 +13,6 @@ class LauncherPresentationChecks(unittest.TestCase):
             activity = path / 'android/app/Activity.java'
             activity.parent.mkdir(parents=True)
             activity.write_text('package android.app; public class Activity { public boolean focused=true; public int resets; public boolean hasWindowFocus(){return focused;} public void recreate(){resets++;} }')
-            prefs = path / 'android/content/SharedPreferences.java'
-            prefs.parent.mkdir(parents=True)
-            prefs.write_text('package android.content; public class SharedPreferences { public String sources="{}"; public java.util.Set<String> hidden=new java.util.HashSet<>(); public String getString(String key,String fallback){return sources;} public java.util.Set<String> getStringSet(String key,java.util.Set<String> fallback){return hidden;} }')
-            settings = path / 'DeviceSettings.java'
-            settings.write_text('package com.jeremykenedy.firetv.ui; public class DeviceSettings { public static final android.content.SharedPreferences prefs=new android.content.SharedPreferences(); public static android.content.SharedPreferences prefs(android.app.Activity activity){return prefs;} }')
             check = path / 'HomePresentationTest.java'
             check.write_text('''import android.app.Activity;
 import com.jeremykenedy.firetv.ui.HomePresentation;
@@ -39,26 +34,13 @@ public class HomePresentationTest {
   home.focused=true; HomePresentation.resumed(home);
   HomePresentation.paused(home); HomePresentation.closeTransientWindow(home);
   if(home.resets!=1) throw new AssertionError("Ordinary paused Home rebuilt launcher");
-  com.jeremykenedy.firetv.ui.DeviceSettings.prefs.sources="source-choice-changed";
-  HomePresentation.resumed(home);
-  if(home.resets!=2) throw new AssertionError("Changed per-source visibility did not reload cards");
-  HomePresentation.resumed(home);
-  if(home.resets!=2) throw new AssertionError("Unchanged card choices reloaded twice");
-  com.jeremykenedy.firetv.ui.DeviceSettings.prefs.hidden.add("hidden-id");
-  HomePresentation.resumed(home);
-  if(home.resets!=3) throw new AssertionError("Changed hidden content did not reload cards");
-  com.jeremykenedy.firetv.ui.DeviceSettings.prefs.sources="source-popup-changed";
-  HomePresentation.popupDismissed();
-  if(home.resets!=4) throw new AssertionError("Same-activity popup source choice did not reload cards");
-  HomePresentation.popupDismissed();
-  if(home.resets!=4) throw new AssertionError("Unchanged popup reset twice");
   Activity replacement=new Activity(); HomePresentation.resumed(replacement);
   HomePresentation.paused(home);
   replacement.focused=false; HomePresentation.closeTransientWindow(replacement);
   if(replacement.resets!=1) throw new AssertionError("Old activity paused new activity");
  }
 }''')
-            subprocess.run(['javac', '-d', temp, str(activity), str(prefs), str(settings), str(check), str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/HomePresentation.java')], check=True)
+            subprocess.run(['javac', '-d', temp, str(activity), str(check), str(ROOT / 'app/src/com/jeremykenedy/firetv/ui/HomePresentation.java')], check=True)
             subprocess.run(['java', '-cp', temp, 'HomePresentationTest'], check=True)
 
     def test_custom_column_values_and_existing_preferences(self):

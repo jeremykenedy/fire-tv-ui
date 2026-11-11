@@ -65,8 +65,7 @@ def patch(decoded):
         '    iget-object v1, v1, LQ3/T3;->K0:LN/g0;\n\n'
         '    invoke-virtual {v1, v2}, LN/g0;->setValue(Ljava/lang/Object;)V')
     dismiss.write_text(replace_once(dismiss_text, dismiss_anchor, dismiss_anchor +
-        '\n    invoke-static {}, Lcom/jeremykenedy/firetv/ui/ChannelCardsFocus;->restore()V\n'
-        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/HomePresentation;->popupDismissed()V'))
+        '\n    invoke-static {}, Lcom/jeremykenedy/firetv/ui/ChannelCardsFocus;->restore()V'))
     main = class_paths["Lcom/overdevs/at4k/MainActivity;"]
     text = main.read_text()
     text = replace_once(text,
