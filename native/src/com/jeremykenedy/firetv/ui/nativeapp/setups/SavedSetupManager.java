@@ -178,6 +178,7 @@ public final class SavedSetupManager {
             if (value instanceof String && !((String)value).isEmpty() && !value.equals(local.get(key)))
                 throw new IOException("Personal artwork must already be selected on this TV. No files or access permissions were imported.");
         }
+        Set<String> iconReferences = new LinkedHashSet<>();
         if (values.containsKey("app_visibility")) {
             JSONObject next = new JSONObject((String)values.get("app_visibility"));
             Object stored = local.get("app_visibility");
@@ -190,17 +191,24 @@ public final class SavedSetupManager {
                 JSONObject existing = current.optJSONObject(id);
                 if (existing == null || !Objects.equals(uri, existing.opt("customIconUri")))
                     throw new IOException("A personal icon must already be selected on this TV. Choose it locally before importing this backup.");
+                iconReferences.add((String)uri);
             }
         }
         PresentationMappingContext identities = com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidPresentationInventory.read(context,incoming);
+        if (!iconReferences.isEmpty()) {
+            Map<String,String> verified = new LinkedHashMap<>(identities.icons);
+            verified.putAll(com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidLegacyIconMigration.verifyExisting(context,iconReferences));
+            identities = new PresentationMappingContext(identities.components,identities.feeds,identities.items,verified,
+                    identities.inputs,identities.advertisedIconPacks,identities.privateMedia.values(),identities.ambiguousInputs);
+        }
         Map<String,PreferenceSnapshot> target = prepareLegacy(settings,identities,true);
         Map<String,Object> raw = new LinkedHashMap<>(target.get("launcher_prefs").values());
         for (Map.Entry<String,Object> entry : PresentationState.capture(context).get("launcher_prefs").values().entrySet())
             if (!values.containsKey(entry.getKey()) && entry.getKey().startsWith("color_")) raw.put(entry.getKey(),entry.getValue());
         target = new LinkedHashMap<>(target);
         target.put("launcher_prefs",new PreferenceSnapshot(raw));
-        verifyVideo(target.get("launcher_prefs").values());
-        verifyImages(target.get("launcher_prefs").values());
+        verifyVideo(values);
+        verifyImages(values);
         for (String value : nativeIconValues(target)) {
             if (!value.startsWith("image:")) continue;
             File icon = new File(new File(context.getFilesDir(),"icons"),value.substring(6));

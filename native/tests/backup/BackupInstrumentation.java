@@ -23,6 +23,7 @@ import java.util.*;
 /** Native activity/document-provider fixtures. No production data or physical devices. */
 public final class BackupInstrumentation extends Instrumentation {
     private Activity screen;
+    private String phase="portable";
     private Map<String,PreferenceSnapshot> beforeConfirmation;
     private final Map<String,Object> privateBeforeConfirmation=new LinkedHashMap<>();
     @Override public void onCreate(Bundle args) { super.onCreate(args); start(); }
@@ -79,6 +80,7 @@ public final class BackupInstrumentation extends Instrumentation {
             click("Import presentation backup");waitStatus("Malformed");removeMonitor(malformed);
             same(fixture,PresentationState.capture(context),"Malformed document changes nothing.");
 
+            phase="original";
             context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original",null,null);
             ActivityMonitor original=selected(Intent.ACTION_OPEN_DOCUMENT);
             click("Import presentation backup");confirm("Import","Import original launcher backup?");
@@ -87,12 +89,14 @@ public final class BackupInstrumentation extends Instrumentation {
             check(context.getSharedPreferences("launcher_prefs",0).getBoolean("use_24h_clock",false),"Original direct presentation choice applied.");
             check(groups.equals(context.getSharedPreferences("native_layout",0).getString("widget_groups",null)),"Original import preserves omitted local widget grouping.");
             check(fixture.get("native_cards").values().equals(PresentationState.capture(context).get("native_cards").values()),"Original import preserves omitted card choices.");
+            phase="original-groups";
             context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original-groups",null,null);
             ActivityMonitor originalGroups=selected(Intent.ACTION_OPEN_DOCUMENT);
             click("Import presentation backup");confirm("Import","Import original launcher backup?");
             waitStatus("Original launcher presentation imported.");removeMonitor(originalGroups);
             check("WIDGETS_ONLY".equals(context.getSharedPreferences("native_layout",0).getString("mode",null)),"Original enabled widget mode restored through SAF.");
             check("none".equals(context.getSharedPreferences("launcher_prefs",0).getString("overlay_mode",null)),"Original inactive overlay retained through SAF.");
+            phase="original-weather";
             context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original-weather",null,null);
             ActivityMonitor originalWeather=selected(Intent.ACTION_OPEN_DOCUMENT);
             click("Import presentation backup");confirm("Import","Import original launcher backup?");
@@ -102,6 +106,7 @@ public final class BackupInstrumentation extends Instrumentation {
             check("Portland".equals(weatherEntry.data.get("location"))&&"F".equals(weatherEntry.data.get("unit")),"Original inactive weather city/unit restored exactly through SAF.");
             check(weather.equals(context.getSharedPreferences("launcher_prefs",0).getString("widgets_config",null)),"Original weather raw source preserved alongside native grouping.");
             check("CARDS_ONLY".equals(context.getSharedPreferences("native_layout",0).getString("mode",null)),"Original inactive weather remains inactive.");
+            phase="original-icon";
             java.io.File sourceIcon=new java.io.File(context.getFilesDir(),"original-backup-fixture.png");
             android.graphics.Bitmap iconBitmap=android.graphics.Bitmap.createBitmap(2,2,android.graphics.Bitmap.Config.ARGB_8888);
             iconBitmap.eraseColor(android.graphics.Color.BLUE);
@@ -110,9 +115,11 @@ public final class BackupInstrumentation extends Instrumentation {
             String iconUri=android.net.Uri.fromFile(sourceIcon).toString();
             Map<String,String> preparedIcons=com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidLegacyIconMigration.prepare(context,Collections.singleton(iconUri));
             String expectedIcon=preparedIcons.get(iconUri);
+            check(preparedIcons.equals(com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidLegacyIconMigration.verifyExisting(context,Collections.singleton(iconUri))),"Read-only native icon inventory matches its prepared source.");
             org.json.JSONObject iconChoice=new org.json.JSONObject().put("customIconUri",iconUri).put("hidden",true).put("hideWatchNext",true);
             String iconVisibility=new org.json.JSONObject().put("com.example.originalicon",iconChoice).toString();
             context.getSharedPreferences("launcher_prefs",0).edit().putString("app_visibility",iconVisibility).commit();
+            phase="original-icon";
             context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original-icon",iconUri,null);
             ActivityMonitor originalIcon=selected(Intent.ACTION_OPEN_DOCUMENT);
             click("Import presentation backup");confirm("Import","Import original launcher backup?");
@@ -122,6 +129,16 @@ public final class BackupInstrumentation extends Instrumentation {
             java.io.File copiedIcon=new java.io.File(new java.io.File(context.getFilesDir(),"icons"),expectedIcon.substring(6));
             byte[] iconBefore=java.nio.file.Files.readAllBytes(sourceIcon.toPath());
             check(Arrays.equals(iconBefore,java.nio.file.Files.readAllBytes(copiedIcon.toPath())),"Original and prepared personal icon bytes unchanged.");
+            check(sourceIcon.delete(),"Owned historical source removed for omitted-choice fixture.");
+            phase="original-omitted-image-source";
+            context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original",null,null);
+            ActivityMonitor omittedSource=selected(Intent.ACTION_OPEN_DOCUMENT);
+            click("Import presentation backup");confirm("Import","Import original launcher backup?");
+            waitStatus("Original launcher presentation imported.");removeMonitor(omittedSource);
+            check(expectedIcon.equals(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.read("native_icons",context.getSharedPreferences("native_icons",0).getAll().get("retained_choices")).get("icon:com.example.originalicon")),"Original layout-only import preserves managed personal icon when omitted historical source is gone.");
+            check(!sourceIcon.exists(),"Original layout-only import does not recreate omitted source.");
+            try(java.io.OutputStream output=new java.io.FileOutputStream(sourceIcon)) {output.write(iconBefore);}
+            phase="original-missing-image-copy";
             check(copiedIcon.delete(),"Owned prepared icon removed for unavailable-copy fixture.");
             Map<String,PreferenceSnapshot> beforeMissing=PresentationState.capture(context);
             Map<String,Object> originalIconSettings=Collections.<String,Object>singletonMap("app_visibility",iconVisibility);
@@ -136,6 +153,7 @@ public final class BackupInstrumentation extends Instrumentation {
             catch(java.io.IOException expected) { }
             same(fixture,PresentationState.capture(context),"Original failed commit restores the exact prior presentation.");
             check(!PresentationState.hasRecovery(context),"Original verified rollback resolves journal.");
+            phase="original-unsupported";
             context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original-unsupported",null,null);
             ActivityMonitor unsupported=selected(Intent.ACTION_OPEN_DOCUMENT);
             click("Import presentation backup");confirm("Close","Original backup cannot be imported");
@@ -183,7 +201,8 @@ public final class BackupInstrumentation extends Instrumentation {
             check(!BackupTransaction.hasRecovery(context)&&!PresentationState.hasRecovery(context),"Verified rollback resolves both private journals.");
             result.putString("result","PASS: real controlled provider export/import, cancellation, malformed input, original flat file mapping and whole-file refusal, explicit recovery, privacy consent reset and rollback after commit mutation.");
         } catch(Throwable failure) {
-            result.putString("result","FAIL: "+failure.getClass().getSimpleName()+": "+failure.getMessage());
+            try {captureScreenshot("failure-ui.png");}catch(Exception unavailable) { }
+            result.putString("result","FAIL: "+phase+": "+failure.getClass().getSimpleName()+": "+failure.getMessage());
         } finally {
             try {
                 if(BackupTransaction.hasRecovery(context)||PresentationState.hasRecovery(context))BackupTransaction.recover(context);
@@ -276,7 +295,7 @@ public final class BackupInstrumentation extends Instrumentation {
             for(AccessibilityNodeInfo root:roots)root.recycle();
             SystemClock.sleep(50);
         }
-        throw new AssertionError("Native confirmation unavailable: "+label+" (targetWindows="+targetWindows+",title="+titlePresent+",ime="+imePresent+")");
+        throw new AssertionError("Native confirmation unavailable: "+dialogTitle+" / "+label+" (targetWindows="+targetWindows+",title="+titlePresent+",ime="+imePresent+")");
     }
     private AccessibilityNodeInfo matching(AccessibilityNodeInfo node,String label,boolean action,int depth,int[] nodes) {
         if(depth>32||++nodes[0]>2048)return null;

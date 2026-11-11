@@ -55,12 +55,14 @@ public final class OriginalBackup {
         }
         return new OriginalBackup(values,unsupported);
     }
-    public String summary() {
+    public String summary() { return summary(true); }
+    public String summary(boolean canApply) {
         StringBuilder text=new StringBuilder("Original launcher backup for this TV.\n\nIncluded presentation choices: ");
         append(text,settings.values().keySet());
         if(!unsupported.isEmpty()) {text.append("\n\nUnsupported settings: ");append(text,unsupported);
             text.append("\n\nNothing can be imported from this file while these settings are included. Your current settings are unchanged.");}
-        else text.append("\n\nOnly the included choices will change. Other local choices, accounts, passwords, locks and device settings remain. Personal artwork must already be available and selected on this TV. No media files or access permissions are imported.");
+        else text.append(canApply ? "\n\nOnly the included choices will change." : "\n\nNo choices will change.")
+                .append(" Other local choices, accounts, passwords, locks and device settings remain. Personal artwork must already be available and selected on this TV. No media files or access permissions are imported.");
         return text.toString();
     }
     private static void append(StringBuilder out,Collection<String> keys) {

@@ -153,7 +153,7 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
     private void confirmOriginal(final OriginalBackup original, String problem) {
         boolean allowed = original.unsupported.isEmpty() && problem == null;
         AlertDialog.Builder dialog = new AlertDialog.Builder(this).setTitle(allowed ? "Import original launcher backup?" : "Original backup cannot be imported")
-                .setMessage(original.summary() + (problem == null ? "" : "\n\n" + problem))
+                .setMessage(original.summary(allowed) + (problem == null ? "" : "\n\n" + problem))
                 .setNegativeButton(allowed ? "Cancel" : "Close", new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog,int which) { finishWork("Original backup review closed. No settings were changed."); }
                 }).setOnCancelListener(new DialogInterface.OnCancelListener() {

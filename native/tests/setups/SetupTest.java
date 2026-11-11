@@ -791,6 +791,16 @@ public final class SetupTest {
         manager.apply(metadata,true);
         check(pending.equals(prefs(context,"native_icons").values.get("retained_choices")),"Named setup captures and restores deferred icon metadata.");
         check(Boolean.TRUE.equals(prefs(context,"native_icons").values.get("edited:com.example.other/com.example.other.Main")),"Named setup preserves explicit icon edit marker without casting it as artwork.");
+        String selected="image:11111111-1111-1111-1111-111111111111.png";
+        File managed=new File(new File(context.getFilesDir(),"icons"),selected.substring(6));managed.getParentFile().mkdirs();
+        Files.write(managed.toPath(),new byte[]{1});
+        prefs(context,"native_icons").values.put("com.example.installed/com.example.installed.Main",selected);
+        String historical="{\"com.example.installed\":{\"customIconUri\":\"file:/missing/historical.png\"}}";
+        prefs(context,"launcher_prefs").values.put("app_visibility",historical);
+        incoming.clear();incoming.put("apps_per_row",4);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(historical.equals(target.get("launcher_prefs").values().get("app_visibility")),"Original partial import retains omitted historical source without opening it.");
+        check(selected.equals(target.get("native_icons").values().get("com.example.installed/com.example.installed.Main")),"Original partial import retains current managed icon after source removal.");
     }
 
     private static void holidayPresets(File folder) throws Exception {
