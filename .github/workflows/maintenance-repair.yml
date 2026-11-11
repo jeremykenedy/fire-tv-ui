@@ -1,0 +1,51 @@
+name: Maintenance repair build and checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - maintenance/**
+      - .github/workflows/maintenance-repair.yml
+  pull_request:
+    paths:
+      - maintenance/**
+      - .github/workflows/maintenance-repair.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Install Android build tools
+        shell: bash
+        run: |
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdkmanager" --licenses >/dev/null || test "${PIPESTATUS[1]}" -eq 0
+          "$sdkmanager" "platforms;android-36" "build-tools;36.0.0"
+      - name: Expose the SDK path used by existing host checks
+        shell: bash
+        run: |
+          mkdir -p "$HOME/Library/Android"
+          if [ ! -e "$HOME/Library/Android/sdk" ]; then
+            ln -s "$ANDROID_HOME" "$HOME/Library/Android/sdk"
+          fi
+          test "$(readlink -f "$HOME/Library/Android/sdk")" = "$(readlink -f "$ANDROID_HOME")"
+      - name: Verify and build the pinned maintenance repair
+        run: python3 maintenance/build_repair.py --output-dir "$RUNNER_TEMP/maintenance-repair"
+      - name: Check whitespace
+        run: git diff --check

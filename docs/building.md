@@ -1,6 +1,6 @@
 # Build and source layout
 
-The default build creates a source-native production-package candidate from the maintained Java and Android resources in `native/`. It does not decode, patch, or package the supplied launcher APK. The candidate is not a released production upgrade: migration, parity, signing, and device acceptance remain separate gates. Stable Fire TV UI 1.17.0 remains the latest stable release. The current preview configuration targets 2.0.0-alpha.2; see the [preview guide](source-preview.md) for release availability and scope.
+The default build creates a source-native production-package candidate from the maintained Java and Android resources in `native/`. It does not decode, patch, or package the supplied launcher APK. The candidate is not a released production upgrade: migration, parity, signing, and device acceptance remain separate gates. Stable Fire TV UI 1.17.1 is the latest stable release. The current preview configuration targets 2.0.0-alpha.3; see the [preview guide](source-preview.md) for release availability and scope.
 
 | Path | Purpose |
 | --- | --- |
@@ -28,7 +28,7 @@ The isolated preview has a separate package and signing workflow; see [Independe
 
 ## Source preview release build
 
-`native/preview-release.json` defines alpha.2, version code 3, package `com.jeremykenedy.firetv.ui.preview`, minimum API 27 and target API 36. Its maintained signing certificate is `c64ca640cab78e75fd52a6bb43bcbf145aa1b951f0c719b471df241bf70669c6`. The preview does not use the production key. Do not change manifest version fields; the preview builder applies the configured version.
+`native/preview-release.json` defines alpha.3, version code 4, package `com.jeremykenedy.firetv.ui.preview`, minimum API 27 and target API 36. Its maintained signing certificate is `c64ca640cab78e75fd52a6bb43bcbf145aa1b951f0c719b471df241bf70669c6`. The preview does not use the production key. Do not change manifest version fields; the preview builder applies the configured version.
 
 Run these checks from a clean isolated checkout so existing local compiled classes are not replaced:
 
@@ -50,7 +50,19 @@ python3 native/build.py --release-config native/preview-release.json \
 
 The builder verifies the actual signing certificate and APK manifest. It produces the versioned APK, its `.apk.sha256` checksum and `release-artifact.json`, which records the source inputs, commit, toolchain and artifact identity. A default `--debug` build uses a lab key and is not a substitute for this release build.
 
-Publish only from the verified remote `main` tip with a matching semantic version tag. Both CI workflows, final native checks, current screenshots and the declared installation/update path must be reviewed before publication. Record any unqualified upgrade path explicitly. The [alpha.2 release notes](releases/v2.0.0-alpha.2.md) retain pending verification explicitly until those results are supplied. A signed production-package candidate remains a separate, unqualified release path.
+Publish only from the verified remote `main` tip with a matching semantic version tag. Both CI workflows, final native checks, current screenshots and the declared installation/update path must be reviewed before publication. Record any unqualified upgrade path explicitly. The [alpha.3 release notes](releases/v2.0.0-alpha.3.md) describe the published preview and its verification limits. A signed production-package candidate remains a separate, unqualified release path.
+
+## Stable 1.17.1 maintenance repair
+
+The temporary 1.17.1 repair uses the historical stable implementation. It is separate from the default native build and does not complete the independent replacement.
+
+With Python 3.12+, JDK 21 and the Android tools listed above, fetch the public Git history and reconstruct the pinned 1.17.0 source plus the reviewed repair:
+
+```sh
+python3 maintenance/build_repair.py --output-dir /tmp/fire-tv-ui-1.17.1
+```
+
+Choose a new output directory outside the checkout. The recipe verifies the base commit, patch, complete source tree and launcher base, builds the unsigned APK, then runs the maintenance checks. It records source, toolchain and artifact hashes in `build-provenance.json`. Signing requires the existing production certificate. The recipe never signs or installs an APK. The default source-native builder remains unchanged.
 
 ## Historical attribution
 

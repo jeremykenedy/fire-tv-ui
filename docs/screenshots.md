@@ -2,17 +2,21 @@
 
 ## Current stable interface
 
-Fresh, unmodified captures from published Fire TV UI 1.17.0/code 78 at 1920x1080 on Android TV API 34. This example uses a fresh emulator with stock apps and no personal accounts. Your installed apps, inputs, widgets and selected appearance change the Home layout.
+Unmodified captures from the final production-signed Fire TV UI 1.17.1/code 79 APK at 1920x1080 on Android TV API 34. Home and Settings use stock apps with no personal accounts. The card examples use a local sample feed to demonstrate hiding one item without hiding another item that shares its playback link. Your apps, inputs, widgets and saved appearance determine your Home layout.
 
 <table>
   <tr>
-    <td><a href="../art/screenshots/home-ui117-code78-api34.png"><img src="../art/screenshots/home-ui117-code78-api34.png" alt="Fire TV UI 1.17 Home with purple gradient, status bar and stock app tiles"></a><br>Home</td>
-    <td><a href="../art/screenshots/settings-ui117-code78-api34.png"><img src="../art/screenshots/settings-ui117-code78-api34.png" alt="Fire TV UI 1.17 Settings panel over the Home screen"></a><br>Settings</td>
-    <td><a href="../art/screenshots/backgrounds-ui117-code78-api34.png"><img src="../art/screenshots/backgrounds-ui117-code78-api34.png" alt="Fire TV UI 1.17 Backgrounds and overlays controls"></a><br>Backgrounds and overlays</td>
+    <td><a href="../art/screenshots/home-ui1171-code79-api34.png"><img src="../art/screenshots/home-ui1171-code79-api34.png" alt="Fire TV UI 1.17.1 Home with the existing purple gradient, status bar and stock app tiles"></a><br>Home</td>
+    <td><a href="../art/screenshots/settings-ui1171-code79-api34.png"><img src="../art/screenshots/settings-ui1171-code79-api34.png" alt="Fire TV UI 1.17.1 Settings panel over Home"></a><br>Settings</td>
+    <td><a href="../art/screenshots/cards-off-ui1171-code79-api34.png"><img src="../art/screenshots/cards-off-ui1171-code79-api34.png" alt="Home immediately after returning from Featured cards Off, with the card region hidden"></a><br>Cards switched off</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/card-menu-ui1171-code79-api34.png"><img src="../art/screenshots/card-menu-ui1171-code79-api34.png" alt="Menu for the focused sample item Shared route Beta, offering Hide this card"></a><br>Selected item menu</td>
+    <td><a href="../art/screenshots/card-dismissed-ui1171-code79-api34.png"><img src="../art/screenshots/card-dismissed-ui1171-code79-api34.png" alt="Shared route Alpha and Watch next Control remain after Shared route Beta is dismissed"></a><br>Other items retained</td>
   </tr>
 </table>
 
-[Capture provenance](../art/screenshots/ui117-overview-provenance.json) records the exact public APK and raw image hashes. The [source preview gallery](source-preview.md#screenshots) shows the separate early alpha interface. Earlier feature captures remain labeled by version below.
+[Capture provenance](../art/screenshots/ui1171-code79-provenance.json) records the exact signed APK and raw image hashes. The [source preview gallery](source-preview.md#screenshots) describes the separate alpha interface. Earlier captures remain labeled by version below.
 
 ## Fire TV UI 1.17.0, code 78
 

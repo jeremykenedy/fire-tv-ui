@@ -1,0 +1,17 @@
+{
+  "version": "1.17.1",
+  "versionCode": 79,
+  "package": "com.jeremykenedy.firetv.ui",
+  "apkSha256": "fd43f9a13e099e34c294453c6eb140448a40de45d6d3796f7521c68622ba47f5",
+  "repairSourceCommit": "c2ca7c26f1d340e3c3b75e6ede136ae9762d57e6",
+  "platform": "Android TV API 34",
+  "size": "1920x1080",
+  "captures": "Unmodified native screenshots. Home and Settings use stock apps; card examples use an owned synthetic provider with no personal accounts.",
+  "files": {
+    "card-dismissed-ui1171-code79-api34.png": "e3b380ab419798563b50cddc74856927d1fc8770763d422617d13dd214f76549",
+    "card-menu-ui1171-code79-api34.png": "b15cb0e3a6503bc10499ef1f2ec98549b3f7fafb4c2bac487f5156bbc9287a90",
+    "cards-off-ui1171-code79-api34.png": "f36df668d0471e10845342caa47b4cff4a29b2a7d5eb46035b7857b4bbf373f2",
+    "home-ui1171-code79-api34.png": "d2cbef80a1ae7eaf1fb7acee9c79be6ff7568bfb836bc68090ebc6dbfbb4c4ba",
+    "settings-ui1171-code79-api34.png": "8c446e738bb56598375e954eb19909a316d840954501801823d43a7699411814"
+  }
+}
