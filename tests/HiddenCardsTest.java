@@ -84,7 +84,6 @@ public final class HiddenCardsTest {
                 HiddenCards.visible(
                         context, new Cursor("source.two", "Other publisher", "42", routeA), false),
                 "Other publishers must not inherit Plex identity normalization.");
-        sourceVisibility(context);
         sharedRoutesAndRowFallback(context);
         channelManagement(context);
         context.prefs.fail = true;
@@ -96,19 +95,6 @@ public final class HiddenCardsTest {
                     !HiddenCards.keys(context).contains(b),
                     "A failed save must not mutate the active hidden set.");
         }
-    }
-
-    private static void sourceVisibility(Context context) {
-        Cursor item = new Cursor("source.toggle", "Shown item", "toggle-id", "toggle-route");
-        context.prefs.visibility = "{\"source.toggle\":{\"hideWatchNext\":true}}";
-        check(!HiddenCards.visible(context, item, false) && !HiddenCards.visible(context, item, true),
-                "Unselecting a source must hide ordinary preview and Watch Next content.");
-        context.prefs.visibility = "{\"source.other\":{\"hideWatchNext\":true}}";
-        check(HiddenCards.visible(context, item, false), "One source must not suppress another source.");
-        context.prefs.visibility = "{\"source.toggle\":{\"hideWatchNext\":false}}";
-        check(HiddenCards.visible(context, item, false) && HiddenCards.visible(context, item, true),
-                "Reselecting a source must restore both kinds of cards.");
-        context.prefs.visibility = "{}";
     }
 
     private static void sharedRoutesAndRowFallback(Context context) {

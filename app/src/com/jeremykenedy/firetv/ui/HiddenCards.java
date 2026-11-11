@@ -16,7 +16,6 @@ public final class HiddenCards {
     private HiddenCards() {}
 
     public static boolean visible(Context context, Cursor cursor, boolean watchNext) {
-        if (!sourceVisible(context, value(cursor, "package_name"))) return false;
         Card card = identify(context, cursor, watchNext);
         if (card == null) return true;
         synchronized (cards) {
@@ -24,15 +23,6 @@ public final class HiddenCards {
             while (cards.size() > 2048) cards.remove(cards.keySet().iterator().next());
         }
         return !keys(context).contains(card.key);
-    }
-
-    static boolean sourceVisible(Context context, String source) {
-        try {
-            org.json.JSONObject choices = new org.json.JSONObject(
-                    DeviceSettings.prefs(context).getString("app_visibility", "{}")).optJSONObject(source);
-            return choices == null || (!choices.optBoolean("hidden", false)
-                    && !choices.optBoolean("hideWatchNext", false));
-        } catch (Exception malformed) { return true; }
     }
 
     static Card identify(Context context, Cursor cursor, boolean watchNext) {
