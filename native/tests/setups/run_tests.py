@@ -16,7 +16,7 @@ from java_runtime import json_runtime
 from android_stubs import SOURCES
 
 sources = dict(SOURCES)
-sources['com/jeremykenedy/firetv/ui/nativeapp/migration/AndroidLegacyIconMigration.java'] = 'package com.jeremykenedy.firetv.ui.nativeapp.migration;\npublic final class AndroidLegacyIconMigration {\n public static java.util.Map<String,String> verifyExisting(android.content.Context context, Iterable<String> references) throws java.io.IOException { throw new java.io.IOException("Personal icon verification requires the Android native proof."); }\n}'
+sources['com/jeremykenedy/firetv/ui/nativeapp/migration/AndroidLegacyIconMigration.java'] = 'package com.jeremykenedy.firetv.ui.nativeapp.migration;\npublic final class AndroidLegacyIconMigration {\n public static java.util.Map<String,String> prepare(android.content.Context context, Iterable<String> references) throws java.io.IOException { throw new java.io.IOException("Personal icon preparation requires the Android native proof."); }\n public static java.util.Map<String,String> verifyExisting(android.content.Context context, Iterable<String> references) throws java.io.IOException { throw new java.io.IOException("Personal icon verification requires the Android native proof."); }\n}'
 
 sources['com/jeremykenedy/firetv/ui/nativeapp/migration/AndroidPresentationInventory.java'] = 'package com.jeremykenedy.firetv.ui.nativeapp.migration;\npublic final class AndroidPresentationInventory {\n public static PresentationMappingContext read(android.content.Context context, PreferenceSnapshot legacy) { return PresentationMappingContext.empty(); }\n}'
 

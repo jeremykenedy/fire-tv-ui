@@ -1,6 +1,6 @@
 # Native saved setups
 
-Implementation is local and unintegrated until the coordinator registers `com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupsActivity` and adds its real Settings route. This worker did not edit Main, Settings, the application manifest or the build script, and did not install or control a device.
+The independent source registers `SavedSetupsActivity` under Theme and wallpaper and Backup/Restore. Production upgrade and physical-device acceptance remain separate gates. The historical initial-worker notes below are superseded by the current verification section at the end.
 
 `SavedSetupManager(Context)` provides `list`, `save(name, replaceId)`, `apply(id, includeIcons)`, `rename` and `delete`. The Activity exposes save, apply, update, rename, delete, icon inclusion and interrupted-change restoration using native focusable controls. Media and preference writes run on a worker. Account connections, lock/PIN files, quick-action URLs, input discovery records and TV controls are excluded.
 
@@ -10,12 +10,48 @@ Before changing any preferences, apply saves and verifies an AtomicFile journal 
 
 The existing `files/saved-setups/setups.json` version 1 remains readable and is not rewritten merely by listing. New records add a `native` typed snapshot and retained native-icon image references while retaining legacy `settings.keys`/`settings.values`. Save/update retains app icon and wallpaper images as bounded `.image` assets. Twenty-four setups, 4 MB index, 20 MB individual media and 96 MB aggregate retained images are enforced. Source video references are retained and must remain accessible. Missing media explicitly fails application before preference changes; the setup is never deleted. Pruning only removes `.image` files after verifying references across current legacy/native wallpaper choices and all legacy/native setup records; uncertain inventories keep every image. Active restored native icons live separately under `files/icons`.
 
-Existing legacy setup application calls the shared `LegacyPresentationMapper` with empty native targets, then uses its `patches` and `ownedNativeKeys` for deliberate replacement/removal. `prepareLegacy(settings, verifiedIdentities, includeIcons)` allows the migration coordinator to supply verified feed, input, component and icon identities. The basic UI uses an empty identity context. Supported reviewed scalars and appearance mappings work; an unmapped legacy domain or missing identity explicitly blocks full application and preserves the setup/images. This is not a claim of full legacy folders/widgets/favorites/palette parity.
+Existing legacy setup application calls the shared `LegacyPresentationMapper` with empty native targets, then uses its `patches` and `ownedNativeKeys` for deliberate replacement/removal. `prepareLegacy(settings, verifiedIdentities, includeIcons)` allows the migration coordinator to supply verified feed, input, component and icon identities. The UI supplies the reviewed platform identity inventory. Supported reviewed scalars and appearance mappings work; an unmapped legacy domain or missing identity explicitly blocks full application and preserves the setup/images. This is not a claim of full legacy folders/widgets/favorites/palette parity.
 
 ## Verification
 
-Run `python3 native/tests/setups/run_tests.py`. Forty-nine sanitized host checks pass, covering exact values/absence, account/hardware exclusions, native input names, optional icon preservation, source-media deletion, missing retained media, 24-setup and media bounds, failed AtomicFile writes, failed commits that mutate memory, rollback failure, explicit recovery, simulated interruption, portable rejection, and a real version 1 index. The script also compiles the manager Activity and instrumentation against Android API 36 in temporary output, with generated compile-only R constants matching the real catalog. It writes no shared native build outputs.
+Run `python3 native/tests/setups/run_tests.py`. 235 sanitized host checks pass, covering exact values/absence, account/hardware exclusions, native input names, optional icon preservation, source-media deletion, missing retained media, 24-setup and media bounds, failed AtomicFile writes, failed commits that mutate memory, rollback failure, explicit recovery, simulated interruption, portable rejection, and a real version 1 index. The script also compiles the manager Activity and instrumentation against Android API 36 in temporary output, with generated compile-only R constants matching the real catalog. It writes no shared native build outputs.
 
 `SetupInstrumentation.java`, `AndroidManifest.xml` and `build_native_test.py` are prepared for the coordinator's exclusive native test lease. The instrumentation uses prefixed private fixture preference files and an isolated cache directory, then removes them. It verifies actual Android typed commits, AtomicFile index persistence, application/default removal, account/control preservation, manager recreation, rename/delete, retained-media survival and missing-media preservation. It does not demonstrate process death, disk-full interruption, D-pad flow, route integration or physical-TV behavior.
 
 After the coordinator has built the integrated preview and reserved the exact target, build the test with `python3 native/tests/setups/build_native_test.py`, install the resulting `setup-proof.apk`, then run the `com.jeremykenedy.firetv.ui.setupproof/com.jeremykenedy.firetv.ui.nativeapp.setups.SetupInstrumentation` instrumentation with an explicit ADB serial. Separately exercise Settings -> Saved setups, all dialogs and cancellation, icon inclusion, Back/focus, activity recreation and missing-media errors. Record screenshots and exact target/APK proof. No native test execution is claimed by this handoff.
+
+## Existing version-1 retained artwork, November 11, 2026
+
+The unchanged `822dcc4` app reproduced the old apply failure through the actual Saved setups UI. The original representation is `saved-setups/setups.json` version 1 with `settings.keys`/`settings.values`; personal `app_visibility.customIconUri` references point to retained private `<UUID>.image` files. There is no native image manifest in these old records.
+
+Explicit Apply now validates the complete plan with placeholder identities before preparing any image. It accepts existing owned archived `.image` sources, creates deterministic managed icon copies through the established migration helper, and retains all exact mapping-context fields. It does not require the archived URI to be the current artwork selection. Original archive and index bytes remain unchanged. Derived copies may remain after a failed preference transaction for a safe retry, and the error explains that boundary. Unknown or unsupported settings still refuse without a partial apply.
+
+Restoration changes only included icon identities. It replaces their newer Theme/edit markers and captured unavailable-app artwork while merging unrelated pending choices. Artwork unchecked skips archived-icon access and preserves exact current icon, edit-marker and pending values. Native snapshot restoration retains its existing private-image manifest behavior. Success feedback is cancelled when a new action starts or the screen closes, preventing an old success toast overlapping a new error.
+
+Verification: 235 focused setup host checks and real API36 compilation passed. The native guarded fixture passed on a newly owned API31 Android TV at 1920 by 1080. It drives actual DPAD setup selection/Apply and checkbox use, validates rendered captured pixels, exact archive/index bytes, scoped icon/pending restoration, focus return, missing-source refusal, managed-copy preparation and failed-commit rollback. Final APK SHA256 is `7afc9ad22f330d47e846697b0445f28d67c0a4eb295ebe80437911b8a7df9fa5`; helper SHA256 is `abc711ab2eef5d1403c1351a9dff4a26d7e4ca71b88840faeb3f641c23eb98d0`. The existing disposable debug signer is `60c7e4d9841b380bce6bfb0e751ccafd8f5a1afb41392c120a3640c8add21e91`.
+
+Guard case `legacy-setup-final-20261111`, manifest `c98660011fd04277605ad53ae716eefcb0de186c819e2ba01cfcfc340ca3d5c8`, completed capture, restore, independent stopped verification and resolution, each `VERIFIED`, `matches=true`. Reviewed native screenshots, baseline reproduction, final native result, concise receipt and guarded runner are retained under:
+
+`/Users/jeremykenedy/Library/Application Support/Fire TV Delivery/2026-11-11-independent-completion/legacy-setup-icons/`
+
+### Coordinator's combined large-image run
+
+Build the current combined preview and matching helpers from its own existing lab key:
+
+```sh
+python3 native/build.py --debug
+python3 native/tests/state_guard/build_native_test.py --keystore native/.build/preview.jks
+python3 native/tests/setups/build_legacy_ui_test.py
+```
+
+On an exclusively reserved disposable target, install `native/dist/fire-tv-ui-source-preview.apk`, `native/tests/state_guard/.build/state-guard-proof.apk` and `native/tests/setups/legacy-setup-ui-proof.apk`. Verify the installed package/version/hash and all helper signers first. This fixture requires a fresh preview setup index and no existing managed artwork; do not clear owner data to meet that condition.
+
+Set `TARGET_SERIAL` to the reserved serial, then invoke the persistent guarded runner with a unique case ID and optional `large`:
+
+```sh
+python3 "/Users/jeremykenedy/Library/Application Support/Fire TV Delivery/2026-11-11-independent-completion/legacy-setup-icons/run_guarded.py" legacy-setup-large-unique large
+```
+
+The runner force-stops/captures, passes `state_guard_case_id` and `state_guard_manifest_sha256` to `com.jeremykenedy.firetv.ui.legacysetupproof/com.jeremykenedy.firetv.ui.nativeapp.setups.LegacyIconSetupInstrumentation`, pulls only screenshots, then force-stops/restores, independently verifies and resolves. `large` adds `-e large_icon true`. It generates a deterministic 2048-square PNG into the actual v1 `.image` representation with one scanline buffer, asserts `8 MiB < archived_image_bytes <= 20 MiB`, and uses the same DPAD, missing-source, checkbox, pixel and rollback assertions. Default remains the small fixture qualified above. Shared20MiB preparation/render support must be integrated before claiming that combined path; this receipt alone qualifies normal-size artwork.
+
+Final review additionally changed the archived-parent comparison to `root.equals(parent)` so malformed `file:/` references receive the explicit unsupported-reference error rather than a null-parent exception. The focused host regression and final API36 compilation pass. This defensive comparison does not change the normal paths qualified in the recorded native APK; the coordinator explicitly retained that native proof. Owned screenshots were removed from the emulator, all three owned packages uninstalled, the emulator stopped, and only the newly created `fire-tv-legacy-setup-icons-20261111` AVD deleted.

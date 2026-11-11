@@ -27,6 +27,7 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
     private boolean includeIcons = true;
     private boolean destroyed;
     private AlertDialog pending;
+    private Toast feedback;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
 
     @Override
@@ -40,6 +41,7 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
         if (startupBlocked) { super.onDestroy(); return; }
         destroyed = true;
         if (pending != null) pending.dismiss();
+        if (feedback != null) feedback.cancel();
         worker.shutdown();
         super.onDestroy();
     }
@@ -282,14 +284,15 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
                 new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(SavedSetupsActivity.this, message, Toast.LENGTH_SHORT)
-                                .show();
+                        feedback = Toast.makeText(SavedSetupsActivity.this, message, Toast.LENGTH_SHORT);
+                        feedback.show();
                         refresh();
                     }
                 });
     }
 
     private void perform(final Action action, final Runnable success) {
+        if (feedback != null) feedback.cancel();
         final AlertDialog progress =
                 new AlertDialog.Builder(this).setMessage("Saving presentation...").create();
         pending = progress;

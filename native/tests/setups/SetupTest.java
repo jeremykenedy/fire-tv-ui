@@ -723,8 +723,45 @@ public final class SetupTest {
                 && prefs(legacyContext, "source_accessibility").values.get("future_private").equals("kept"),
                 "applying older setup removes owned readability choices while preserving unknown data");
         originalBackup(new File(args[0],"original-backup"));
+        scopedLegacyIcons(new File(args[0],"scoped-legacy-icons"));
         System.out.println("Saved setups: " + checks + " checks passed.");
     }
+    private static void scopedLegacyIcons(File folder) throws Exception {
+        Context context=new Context(folder);SavedSetupManager manager=new SavedSetupManager(context);
+        String included="com.example.included/com.example.included.Main",other="com.example.other/com.example.other.Main";
+        String missing="com.example.missing",absent=missing+"/"+missing+".Main",uri="file:/retained-fixture.image";
+        Map<String,Object> pending=new LinkedHashMap<>();pending.put("icon:"+missing,"factory");pending.put("icon:com.example.later","factory");
+        prefs(context,"native_icons").values.put("retained_choices",com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.write("native_icons",pending));
+        prefs(context,"native_icons").values.put("edited:"+included,true);prefs(context,"native_icons").values.put("edited:"+absent,true);
+        prefs(context,"native_icons").values.put(other,"catalog:sonos");prefs(context,"native_icons").values.put("edited:"+other,true);
+        Map<String,String> components=new LinkedHashMap<>();components.put("com.example.included",included);components.put("com.example.other",other);
+        com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext identities=new com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext(components,Collections.emptyMap(),Collections.emptyMap(),Collections.singletonMap(uri,"catalog:jbl"));
+        String visibility=new JSONObject().put("com.example.included",new JSONObject().put("customIconUri",uri)).put(missing,new JSONObject().put("customIconUri",uri)).toString();
+        JSONObject settings=new JSONObject().put("keys",new JSONArray(Arrays.asList("app_visibility"))).put("values",new JSONObject().put("app_visibility",visibility));
+        Map<String,Object> before=new LinkedHashMap<>(prefs(context,"native_icons").values);
+        Map<String,Object> restored=manager.prepareLegacy(settings,identities,true).get("native_icons").values();
+        check("catalog:jbl".equals(restored.get(included))&&!restored.containsKey("edited:"+included),"Legacy captured artwork replaces current Theme and its edit marker.");
+        check("catalog:sonos".equals(restored.get(other))&&Boolean.TRUE.equals(restored.get("edited:"+other)),"Legacy artwork restore preserves unrelated resolved choice and marker.");
+        Map<String,Object> retained=com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.read("native_icons",restored.get("retained_choices"));
+        check("catalog:jbl".equals(retained.get("icon:"+missing))&&"factory".equals(retained.get("icon:com.example.later")),"Legacy pending artwork merges by included identity.");
+        check(!restored.containsKey("edited:"+absent),"Captured unavailable app clears its prior Theme reset marker.");
+        check("catalog:jbl".equals(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.promoteIcons(restored,Collections.singletonMap(missing,absent)).get(absent)),"Captured unavailable artwork promotes after restoration.");
+        check(before.equals(manager.prepareLegacy(settings,identities,false).get("native_icons").values()),"Excluding artwork preserves every current native icon choice.");
+        settings.put("values",new JSONObject().put("app_visibility",new JSONObject().put("com.example.included",new JSONObject()).toString()));
+        prefs(context,"native_icons").values.put(included,"catalog:pc");
+        restored=manager.prepareLegacy(settings,identities,true).get("native_icons").values();
+        check(!restored.containsKey(included)&&!restored.containsKey("edited:"+included)&&"catalog:sonos".equals(restored.get(other)),"Captured default Theme clears only its included identity.");
+        JSONObject bad=new JSONObject().put("keys",new JSONArray(Arrays.asList("app_visibility")))
+                .put("values",new JSONObject().put("app_visibility",new JSONObject().put("com.example.included",new JSONObject().put("customIconUri","file:/")).toString()));
+        File directory=new File(context.getFilesDir(),"saved-setups");directory.mkdirs();
+        Files.write(new File(directory,"setups.json").toPath(),new JSONObject().put("version",1).put("setups",new JSONArray().put(new JSONObject()
+                .put("id","11111111-1111-1111-1111-111111111111").put("name","Malformed reference").put("savedAt",1).put("settings",bad))).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        Map<String,PreferenceSnapshot> beforeBad=PresentationState.capture(context);
+        try{manager.apply("11111111-1111-1111-1111-111111111111",true);throw new AssertionError("Root image URI accepted");}
+        catch(IOException expected){check(expected.getMessage().contains("unsupported retained image reference"),"Root image URI reports the explicit unsupported-reference error.");}
+        check(same(beforeBad,PresentationState.capture(context)),"Malformed archived reference changes no preferences.");
+    }
+
     private static void originalBackup(File folder) throws Exception {
         Context context = new Context(folder);
         SavedSetupManager manager = new SavedSetupManager(context);
