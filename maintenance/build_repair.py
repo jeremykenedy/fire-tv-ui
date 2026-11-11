@@ -35,6 +35,15 @@ def capture(*args):
     return run(*args, capture_output=True, text=True).stdout.strip()
 
 
+def run_logged(path, *args, cwd):
+    try:
+        with path.open('w') as stream:
+            run(*args, cwd=cwd, stdout=stream, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError:
+        print('\n'.join(path.read_text(errors='replace').splitlines()[-60:]), file=sys.stderr)
+        raise
+
+
 def reconstruct(output, metadata):
     if digest(PATCH) != metadata['patchSha256']:
         raise ValueError('The reviewed maintenance patch checksum does not match.')
@@ -104,11 +113,8 @@ def build(output, verify_only):
         if cached_tool.is_file() and digest(cached_tool) == metadata['apktoolSha256']:
             (source / '.cache').mkdir(exist_ok=True)
             shutil.copyfile(cached_tool, source / '.cache/apktool.jar')
-        with (logs / 'build.log').open('w') as stream:
-            run(sys.executable, 'scripts/build.py', '--unsigned', cwd=source,
-                stdout=stream, stderr=subprocess.STDOUT)
-        with (logs / 'tests.log').open('w') as stream:
-            run('bash', 'scripts/test.sh', cwd=source, stdout=stream, stderr=subprocess.STDOUT)
+        run_logged(logs / 'build.log', sys.executable, 'scripts/build.py', '--unsigned', cwd=source)
+        run_logged(logs / 'tests.log', 'bash', 'scripts/test.sh', cwd=source)
         if git('diff-files', '--name-only'):
             raise ValueError('Tracked maintenance source changed during checks or compilation.')
         artifacts = output / 'artifacts'
@@ -146,5 +152,7 @@ if __name__ == '__main__':
     try:
         build(arguments.output_dir, arguments.verify_only)
     except (OSError, ValueError, subprocess.CalledProcessError) as failure:
+        if getattr(failure, 'stderr', None):
+            print(failure.stderr, file=sys.stderr)
         print('Maintenance build failed: ' + str(failure), file=sys.stderr)
         sys.exit(1)
