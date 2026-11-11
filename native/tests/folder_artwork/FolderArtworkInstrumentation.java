@@ -95,7 +95,7 @@ public final class FolderArtworkInstrumentation extends Instrumentation {
             longPress();press(KeyEvent.KEYCODE_DPAD_DOWN);press(KeyEvent.KEYCODE_DPAD_DOWN);press(KeyEvent.KEYCODE_DPAD_CENTER);check(!FolderPreferences.load(context).find(id).components.contains(fixture),"Remove member keeps app installed");checkFocus("add");
             press(KeyEvent.KEYCODE_DPAD_RIGHT);checkFocus("controls");press(KeyEvent.KEYCODE_DPAD_CENTER);awaitText("Rename");press(KeyEvent.KEYCODE_BACK);checkFocus("controls");
             press(KeyEvent.KEYCODE_BACK);awaitHome();onMain(new Runnable(){public void run(){check(home.getCurrentFocus()!=null&&("folder:"+id).equals(home.getCurrentFocus().getTag()),"Back restores the selected Home folder");}});screenshot("folder-home-back.png");
-            FolderOptions large=FolderPreferences.load(context).addApp(id,missing);for(AppInventory.App app:apps)if(app.key().startsWith("com.jeremykenedy.firetv.ui.folderartproof/"))large=large.addApp(id,app.key());FolderPreferences.save(context,large);openFolder();awaitLabel(playKey,"Play Store");
+            FolderOptions expanded=FolderPreferences.load(context).addApp(id,missing);for(AppInventory.App app:apps)if(app.key().startsWith("com.jeremykenedy.firetv.ui.folderartproof/"))expanded=expanded.addApp(id,app.key());FolderPreferences.save(context,expanded);openFolder();awaitLabel(playKey,"Play Store");
             onMain(new Runnable(){public void run(){check(member(missing)!=null,"Missing member keeps its ordered tile");}});
             for(int i=0;i<3;i++){press(KeyEvent.KEYCODE_DPAD_DOWN);SystemClock.sleep(150);}
             SystemClock.sleep(350);waitForIdleSync();
