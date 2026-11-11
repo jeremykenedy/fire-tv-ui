@@ -874,7 +874,7 @@ index 91cbc0a5de03189ff56400782341448cc00c4e20..4056aeb2db35f47d445be169655b5348
 +.end method
 +'''
 diff --git a/scripts/patch_launcher.py b/scripts/patch_launcher.py
-index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..185e7d94d097a8b8d51319b7f3304f42c399621d 100644
+index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..0be695e89ba50329a6f224211c3ec61a617afd8d 100644
 --- a/scripts/patch_launcher.py
 +++ b/scripts/patch_launcher.py
 @@ -14,6 +14,7 @@ from icon_pack_patch import patch_builtin_icon_packs
@@ -1049,7 +1049,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..185e7d94d097a8b8d51319b7f3304f42
  
      rotation = class_paths["LQ3/h8;"]
      rotation.write_text(replace_method(rotation.read_text(),
-@@ -508,6 +620,21 @@ def patch(decoded):
+@@ -508,6 +620,27 @@ def patch(decoded):
      invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
      return-void
  .end method
@@ -1066,6 +1066,12 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..185e7d94d097a8b8d51319b7f3304f42
 +    move-result-object v0
 +    iget-object v1, p0, LQ3/T3;->C:LN/g0;
 +    invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
++    new-instance v0, LQ3/F6;
++    iget-object v1, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
++    const/4 v2, 0x0
++    invoke-direct {v0, p0, v1, v2}, LQ3/F6;-><init>(LQ3/T3;Landroid/content/SharedPreferences;Lf4/c;)V
++    sget-object v1, Lb4/n;->a:Lb4/n;
++    invoke-virtual {v0, v1}, LQ3/F6;->k(Ljava/lang/Object;)Ljava/lang/Object;
 +    return-void
 +.end method
  '''
