@@ -41,6 +41,7 @@ public final class FolderArtworkInstrumentation extends Instrumentation {
             for(AppInventory.App app:apps)if("Play Store".equals(app.label))play=app;
             check(play!=null,"Installed Play Store banner for actual stable visual comparison");final String playKey=play.key();
             final boolean large = "true".equals(args.getString("large_text"));
+            final boolean visualOnly = "true".equals(args.getString("visual_only"));
             if (large) {
                 check(Math.abs(context.getResources().getConfiguration().fontScale-1.3f)<0.01f,"Owned emulator system font scale1.3 is active");
                 com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityPreferences.save(context,120,false);
@@ -61,6 +62,12 @@ public final class FolderArtworkInstrumentation extends Instrumentation {
                     TextView title=(TextView)member(playKey).getChildAt(1);
                     android.graphics.Paint.FontMetricsInt metrics=title.getPaint().getFontMetricsInt();
                     check(title.getHeight()>=metrics.bottom-metrics.top+title.getCompoundPaddingTop()+title.getCompoundPaddingBottom(),"Large saved/system text fully fits its external label");
+                    for(String tag:new String[]{"add","controls"}) {
+                        TextView button=(TextView)folder.getWindow().getDecorView().findViewWithTag(tag);
+                        android.graphics.Paint.FontMetricsInt font=button.getPaint().getFontMetricsInt();
+                        check(button.getHeight()>=font.bottom-font.top+button.getCompoundPaddingTop()+button.getCompoundPaddingBottom(),"Large footer text fits height");
+                        check(button.getPaint().measureText(button.getText().toString())<=button.getWidth()-button.getCompoundPaddingLeft()-button.getCompoundPaddingRight()+1,"Large footer label fits width");
+                    }
                     Bitmap captured=folder.getIntent().getParcelableExtra("folder_backdrop");
                     check(captured!=null&&!captured.isRecycled()&&captured.getWidth()<=192&&captured.getHeight()<=108,"Bounded transient Home backdrop remains in the folder Intent");
                     ViewGroup root=(ViewGroup)((ViewGroup)folder.findViewById(android.R.id.content)).getChildAt(0);
@@ -84,6 +91,11 @@ public final class FolderArtworkInstrumentation extends Instrumentation {
             }
             FocusPreferences.setAppStyle(context,"default");FocusPreferences.saveAppSize(context,FocusPreferences.APP_GROWTH,0);FocusPreferences.saveAppShadow(context,0);refresh(playKey);
             onMain(new Runnable(){public void run(){inspect(member(playKey),1f,0);}});screenshot("folder-growth-off-shadow-off.png");
+            if (visualOnly) {
+                press(KeyEvent.KEYCODE_BACK);awaitHome();
+                onMain(new Runnable(){public void run(){check(home.getCurrentFocus()!=null&&("folder:"+id).equals(home.getCurrentFocus().getTag()),"Visual case Back restores selected Home folder");}});
+                result.putString("status","PASS: bounded final default geometry, actual shadows at unchanged30%, explicit saved style, glyph clearance and Home folder Back");
+            } else {
             FocusPreferences.saveAppSize(context,FocusPreferences.APP_GROWTH,30);FocusPreferences.saveAppShadow(context,38);refresh(playKey);
             press(KeyEvent.KEYCODE_DPAD_DOWN);checkFocus("add");press(KeyEvent.KEYCODE_DPAD_CENTER);
             int selected=-1;for(AppInventory.App app:apps)if(!playKey.equals(app.key())){selected++;if(fixture.equals(app.key()))break;}
@@ -114,6 +126,7 @@ public final class FolderArtworkInstrumentation extends Instrumentation {
                 check(root.getBackground() instanceof android.graphics.drawable.ColorDrawable&&((android.graphics.drawable.ColorDrawable)root.getBackground()).getColor()==0xff101523,"Manager route retains its prior page background fallback");
             }});screenshot("folder-manager-fallback.png");press(KeyEvent.KEYCODE_BACK);checkFocus("folder:"+id);
             result.putString("status","PASS: actual Home folder artwork, loading positions, growth18/30/off and shadow0/18/28/38, explicit border/color, native Add/Open/move/remove/controls/Back, exact manually adjusted scroll recreation and menu focus");
+            }
             }
         }catch(Throwable failure){result.putString("failure",failure.toString()+(failure.getCause()==null?"":"; "+failure.getCause()));try{screenshot("folder-failure.png");}catch(Exception ignored){}}
         finally{release.countDown();onMain(new Runnable(){public void run(){if(folder!=null)folder.finish();if(home!=null)home.finish();}});}

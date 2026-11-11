@@ -10,6 +10,8 @@ Before each run, capture a durable guard for `shared_prefs,files,no_backup` usin
 
 The artwork runner enters the actual Home folder through remote Select. It holds initial package discovery to check stable loading positions, then uses the real installed Play Store banner for comparison with the stable reference. It checks actual selected scale, unchanged resting dimensions, independent shadow presets, border/color modes, external glyph clearance, Add apps, real app opening, member order/removal, folder controls, Back to the selected Home folder, missing members and exact manually adjusted multirow scroll restoration after recreation. Native screenshots establish the rendered state; elevation properties alone do not prove a visible shadow.
 
+For a bounded rendering recheck after a text-only change, `visual_only=true` covers the actual Home folder entry, default dimensions, shadow/style captures and Back without repeating membership mutations.
+
 Run the same runner with `large_text=true` after separately preserving and setting this owned emulator's system `font_scale` to 1.3. It selects the saved 120% text option and checks actual label metrics plus the bounded filtered backdrop. Restore and read back the original system setting separately from the app guard. This is one bounded existing accessibility case.
 
 The included `FolderInstrumentation` retains the existing create, rename, remove, missing-member and manager/direct Back checks. Its control lookup accepts app artwork targets as well as ordinary Buttons. It does not change lock data or expand PIN behavior.
