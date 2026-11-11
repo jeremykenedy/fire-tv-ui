@@ -32,7 +32,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-setups-') as temporary:
         stubs.append(path)
     dependencies = [SOURCE / 'backup/PortableBackup.java', SOURCE / 'accessibility/AccessibilityPreferences.java', SOURCE / 'holidays/HolidayScenes.java', SOURCE / 'migration/PreferenceSnapshot.java', SOURCE / 'migration/PrivateMediaReference.java',
                     SOURCE / 'inputs/InputEntry.java', SOURCE / 'inputs/InputOptions.java', SOURCE / 'migration/LegacyPresentationMapper.java',
-                    SOURCE / 'migration/LegacyJson.java', SOURCE / 'migration/LegacyFolderMigration.java', SOURCE / 'migration/LegacyAppearanceMapper.java', SOURCE / 'migration/LauncherMigration.java', SOURCE / 'migration/PresentationMappingContext.java', SOURCE / 'appgrid/AppGridOptions.java', SOURCE / 'appgrid/HomeTileOrder.java',
+                    SOURCE / 'migration/LegacyJson.java', SOURCE / 'migration/LegacyFolderMigration.java', SOURCE / 'migration/LegacyAppearanceMapper.java', SOURCE / 'migration/LauncherMigration.java', SOURCE / 'migration/PresentationMappingContext.java', SOURCE / 'appgrid/AppGridOptions.java', SOURCE / 'appgrid/RetainedHomeChoices.java', SOURCE / 'appgrid/HomeTileOrder.java',
                     SOURCE / 'focus/FocusOptions.java', SOURCE / 'cards/CardOptions.java',
                     SOURCE / 'layout/LayoutItem.java', SOURCE / 'layout/LayoutOptions.java',
                     SOURCE / 'folders/FolderOptions.java', SOURCE / 'folders/FolderPreferences.java',

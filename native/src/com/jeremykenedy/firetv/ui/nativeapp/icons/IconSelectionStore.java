@@ -13,6 +13,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices;
+import com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState;
 
 /** Individual artwork choices; source images outside this app are never modified. */
 public final class IconSelectionStore {
@@ -43,11 +45,14 @@ public final class IconSelectionStore {
                 || value != null && value.startsWith("catalog:") && IconCatalog.find(value.substring(8)) != null
                 || imageFile(context, value) != null && imageFile(context, value).isFile();
         if (!valid) throw new IOException("This icon is unavailable. Choose another image.");
-        String previous = choice(context, tileKey);
-        SharedPreferences.Editor edit = preferences(context).edit();
-        if (THEME.equals(value)) edit.remove(tileKey); else edit.putString(tileKey, value);
-        if (!edit.commit()) throw new IOException("The icon could not be saved. Try again.");
-        if (!value.equals(previous)) discardPreparedImage(context, previous);
+        synchronized (PresentationState.class) {
+            String previous = choice(context, tileKey);
+            SharedPreferences.Editor edit = preferences(context).edit();
+            if (THEME.equals(value)) edit.remove(tileKey); else edit.putString(tileKey, value);
+            edit.putBoolean("edited:" + tileKey, true);
+            if (!edit.commit()) throw new IOException("The icon could not be saved. Try again.");
+            if (!value.equals(previous)) discardPreparedImage(context, previous);
+        }
     }
 
     public static Drawable resolve(Context context, String tileKey, Drawable factoryIcon, Drawable themeIcon) {
@@ -130,7 +135,17 @@ public final class IconSelectionStore {
 
     public static void discardPreparedImage(Context context, String value) {
         File file = imageFile(context, value);
-        if (file != null && !preferences(context).getAll().containsValue(value)) file.delete();
+        if (file == null) return;
+        synchronized (PresentationState.class) {
+            java.util.Map<String, ?> saved = preferences(context).getAll();
+            if (saved.containsValue(value)) return;
+            try {
+                if (RetainedHomeChoices.read("native_icons", saved.get(RetainedHomeChoices.KEY)).containsValue(value)) return;
+            } catch (IllegalArgumentException invalid) {
+                return;
+            }
+            file.delete();
+        }
     }
 
     private static File imageFile(Context context, String value) {

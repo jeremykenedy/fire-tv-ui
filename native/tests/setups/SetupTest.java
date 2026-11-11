@@ -349,6 +349,25 @@ public final class SetupTest {
         PresentationState.applyPortable(groupContext, PortableBackup.decode(oldBackup, portable));
         check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
                 "Older portable backup preserves groups it could not capture.");
+        Context upgradedBackup = new Context(new File(args[0], "upgraded-portable"));
+        String historicalIcons = "{\"fixture.player/.Main\":{\"customIconUri\":\"content://fixture.invalid/previous-image\"}}";
+        prefs(upgradedBackup, "launcher_prefs").values.put("app_visibility", historicalIcons);
+        prefs(upgradedBackup, "launcher_prefs").values.put("widgets_config", grouped);
+        prefs(upgradedBackup, "launcher_prefs").values.put("source_ui_strict_migration_version", 1);
+        prefs(upgradedBackup, "launcher_prefs").values.put("use_24h_clock", true);
+        prefs(upgradedBackup, "native_icons").values.put("fixture.player/fixture.player.Main", "catalog:sony");
+        prefs(upgradedBackup, "native_layout").values.put("widget_groups", grouped);
+        Map<String, PreferenceSnapshot> currentPortable = PresentationState.capturePortable(upgradedBackup);
+        check(!currentPortable.get("launcher_prefs").values().containsKey("app_visibility")
+                && !currentPortable.get("launcher_prefs").values().containsKey("widgets_config")
+                && Boolean.TRUE.equals(currentPortable.get("launcher_prefs").values().get("use_24h_clock")),
+                "Completed migration exports current native choices and keeps direct legacy consumers.");
+        PresentationState.applyPortable(upgradedBackup, PortableBackup.decode(PortableBackup.encode(currentPortable, portable), portable));
+        check(historicalIcons.equals(prefs(upgradedBackup, "launcher_prefs").values.get("app_visibility"))
+                && grouped.equals(prefs(upgradedBackup, "launcher_prefs").values.get("widgets_config")),
+                "Portable round trip preserves original migration records on this TV.");
+        prefs(upgradedBackup, "launcher_prefs").values.remove("source_ui_strict_migration_version");
+        rejects(() -> PresentationState.capturePortable(upgradedBackup), "Unverified legacy data is never silently omitted.");
         Map<String, PreferenceSnapshot> privateGroup = new LinkedHashMap<>(oldPortable);
         portableLayout.put("widget_groups", "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Big\",\"data\":{\"token\":\"private\"}}]]");
         privateGroup.put("native_layout", new PreferenceSnapshot(portableLayout));
@@ -407,7 +426,7 @@ public final class SetupTest {
                 new JSONObject().put("keys", new JSONArray(Arrays.asList("minimal_status_bar", "status_bar_position")))
                         .put("values", new JSONObject().put("minimal_status_bar", true).put("status_bar_position", "Center")),
                 new JSONObject().put("keys", new JSONArray(Arrays.asList("use_24h_clock", "poster_mode")))
-                        .put("values", new JSONObject().put("use_24h_clock", false).put("poster_mode", true)))) {
+                        .put("values", new JSONObject().put("use_24h_clock", false).put("poster_mode", "true")))) {
             rejects(() -> manager.prepareLegacy(bad,
                     com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true),
                     "Malformed, incomplete or unsupported direct choice blocks setup.");
