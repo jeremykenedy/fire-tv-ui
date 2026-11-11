@@ -15,6 +15,12 @@ import android.widget.Toast;
 import android.widget.TextView;
 import com.jeremykenedy.firetv.ui.nativeapp.Pages;
 import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots;
+import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem;
+import com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule;
+import com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.TvRecommendations;
 import com.jeremykenedy.firetv.ui.nativeapp.providers.RecommendationLoader;
 import java.util.Collections;
@@ -120,25 +126,41 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
                     catch (IllegalStateException failed) { Toast.makeText(CardsSettingsActivity.this, failed.getMessage(), Toast.LENGTH_LONG).show(); }
                 }
             });
-            com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions layout =
-                    com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences.load(this, com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots.defaults());
-            boolean cardsShown = layout.includes(com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem.Kind.CHANNEL_CARD);
-            action("Hide featured cards: " + (cardsShown ? "Off" : "On"), "hide-cards", new View.OnClickListener() {
+            String targetLayout = null;
+            LayoutOptions layout = null;
+            try { targetLayout = layoutTarget(); layout = readLayout(targetLayout); }
+            catch (Exception unavailable) { }
+            final String renderedLayout = targetLayout;
+            boolean cardsShown = layout != null && layout.includes(LayoutItem.Kind.CHANNEL_CARD);
+            action(layout == null ? "Hide featured cards: Dashboard unavailable" : "Hide featured cards: " + (cardsShown ? "Off" : "On"),
+                    "hide-cards", new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     try {
-                        com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions current = com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences.load(CardsSettingsActivity.this, com.jeremykenedy.firetv.ui.nativeapp.layout.HomeSlots.defaults());
-                        boolean cards = current.includes(com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem.Kind.CHANNEL_CARD);
-                        boolean widgets = current.includes(com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutItem.Kind.WIDGET);
-                        com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode mode = cards
-                                ? (widgets ? com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode.WIDGETS_ONLY : com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode.NONE)
-                                : (widgets ? com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode.BOTH : com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions.Mode.CARDS_ONLY);
-                        com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutPreferences.save(CardsSettingsActivity.this, current.withMode(mode));
+                        if (renderedLayout == null || !renderedLayout.equals(layoutTarget())) {
+                            render("hide-cards");
+                            throw new IllegalStateException("The dashboard changed. Check its current card setting and try again.");
+                        }
+                        LayoutOptions current = readLayout(renderedLayout);
+                        boolean cards = current.includes(LayoutItem.Kind.CHANNEL_CARD);
+                        boolean widgets = current.includes(LayoutItem.Kind.WIDGET);
+                        LayoutOptions.Mode mode = cards
+                                ? (widgets ? LayoutOptions.Mode.WIDGETS_ONLY : LayoutOptions.Mode.NONE)
+                                : (widgets ? LayoutOptions.Mode.BOTH : LayoutOptions.Mode.CARDS_ONLY);
+                        if (LayoutSettingsActivity.BASE_LAYOUT.equals(renderedLayout))
+                            LayoutPreferences.save(CardsSettingsActivity.this, current.withMode(mode));
+                        else {
+                            LayoutScheduleStore store = new LayoutScheduleStore(CardsSettingsActivity.this);
+                            LayoutSchedule.Profile profile = store.read().profile(renderedLayout);
+                            if (profile == null) throw new IllegalStateException("This dashboard no longer exists.");
+                            store.save(profile.name, profile.id, current.withMode(mode));
+                        }
                         render("hide-cards");
-                    } catch (IllegalStateException failed) {
+                    } catch (Exception failed) {
                         Toast.makeText(CardsSettingsActivity.this, failed.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }
             });
+            content.findViewWithTag("hide-cards").setEnabled(layout != null);
             action("Hide featured cards titles: " + (CardDisplayPreferences.hideTitles(this) ? "On" : "Off"), "hide-titles", new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     try { CardDisplayPreferences.setHideTitles(CardsSettingsActivity.this, !CardDisplayPreferences.hideTitles(CardsSettingsActivity.this)); render("hide-titles"); }
@@ -189,20 +211,7 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
                     focusTag = "layout";
                     try {
                         Intent editor = new Intent(CardsSettingsActivity.this, LayoutSettingsActivity.class);
-                        if (getIntent().hasExtra(LayoutSettingsActivity.DASHBOARD_PROFILE)) {
-                            String target = getIntent().getStringExtra(LayoutSettingsActivity.DASHBOARD_PROFILE);
-                            if (target == null) throw new IllegalStateException("This card layout is unavailable.");
-                            editor.putExtra(LayoutSettingsActivity.DASHBOARD_PROFILE, target);
-                        } else {
-                            com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.Decision selected =
-                                    new com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore(CardsSettingsActivity.this)
-                                            .resolve(System.currentTimeMillis());
-                            if (selected.status == com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.Status.READY)
-                                editor.putExtra(LayoutSettingsActivity.DASHBOARD_PROFILE, selected.profile.id);
-                            else if (selected.status == com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutSchedule.Status.BASE_LAYOUT)
-                                editor.putExtra(LayoutSettingsActivity.DASHBOARD_PROFILE, LayoutSettingsActivity.BASE_LAYOUT);
-                            else throw new IllegalStateException("Choose an available dashboard in Dashboards and schedules first.");
-                        }
+                        editor.putExtra(LayoutSettingsActivity.DASHBOARD_PROFILE, layoutTarget());
                         startActivity(editor);
                     } catch (Exception unavailable) {
                         Toast.makeText(CardsSettingsActivity.this, unavailable.getMessage(), Toast.LENGTH_LONG).show();
@@ -388,6 +397,27 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
             }
         });
         dialog.show();
+    }
+
+    private String layoutTarget() throws Exception {
+        if (getIntent().hasExtra(LayoutSettingsActivity.DASHBOARD_PROFILE)) {
+            String target = getIntent().getStringExtra(LayoutSettingsActivity.DASHBOARD_PROFILE);
+            if (target == null) throw new IllegalStateException("This card layout is unavailable.");
+            readLayout(target);
+            return target;
+        }
+        LayoutSchedule.Decision selected = new LayoutScheduleStore(this).resolve(System.currentTimeMillis());
+        if (selected.status == LayoutSchedule.Status.READY) return selected.profile.id;
+        if (selected.status == LayoutSchedule.Status.BASE_LAYOUT) return LayoutSettingsActivity.BASE_LAYOUT;
+        throw new IllegalStateException("Choose an available dashboard in Dashboards and schedules first.");
+    }
+
+    private LayoutOptions readLayout(String target) throws Exception {
+        if (LayoutSettingsActivity.BASE_LAYOUT.equals(target)) return LayoutPreferences.load(this, HomeSlots.defaults());
+        if (!LayoutSchedule.validId(target)) throw new IllegalStateException("This dashboard is unavailable.");
+        LayoutSchedule.Profile profile = new LayoutScheduleStore(this).read().profile(target);
+        if (profile == null) throw new IllegalStateException("This dashboard no longer exists.");
+        return profile.layout;
     }
 
     private boolean save(CardOptions value, String target) {

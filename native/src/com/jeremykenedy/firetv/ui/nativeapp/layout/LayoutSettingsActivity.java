@@ -84,6 +84,7 @@ public final class LayoutSettingsActivity extends com.jeremykenedy.firetv.ui.nat
             finish(); return;
         }
         LinearLayout page = Pages.sidePanel(this);
+        page.setClipChildren(true);
         heading = Pages.text(this, "", 26);
         heading.setTextColor(0xff8d8d8d);
         heading.setTypeface(null, android.graphics.Typeface.BOLD);
