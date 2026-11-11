@@ -60,7 +60,7 @@ public final class AndroidPresentationInventory {
         }
         Map<String, String> icons = new LinkedHashMap<>();
         return new PresentationMappingContext(components, feeds, items, icons,
-                IdentityInventory.inputs(labels), packs, media);
+                IdentityInventory.inputs(labels), packs, media, IdentityInventory.ambiguousInputs(labels));
     }
 
     static List<String> launchActivities(Context context) throws IOException {

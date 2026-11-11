@@ -2,6 +2,7 @@ package com.jeremykenedy.firetv.ui.nativeapp.migration;
 
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTileOrder;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.CardOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.inputs.InputEntry;
@@ -40,6 +41,7 @@ public final class LegacyPresentationMapper {
     private final Map<String, PreferenceSnapshot> before = new LinkedHashMap<>();
     private final Map<String, Map<String, Object>> patches = new LinkedHashMap<>();
     private final Set<String> mapped = new LinkedHashSet<>();
+    private final Map<String, Map<String, Object>> retained = new LinkedHashMap<>();
 
     private LegacyPresentationMapper(PreferenceSnapshot legacy, PresentationMappingContext identities,
             Map<String, PreferenceSnapshot> nativeBefore) {
@@ -55,6 +57,8 @@ public final class LegacyPresentationMapper {
             before.put(file, nativeBefore.containsKey(file) ? nativeBefore.get(file) : new PreferenceSnapshot(Collections.emptyMap()));
             patches.put(file, new LinkedHashMap<String, Object>());
         }
+        for (String file : new String[]{GRID, INPUTS, ICONS})
+            retained.put(file, RetainedHomeChoices.read(file, before.get(file).values().get(RetainedHomeChoices.KEY)));
     }
     public static Plan plan(PreferenceSnapshot legacy, PresentationMappingContext identities,
             Map<String, PreferenceSnapshot> nativeBefore) {
@@ -78,6 +82,10 @@ public final class LegacyPresentationMapper {
             if (folders.pinPresent) mapper.mapped.add("folder_lock_pin");
         }
         mapper.grid(); mapper.focus(); mapper.cards(); mapper.iconsAndVisibility(); mapper.inputs(); mapper.appearance(); mapper.contentMode();
+        for (String file : mapper.retained.keySet()) {
+            Map<String, Object> choices = mapper.retained.get(file);
+            if (!choices.isEmpty()) mapper.put(file, RetainedHomeChoices.KEY, RetainedHomeChoices.write(file, choices));
+        }
         return mapper.finish();
     }
     public static Set<String> directlyConsumedPresentationKeys(Map<String, ?> legacy) {
@@ -185,12 +193,12 @@ public final class LegacyPresentationMapper {
         Map<String, Object> names = LegacyJson.object(string("input_names"));
         if (names.size() > 64) throw invalid();
         for (Map.Entry<String, Object> entry : names.entrySet()) {
-            String id = identities.inputs.get(entry.getKey());
-            if (id == null) throw missingInput();
+            String id = identities.availableInput(entry.getKey());
             if (!(entry.getValue() instanceof String)) throw invalid();
             String name = (String) entry.getValue();
             if (name.isEmpty() || name.length() > 60 || !name.trim().equals(name)) throw invalid();
             for (int index = 0; index < name.length(); index++) if (Character.isISOControl(name.charAt(index))) throw invalid();
+            if (id == null) { retain(INPUTS, "name:" + entry.getKey(), name); continue; }
             put(INPUTS, "name:" + id, name);
             put(INPUTS, "known:" + id, true);
         }
@@ -206,6 +214,8 @@ public final class LegacyPresentationMapper {
         }
         if (legacy.containsKey("display_order")) {
             List<String> ordered = new ArrayList<>(), inputOrder = new ArrayList<>(), homeOrder = new ArrayList<>();
+            List<String> retainedApps = new ArrayList<>(), retainedInputs = new ArrayList<>(), retainedHome = new ArrayList<>();
+            boolean missingApps = false, missingInputs = false;
             Set<String> seen = new HashSet<>();
             String value = string("display_order");
             if (!value.isEmpty()) for (String key : value.split(",", -1)) {
@@ -213,21 +223,30 @@ public final class LegacyPresentationMapper {
                     String id = key.substring("folder://".length());
                     if (folders == null || folders.folders.find(id) == null || !seen.add("folder:" + id)) throw invalid();
                     homeOrder.add("folder:" + id);
+                    retainedHome.add("folder:" + id);
                 } else if (key.startsWith("tvinput_name:")) {
-                    String id = identities.inputs.get(key);
-                    if (id == null) throw missingInput();
-                    if (!seen.add("input:" + id)) throw invalid();
-                    inputOrder.add(id); homeOrder.add("input:" + id);
+                    String id = identities.availableInput(key);
+                    String reference = id == null ? RetainedHomeChoices.inputReference(key) : "input:" + id;
+                    if (!seen.add(reference)) throw invalid();
+                    retainedInputs.add(reference); retainedHome.add(reference);
+                    if (id == null) missingInputs = true;
+                    else { inputOrder.add(id); homeOrder.add("input:" + id); }
                 } else {
-                    String component = identities.component(key);
-                    if (!seen.add("app:" + component)) throw invalid();
-                    ordered.add(component); homeOrder.add(component);
+                    String component = identities.availableComponent(key);
+                    String reference = component == null ? RetainedHomeChoices.appReference(key) : component;
+                    if (!seen.add(reference)) throw invalid();
+                    retainedApps.add(reference); retainedHome.add(reference);
+                    if (component == null) missingApps = true;
+                    else { ordered.add(component); homeOrder.add(component); }
                 }
             }
             if (ordered.size() > 2048) throw invalid();
             if (!ordered.isEmpty() || value.isEmpty()) put(GRID, "order", String.join("\n", ordered));
             if (!inputOrder.isEmpty()) put(INPUTS, "order", new InputOptions(inputOrder, Collections.<String>emptySet()).savedOrder());
-            put(GRID, "home_order", String.join("\n", homeOrder));
+            if (!homeOrder.isEmpty() || value.isEmpty()) put(GRID, "home_order", String.join("\n", homeOrder));
+            if (missingApps) retain(GRID, "order", String.join("\n", retainedApps));
+            if (missingApps || missingInputs) retain(GRID, "home_order", String.join("\n", retainedHome));
+            if (missingInputs) retain(INPUTS, "order", String.join("\n", retainedInputs));
             mapped.add("display_order");
         }
     }
@@ -353,12 +372,12 @@ public final class LegacyPresentationMapper {
                     if (choice.getKey().equals("hidden")) {
                         if (!(choice.getValue() instanceof Boolean)) throw invalid();
                         if (entry.getKey().startsWith("tvinput_name:")) {
-                            String id = identities.inputs.get(entry.getKey());
-                            if (id == null) throw missingInput();
-                            put(INPUTS, "hidden:" + id, choice.getValue());
-                            put(INPUTS, "known:" + id, true);
+                            String id = identities.availableInput(entry.getKey());
+                            if (id == null) retain(INPUTS, "hidden:" + entry.getKey(), choice.getValue());
+                            else { put(INPUTS, "hidden:" + id, choice.getValue()); put(INPUTS, "known:" + id, true); }
                         } else {
-                            String component = identities.component(entry.getKey());
+                            String component = identities.availableComponent(entry.getKey());
+                            if (component == null) { retain(GRID, "hidden:" + entry.getKey(), choice.getValue()); continue; }
                             if (resolvedVisibility.containsKey(component)
                                     && !resolvedVisibility.get(component).equals(choice.getValue())) throw invalid();
                             resolvedVisibility.put(component, (Boolean) choice.getValue());
@@ -373,14 +392,18 @@ public final class LegacyPresentationMapper {
                         resolvedCardPackages.put(source, (Boolean) choice.getValue());
                         if ((Boolean) choice.getValue()) hiddenCardPackages.add(source); else hiddenCardPackages.remove(source);
                         changedCardPackages = true;
+                    } else if (choice.getKey().equals("hideWatchNext") && entry.getKey().startsWith("tvinput_name:")
+                            && Boolean.FALSE.equals(choice.getValue())) {
+                        // Inputs do not publish a Watch Next source; the saved disabled choice is unchanged.
                     } else if (choice.getKey().equals("customIconUri")) {
                         if (!(choice.getValue() instanceof String)) throw invalid();
                         String uri = (String) choice.getValue();
                         String selected = identities.icons.get(uri);
                         if (selected == null) throw new IllegalArgumentException("A custom icon needs a verified retained or imported native image.");
                         if (factories.contains(entry.getKey())) throw invalid();
-                        String component = identities.tile(entry.getKey());
-                        if (customIcons.put(component, selected) != null) throw invalid();
+                        String component = availableTile(entry.getKey());
+                        if (component == null) retain(ICONS, "icon:" + entry.getKey(), selected);
+                        else if (customIcons.put(component, selected) != null) throw invalid();
                     } else {
                         // Unknown properties remain in legacy recovery until their behavior is supported.
                         completeVisibility = false;
@@ -395,11 +418,24 @@ public final class LegacyPresentationMapper {
         if (present("factory_icon_packages")) {
             Set<String> seen = new HashSet<>();
             for (String key : sorted(factories)) {
-                String component = identities.tile(key);
+                String component = availableTile(key);
+                if (component == null) { retain(ICONS, "icon:" + key, "factory"); continue; }
                 if (!seen.add(component) || customIcons.containsKey(component)) throw invalid();
                 put(ICONS, component, "factory");
             }
         }
+    }
+    private String availableTile(String key) {
+        if (key.startsWith("tvinput_name:")) {
+            String id = identities.availableInput(key);
+            return id == null ? null : "input:" + id;
+        }
+        return identities.availableComponent(key);
+    }
+    private void retain(String file, String key, Object value) {
+        Map<String, Object> choices = retained.get(file);
+        if (choices.containsKey(key) && !choices.get(key).equals(value)) throw invalid();
+        choices.put(key, value);
     }
     private Plan finish() {
         Map<String, PreferenceSnapshot> after = new LinkedHashMap<>();
