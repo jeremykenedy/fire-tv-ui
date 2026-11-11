@@ -18,6 +18,8 @@ The small helper APK is downloaded and verified against its published size and S
 
 ## Fire TV UI releases
 
+Stable 1.17.1 repairs the card visibility switch and individual item dismissal. Its versioned APK and checksum use the existing update flow; no new update settings are required. See the [upgrade guide](releases/v1.17.1.md).
+
 The TV checks the public UI release directly, selects its exact versioned APK and verifies the compiled Android version, package and current production signer. A desktop or other APK is never substituted for a missing UI asset. No GitHub token is stored on the TV.
 
 If repository access is required or the published release is inaccessible, an authenticated computer handoff remains available. The row explains that the check is unavailable rather than claiming the installed version is current.
