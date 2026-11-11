@@ -21,6 +21,7 @@ public final class IconSelectionStore {
     public static final String FACTORY = "factory";
     public static final String THEME = "theme";
     private static final int MAX_BYTES = 8 * 1024 * 1024;
+    private static final int MAX_MANAGED_BYTES = 20 * 1024 * 1024;
 
     private IconSelectionStore() {}
 
@@ -73,7 +74,7 @@ public final class IconSelectionStore {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-            if (options.outWidth < 1 || options.outHeight < 1 || file.length() > MAX_BYTES
+            if (options.outWidth < 1 || options.outHeight < 1 || file.length() > MAX_MANAGED_BYTES
                     || (long) options.outWidth * options.outHeight > 40000000) return factoryIcon;
             options.inSampleSize = 1;
             while (Math.max(options.outWidth, options.outHeight) / options.inSampleSize > 512) options.inSampleSize *= 2;
