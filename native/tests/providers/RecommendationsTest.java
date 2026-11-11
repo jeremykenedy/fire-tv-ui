@@ -36,6 +36,23 @@ public final class RecommendationsTest {
         check(result.feeds.get(0).programs.get(0).artwork != null, "HTTPS artwork metadata is retained without fetching it.");
         check(result.feeds.get(0).programs.get(0).intentUri.equals("intent:#Intent;package=tv.example.movies;end"),
                 "Published handoff is metadata only and remains associated with publisher.");
+        Context historical = context();
+        Map<String,Object> raw = program(90, "tv.example.movies", 0, "Raw identity", " id ");
+        raw.put("content_id", "content-fallback");
+        historical.resolver.tables.put("watch_next_program", rows(raw));
+        TvRecommendations.Program exact = TvRecommendations.read(historical).feeds.get(0).programs.get(0);
+        check(exact.legacyKey.equals(LegacyRecommendationIdentities.item("tv.example.movies", true, " id ", "", 90)),
+                "Legacy provider identity preserves raw whitespace independently from native keys.");
+        raw.put("internal_provider_id", "");
+        historical.resolver.tables.put("watch_next_program", rows(raw));
+        check(TvRecommendations.read(historical).feeds.get(0).programs.get(0).legacyKey.equals(
+                LegacyRecommendationIdentities.item("tv.example.movies", true, "", "content-fallback", 90)),
+                "Content IDs are read for exact historical fallback.");
+        raw.put("content_id", "");
+        historical.resolver.tables.put("watch_next_program", rows(raw));
+        check(TvRecommendations.read(historical).feeds.get(0).programs.get(0).legacyKey.equals(
+                LegacyRecommendationIdentities.item("tv.example.movies", true, "", "", 90)),
+                "Latest original row fallback stays table and publisher scoped.");
         Context partial = context();
         partial.resolver.fail = "preview_program";
         partial.resolver.tables.put("watch_next_program", rows(program(2, "tv.example.movies", 0, "", "a")));

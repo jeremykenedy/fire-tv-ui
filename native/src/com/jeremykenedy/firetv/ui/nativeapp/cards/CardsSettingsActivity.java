@@ -213,7 +213,8 @@ public final class CardsSettingsActivity extends com.jeremykenedy.firetv.ui.nati
             content.addView(Pages.text(this, "Hidden items and series stay scoped to their publishing source. Restoring a series keeps independently hidden episodes hidden. Restoring an item does not override a hidden series.", 18));
             if (options.hiddenItems().isEmpty() && options.hiddenSeries().isEmpty()) content.addView(Pages.text(this, "No hidden items or series. Open a card's actions or Channel Cards to hide an item.", 18));
             for (final CardOptions.HiddenItem item : options.hiddenItems()) {
-                action("Restore: " + (item.title.isEmpty() ? "Untitled item" : item.title) + "\n" + item.source,
+                action("Restore: " + (item.title.isEmpty() ? "Untitled item" : item.title) + "\n" + (CardOptions.LEGACY_RECOMMENDATIONS.equals(item.source)
+                                ? "Preserved from your previous UI: " + item.key.substring(0, 12) : item.source),
                         item.source + ":" + item.key, new View.OnClickListener() {
                     @Override public void onClick(View view) { save(options.restore(item.source, item.key), null); }
                 });
