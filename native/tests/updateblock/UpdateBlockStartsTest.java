@@ -9,8 +9,8 @@ public final class UpdateBlockStartsTest {
         starts.cancel();
         check(!starts.pending() && !starts.manual() && !starts.request(true), "revocation invalidates pending and future callbacks");
 
-        check(!UpdateBlockStarts.automaticAllowed(27, false), "API 27 automatic start is unqualified");
-        check(!UpdateBlockStarts.automaticAllowed(28, false), "API 28 automatic start is unqualified");
+        check(UpdateBlockStarts.automaticAllowed(27, false), "API 27 retained start still requires scope, lockdown and platform authorization");
+        check(UpdateBlockStarts.automaticAllowed(28, false), "API 28 retained start still requires scope, lockdown and platform authorization");
         check(!UpdateBlockStarts.automaticAllowed(29, true), "lockdown prevents an automatic attempt");
         check(UpdateBlockStarts.automaticAllowed(29, false), "qualified retained attempt may continue to scope and authorization checks");
 

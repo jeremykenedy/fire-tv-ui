@@ -105,13 +105,11 @@ public class UpdateBlockService extends VpnService {
             if (android.os.Build.VERSION.SDK_INT >= 33) registerReceiver(packageChanges, packages, Context.RECEIVER_NOT_EXPORTED);
             else registerReceiver(packageChanges, packages);
             packageReceiverRegistered = true;
-            if (android.os.Build.VERSION.SDK_INT >= 29) {
-                lockdownObserver = new ContentObserver(handler) {
-                    @Override public void onChange(boolean selfChange) { checkLockdown.run(); }
-                };
-                try { getContentResolver().registerContentObserver(Settings.Secure.getUriFor("always_on_vpn_lockdown"), false, lockdownObserver); }
-                catch (RuntimeException unavailable) { lockdownObserver = null; }
-            }
+            lockdownObserver = new ContentObserver(handler) {
+                @Override public void onChange(boolean selfChange) { checkLockdown.run(); }
+            };
+            try { getContentResolver().registerContentObserver(Settings.Secure.getUriFor("always_on_vpn_lockdown"), false, lockdownObserver); }
+            catch (RuntimeException unavailable) { lockdownObserver = null; }
             schedule();
         } catch (RuntimeException unavailable) {
             preferences.unregisterOnSharedPreferenceChangeListener(listener);
@@ -133,7 +131,7 @@ public class UpdateBlockService extends VpnService {
                     closeTunnel(); show("Update protection is off."); stopSelf(); return;
                 }
                 final boolean appstore = UpdateBlockPolicy.includesAppstore(saved);
-                boolean lockdown = android.os.Build.VERSION.SDK_INT >= 29 && isLockdownEnabled();
+                boolean lockdown = lockdownEnabled();
                 if (!starts.manual() && !UpdateBlockStarts.automaticAllowed(android.os.Build.VERSION.SDK_INT, lockdown)) {
                     closeTunnel(); show(lockdown ? "VPN lockdown is active. Other apps may be offline. Review TV VPN settings."
                             : "Update protection needs a manual retry on this TV."); return;
@@ -153,7 +151,7 @@ public class UpdateBlockService extends VpnService {
                     @Override public ParcelFileDescriptor establish() {
                         UpdateBlockPolicy.Verified current = UpdateBlockPolicy.installed(packages(), appstore, android.os.Process.FIRST_APPLICATION_UID);
                         if (!packages.sameScope(current)) throw new IllegalStateException("Update packages changed during setup. Retry protection.");
-                        if (android.os.Build.VERSION.SDK_INT >= 29 && isLockdownEnabled())
+                        if (lockdownEnabled())
                             throw new IllegalStateException("VPN lockdown is active. Review TV VPN settings before retrying.");
                         return builder.establish();
                     }
@@ -173,7 +171,7 @@ public class UpdateBlockService extends VpnService {
                     }
                     tunnel = connection; selectedStore = appstore; active = true;
                     show("Blocking " + packages.packages.size() + " Amazon update packages on this TV.");
-                    if (android.os.Build.VERSION.SDK_INT >= 29) handler.postDelayed(checkLockdown, 5000);
+                    handler.postDelayed(checkLockdown, 5000);
                 }
                 Thread drain = new Thread(new Runnable() {
                     @Override public void run() {
@@ -209,7 +207,7 @@ public class UpdateBlockService extends VpnService {
             synchronized (UpdateBlockService.this) {
                 if (destroyed || revoked || tunnel == null) return;
                 try {
-                    if (isLockdownEnabled()) {
+                    if (lockdownEnabled()) {
                         closeTunnel();
                         show("VPN lockdown is active. Other apps may be offline. Review TV VPN settings.");
                         return;
@@ -221,6 +219,14 @@ public class UpdateBlockService extends VpnService {
             }
         }
     };
+    private boolean lockdownEnabled() {
+        if (android.os.Build.VERSION.SDK_INT >= 29) return isLockdownEnabled();
+        // Older platforms expose the same persisted policy, but not VpnService's accessor.
+        String value = Settings.Secure.getString(getContentResolver(), "always_on_vpn_lockdown");
+        if (value == null || "0".equals(value)) return false;
+        if ("1".equals(value)) return true;
+        throw new IllegalStateException("VPN lockdown status is unavailable. Review TV VPN settings.");
+    }
     private UpdateBlockPolicy.Packages packages() {
         return new UpdateBlockPolicy.Packages() {
             @Override public Integer uid(String name) {
@@ -236,11 +242,13 @@ public class UpdateBlockService extends VpnService {
         if (handler == null || destroyed || revoked) { stopSelf(startId); return START_NOT_STICKY; }
         String action = intent == null ? null : intent.getAction();
         boolean manual = MANUAL_START.equals(action);
-        boolean retained = RETAINED_START.equals(action);
+        boolean retained = intent == null || RETAINED_START.equals(action);
         boolean system = false;
-        if (!manual && !retained && (action == null || SERVICE_INTERFACE.equals(action))
-                && android.os.Build.VERSION.SDK_INT >= 29) {
-            try { system = isAlwaysOn(); } catch (RuntimeException unavailable) { system = false; }
+        if (!manual && !retained && (action == null || SERVICE_INTERFACE.equals(action))) {
+            try {
+                system = android.os.Build.VERSION.SDK_INT >= 29 ? isAlwaysOn()
+                        : getPackageName().equals(Settings.Secure.getString(getContentResolver(), "always_on_vpn_app"));
+            } catch (RuntimeException unavailable) { system = false; }
         }
         if (!manual && !retained && !system) {
             if (!starts.pending() && !active) {
@@ -252,7 +260,7 @@ public class UpdateBlockService extends VpnService {
         boolean first = starts.request(manual);
         if (preferences == null) { if (first) beginStartup(); }
         else schedule();
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
     @Override public void onRevoke() {
         revoked = true;

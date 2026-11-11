@@ -19,6 +19,6 @@ final class UpdateBlockStarts {
     synchronized void cancel() { closed = true; requested = false; }
 
     static boolean automaticAllowed(int api, boolean lockdown) {
-        return api >= 29 && !lockdown;
+        return api >= 27 && !lockdown;
     }
 }
