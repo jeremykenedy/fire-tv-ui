@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /** Only launcher presentation choices belong to a saved setup. */
@@ -214,7 +215,8 @@ final class LegacySetupSettings {
         if (!icons) {
             result.remove("icon_pack_package");
             result.remove("factory_icon_packages");
-            if (result.containsKey("app_visibility")) {
+            if (result.containsKey("app_visibility")
+                    && !Objects.equals(result.get("app_visibility"), current.get("app_visibility"))) {
                 Object saved = result.get("app_visibility");
                 Object present = current.get("app_visibility");
                 JSONObject target = new JSONObject(saved == null ? "{}" : (String) saved);

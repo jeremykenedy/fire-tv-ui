@@ -59,10 +59,13 @@ public final class SavedSetupManager {
             if (!directory.isDirectory() && !directory.mkdirs())
                 throw new IOException("Saved setup storage is unavailable.");
             Map<String, PreferenceSnapshot> nativeState = PresentationState.capture(context);
-            JSONObject snapshot =
-                    LegacySetupSettings.capture(
-                            context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
-                                    .getAll());
+            Map<String, Object> legacy = new LinkedHashMap<>(
+                    context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll());
+            if (completedMigration()) {
+                legacy.remove("app_visibility");
+                legacy.remove("widgets_config");
+            }
+            JSONObject snapshot = LegacySetupSettings.capture(legacy);
             List<File> created = new ArrayList<>();
             try {
                 Map<String, String> copies = new HashMap<>();
@@ -171,6 +174,14 @@ public final class SavedSetupManager {
                     verifyImages(imagesToVerify);
                     verifyNativeMedia(target, item.optJSONObject("nativeImages"), legacyRecord ? false : icons);
                     if (legacyRecord && icons) verifyManagedIcons(target);
+                    if (!legacyRecord && completedMigration()) {
+                        Map<String, Object> retained = new LinkedHashMap<>(target.get("launcher_prefs").values());
+                        Map<String, ?> current = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll();
+                        for (String key : Arrays.asList("app_visibility", "widgets_config"))
+                            if (!retained.containsKey(key) && current.containsKey(key)) retained.put(key, current.get(key));
+                        target = new LinkedHashMap<>(target);
+                        target.put("launcher_prefs", new PreferenceSnapshot(retained));
+                    }
                     PresentationState.apply(context, target, icons);
                 } catch (Exception failure) {
                     if (preparedIcons) throw new IOException(failure.getMessage()
@@ -179,6 +190,11 @@ public final class SavedSetupManager {
                 }
             }
         }
+    }
+
+    private boolean completedMigration() {
+        return Integer.valueOf(1).equals(context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
+                .getAll().get("source_ui_strict_migration_version"));
     }
 
     private PresentationMappingContext withIcons(PresentationMappingContext base,Map<String,String> changes) {

@@ -350,7 +350,7 @@ public final class SetupTest {
         check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
                 "Older portable backup preserves groups it could not capture.");
         Context upgradedBackup = new Context(new File(args[0], "upgraded-portable"));
-        String historicalIcons = "{\"fixture.player/.Main\":{\"customIconUri\":\"content://fixture.invalid/previous-image\"}}";
+        String historicalIcons = "{ \n \"fixture.player/.Main\": { \"customIconUri\": \"content://fixture.invalid/previous-image\" } }";
         prefs(upgradedBackup, "launcher_prefs").values.put("app_visibility", historicalIcons);
         prefs(upgradedBackup, "launcher_prefs").values.put("widgets_config", grouped);
         prefs(upgradedBackup, "launcher_prefs").values.put("source_ui_strict_migration_version", 1);
@@ -366,6 +366,41 @@ public final class SetupTest {
         check(historicalIcons.equals(prefs(upgradedBackup, "launcher_prefs").values.get("app_visibility"))
                 && grouped.equals(prefs(upgradedBackup, "launcher_prefs").values.get("widgets_config")),
                 "Portable round trip preserves original migration records on this TV.");
+        SavedSetupManager upgradedSetups = new SavedSetupManager(upgradedBackup);
+        Map<String, Object> originals = new LinkedHashMap<>(prefs(upgradedBackup, "launcher_prefs").values);
+        String themeSetup = upgradedSetups.save("Current builtin", null);
+        prefs(upgradedBackup, "native_icons").values.put("fixture.player/fixture.player.Main", "factory");
+        upgradedSetups.apply(themeSetup, true);
+        check("catalog:sony".equals(prefs(upgradedBackup, "native_icons").values.get("fixture.player/fixture.player.Main"))
+                && originals.equals(prefs(upgradedBackup, "launcher_prefs").values),
+                "Current setup restores builtin choice while retaining historical originals without accessing missing media.");
+        prefs(upgradedBackup, "native_icons").values.put("fixture.player/fixture.player.Main", "factory");
+        upgradedSetups.apply(themeSetup, false);
+        check("factory".equals(prefs(upgradedBackup, "native_icons").values.get("fixture.player/fixture.player.Main"))
+                && originals.equals(prefs(upgradedBackup, "launcher_prefs").values),
+                "Artwork unchecked preserves exact current icon and historical JSON text.");
+        String currentImage = "image:99999999-9999-9999-9999-999999999999.png";
+        File currentIcon = new File(upgradedBackup.files, "icons/" + currentImage.substring(6));
+        currentIcon.getParentFile().mkdirs();
+        Files.write(currentIcon.toPath(), new byte[]{3, 7, 9});
+        prefs(upgradedBackup, "native_icons").values.put("fixture.player/fixture.player.Main", currentImage);
+        Map<String,Object> currentPending = new LinkedHashMap<>();
+        currentPending.put("icon:fixture.pending",currentImage);
+        prefs(upgradedBackup, "native_icons").values.put(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.KEY,
+                com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.write("native_icons",currentPending));
+        String nativeImageSetup = upgradedSetups.save("Current personal", null);
+        currentIcon.delete();
+        prefs(upgradedBackup, "native_icons").values.clear();
+        upgradedSetups.apply(nativeImageSetup, true);
+        check(currentImage.equals(prefs(upgradedBackup, "native_icons").values.get("fixture.player/fixture.player.Main"))
+                && Arrays.equals(new byte[]{3, 7, 9},Files.readAllBytes(currentIcon.toPath()))
+                && originals.equals(prefs(upgradedBackup, "launcher_prefs").values),
+                "New current snapshot retains active artwork and reapplies its private copy after managed file deletion.");
+        check(currentPending.equals(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.read("native_icons",
+                prefs(upgradedBackup, "native_icons").values.get(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.KEY))),
+                "Current snapshot retains exact pending unavailable-app artwork.");
+        prefs(upgradedBackup, "launcher_prefs").values.put("source_ui_strict_migration_version", 2);
+        rejects(() -> upgradedSetups.save("Unqualified migration", null), "Unknown migration version never skips active legacy image retention.");
         prefs(upgradedBackup, "launcher_prefs").values.remove("source_ui_strict_migration_version");
         rejects(() -> PresentationState.capturePortable(upgradedBackup), "Unverified legacy data is never silently omitted.");
         Map<String, PreferenceSnapshot> privateGroup = new LinkedHashMap<>(oldPortable);

@@ -23,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='legacy-setup-ui-') as directory:
     (work / 'classes').mkdir()
     (work / 'dex').mkdir()
     run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-        '-cp', NATIVE / '.build/classes', '-d', work / 'classes', HERE / 'LegacySetupUiInstrumentation.java', HERE / 'LegacyIconSetupInstrumentation.java',
+        '-cp', NATIVE / '.build/classes', '-d', work / 'classes', HERE / 'LegacySetupUiInstrumentation.java', HERE / 'LegacyIconSetupInstrumentation.java', HERE / 'CurrentIconSetupInstrumentation.java',
         NATIVE / 'tests/state_guard/GuardStore.java')
     run(TOOLS / 'd8', '--release', '--lib', ANDROID, '--min-api', '27', '--output', work / 'dex',
         *sorted((work / 'classes').rglob('*.class')))
