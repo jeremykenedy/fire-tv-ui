@@ -300,12 +300,6 @@ public final class LegacyPresentationMapper {
             for (String hash : sorted(strings("hidden_featured_cards", 2048))) {
                 if (!PresentationMappingContext.hash(hash)) throw invalid();
                 hidden = hidden.hideLegacy(hash);
-                PresentationMappingContext.Item item = identities.items.get(hash);
-                if (item != null) {
-                    hidden = item.series ? hidden.hideSeries(item.source, item.nativeKey, item.title)
-                            : hidden.hide(item.source, item.nativeKey, item.title);
-                    if (item.aliasSource != null) hidden = hidden.hide(item.aliasSource, item.aliasKey, item.title);
-                }
             }
             put(CARDS, "hidden_items", hidden.backupValues().get("hidden_items"));
             put(CARDS, "hidden_series", hidden.backupValues().get("hidden_series"));
