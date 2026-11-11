@@ -741,12 +741,56 @@ public final class SetupTest {
         check(Integer.valueOf(7).equals(target.get("native_app_grid").values().get("columns")),"Original omitted grid retained.");
         PresentationState.apply(context,target,true);
         check("local-lock-fixture".equals(prefs(context,"launcher_prefs").values.get("folder_lock_pin")),"Original apply preserves local lock.");
+        incoming.clear(); incoming.put("overlay_mode","none");
+        target = manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check("none".equals(target.get("launcher_prefs").values().get("overlay_mode")),"Original inactive overlay retained.");
+        incoming.put("overlay_mode","auto");
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original active overlay refused.");
+        String clock = "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Big\",\"data\":{}}]]";
+        prefs(context,"native_layout").values.put("hidden","widget:world-clocks");
+        prefs(context,"native_layout").values.put("card_width_dp",400);
+        incoming.clear(); incoming.put("widgets_config",clock);incoming.put("enable_widgets",true);incoming.put("hide_watch_next",false);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(clock.equals(target.get("native_layout").values().get("widget_groups")),"Original enabled grouping prepared exactly.");
+        check("WIDGETS_ONLY".equals(target.get("native_layout").values().get("mode")),"Original enabled groups select original widget row mode.");
+        check(((String)target.get("native_layout").values().get("hidden")).contains("widget:world-clocks"),"Original group merge retains unrelated hidden row.");
+        check(Integer.valueOf(400).equals(target.get("native_layout").values().get("card_width_dp")),"Original grouping retains omitted card width.");
+        prefs(context,"native_layout").values.put("widget_groups",clock);
+        incoming.remove("widgets_config");
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(clock.equals(target.get("native_layout").values().get("widget_groups")),"Original enable choice retains omitted existing grouping.");
+        String weather="[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"Weather\",\"size\":\"Big\",\"data\":{\"location\":\"Portland\",\"unit\":\"F\"}}]]";
+        incoming.put("widgets_config",weather);incoming.put("enable_widgets",false);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(weather.equals(target.get("native_layout").values().get("widget_groups")),"Original disabled weather city and unit retained byte for byte.");
+        check(weather.equals(target.get("launcher_prefs").values().get("widgets_config")),"Original weather source remains recoverable.");
+        incoming.put("enable_widgets",true);
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original active populated weather stays gated.");
+        incoming.remove("enable_widgets"); incoming.remove("hide_watch_next");
+        prefs(context,"native_layout").values.put("mode","WIDGETS_ONLY");
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original partial weather cannot bypass current active widget gate.");
+
+        incoming.clear(); incoming.put("hide_watch_next",false);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check("WIDGETS_ONLY".equals(target.get("native_layout").values().get("mode")),"Original partial hide choice retains current enabled widget semantics.");
+        check(clock.equals(target.get("native_layout").values().get("widget_groups")),"Original partial hide choice preserves omitted grouping.");
         incoming.clear(); incoming.put("fire_tv_ui_sleep",60);
         rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original unsupported device key refused.");
         incoming.clear(); incoming.put("custom_wallpaper_uri","file:/unselected/private-fixture.png");
         rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original unselected personal URI refused before opening.");
         incoming.clear(); incoming.put("app_visibility","{\"com.example.fixture\":{\"customIconUri\":\"content://unselected/icon\"}}");
         rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original new icon grant refused.");
+        Map<String,Object> retained = new LinkedHashMap<>();retained.put("icon:com.example.unavailable","theme");
+        String pending=com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.write("native_icons",retained);
+        prefs(context,"native_icons").values.put("retained_choices",pending);
+        prefs(context,"native_icons").values.put("edited:com.example.other/com.example.other.Main",true);
+        incoming.clear();incoming.put("use_24h_clock",false);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(pending.equals(target.get("native_icons").values().get("retained_choices")),"Original review preserves deferred icon metadata.");
+        String metadata=manager.save("Icon metadata",null);
+        manager.apply(metadata,true);
+        check(pending.equals(prefs(context,"native_icons").values.get("retained_choices")),"Named setup captures and restores deferred icon metadata.");
+        check(Boolean.TRUE.equals(prefs(context,"native_icons").values.get("edited:com.example.other/com.example.other.Main")),"Named setup preserves explicit icon edit marker without casting it as artwork.");
     }
 
     private static void holidayPresets(File folder) throws Exception {

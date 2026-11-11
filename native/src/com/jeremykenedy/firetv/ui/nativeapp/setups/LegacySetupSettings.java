@@ -45,7 +45,8 @@ final class LegacySetupSettings {
                 "menu_background_palette",
                 "menu_overlay",
                 "menu_overlay_palette",
-                "input_names");
+                "input_names",
+                "overlay_mode");
         add(
                 result,
                 "Boolean",

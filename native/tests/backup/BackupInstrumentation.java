@@ -87,6 +87,49 @@ public final class BackupInstrumentation extends Instrumentation {
             check(context.getSharedPreferences("launcher_prefs",0).getBoolean("use_24h_clock",false),"Original direct presentation choice applied.");
             check(groups.equals(context.getSharedPreferences("native_layout",0).getString("widget_groups",null)),"Original import preserves omitted local widget grouping.");
             check(fixture.get("native_cards").values().equals(PresentationState.capture(context).get("native_cards").values()),"Original import preserves omitted card choices.");
+            context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original-groups",null,null);
+            ActivityMonitor originalGroups=selected(Intent.ACTION_OPEN_DOCUMENT);
+            click("Import presentation backup");confirm("Import","Import original launcher backup?");
+            waitStatus("Original launcher presentation imported.");removeMonitor(originalGroups);
+            check("WIDGETS_ONLY".equals(context.getSharedPreferences("native_layout",0).getString("mode",null)),"Original enabled widget mode restored through SAF.");
+            check("none".equals(context.getSharedPreferences("launcher_prefs",0).getString("overlay_mode",null)),"Original inactive overlay retained through SAF.");
+            context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original-weather",null,null);
+            ActivityMonitor originalWeather=selected(Intent.ACTION_OPEN_DOCUMENT);
+            click("Import presentation backup");confirm("Import","Import original launcher backup?");
+            waitStatus("Original launcher presentation imported.");removeMonitor(originalWeather);
+            String weather=context.getSharedPreferences("native_layout",0).getString("widget_groups",null);
+            com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups.Entry weatherEntry=com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups.decode(weather).groups.get(0).get(0);
+            check("Portland".equals(weatherEntry.data.get("location"))&&"F".equals(weatherEntry.data.get("unit")),"Original inactive weather city/unit restored exactly through SAF.");
+            check(weather.equals(context.getSharedPreferences("launcher_prefs",0).getString("widgets_config",null)),"Original weather raw source preserved alongside native grouping.");
+            check("CARDS_ONLY".equals(context.getSharedPreferences("native_layout",0).getString("mode",null)),"Original inactive weather remains inactive.");
+            java.io.File sourceIcon=new java.io.File(context.getFilesDir(),"original-backup-fixture.png");
+            android.graphics.Bitmap iconBitmap=android.graphics.Bitmap.createBitmap(2,2,android.graphics.Bitmap.Config.ARGB_8888);
+            iconBitmap.eraseColor(android.graphics.Color.BLUE);
+            try(java.io.OutputStream output=new java.io.FileOutputStream(sourceIcon)) {check(iconBitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output),"Synthetic original icon saved.");}
+            finally {iconBitmap.recycle();}
+            String iconUri=android.net.Uri.fromFile(sourceIcon).toString();
+            Map<String,String> preparedIcons=com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidLegacyIconMigration.prepare(context,Collections.singleton(iconUri));
+            String expectedIcon=preparedIcons.get(iconUri);
+            org.json.JSONObject iconChoice=new org.json.JSONObject().put("customIconUri",iconUri).put("hidden",true).put("hideWatchNext",true);
+            String iconVisibility=new org.json.JSONObject().put("com.example.originalicon",iconChoice).toString();
+            context.getSharedPreferences("launcher_prefs",0).edit().putString("app_visibility",iconVisibility).commit();
+            context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original-icon",iconUri,null);
+            ActivityMonitor originalIcon=selected(Intent.ACTION_OPEN_DOCUMENT);
+            click("Import presentation backup");confirm("Import","Import original launcher backup?");
+            waitStatus("Original launcher presentation imported.");removeMonitor(originalIcon);
+            Map<String,Object> retainedIcons=com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.read("native_icons",context.getSharedPreferences("native_icons",0).getAll().get("retained_choices"));
+            check(expectedIcon.equals(retainedIcons.get("icon:com.example.originalicon")),"Original same-TV personal icon retained for unavailable app through SAF.");
+            java.io.File copiedIcon=new java.io.File(new java.io.File(context.getFilesDir(),"icons"),expectedIcon.substring(6));
+            byte[] iconBefore=java.nio.file.Files.readAllBytes(sourceIcon.toPath());
+            check(Arrays.equals(iconBefore,java.nio.file.Files.readAllBytes(copiedIcon.toPath())),"Original and prepared personal icon bytes unchanged.");
+            check(copiedIcon.delete(),"Owned prepared icon removed for unavailable-copy fixture.");
+            Map<String,PreferenceSnapshot> beforeMissing=PresentationState.capture(context);
+            Map<String,Object> originalIconSettings=Collections.<String,Object>singletonMap("app_visibility",iconVisibility);
+            try {new com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupManager(context).prepareOriginalBackup(new PreferenceSnapshot(originalIconSettings));throw new AssertionError("Missing original copy accepted");}
+            catch(java.io.IOException expected) { }
+            same(beforeMissing,PresentationState.capture(context),"Missing personal image review preserves exact preferences.");
+            check(!copiedIcon.exists(),"Original review never recreates missing personal image.");
+            try(java.io.OutputStream output=new java.io.FileOutputStream(copiedIcon)) {output.write(iconBefore);}
             PresentationState.apply(context,fixture,true);
             OriginalBackup originalPayload=OriginalBackup.decode("{\"apps_per_row\":4,\"use_24h_clock\":true}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
             try { BackupTransaction.applyOriginal(new FailingStoreContext(context,"native_app_grid"),originalPayload);throw new AssertionError("Original failed commit accepted"); }

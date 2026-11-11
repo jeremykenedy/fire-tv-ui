@@ -36,6 +36,21 @@ public final class BackupFixtureProvider extends ContentProvider {
                         : "{\"apps_per_row\":6,\"fire_tv_ui_sleep\":60}";
                 try(OutputStream output=new FileOutputStream(document())) { output.write(value.getBytes("UTF-8")); }
             }
+            else if ("original-groups".equals(method) || "original-weather".equals(method)) {
+                boolean weather="original-weather".equals(method);
+                String group=weather ? "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"Weather\",\"size\":\"Big\",\"data\":{\"location\":\"Portland\",\"unit\":\"F\"}}]]"
+                        : "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Big\",\"data\":{}}]]";
+                try(OutputStream output=new FileOutputStream(document())) {
+                    output.write(new org.json.JSONObject().put("widgets_config",group).put("enable_widgets",!weather)
+                            .put("hide_watch_next",false).put("overlay_mode","none").toString().getBytes("UTF-8"));
+                } catch(org.json.JSONException invalid) {throw new IllegalStateException("Invalid original fixture.",invalid);}
+            }
+            else if ("original-icon".equals(method)) {
+                try(OutputStream output=new FileOutputStream(document())) {
+                    org.json.JSONObject choice=new org.json.JSONObject().put("customIconUri",arg).put("hidden",true).put("hideWatchNext",true);
+                    output.write(new org.json.JSONObject().put("app_visibility",new org.json.JSONObject().put("com.example.originalicon",choice).toString()).toString().getBytes("UTF-8"));
+                } catch(org.json.JSONException invalid) {throw new IllegalStateException("Invalid original icon fixture.",invalid);}
+            }
             else if ("read".equals(method)) {
                 ByteArrayOutputStream bytes=new ByteArrayOutputStream();
                 try(InputStream input=new FileInputStream(document())) { byte[] buffer=new byte[8192];int count;while((count=input.read(buffer))!=-1) { if(bytes.size()+count>PortableBackup.MAX_BYTES)throw new IOException();bytes.write(buffer,0,count); } }

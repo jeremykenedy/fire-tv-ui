@@ -5,6 +5,9 @@ import android.net.Uri;
 import android.util.AtomicFile;
 import android.util.Base64;
 
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupPresentationPlan;
+
 import com.jeremykenedy.firetv.ui.nativeapp.migration.LegacyPresentationMapper;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext;
@@ -198,8 +201,7 @@ public final class SavedSetupManager {
         target.put("launcher_prefs",new PreferenceSnapshot(raw));
         verifyVideo(target.get("launcher_prefs").values());
         verifyImages(target.get("launcher_prefs").values());
-        for (Object selected : target.get("native_icons").values().values()) {
-            String value = (String)selected;
+        for (String value : nativeIconValues(target)) {
             if (!value.startsWith("image:")) continue;
             File icon = new File(new File(context.getFilesDir(),"icons"),value.substring(6));
             if (!icon.isFile() || icon.length() == 0 || icon.length() > 20L * 1024 * 1024)
@@ -229,20 +231,37 @@ public final class SavedSetupManager {
                 present.put("app_visibility", visibility.toString());
             }
         }
+        Map<String, PreferenceSnapshot> current = PresentationState.capture(context);
+        boolean groupsRequested = present.containsKey("widgets_config") || present.containsKey("enable_widgets") || present.containsKey("hide_watch_next");
+        if (groupsRequested) {
+            Map<String,Object> local = current.get("launcher_prefs").values();
+            Map<String,Object> layout = current.get("native_layout").values();
+            Object mode = layout.get("mode");
+            boolean enabled = mode == null || "BOTH".equals(mode) || "WIDGETS_ONLY".equals(mode);
+            Object hidden = layout.get("hidden");
+            if (hidden instanceof String && Arrays.asList(((String)hidden).split("\n")).contains("widget:grouped-widgets")) enabled = false;
+            if (!present.containsKey("enable_widgets")) present.put("enable_widgets",enabled);
+            if (!present.containsKey("hide_watch_next")) present.put("hide_watch_next","NONE".equals(mode));
+            if (!present.containsKey("widgets_config")) {
+                Object existing = current.get("native_layout").values().get("widget_groups");
+                if (existing instanceof String) present.put("widgets_config",existing);
+                else if (local.get("widgets_config") instanceof String) present.put("widgets_config",local.get("widgets_config"));
+            }
+        }
         Map<String, PreferenceSnapshot> empty = new LinkedHashMap<>();
         for (String file : LegacyPresentationMapper.FILES)
             if (!file.equals("launcher_prefs"))
                 empty.put(file, new PreferenceSnapshot(Collections.emptyMap()));
         LegacyPresentationMapper.Plan plan =
                 LegacyPresentationMapper.plan(new PreferenceSnapshot(present), identities, empty);
-        Set<String> unresolved = new LinkedHashSet<>(plan.unmappedLegacyKeys);
+        WidgetGroupPresentationPlan grouped = WidgetGroupPresentationPlan.prepare(plan);
+        Set<String> unresolved = new LinkedHashSet<>(grouped.unmappedLegacyKeys);
         unresolved.removeAll(LegacyPresentationMapper.directlyConsumedPresentationKeys(present));
         if (!unresolved.isEmpty())
             throw new IOException(
                     "Unsupported presentation choices: " + String.join(", ", unresolved)
                             + ". No settings or images were changed.");
-        Map<String, PreferenceSnapshot> target =
-                new LinkedHashMap<>(PresentationState.capture(context));
+        Map<String, PreferenceSnapshot> target = new LinkedHashMap<>(current);
         Map<String, Set<String>> owned = new LinkedHashMap<>(
                 LegacyPresentationMapper.ownedNativeKeys(saved.keySet(), identities));
         if (saved.containsKey("mode") && !"custom".equals(present.get("mode"))) {
@@ -260,6 +279,22 @@ public final class SavedSetupManager {
             PreferenceSnapshot patch = plan.patches.get(file.getKey());
             if (patch != null) values.putAll(patch.values());
             target.put(file.getKey(), new PreferenceSnapshot(values));
+        }
+        Map<String,Object> preparedGroups = grouped.target.stores.get("native_layout").values();
+        if (groupsRequested && preparedGroups.containsKey("widget_groups")) {
+            Map<String,Object> layout = new LinkedHashMap<>(target.get("native_layout").values());
+            Map<String,Object> prepared = preparedGroups;
+            layout.put("widget_groups",prepared.get("widget_groups"));
+            if (saved.containsKey("enable_widgets") || saved.containsKey("hide_watch_next")) layout.put("mode",prepared.get("mode"));
+            if (Boolean.TRUE.equals(present.get("enable_widgets"))) {
+                Set<String> hidden = new LinkedHashSet<>();
+                Object previous = layout.get("hidden");
+                if (previous instanceof String && !((String)previous).isEmpty()) hidden.addAll(Arrays.asList(((String)previous).split("\n")));
+                hidden.add("widget:clock");
+                if (Boolean.TRUE.equals(saved.get("enable_widgets")) && !Boolean.TRUE.equals(present.get("hide_watch_next"))) hidden.remove("widget:grouped-widgets");
+                layout.put("hidden",String.join("\n",hidden));
+            }
+            target.put("native_layout",new PreferenceSnapshot(layout));
         }
         Map<String, Object> raw = new LinkedHashMap<>(target.get("launcher_prefs").values());
         if (saved.containsKey("minimal_status_bar") && !saved.containsKey("source_status_bar_off"))
@@ -556,6 +591,19 @@ public final class SavedSetupManager {
         return result;
     }
 
+    private static Collection<String> nativeIconValues(Map<String,PreferenceSnapshot> state) throws IOException {
+        Set<String> values = new LinkedHashSet<>();
+        Map<String,Object> icons = state.get("native_icons").values();
+        for (Map.Entry<String,Object> entry : icons.entrySet()) {
+            if (entry.getKey().equals(RetainedHomeChoices.KEY) || entry.getKey().startsWith("edited:")) continue;
+            if (!(entry.getValue() instanceof String)) throw new IOException("Invalid saved icon choice.");
+            values.add((String)entry.getValue());
+        }
+        for (Object value : RetainedHomeChoices.read("native_icons",icons.get(RetainedHomeChoices.KEY)).values())
+            values.add((String)value);
+        return values;
+    }
+
     private Map<String, PreferenceSnapshot> preserveNativeImages(
             Map<String, PreferenceSnapshot> state,
             JSONObject images,
@@ -563,8 +611,7 @@ public final class SavedSetupManager {
             List<File> created)
             throws Exception {
         Map<String, PreferenceSnapshot> next = new LinkedHashMap<>(state);
-        for (Map.Entry<String, Object> icon : state.get("native_icons").values().entrySet()) {
-            String value = (String) icon.getValue();
+        for (String value : nativeIconValues(state)) {
             if (value.startsWith("image:"))
                 images.put(
                         value,
@@ -606,8 +653,7 @@ public final class SavedSetupManager {
         if (!icons) return;
         // Validate all retained sources before preparing any target image.
         Map<File, File> pending = new LinkedHashMap<>();
-        for (Object selected : state.get("native_icons").values().values()) {
-            String value = (String) selected;
+        for (String value : nativeIconValues(state)) {
             if (!value.startsWith("image:")) continue;
             if (images == null || !images.has(value))
                 throw new IOException("A saved icon is unavailable. The setup has been kept.");

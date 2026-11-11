@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-setups-') as temporary:
                     SOURCE / 'layout/LayoutItem.java', SOURCE / 'layout/LayoutOptions.java',
                     SOURCE / 'folders/FolderOptions.java', SOURCE / 'folders/FolderPreferences.java',
                     SOURCE / 'icons/IconCatalog.java', SOURCE / 'appearance/LegacyGradients.java', SOURCE / 'appearance/AppearanceOptions.java', SOURCE / 'appearance/AppearancePreferences.java', SOURCE / 'appearance/PaletteRecipes.java', SOURCE / 'widget/worldclock/WorldClocks.java',
-                    SOURCE / 'widget/breathing/BreathingSession.java', SOURCE / 'widgetgroups/WidgetGroups.java', SOURCE / 'widgetgroups/WidgetGroupMigration.java', SOURCE / 'widgetgroups/WidgetGroupsStore.java',
+                    SOURCE / 'widget/breathing/BreathingSession.java', SOURCE / 'widgetgroups/WidgetGroupPresentationPlan.java', SOURCE / 'migration/PresentationSnapshot.java', SOURCE / 'widgetgroups/WidgetGroups.java', SOURCE / 'widgetgroups/WidgetGroupMigration.java', SOURCE / 'widgetgroups/WidgetGroupsStore.java',
                     SOURCE / 'widgetgroups/WeatherGroupOptions.java', SOURCE / 'widget/weather/WeatherOptions.java']
     managers = sorted(path for path in (SOURCE / 'setups').glob('*.java') if path.name != 'SavedSetupsActivity.java')
     jar = json_runtime()
