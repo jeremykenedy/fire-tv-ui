@@ -38,11 +38,7 @@ public final class ProductionMigrationGate {
             // has no premium gate. Keep its original typed value for recovery.
             if (Boolean.TRUE.equals(legacy.values().get("is_premium"))) unresolved.remove("is_premium");
             for (String key : new String[]{"fire_tv_ui_block_updates", "fire_tv_ui_block_appstore"})
-                if (Boolean.FALSE.equals(legacy.values().get(key))) unresolved.remove(key);
-            if (Boolean.TRUE.equals(legacy.values().get("fire_tv_ui_block_appstore"))
-                    && (!legacy.values().containsKey("fire_tv_ui_block_updates")
-                    || Boolean.FALSE.equals(legacy.values().get("fire_tv_ui_block_updates"))))
-                unresolved.remove("fire_tv_ui_block_appstore");
+                if (legacy.values().get(key) instanceof Boolean) unresolved.remove(key);
             // The maintained legacy initializer removes both obsolete rating counters.
             unresolved.remove("app_launch_count");
             unresolved.remove("rate_app_shown");

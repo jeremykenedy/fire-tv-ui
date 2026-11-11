@@ -692,7 +692,7 @@ public final class PresentationMappingTest {
                 FixtureDisk unchanged = new FixtureDisk(new PresentationSnapshot(unsafe.before));
                 reject(() -> ProductionMigrationGate.commit(new FixtureStore(unchanged), new FixtureStore(unchanged).read(), identities(), null));
                 check(unchanged.events.isEmpty() && new PresentationSnapshot(unsafe.before).sameValues(new FixtureStore(unchanged).read()),
-                        "Enabled or malformed update protection blocks without changing preferences.");
+                        "Malformed update protection blocks without changing preferences.");
             }
         }
         for (boolean updatesPresent : Arrays.asList(false, true)) {
@@ -707,15 +707,19 @@ public final class PresentationMappingTest {
                     && (updatesPresent ? Boolean.FALSE.equals(saved.get("fire_tv_ui_block_updates")) : !saved.containsKey("fire_tv_ui_block_updates")),
                     "Dormant Appstore choice and the update flag's absence or false value survive migration.");
         }
-        for (boolean appstore : Arrays.asList(false, true)) {
+        for (Boolean appstore : Arrays.asList(null, Boolean.FALSE, Boolean.TRUE)) {
             Map<String, Object> enabledUpdates = new LinkedHashMap<>(source);
             enabledUpdates.put("fire_tv_ui_block_updates", true);
-            enabledUpdates.put("fire_tv_ui_block_appstore", appstore);
+            if (appstore == null) enabledUpdates.remove("fire_tv_ui_block_appstore");
+            else enabledUpdates.put("fire_tv_ui_block_appstore", appstore);
             LegacyPresentationMapper.Plan enabledPlan = LegacyPresentationMapper.plan(snapshot(enabledUpdates), identities(), Collections.emptyMap());
             FixtureDisk enabledDisk = new FixtureDisk(new PresentationSnapshot(enabledPlan.before));
-            reject(() -> ProductionMigrationGate.commit(new FixtureStore(enabledDisk), new FixtureStore(enabledDisk).read(), identities(), null));
-            check(enabledDisk.events.isEmpty() && new PresentationSnapshot(enabledPlan.before).sameValues(new FixtureStore(enabledDisk).read()),
-                    "Enabled update protection remains blocked without any migration writes.");
+            ProductionMigrationGate.commit(new FixtureStore(enabledDisk), new FixtureStore(enabledDisk).read(), identities(), null);
+            Map<String, Object> saved = enabledDisk.files.get(LauncherMigration.PREFERENCES).values();
+            check(Boolean.TRUE.equals(saved.get("fire_tv_ui_block_updates"))
+                    && (appstore == null ? !saved.containsKey("fire_tv_ui_block_appstore") : appstore.equals(saved.get("fire_tv_ui_block_appstore")))
+                    && ProductionMigrationGate.completed(new FixtureStore(enabledDisk).read()) && enabledDisk.journal == null,
+                    "Enabled protection and exact Appstore choice survive verified migration for the retained service consumer.");
         }
         source.put("unknown_future", true);
         LegacyPresentationMapper.Plan unsupported = LegacyPresentationMapper.plan(snapshot(source), identities(), Collections.emptyMap(), null, false, true);
