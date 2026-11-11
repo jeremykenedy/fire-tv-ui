@@ -30,6 +30,14 @@ public final class AndroidLegacyIconMigration {
      * preparation with unchanged source bytes returns the same value, including after recovery.
      */
     public static Map<String, String> prepare(Context context, Iterable<String> references) throws IOException {
+        return prepare(context, references, true);
+    }
+
+    public static Map<String, String> verifyExisting(Context context, Iterable<String> references) throws IOException {
+        return prepare(context, references, false);
+    }
+
+    private static Map<String, String> prepare(Context context, Iterable<String> references, boolean create) throws IOException {
         Map<String, String> result = new LinkedHashMap<>();
         for (String reference : references) {
             if (result.containsKey(reference)) continue;
@@ -45,7 +53,10 @@ public final class AndroidLegacyIconMigration {
             }
             validate(bytes);
             String choice = choice(reference, bytes);
-            synchronized (LOCK) { install(context, choice, bytes); }
+            synchronized (LOCK) {
+                if (create) install(context, choice, bytes);
+                else verify(new File(new File(context.getFilesDir(), "icons"), choice.substring(6)), bytes);
+            }
             result.put(reference, choice);
         }
         return result;
