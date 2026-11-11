@@ -46,6 +46,7 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         super(activity);
         if (groups == null || editor == null || widthDp < 64 || widthDp > 1024 || heightDp < 48 || heightDp > 1024)
             throw new IllegalArgumentException("Invalid widget group display.");
+        groups = groups.withDisplayColumns();
         this.activity = activity; this.editor = editor;
         setHorizontalScrollBarEnabled(false);
         LinearLayout row = new LinearLayout(activity); row.setOrientation(LinearLayout.HORIZONTAL);

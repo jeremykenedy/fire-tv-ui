@@ -23,7 +23,7 @@ public final class WidgetGroupsEditor implements WidgetGroupsView.Editor {
     @Override public void open(final int groupIndex, final int entryIndex, final WidgetGroups.Entry entry) {
         final String expected;
         final WidgetGroups groups;
-        try { expected = store.raw(); groups = store.load(); }
+        try { expected = store.raw(); WidgetGroups saved = store.load(); groups = saved == null ? null : saved.withDisplayColumns(); }
         catch (IllegalStateException unavailable) { message(unavailable.getMessage()); return; }
         if (groups == null || groupIndex < 0 || groupIndex >= groups.groups.size()) { message("Widget group is unavailable."); return; }
         final List<WidgetGroups.Entry> group = groups.groups.get(groupIndex);
