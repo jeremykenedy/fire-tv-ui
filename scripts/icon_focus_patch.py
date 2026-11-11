@@ -1,4 +1,6 @@
-"""Keep the pinned Compose icon focus background separate from its artwork."""
+"""Apply app focus choices without changing the pinned artwork or animation."""
+
+from pathlib import Path
 
 
 def replace_once(text, old, new):
@@ -16,7 +18,8 @@ def patch_icon_focus(class_paths):
     method = replace_once(method,
         '    check-cast v5, Landroid/content/Context;',
         '    check-cast v5, Landroid/content/Context;\n\n'
-        '    invoke-static {v5}, Lcom/jeremykenedy/firetv/ui/IconFocus;->configure(Landroid/content/Context;)V')
+        '    invoke-static {v5}, Lcom/jeremykenedy/firetv/ui/IconFocus;->configure(Landroid/content/Context;)V\n'
+        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->observe()V')
     # Compose remembers the draw lambda across pack changes. Its artwork model
     # must follow the currently rendered tile, including a reused lambda.
     method = replace_once(method,
@@ -28,7 +31,54 @@ def patch_icon_focus(class_paths):
         '    check-cast p20, LQ3/C0;\n'
         '    invoke-virtual/range {p20 .. p22}, LQ3/C0;->setArtwork(LQ3/q;Z)V\n\n'
         '    check-cast v5, Ln4/c;')
+    method = replace_once(method,
+        '    const/16 v0, 0x12\n\n    int-to-float v0, v0',
+        '    const/16 v0, 0x12\n\n    int-to-float v0, v0\n'
+        '    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/IconFocus;->shadowSize(F)F\n'
+        '    move-result v0')
     renderer.write_text(text[:start] + method + text[end:])
+
+    scale = class_paths['LQ3/G0;']
+    scale_text = replace_once(scale.read_text(),
+        '    :pswitch_5\n    check-cast p1, Lg0/O;',
+        '    :pswitch_5\n    check-cast p1, Lg0/O;\n'
+        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->observe()V')
+    scale.write_text(replace_once(scale_text,
+        '    const v1, 0x3e3851ec    # 0.18f\n\n'
+        '    mul-float/2addr v0, v1\n\n'
+        '    const/high16 v1, 0x3f800000    # 1.0f\n\n'
+        '    add-float/2addr v0, v1',
+        '    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/IconFocus;->scale(F)F\n'
+        '    move-result v0'))
+
+    folder = class_paths['LQ3/C1;']
+    folder_text = replace_once(folder.read_text(),
+        '    const v6, 0x3f970a3d    # 1.18f',
+        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->observe()V\n'
+        '    const/high16 v6, 0x3f800000    # 1.0f\n'
+        '    invoke-static {v6}, Lcom/jeremykenedy/firetv/ui/IconFocus;->scale(F)F\n'
+        '    move-result v6')
+    folder.write_text(replace_once(folder_text,
+        '    int-to-float v11, v8\n\n'
+        '    invoke-static {v14, v11, v2}, Lcom/overdevs/at4k/a;->a(LZ/o;FLC/d;)LZ/o;',
+        '    int-to-float v11, v8\n'
+        '    invoke-static {v11}, Lcom/jeremykenedy/firetv/ui/IconFocus;->shadowSize(F)F\n'
+        '    move-result v11\n\n'
+        '    invoke-static {v14, v11, v2}, Lcom/overdevs/at4k/a;->a(LZ/o;FLC/d;)LZ/o;'))
+
+    revision = renderer.parents[1] / 'com/jeremykenedy/firetv/ui/IconFocusRevision.smali'
+    revision.parent.mkdir(parents=True, exist_ok=True)
+    revision.write_text((Path(__file__).resolve().parents[1] / 'app/smali/IconFocusRevision.smali').read_text())
+
+    model = class_paths['LQ3/T3;']
+    model.write_text(model.read_text() + REFRESH)
+    main = class_paths['Lcom/overdevs/at4k/MainActivity;']
+    anchor = '    invoke-super {p0}, Landroid/app/Activity;->onResume()V'
+    main.write_text(replace_once(main.read_text(), anchor, anchor +
+        '\n    iget-object v0, p0, Lcom/overdevs/at4k/MainActivity;->A:LQ3/T3;\n'
+        '    if-eqz v0, :icon_focus_refresh_done\n'
+        '    invoke-virtual {v0}, LQ3/T3;->refreshIconFocusShadow()V\n'
+        '    :icon_focus_refresh_done\n'))
 
     background = class_paths['LQ3/C0;']
     text = background.read_text()
@@ -79,3 +129,25 @@ def patch_icon_focus(class_paths):
         '    invoke-static {v4, v5}, Lcom/jeremykenedy/firetv/ui/IconFocus;->border(J)J\n'
         '    move-result-wide v4\n\n    :goto_0')
     border.write_text(text)
+
+
+REFRESH = '''
+.method public final refreshIconFocusShadow()V
+    .locals 3
+    iget-object v0, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
+    const-string v1, "icon_shadow"
+    const/4 v2, 0x1
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+    move-result v0
+    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    move-result-object v0
+    iget-object v1, p0, LQ3/T3;->k:LN/g0;
+    invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
+    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocus;->consumeSizeRefresh()Z
+    move-result v0
+    if-eqz v0, :icon_focus_no_size_change
+    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->changed()V
+    :icon_focus_no_size_change
+    return-void
+.end method
+'''

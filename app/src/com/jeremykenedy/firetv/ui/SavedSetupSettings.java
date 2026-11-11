@@ -33,7 +33,7 @@ final class SavedSetupSettings {
                 "menu_animation_frozen", "menu_overlay_frozen");
         add(result, "Int", "apps_per_row", "app_max_rows", "featured_rotation_seconds", "icon_radius",
                 "menu_animation_speed", "menu_animation_intensity", "menu_animation_brightness",
-                "icon_focus_background", "icon_focus_border", "menu_overlay_speed",
+                "icon_focus_background", "icon_focus_border", "icon_focus_growth", "icon_focus_shadow_size", "menu_overlay_speed",
                 "menu_overlay_intensity", "menu_overlay_opacity");
         add(result, "StringSet", "featured_card_order", "featured_feed_order", "hidden_featured_cards",
                 "featured_feed_rotation_seconds", "factory_icon_packages");
@@ -103,6 +103,8 @@ final class SavedSetupSettings {
             value = strings;
         }
         if ("featured_rotation_seconds".equals(key) && ((Integer) value < 0 || (Integer) value > 86400)) throw invalid();
+        if ("icon_focus_growth".equals(key) && ((Integer) value < 0 || (Integer) value > 30)) throw invalid();
+        if ("icon_focus_shadow_size".equals(key) && ((Integer) value < 1 || (Integer) value > 38)) throw invalid();
         if ("app_max_rows".equals(key) && ((Integer) value < 0 || (Integer) value > 6)) throw invalid();
         if ("app_scroll_direction".equals(key) && !Arrays.asList("vertical", "horizontal").contains(value)) throw invalid();
         if ("menu_transition_style".equals(key) && !Arrays.asList("default", "none", "fade", "slide").contains(value)) throw invalid();

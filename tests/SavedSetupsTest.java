@@ -18,6 +18,9 @@ public class SavedSetupsTest {
     }
     public static void main(String[] args) throws Exception {
         Context c = new Context(new File(args[0], "data"));
+        c.prefs.values.put("icon_focus_growth", 30);
+        c.prefs.values.put("icon_focus_shadow_size", 38);
+        c.prefs.values.put("icon_shadow", false);
         c.prefs.values.put("apps_per_row", 7);
         c.prefs.values.put("input_names", "{\"tvinput_name:HDMI 1\":\"Sony Receiver\"}");
         c.prefs.values.put("factory_icon_packages", new LinkedHashSet<>(Arrays.asList("app.one")));
@@ -32,6 +35,15 @@ public class SavedSetupsTest {
         JSONObject capture = SavedSetupSettings.capture(c.prefs.getAll());
         Map<String,Object> saved = SavedSetupSettings.validate(capture);
         check(saved.get("apps_per_row").equals(7), "typed integer");
+        check(saved.get("icon_focus_growth").equals(30) && saved.get("icon_focus_shadow_size").equals(38)
+                && saved.get("icon_shadow").equals(false), "focus size and explicit shadow Off round trip");
+        for (String key : new String[]{"icon_focus_growth", "icon_focus_shadow_size"}) {
+            for (Object invalid : new Object[]{-1, 39, "18", 18.5, true}) {
+                JSONObject malformed = new JSONObject(capture.toString());
+                malformed.getJSONObject("values").put(key, invalid);
+                rejects(() -> SavedSetupSettings.validate(malformed), "invalid focus size rejected");
+            }
+        }
         check(((String)saved.get("input_names")).contains("Sony Receiver"), "input names saved");
         check(((Set<?>)saved.get("factory_icon_packages")).contains("app.one"), "factory icon choice saved");
         check(saved.get("menu_overlay_frozen").equals(false), "typed boolean");

@@ -13,6 +13,31 @@ from capture_previews import full_component, preview_file
 
 
 class BuildChecks(unittest.TestCase):
+    def test_app_focus_sizes_reach_home_folder_and_return_without_changing_card_scale(self):
+        decoded = ROOT / '.build/decoded'
+        if not decoded.exists():
+            self.skipTest('Build the launcher to check the focus size integration.')
+        built = classes(decoded)
+        renderer = built['LA3/a;'].read_text()
+        app = renderer.split('.method public static final g(LQ3/q;', 1)[1].split('.end method', 1)[0]
+        self.assertIn('IconFocus;->shadowSize(F)F', app)
+        self.assertIn('IconFocusRevision;->observe()V', app)
+        scale = built['LQ3/G0;'].read_text()
+        self.assertIn('IconFocus;->scale(F)F', scale)
+        self.assertIn('IconFocusRevision;->observe()V', scale)
+        folder = built['LQ3/C1;'].read_text()
+        self.assertIn('IconFocus;->scale(F)F', folder)
+        self.assertIn('IconFocus;->shadowSize(F)F', folder)
+        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
+        resume = main.split('.method public final onResume()V', 1)[1].split('.end method', 1)[0]
+        self.assertIn('LQ3/T3;->refreshIconFocusShadow()V', resume)
+        refresh = built['LQ3/T3;'].read_text().split('.method public final refreshIconFocusShadow()V', 1)[1].split('.end method', 1)[0]
+        self.assertIn('LQ3/T3;->k:LN/g0;', refresh)
+        self.assertIn('IconFocusRevision;->changed()V', refresh)
+        self.assertNotIn('->recreate()', refresh)
+        self.assertEqual(renderer.count('IconFocus;->shadowSize(F)F'), 1)
+        self.assertNotIn('IconFocus;->scale(F)F', renderer)
+
     def test_rotation_setting_restarts_the_effect_without_recreating_home(self):
         decoded = ROOT / '.build/decoded'
         if not decoded.exists():

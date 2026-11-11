@@ -9,6 +9,12 @@ import java.util.WeakHashMap;
 
 /** Focus colors sit behind artwork; transparent pack glyphs keep their contrast. */
 public final class IconFocus {
+    public static final String GROWTH = "icon_focus_growth";
+    public static final String SHADOW_SIZE = "icon_focus_shadow_size";
+    public static final int DEFAULT_GROWTH = 18;
+    public static final int DEFAULT_SHADOW = 18;
+    public static final int MAX_GROWTH = 30;
+    public static final int MAX_SHADOW = 38;
     public static final String STYLE = "icon_focus_style";
     public static final String BACKGROUND = "icon_focus_background";
     public static final String BORDER = "icon_focus_border";
@@ -18,6 +24,7 @@ public final class IconFocus {
     public static final int DEFAULT_BORDER = 0xffffffff;
 
     private static volatile SharedPreferences preferences;
+    private static boolean sizeRefreshPending;
     private static final Map<Bitmap, Glyph> glyphs = new WeakHashMap<>();
 
     private IconFocus() {}
@@ -33,6 +40,94 @@ public final class IconFocus {
         if (!DeviceSettings.prefs(context).edit().putString(STYLE, value).commit()) {
             throw new IllegalStateException("The focus style could not be saved.");
         }
+    }
+
+    public static int growth(Context context) {
+        return number(DeviceSettings.prefs(context), GROWTH, DEFAULT_GROWTH, 0, MAX_GROWTH);
+    }
+
+    public static int shadow(Context context) {
+        SharedPreferences prefs = DeviceSettings.prefs(context);
+        return Boolean.FALSE.equals(prefs.getAll().get("icon_shadow")) ? 0
+                : number(prefs, SHADOW_SIZE, DEFAULT_SHADOW, 1, MAX_SHADOW);
+    }
+
+    public static void setGrowth(Context context, Integer percent) {
+        if (percent != null && (percent < 0 || percent > MAX_GROWTH))
+            throw new IllegalArgumentException("Choose focus growth from 0 through 30 percent.");
+        saveSize(context, GROWTH, percent, null);
+    }
+
+    public static void setShadow(Context context, int size) {
+        if (size != 0 && size != DEFAULT_SHADOW && size != 28 && size != MAX_SHADOW)
+            throw new IllegalArgumentException("Choose a supported focus shadow size.");
+        SharedPreferences prefs = DeviceSettings.prefs(context);
+        Integer selected = size == 0 ? optionalNumber(prefs, SHADOW_SIZE)
+                : size == DEFAULT_SHADOW ? null : size;
+        saveSize(context, SHADOW_SIZE, selected, size != 0);
+    }
+
+    private static synchronized void saveSize(Context context, String key, Integer value, Boolean shadow) {
+        SharedPreferences prefs = DeviceSettings.prefs(context);
+        Integer previous = optionalNumber(prefs, key);
+        Object enabled = prefs.getAll().get("icon_shadow");
+        if (shadow != null && enabled != null && !(enabled instanceof Boolean))
+            throw new IllegalStateException("The saved shadow setting is unavailable.");
+        SharedPreferences.Editor edit = prefs.edit();
+        putNumber(edit, key, value);
+        if (shadow != null) edit.putBoolean("icon_shadow", shadow);
+        boolean committed = edit.commit();
+        Map<String, ?> actual = prefs.getAll();
+        if (committed && java.util.Objects.equals(actual.get(key), value)
+                && (shadow == null || shadow.equals(actual.get("icon_shadow")))) {
+            sizeRefreshPending = true;
+            return;
+        }
+        SharedPreferences.Editor rollback = prefs.edit();
+        putNumber(rollback, key, previous);
+        if (shadow != null) {
+            if (enabled == null) rollback.remove("icon_shadow");
+            else rollback.putBoolean("icon_shadow", (Boolean) enabled);
+        }
+        rollback.commit();
+        throw new IllegalStateException("The focus size could not be saved. Please try again.");
+    }
+
+    public static synchronized boolean consumeSizeRefresh() {
+        boolean pending = sizeRefreshPending;
+        sizeRefreshPending = false;
+        return pending;
+    }
+
+    private static Integer optionalNumber(SharedPreferences prefs, String key) {
+        Object value = prefs.getAll().get(key);
+        if (value != null && !(value instanceof Integer))
+            throw new IllegalStateException("The saved focus size is unavailable.");
+        return (Integer) value;
+    }
+
+    private static void putNumber(SharedPreferences.Editor edit, String key, Integer value) {
+        if (value == null) edit.remove(key);
+        else edit.putInt(key, value);
+    }
+
+    private static int number(SharedPreferences prefs, String key, int fallback, int min, int max) {
+        if (prefs == null) return fallback;
+        try {
+            int value = prefs.getInt(key, fallback);
+            return value >= min && value <= max ? value : fallback;
+        } catch (ClassCastException invalid) { return fallback; }
+    }
+
+    /** Keep the existing focus animation, replacing only its growth amount. */
+    public static float scale(float progress) {
+        return 1f + progress * (number(preferences, GROWTH, DEFAULT_GROWTH, 0, MAX_GROWTH) / 100f);
+    }
+
+    public static float shadowSize(float original) {
+        SharedPreferences prefs = preferences;
+        if (prefs != null && Boolean.FALSE.equals(prefs.getAll().get("icon_shadow"))) return 0f;
+        return number(prefs, SHADOW_SIZE, Math.round(original), 1, MAX_SHADOW);
     }
 
     public static int color(Context context, String key, int fallback) {

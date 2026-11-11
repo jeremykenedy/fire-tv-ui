@@ -16,7 +16,7 @@ import android.widget.TextView;
 import java.util.Locale;
 
 public final class UiSettingsActivity extends CardActivity {
-    private TextView columns, direction, maximumRows, transitions, focusStyle, focusBackground, focusBorder;
+    private TextView columns, direction, maximumRows, transitions, focusStyle, focusBackground, focusBorder, focusGrowth, focusShadow;
     private static final int[] FOCUS_COLORS = {
             0xffffffff, 0xff9ebcfa, 0xffbcacff, 0xffffcd78, 0xffffa9a2, 0xff263a5c
     };
@@ -75,6 +75,14 @@ public final class UiSettingsActivity extends CardActivity {
         addButton(body, focusStyle);
         addButton(body, focusBackground);
         addButton(body, focusBorder);
+        focusGrowth = button("", new View.OnClickListener() {
+            @Override public void onClick(View view) { chooseFocusSize(false); }
+        });
+        focusShadow = button("", new View.OnClickListener() {
+            @Override public void onClick(View view) { chooseFocusSize(true); }
+        });
+        addButton(body, focusGrowth);
+        addButton(body, focusShadow);
         refreshFocus();
         columns.requestFocus();
     }
@@ -201,10 +209,36 @@ public final class UiSettingsActivity extends CardActivity {
             if (IconFocus.STYLES[i].equals(selected)) label = IconFocus.LABELS[i];
         }
         focusStyle.setText("Focus style: " + label);
+        int growth = IconFocus.growth(this), shadow = IconFocus.shadow(this);
+        focusGrowth.setText("App focus growth: " + (growth == 0 ? "Off" : growth + "%")
+                + (DeviceSettings.prefs(this).contains(IconFocus.GROWTH) ? "" : " (Default)"));
+        focusShadow.setText("App focus shadow: " + (shadow == 0 ? "Off" : shadow == 18
+                ? "Default" : shadow == 28 ? "Large" : shadow == 38 ? "Extra large" : shadow + " dp"));
         focusBackground.setText("Fill color (Color and border): " + hex(IconFocus.color(
                 this, IconFocus.BACKGROUND, IconFocus.DEFAULT_BACKGROUND)));
         focusBorder.setText("Border color (custom styles): " + hex(IconFocus.color(
                 this, IconFocus.BORDER, IconFocus.DEFAULT_BORDER)));
+    }
+
+    private void chooseFocusSize(final boolean shadow) {
+        final String[] labels = shadow ? new String[]{"Off", "Default", "Large", "Extra large"}
+                : new String[]{"Default (18%)", "Off", "6%", "12%", "24%", "30%"};
+        final int[] values = shadow ? new int[]{0, 18, 28, 38} : new int[]{18, 0, 6, 12, 24, 30};
+        int current = shadow ? IconFocus.shadow(this) : IconFocus.growth(this);
+        int selected = -1;
+        for (int i = 0; i < values.length; i++) if (values[i] == current) selected = i;
+        new AlertDialog.Builder(this).setTitle(shadow ? "App focus shadow" : "App focus growth")
+                .setSingleChoiceItems(labels, selected, new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            if (shadow) IconFocus.setShadow(UiSettingsActivity.this, values[which]);
+                            else IconFocus.setGrowth(UiSettingsActivity.this, which == 0 ? null : values[which]);
+                            dialog.dismiss();
+                            refreshFocus();
+                            (shadow ? focusShadow : focusGrowth).requestFocus();
+                        } catch (IllegalStateException failed) { error(failed); }
+                    }
+                }).setNegativeButton("Cancel", null).show();
     }
 
     private void chooseFocusStyle() {

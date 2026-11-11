@@ -86,6 +86,8 @@
   "icon_focus_style": "String",
   "icon_focus_background": "Int",
   "icon_focus_border": "Int",
+  "icon_focus_growth": "Int",
+  "icon_focus_shadow_size": "Int",
   "featured_feed_rotation_seconds": "StringSet",
   "menu_animation_frozen": "Boolean",
   "menu_background_palette": "String",

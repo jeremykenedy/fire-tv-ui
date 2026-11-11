@@ -195,6 +195,14 @@ public final class BackupStore {
                     && !("vertical".equals(value) || "horizontal".equals(value))) {
                 throw new JSONException("Invalid app scroll direction.");
             }
+            if ("icon_focus_growth".equals(key)
+                    && (!(value instanceof Integer) || (Integer) value < 0 || (Integer) value > 30)) {
+                throw new JSONException("Invalid app focus growth.");
+            }
+            if ("icon_focus_shadow_size".equals(key)
+                    && (!(value instanceof Integer) || (Integer) value < 1 || (Integer) value > 38)) {
+                throw new JSONException("Invalid app focus shadow size.");
+            }
             if ("app_max_rows".equals(key)
                     && (!(value instanceof Integer) || (Integer) value < 0 || (Integer) value > 6)) {
                 throw new JSONException("Invalid maximum app rows.");

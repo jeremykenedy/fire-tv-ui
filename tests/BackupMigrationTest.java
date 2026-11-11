@@ -174,6 +174,24 @@ public final class BackupMigrationTest {
             try { BackupStore.restore(context, true); throw new AssertionError("Invalid rotation accepted"); }
             catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
         }
+        for (String key : new String[]{"icon_focus_growth", "icon_focus_shadow_size"}) {
+            for (int value : key.equals("icon_focus_growth") ? new int[]{0,18,30} : new int[]{1,18,28,38}) {
+                Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).put(key,value).put("icon_shadow",false).toString());
+                BackupStore.restore(context,true);
+                check(context.prefs.values.get(key).equals(value));
+                check(context.prefs.values.get("icon_shadow").equals(false));
+                BackupStore.save(context);
+                check(new JSONObject(Files.readString(BackupStore.file(false).toPath())).getInt(key)==value);
+            }
+            for(Object invalid:new Object[]{-1,39,"18",18.5,true}) {
+                Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).put(key,invalid).toString());
+                Map<String,Object> beforeInvalid=new HashMap<>(context.prefs.values);
+                try { BackupStore.restore(context,true);throw new AssertionError("Invalid focus size accepted"); }
+                catch(org.json.JSONException expected){check(beforeInvalid.equals(context.prefs.values));}
+            }
+        }
+        Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).toString());
+        BackupStore.restore(context,true);
         for (String key : new String[] {"menu_transition_style", "app_scroll_direction", "app_max_rows"}) {
             Object[] good = key.equals("menu_transition_style") ? new Object[] {"default", "none", "fade", "slide"}
                     : key.equals("app_scroll_direction") ? new Object[] {"vertical", "horizontal"}
