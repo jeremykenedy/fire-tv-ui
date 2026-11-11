@@ -47,6 +47,11 @@ public class HomePresentationTest {
   com.jeremykenedy.firetv.ui.DeviceSettings.prefs.hidden.add("hidden-id");
   HomePresentation.resumed(home);
   if(home.resets!=3) throw new AssertionError("Changed hidden content did not reload cards");
+  com.jeremykenedy.firetv.ui.DeviceSettings.prefs.sources="source-popup-changed";
+  HomePresentation.popupDismissed();
+  if(home.resets!=4) throw new AssertionError("Same-activity popup source choice did not reload cards");
+  HomePresentation.popupDismissed();
+  if(home.resets!=4) throw new AssertionError("Unchanged popup reset twice");
   Activity replacement=new Activity(); HomePresentation.resumed(replacement);
   HomePresentation.paused(home);
   replacement.focused=false; HomePresentation.closeTransientWindow(replacement);

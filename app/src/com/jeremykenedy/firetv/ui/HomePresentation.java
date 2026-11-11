@@ -28,6 +28,11 @@ public final class HomePresentation {
         if (changed) activity.recreate();
     }
 
+    public static void popupDismissed() {
+        Activity activity = resumed.get();
+        if (activity != null) resumed(activity);
+    }
+
     public static void paused(Activity activity) {
         if (resumed.get() == activity) {
             // Android pauses the current activity before delivering a Home intent.
