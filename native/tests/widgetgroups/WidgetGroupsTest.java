@@ -104,6 +104,9 @@ public final class WidgetGroupsTest {
         }
         enabled.put("enable_widgets", true);
         enabled.put("widgets_config", SOURCE);
+        check(SOURCE.equals(WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap()).get(WidgetGroupMigration.KEY)),
+                "Enabled empty-location weather retains the exact record for explicit setup.");
+        enabled.put("widgets_config", SOURCE.replace("\"location\":\"\"", "\"location\":\"Portland\""));
         reject(() -> WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap()));
         enabled.put("widgets_config", raw.replace("DigitalClock", "FutureWidget"));
         reject(() -> WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap()));

@@ -28,10 +28,12 @@ import java.util.Map;
 public final class EnabledWidgetInstrumentation extends Instrumentation {
     private static final String CLOCK = "11111111-1111-4111-8111-111111111111";
     private static final String YEAR = "22222222-2222-4222-8222-222222222222";
+    private static final String WEATHER = "33333333-3333-4333-8333-333333333333";
     private static final String GROUP = "slot:widget:grouped-widgets";
     private Bundle arguments;
     private Activity activity;
     private HomeContentView home;
+    private Activity weatherSettings;
     @Override public void onCreate(Bundle args) { super.onCreate(args); arguments = args; start(); }
     @Override public void onStart() {
         Bundle result = new Bundle();
@@ -72,32 +74,100 @@ public final class EnabledWidgetInstrumentation extends Instrumentation {
                 check(home.findViewWithTag(CLOCK) != null && home.findViewWithTag(YEAR) != null && home.cards().size() == 1,
                         "Explicit native Both mode shows grouped widgets alongside cards.");
                 check(raw.equals(context.getSharedPreferences("native_layout", 0).getString("widget_groups", null)), "Visibility changes retain exact grouped JSON.");
-                home.onHostPause();
-                check(context.getSharedPreferences("native_layout", 0).edit().putString("widget_groups", "[]").commit(), "Save explicit empty groups.");
-                WidgetGroupsView padded = new WidgetGroupsView(activity, WidgetGroups.decode("[]"), new WidgetGroupsEditor(activity, new Runnable() {
-                    @Override public void run() {}
-                }), 212, 270);
-                activity.setContentView(padded);
-                check(((ViewGroup) padded.getChildAt(0)).getChildCount() == 4 && padded.findViewWithTag("group:empty:3:0") != null,
-                        "Explicit empty configuration renders the original four editable empty columns.");
-                check(padded.findViewWithTag("group:empty:3:0").performClick(), "Padded column opens its editor.");
+            }});
+            final String weatherRaw = "[[{\"id\":\"" + WEATHER + "\",\"type\":\"Weather\",\"size\":\"Big\",\"data\":{\"location\":\"\",\"unit\":\"C\"}}],[],[],[]]";
+            final Map<String, ?> singleton = context.getSharedPreferences("native_weather", 0).getAll();
+            Map<String, Object> weatherLegacy = new LinkedHashMap<>(); weatherLegacy.put("widgets_config", weatherRaw); weatherLegacy.put("enable_widgets", true);
+            Map<String, Object> weatherPatch = WidgetGroupMigration.supportedPatch(weatherLegacy, Collections.emptyMap());
+            write(context.getSharedPreferences("native_layout", 0), Collections.singletonMap(WidgetGroupMigration.KEY, weatherPatch.get(WidgetGroupMigration.KEY)));
+            LayoutPreferences.save(context, LayoutPreferences.load(context, LayoutOptions.defaults(320, 180)).withMode(LayoutOptions.Mode.WIDGETS_ONLY));
+            runOnMainSync(new Runnable() { @Override public void run() { home.refreshPreferences(); home.scrollTo(0, 0); }});
+            boolean weatherReady = false;
+            final String[] weatherState = {"Weather view missing"};
+            for (int attempt = 0; attempt < 50 && !weatherReady; attempt++) {
+                final boolean[] readyState = {false};
+                runOnMainSync(new Runnable() { @Override public void run() {
+                    com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherView weather = weather(home.findViewWithTag(WEATHER));
+                    if (weather != null) weatherState[0] = weather.accessibilitySummary() + "; shown=" + weather.isShown()
+                            + "; visible=" + weather.getGlobalVisibleRect(new android.graphics.Rect())
+                            + "; bounds=" + weather.getWidth() + "x" + weather.getHeight() + "; host=" + home.getWidth() + "x" + home.getHeight();
+                    readyState[0] = weather != null && weather.accessibilitySummary().toString().contains("Choose exact location");
+                }});
+                weatherReady = readyState[0];
+                if (!weatherReady) android.os.SystemClock.sleep(100);
+            }
+            check(weatherReady, "Enabled empty Weather must render its actionable setup state in Home: " + weatherState[0]);
+            ActivityMonitor monitor = addMonitor("com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherSettingsActivity", null, false);
+            runOnMainSync(new Runnable() { @Override public void run() { check(home.findViewWithTag(WEATHER).performClick(), "Open empty Weather record menu."); }});
+            waitForIdleSync(); chooseFirst("Set weather location");
+            weatherSettings = monitor.waitForActivityWithTimeout(5000); removeMonitor(monitor);
+            check(weatherSettings != null && !weatherSettings.isFinishing(), "Empty Weather must open exact-location setup.");
+            runOnMainSync(new Runnable() { @Override public void run() {
+                View decor = weatherSettings.getWindow().getDecorView();
+                check(((android.widget.TextView) decor.findViewWithTag("weather:units")).getText().toString().contains("Celsius"), "Setup retains the original metric choice.");
+                check(((android.widget.TextView) decor.findViewWithTag("weather:label")).getText().length() == 0
+                        && ((android.widget.TextView) decor.findViewWithTag("weather:latitude")).getText().length() == 0
+                        && ((android.widget.TextView) decor.findViewWithTag("weather:longitude")).getText().length() == 0,
+                        "Setup keeps the empty name and requires an explicit coordinate selection.");
+                weatherSettings.finish(); weatherSettings = null;
             }});
             waitForIdleSync();
-            choose("Add clock");
+            check(weatherRaw.equals(context.getSharedPreferences("native_layout", 0).getString("widget_groups", null))
+                    && singleton.equals(context.getSharedPreferences("native_weather", 0).getAll()),
+                    "Opening and canceling setup retains exact record bytes and singleton weather choices.");
+            runOnMainSync(new Runnable() { @Override public void run() {
+                check(context.getSharedPreferences("native_layout", 0).edit().putString("widget_groups", "[]").commit(), "Save explicit empty groups.");
+                home.refreshPreferences(); home.scrollTo(0, 0);
+            }});
+            boolean emptyColumns = false;
+            for (int attempt = 0; attempt < 50 && !emptyColumns; attempt++) {
+                final boolean[] measured = {false};
+                runOnMainSync(new Runnable() { @Override public void run() {
+                    View slot = home.findViewWithTag(GROUP), fourth = home.findViewWithTag("group:empty:3:0");
+                    float density = activity.getResources().getDisplayMetrics().density;
+                    measured[0] = slot != null && slot.getWidth() == Math.round(896 * density)
+                            && fourth != null && fourth.getWidth() == Math.round(212 * density)
+                            && fourth.getGlobalVisibleRect(new android.graphics.Rect());
+                }});
+                emptyColumns = measured[0];
+                if (!emptyColumns) android.os.SystemClock.sleep(100);
+            }
+            check(emptyColumns, "Full Home must render explicit empty groups as four full-width visible columns.");
+            runOnMainSync(new Runnable() { @Override public void run() {
+                check(home.findViewWithTag("group:empty:3:0").performClick(), "Home padded column opens its editor.");
+            }});
+            waitForIdleSync();
+            chooseFirst("Add clock");
             WidgetGroups edited = WidgetGroups.decode(context.getSharedPreferences("native_layout", 0).getString("widget_groups", ""));
             check(edited.groups.size() == 4 && edited.groups.get(0).isEmpty() && edited.groups.get(2).isEmpty()
                     && edited.groups.get(3).size() == 1 && edited.groups.get(3).get(0).type.equals("DigitalClock"),
                     "Selecting a padded column saves only the requested widget in that position.");
             result.putString("status", "PASS");
-            result.putString("cases", "enabled clock/year; native focus; original hidden row; disabled card row; explicit mixed mode; four empty columns; raw retention");
+            result.putString("cases", "enabled clock/year; native focus; original hidden row; disabled card row; explicit mixed mode; four empty columns; raw retention; empty Weather setup and original units");
             result.putString("limits", "Synthetic saved settings and card; real production upgrade and physical TV acceptance are separate.");
         } catch (Throwable failed) { result.putString("status", "FAIL"); result.putString("reason", failed.toString()); }
-        finally { if (activity != null) runOnMainSync(new Runnable() { @Override public void run() { if (home != null) home.onHostPause(); activity.finish(); }}); }
+        finally { if (activity != null) runOnMainSync(new Runnable() { @Override public void run() { if (home != null) home.onHostPause(); if (weatherSettings != null) weatherSettings.finish(); activity.finish(); }}); }
         finish(0, result);
     }
-    private void choose(String label) {
-        AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
-        check(root != null && !root.findAccessibilityNodeInfosByText(label).isEmpty(), "Native widget menu must expose " + label);
+    private static com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherView weather(View view) {
+        if (view instanceof com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherView)
+            return (com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherView) view;
+        if (view instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+            com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherView result = weather(((ViewGroup) view).getChildAt(i));
+            if (result != null) return result;
+        }
+        return null;
+    }
+    private void chooseFirst(String label) {
+        boolean visible = false;
+        for (int attempt = 0; attempt < 50 && !visible; attempt++) {
+            AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
+            if (root != null) for (AccessibilityNodeInfo node : root.findAccessibilityNodeInfosByText(label)) {
+                if (label.contentEquals(node.getText()) && node.isVisibleToUser()) { visible = true; break; }
+            }
+            if (!visible) android.os.SystemClock.sleep(100);
+        }
+        check(visible, "Native widget menu must expose " + label);
         sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_DPAD_DOWN);
         sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_DPAD_UP);
         sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_DPAD_CENTER);

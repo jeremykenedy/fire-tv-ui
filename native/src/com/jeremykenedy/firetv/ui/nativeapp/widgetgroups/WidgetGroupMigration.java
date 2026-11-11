@@ -47,8 +47,8 @@ public final class WidgetGroupMigration {
                 if (!entry.hasOnlyKnownFields()) throw invalid();
                 if (entry.type.equals("Weather")) {
                     if (entry.data.size() != 2 || !entry.data.containsKey("location") || !entry.data.containsKey("unit")) throw invalid();
-                    WeatherGroupOptions.read(entry);
-                    if (widgets) throw invalid();
+                    com.jeremykenedy.firetv.ui.nativeapp.widget.weather.WeatherOptions options = WeatherGroupOptions.read(entry);
+                    if (widgets && !options.label.isEmpty()) throw invalid();
                 } else if (!(entry.type.equals("DigitalClock") || entry.type.equals("YearProgress")) || !entry.data.isEmpty()) throw invalid();
             }
 
