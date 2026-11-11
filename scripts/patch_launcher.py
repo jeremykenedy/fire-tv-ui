@@ -633,6 +633,12 @@ def patch(decoded):
     move-result-object v0
     iget-object v1, p0, LQ3/T3;->C:LN/g0;
     invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
+    new-instance v0, LQ3/F6;
+    iget-object v1, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
+    const/4 v2, 0x0
+    invoke-direct {v0, p0, v1, v2}, LQ3/F6;-><init>(LQ3/T3;Landroid/content/SharedPreferences;Lf4/c;)V
+    sget-object v1, Lb4/n;->a:Lb4/n;
+    invoke-virtual {v0, v1}, LQ3/F6;->k(Ljava/lang/Object;)Ljava/lang/Object;
     return-void
 .end method
 '''
