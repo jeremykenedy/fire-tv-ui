@@ -56,7 +56,7 @@ public final class UpdatesInstrumentation extends Instrumentation {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             settle();
             main(new Runnable() { @Override public void run() {
-                Button category = button(settings.getWindow().getDecorView(), "Updates and backup");
+                Button category = button(settings.getWindow().getDecorView(), "About");
                 check(category != null && category.requestFocus(), "Updates category must accept focus");
             }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
@@ -76,25 +76,37 @@ public final class UpdatesInstrumentation extends Instrumentation {
                 check(view("download").getVisibility() == View.GONE, "Download must start hidden");
                 check(view("install").getVisibility() == View.GONE, "Install must start hidden");
             }});
-            runCheck("empty", "No compatible source release");
+            runCheck("empty", "No compatible update is available.");
             main(new Runnable() { @Override public void run() {
                 check(view("check").hasFocus(), "Empty result must restore Check focus");
                 check(view("download").getVisibility() == View.GONE, "Empty feed must not offer download");
             }});
             runCheck("error", "Verification or download failed");
-            runCheck("available", "A reviewed update is available");
+            runCheck("available", "An update is available");
             main(new Runnable() { @Override public void run() {
                 check(view("download").getVisibility() == View.VISIBLE && view("download").hasFocus(), "Available release must offer download");
                 check(view("install").getVisibility() == View.GONE, "Unverified release must not offer installation");
                 check(((TextView) view("release")).getText().toString().contains("Local fixture release"), "Release details must be visible");
             }});
+            runCheck("empty", "No compatible");
+            assertNoCurrentRelease("Empty recheck");
+            main(new Runnable() { @Override public void run() {
+                check("No compatible update is available.".contentEquals(((TextView) view("status")).getText()),
+                        "An empty check must use package-neutral wording");
+            }});
+            runCheck("available", "An update is available");
+            runCheck("error", "Verification or download failed");
+            assertNoCurrentRelease("Failed recheck");
+            runCheck("available", "An update is available");
             scenario = "cancel";
             focus("check");
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
-            awaitText("Checking compatible source releases");
+            awaitText("Checking for updates");
             main(new Runnable() { @Override public void run() {
                 check(view("cancel").getVisibility() == View.VISIBLE, "Check must offer cancellation");
                 check(view("cancel").requestFocus(), "Cancel must accept focus");
+                check(((TextView) view("release")).getText().toString().equals(noReleaseDetails()),
+                        "A new check must immediately clear the prior release details");
             }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
             awaitText("Cancelled.");
@@ -103,6 +115,7 @@ public final class UpdatesInstrumentation extends Instrumentation {
                 check(view("download").getVisibility() == View.GONE, "Cancelled check must not offer download");
                 check(view("install").getVisibility() == View.GONE, "Cancelled check must not offer install");
             }});
+            assertNoCurrentRelease("Cancelled recheck");
             sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
             settle();
             check(screen.isFinishing(), "Back must finish Updates");
@@ -112,6 +125,7 @@ public final class UpdatesInstrumentation extends Instrumentation {
             result.putString("status", "PASS");
             result.putBoolean("settings_route_and_back", true);
             result.putBoolean("empty_error_available_and_cancel", true);
+            result.putBoolean("recheck_clears_stale_release_details", true);
             result.putString("limits", "Test-only source; no real network, download, installer or physical TV validation.");
         } catch (Throwable failed) {
             result.putString("status", "FAIL"); result.putString("reason", failed.toString());
@@ -123,6 +137,18 @@ public final class UpdatesInstrumentation extends Instrumentation {
     }
     private void runCheck(String selected, String expected) {
         scenario = selected; focus("check"); sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER); awaitText(expected);
+    }
+    private void assertNoCurrentRelease(final String state) {
+        main(new Runnable() { @Override public void run() {
+            check(((TextView) view("release")).getText().toString().equals(noReleaseDetails()),
+                    state + " must clear the previous release details");
+            check(view("check").hasFocus(), state + " must restore Check focus");
+            check(view("download").getVisibility() == View.GONE, state + " must not offer download");
+            check(view("install").getVisibility() == View.GONE, state + " must not offer install");
+        }});
+    }
+    private String noReleaseDetails() {
+        return "Check for updates compatible with this app.";
     }
     private void focus(final String tag) { main(new Runnable() { @Override public void run() { check(view(tag).requestFocus(), tag + " must accept focus"); }}); }
     private void awaitText(final String expected) {
