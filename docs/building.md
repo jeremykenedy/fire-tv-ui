@@ -1,6 +1,6 @@
 # Build and source layout
 
-The default build creates a source-native production-package candidate from the maintained Java and Android resources in `native/`. It does not decode, patch, or package the supplied launcher APK. The candidate is not a released production upgrade: migration, parity, signing, and device acceptance remain separate gates. Stable Fire TV UI 1.17.1 remains the latest published stable release while the 1.18.0/code 80 maintenance draft is verified. The separate independent production candidate reserves code 81 and is not the 1.18.0 maintenance build. The current preview configuration targets 2.0.0-alpha.3; see the [preview guide](source-preview.md) for release availability and scope.
+The default build creates a source-native production-package candidate from the maintained Java and Android resources in `native/`. It does not decode, patch, or package the supplied launcher APK. The candidate is not a released production upgrade: migration, parity, signing, and device acceptance remain separate gates. Stable Fire TV UI 1.18.0/code 80 is the latest stable release. The separate independent production candidate reserves code 81 and is not the 1.18.0 maintenance build. The current preview configuration targets 2.0.0-alpha.3; see the [preview guide](source-preview.md) for release availability and scope.
 
 | Path | Purpose |
 | --- | --- |
@@ -54,7 +54,7 @@ Publish only from the verified remote `main` tip with a matching semantic versio
 
 ## Stable maintenance recipes
 
-The 1.18.0 draft and published 1.17.1 repair use the retained stable implementation. It is separate from the default native build and does not complete the independent replacement.
+The 1.18.0 and historical 1.17.1 maintenance recipes use the retained stable implementation. It is separate from the default native build and does not complete the independent replacement.
 
 With Python 3.12+, JDK 21 and the Android tools listed above, fetch the public Git history and reconstruct the pinned 1.17.0 source plus the reviewed repair:
 
@@ -65,7 +65,7 @@ python3 maintenance/build_repair.py --output-dir /tmp/fire-tv-ui-1.18.0
 python3 maintenance/build_repair.py --version 1.17.1 --output-dir /tmp/fire-tv-ui-1.17.1
 ```
 
-The recipe defaults to 1.18.0, version code 80; `--version 1.17.1` selects the historical code 79 recipe. The 1.18.0 metadata pins the reviewed stable source and repair patch. Its unsigned artifact is `fire-tv-ui-1.18.0-unsigned.apk`. Final native, signed-upgrade and release verification are pending. Neither recipe is the independent source-native replacement.
+The recipe defaults to 1.18.0, version code 80; `--version 1.17.1` selects the historical code 79 recipe. The 1.18.0 metadata pins the reviewed stable source and repair patch. Its unsigned artifact is `fire-tv-ui-1.18.0-unsigned.apk`. Native controls and a direct production-signed 1.17.1 upgrade were verified on Android TV API 34; see the [release verification](releases/v1.18.0.md#verification-and-limits). Neither recipe is the independent source-native replacement.
 
 Choose a new output directory outside the checkout. The recipe verifies the base commit, patch, complete source tree and launcher base, builds the unsigned APK, then runs the maintenance checks. It records source, toolchain and artifact hashes in `build-provenance.json`. Signing requires the existing production certificate. The recipe never signs or installs an APK. The default source-native builder remains unchanged.
 

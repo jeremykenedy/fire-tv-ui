@@ -1,7 +1,5 @@
 # Featured cards
 
-The 1.18.0 card controls below are a working release draft. Final native verification and publication are pending.
-
 Open Preferences > UI settings > Cards > Featured card setup. Existing card and appearance controls remain available below it.
 
 ## Choose cards
@@ -12,7 +10,7 @@ Select a card on Home, press Enter, or press the remote Menu button to open its 
 
 **Open** runs the card's original provider action. Opening the controls does not launch the provider. **Hide this title** saves the exact selected item identity; another title sharing its playback link stays available. If the provider supplies no usable item identity, Open remains available and title hiding is omitted.
 
-**Hide all cards from &lt;app&gt;** applies to the entire publishing app, including its other channels and Watch Next feeds. Its app tile remains visible. For personal Plex cards published by Fire TV UI, the publishing app can be Fire TV UI; that source choice covers its other published feeds too. This action does not infer a movie, show or series identity. Restore the source in Featured card setup to show its feeds again.
+**Hide all cards from &lt;app&gt;** applies to the entire publishing app, including its other channels and Watch Next feeds. Its app tile remains visible. For personal Plex cards published by Fire TV UI, the publishing app can be Fire TV UI; that source choice covers its other published feeds too. This action does not infer a movie, show or series identity. Restore the source in Featured card setup, then choose **Reload home cards** to show its feeds again.
 
 Turning cards Off also removes the reserved card band when widgets are disabled. Enabled widgets keep their row and remain available.
 

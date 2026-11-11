@@ -21,7 +21,7 @@ The guides below describe the retained stable 1.x product unless explicitly labe
 
 ## Release notes
 
-- [v1.18.0](releases/v1.18.0.md): working maintenance draft, verification and publication pending.
+- [v1.18.0](releases/v1.18.0.md): card controls, spacing and app focus sizes.
 - [v1.17.1](releases/v1.17.1.md)
 - [v1.17.0](releases/v1.17.0.md)
 - [v1.16.0](releases/v1.16.0.md)

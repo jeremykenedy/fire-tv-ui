@@ -1,7 +1,5 @@
 # Configuration
 
-The 1.18.0 additions below are a working release draft. Final native verification and publication are pending.
-
 | Setting | Behavior |
 | --- | --- |
 | Screensavers | Configure or preview any installed saver, choose the active saver, and manage timers and installations. |
