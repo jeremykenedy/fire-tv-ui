@@ -1,0 +1,427 @@
+diff --git a/app/smali/CardKeyAction.smali b/app/smali/CardKeyAction.smali
+index 46d2174..45be0f2 100644
+--- a/app/smali/CardKeyAction.smali
++++ b/app/smali/CardKeyAction.smali
+@@ -16,7 +16,7 @@
+ .end method
+ 
+ .method public final b(Ljava/lang/Object;)Ljava/lang/Object;
+-    .locals 8
++    .locals 9
+     move-object v0, p1
+     check-cast v0, Lq0/b;
+     iget-object v2, v0, Lq0/b;->a:Landroid/view/KeyEvent;
+@@ -25,7 +25,9 @@
+     iget-object v3, v7, LQ3/S8;->c:Ljava/lang/String;
+     iget-object v4, v7, LQ3/S8;->e:Landroid/net/Uri;
+     iget-wide v5, v7, LQ3/S8;->h:J
+-    invoke-static/range {v1 .. v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;J)Z
++    iget-object v8, v7, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
++    iget-object v7, v7, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    invoke-static/range {v1 .. v8}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;JLjava/lang/String;Ljava/lang/String;)Z
+     move-result v0
+     if-eqz v0, :normal_card_key
+     sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+diff --git a/app/smali/FeaturedGroupBridge.smali b/app/smali/FeaturedGroupBridge.smali
+index 1114653..8e47ed4 100644
+--- a/app/smali/FeaturedGroupBridge.smali
++++ b/app/smali/FeaturedGroupBridge.smali
+@@ -87,12 +87,16 @@
+     const-wide/16 v7, 0x0
+     cmp-long v8, v5, v7
+     iget-object v7, v3, LQ3/S8;->e:Landroid/net/Uri;
++    iget-object v5, v3, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
+     const/4 v3, 0x0
+     if-gez v8, :preview
+     const/4 v3, 0x1
+     :preview
+     invoke-static {v4, v7, v3}, Lcom/jeremykenedy/firetv/ui/FeaturedGroups;->itemKey(Ljava/lang/String;Landroid/net/Uri;Z)Ljava/lang/String;
+     move-result-object v3
++    if-eqz v5, :item_identity_ready
++    move-object v3, v5
++    :item_identity_ready
+     invoke-virtual {v1, v3}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+     goto :next
+     :ready
+diff --git a/app/smali/FeaturedProgramMapper.smali b/app/smali/FeaturedProgramMapper.smali
+index 0b2d373..05a06fe 100644
+--- a/app/smali/FeaturedProgramMapper.smali
++++ b/app/smali/FeaturedProgramMapper.smali
+@@ -70,6 +70,10 @@
+     move-object v12, v2
+     :ready
+     invoke-direct/range {v0 .. v12}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V
++    iget-object v13, p0, LQ3/k8;->hiddenCardKey:Ljava/lang/String;
++    iput-object v13, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    iget-object v13, p0, LQ3/k8;->a:Ljava/lang/String;
++    iput-object v13, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
+     return-object v0
+ .end method
+ 
+@@ -116,5 +120,9 @@
+     iget v11, p1, LQ3/S8;->j:I
+     new-instance v0, LQ3/S8;
+     invoke-direct/range {v0 .. v12}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V
++    iget-object v1, p1, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    iput-object v1, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    iget-object v1, p1, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
++    iput-object v1, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
+     return-object v0
+ .end method
+diff --git a/app/src/com/jeremykenedy/firetv/ui/ChannelCards.java b/app/src/com/jeremykenedy/firetv/ui/ChannelCards.java
+index 8eb583c..cbbf05b 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/ChannelCards.java
++++ b/app/src/com/jeremykenedy/firetv/ui/ChannelCards.java
+@@ -23,6 +23,7 @@ final class ChannelCards {
+                             .query(
+                                     TvContract.buildPreviewProgramsUriForChannel(channel),
+                                     new String[] {
++                                        "_id",
+                                         "package_name",
+                                         "channel_id",
+                                         "title",
+diff --git a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java
+index a0ad3e5..4ba3814 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java
++++ b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java
+@@ -16,10 +16,10 @@ public final class FeaturedCardMenu {
+     }
+ 
+     public static boolean handle(
+-            Context context, KeyEvent event, String source, Uri intent, long channel) {
++            Context context, KeyEvent event, String source, Uri intent, long channel, String key, String title) {
+         if (event.getKeyCode() != KeyEvent.KEYCODE_MENU) return false;
+         if (event.getAction() != KeyEvent.ACTION_UP || event.isCanceled()) return true;
+-        final HiddenCards.Card card = HiddenCards.card(source, intent, channel < 0);
++        final HiddenCards.Card card = HiddenCards.selected(key, source, title, channel);
+         if (card == null) {
+             new AlertDialog.Builder(context)
+                     .setTitle("Card options")
+diff --git a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java
+index 0f5290b..90466bf 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java
++++ b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java
+@@ -16,6 +16,11 @@ final class FeaturedCardRules {
+         return digest((watchNext ? "watch-next" : "preview") + "\n" + source + "\n" + identity);
+     }
+ 
++    static String rowKey(String source, boolean watchNext, long row) {
++        if (source == null || source.isEmpty() || row <= 0) return null;
++        return digest((watchNext ? "watch-next" : "preview") + "\n" + source + "\nrow:" + row);
++    }
++
+     static String lookup(String source, boolean watchNext, String intent) {
+         return digest(source + "\n" + watchNext + "\n" + intent);
+     }
+diff --git a/app/src/com/jeremykenedy/firetv/ui/HiddenCards.java b/app/src/com/jeremykenedy/firetv/ui/HiddenCards.java
+index 40c03c1..7bf8c37 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/HiddenCards.java
++++ b/app/src/com/jeremykenedy/firetv/ui/HiddenCards.java
+@@ -18,9 +18,8 @@ public final class HiddenCards {
+     public static boolean visible(Context context, Cursor cursor, boolean watchNext) {
+         Card card = identify(context, cursor, watchNext);
+         if (card == null) return true;
+-        String intent = value(cursor, "intent_uri");
+         synchronized (cards) {
+-            cards.put(FeaturedCardRules.lookup(card.source, watchNext, intent), card);
++            cards.put(card.key, card);
+             while (cards.size() > 2048) cards.remove(cards.keySet().iterator().next());
+         }
+         return !keys(context).contains(card.key);
+@@ -35,9 +34,17 @@ public final class HiddenCards {
+                         watchNext,
+                         providerId(context, source, value(cursor, "internal_provider_id"), intent),
+                         value(cursor, "content_id"));
++        if (key == null) {
++            int rowIndex = cursor.getColumnIndex("_id");
++            if (rowIndex >= 0 && !cursor.isNull(rowIndex)) {
++                long row = cursor.getLong(rowIndex);
++                if (row > 0) key = FeaturedCardRules.rowKey(source, watchNext, row);
++            }
++        }
+         int channelIndex = cursor.getColumnIndex("channel_id");
+         long channel = channelIndex < 0 ? -1 : cursor.getLong(channelIndex);
+-        return key == null ? null : new Card(key, source, value(cursor, "title"), channel);
++        return key == null ? null : new Card(key, source, value(cursor, "title"), channel,
++                FeaturedCardRules.lookup(source, watchNext, intent));
+     }
+ 
+     private static String providerId(Context context, String source, String id, String intent) {
+@@ -63,11 +70,29 @@ public final class HiddenCards {
+         }
+     }
+ 
++    public static String key(Context context, Cursor cursor, boolean watchNext) {
++        Card card = identify(context, cursor, watchNext);
++        return card == null ? null : card.key;
++    }
++
++    static Card selected(String key, String source, String title, long channel) {
++        if (!FeaturedCardRules.validKey(key)) return null;
++        return new Card(key, source, title, channel);
++    }
++
++    static Card card(String key) {
++        synchronized (cards) { return cards.get(key); }
++    }
++
+     static Card card(String source, Uri intent, boolean watchNext) {
++        String lookup = FeaturedCardRules.lookup(source, watchNext, intent == null ? "" : intent.toString());
+         synchronized (cards) {
+-            return cards.get(
+-                    FeaturedCardRules.lookup(
+-                            source, watchNext, intent == null ? "" : intent.toString()));
++            Card found = null;
++            for (Card card : cards.values()) if (lookup.equals(card.lookup)) {
++                if (found != null) return null;
++                found = card;
++            }
++            return found;
+         }
+     }
+ 
+@@ -79,6 +104,7 @@ public final class HiddenCards {
+                             .query(
+                                     Uri.parse("content://android.media.tv/" + table),
+                                     new String[] {
++                                        "_id",
+                                         "package_name",
+                                         "title",
+                                         "internal_provider_id",
+@@ -156,12 +182,18 @@ public final class HiddenCards {
+         final String source;
+         final String title;
+         final long channel;
++        final String lookup;
+ 
+         Card(String key, String source, String title) {
+             this(key, source, title, -1);
+         }
+ 
+         Card(String key, String source, String title, long channel) {
++            this(key, source, title, channel, null);
++        }
++
++        Card(String key, String source, String title, long channel, String lookup) {
++            this.lookup = lookup;
+             this.channel = channel;
+             this.key = key;
+             this.source = source;
+diff --git a/build.json b/build.json
+index 67ebe7e..e463a7c 100644
+--- a/build.json
++++ b/build.json
+@@ -1,8 +1,8 @@
+ {
+   "name": "Fire TV UI",
+   "package": "com.jeremykenedy.firetv.ui",
+-  "version": "1.17.0",
+-  "version_code": 78,
++  "version": "1.17.1",
++  "version_code": 79,
+   "base_sha256": "ac34c0abf1ceee5d5133dc3e99bde9173a00c5a16132852507ed23c0fbd41341",
+   "apktool_version": "3.0.3",
+   "apktool_sha256": "dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423"
+diff --git a/scripts/patch_launcher.py b/scripts/patch_launcher.py
+index 76f9e68..ac5786c 100644
+--- a/scripts/patch_launcher.py
++++ b/scripts/patch_launcher.py
+@@ -162,6 +162,7 @@ def patch(decoded):
+         '    move-result-wide v1\n'
+         '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
+         '    invoke-virtual {v0}, LQ3/T3;->refreshFeaturedRotation()V\n'
++        '    invoke-virtual {v0}, LQ3/T3;->refreshCardVisibility()V\n'
+         '    invoke-virtual {v0}, LQ3/T3;->refreshLauncherLayout()V\n'
+         '    :resume_idle_reset_done\n'
+         '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->start(Landroid/content/Context;)V\n'
+@@ -382,11 +383,52 @@ def patch(decoded):
+     pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
+     copy = pattern.search(text).group(0)
+     copy = replace_once(copy, '    .locals 13',
+-        '    .locals 13\n\n    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;\n'
++        '    .locals 15\n\n'
++        '    iget-object v13, p0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
++        '    iget-object v14, p0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;\n'
++        '    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;\n'
+         '    invoke-static {v2}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->label(Ljava/lang/String;)Ljava/lang/String;\n'
+         '    move-result-object v2')
+     copy = replace_once(copy, '    const-string v2, "Watch Next"\n\n', '')
++    copy = replace_once(copy, '    return-object v0',
++        '    iput-object v13, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
++        '    iput-object v14, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;\n'
++        '    return-object v0')
++    text = replace_once(text, '# instance fields',
++        '# instance fields\n.field public hiddenCardKey:Ljava/lang/String;\n.field public hiddenCardTitle:Ljava/lang/String;\n')
+     featured.write_text(replace_method(text, signature, copy))
++    program = class_paths['LQ3/k8;']
++    program.write_text(replace_once(program.read_text(), '# instance fields',
++        '# instance fields\n.field public hiddenCardKey:Ljava/lang/String;\n'))
++    for descriptor in ('LQ3/S8;', 'LQ3/k8;'):
++        path = class_paths[descriptor]
++        text = path.read_text()
++        anchor = '    check-cast p1, ' + descriptor
++        equality = ('\n    iget-object v1, p0, ' + descriptor + '->hiddenCardKey:Ljava/lang/String;\n'
++            + '    iget-object v3, p1, ' + descriptor + '->hiddenCardKey:Ljava/lang/String;\n'
++            + '    invoke-static {v1, v3}, Ljava/util/Objects;->equals(Ljava/lang/Object;Ljava/lang/Object;)Z\n'
++            + '    move-result v1\n    if-nez v1, :same_card_identity\n'
++            + '    const/4 v1, 0x0\n    return v1\n    :same_card_identity\n')
++        path.write_text(replace_once(text, anchor, anchor + equality))
++
++
++    rebuilt = class_paths['LQ3/S3;']
++    rebuilt_text = replace_once(rebuilt.read_text(), '    .locals 26', '    .locals 27')
++    for program_register, card_register, title_register, arguments in (
++            ('v5', 'v6', 'v7', 'v6 .. v18'),
++            ('v10', 'v11', 'v12', 'v11 .. v23')):
++        anchor = '    check-cast ' + program_register + ', LQ3/k8;\n\n    new-instance ' + card_register + ', LQ3/S8;'
++        rebuilt_text = replace_once(rebuilt_text, anchor,
++            '    check-cast ' + program_register + ', LQ3/k8;\n'
++            + '    iget-object ' + card_register + ', ' + program_register + ', LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
++            + '    move-object/from16 v26, ' + card_register + '\n\n'
++            + '    new-instance ' + card_register + ', LQ3/S8;')
++        constructor = '    invoke-direct/range {' + arguments + '}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V'
++        rebuilt_text = replace_once(rebuilt_text, constructor, constructor + '\n'
++            + '    move-object/from16 ' + program_register + ', v26\n'
++            + '    iput-object ' + program_register + ', ' + card_register + ', LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
++            + '    iput-object ' + title_register + ', ' + card_register + ', LQ3/S8;->hiddenCardTitle:Ljava/lang/String;')
++    rebuilt.write_text(rebuilt_text)
+ 
+     mapper = class_paths["Landroid/support/v4/media/session/b;"]
+     mapper.write_text(replace_method(mapper.read_text(),
+@@ -422,10 +464,32 @@ def patch(decoded):
+                 '    iget-object v0, v1, LQ3/F8;->l:Landroid/content/Context;\n'
+                 '    invoke-static {v0, v7}, Lcom/jeremykenedy/firetv/ui/CardOrder;->prepare(Landroid/content/Context;Landroid/database/Cursor;)Landroid/database/Cursor;\n'
+                 '    move-result-object v7\n')
++        constructor = '    invoke-direct/range {' + ('v10 .. v18' if descriptor == 'LQ3/F8;' else 'v20 .. v28') + '}, LQ3/k8;-><init>(Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;Ljava/lang/String;FII)V'
++        attach = ('    iget-object ' + context + ', v1, ' + descriptor + '->l:Landroid/content/Context;\n'
++            + '    const/4 ' + temporary + ', ' + watched + '\n'
++            + '    invoke-static {' + context + ', ' + cursor + ', ' + temporary + '}, Lcom/jeremykenedy/firetv/ui/HiddenCards;->key(Landroid/content/Context;Landroid/database/Cursor;Z)Ljava/lang/String;\n'
++            + '    move-result-object ' + context + '\n')
++        if descriptor == 'LQ3/F8;':
++            attach += '    iput-object v0, v10, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
++        else:
++            attach += '    move-object/from16 v0, v20\n    iput-object v13, v0, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
++        contents = replace_once(contents, constructor, constructor + '\n' + attach)
+         loader.write_text(contents)
+ 
+     feed_loader = class_paths["LQ3/E7;"]
+-    feed_loader.write_text(replace_once(feed_loader.read_text(),
++    feed_text = replace_once(feed_loader.read_text(), '    .locals 34', '    .locals 35')
++    feed_text = replace_once(feed_text, '    check-cast v4, LQ3/k8;\n\n    iget-object v11, v4, LQ3/k8;->a:Ljava/lang/String;',
++        '    check-cast v4, LQ3/k8;\n'
++        '    iget-object v11, v4, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
++        '    move-object/from16 v34, v11\n\n'
++        '    iget-object v11, v4, LQ3/k8;->a:Ljava/lang/String;')
++    feed_text = replace_once(feed_text, '    move-object/from16 v0, v21',
++        '    move-object/from16 v0, v21\n'
++        '    move-object/from16 v11, v34\n'
++        '    iput-object v11, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
++        '    move-object/from16 v11, v22\n'
++        '    iput-object v11, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;')
++    feed_loader.write_text(replace_once(feed_text,
+         '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;',
+         '    iget-object v0, v1, LQ3/E7;->r:Landroid/content/Context;\n'
+         '    invoke-static {v0, v10}, Lcom/jeremykenedy/firetv/ui/FeedOrderBridge;->order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;\n'
+@@ -508,6 +572,21 @@ def patch(decoded):
+     invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
+     return-void
+ .end method
++'''
++    text += '''
++.method public final refreshCardVisibility()V
++    .locals 3
++    iget-object v0, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
++    const-string v1, "hide_watch_next"
++    const/4 v2, 0x0
++    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
++    move-result v0
++    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
++    move-result-object v0
++    iget-object v1, p0, LQ3/T3;->C:LN/g0;
++    invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
++    return-void
++.end method
+ '''
+     text += '''
+ .method public final refreshLauncherLayout()V
+diff --git a/tests/HiddenCardsTest.java b/tests/HiddenCardsTest.java
+index 80a6367..b29ebdb 100644
+--- a/tests/HiddenCardsTest.java
++++ b/tests/HiddenCardsTest.java
+@@ -84,6 +84,7 @@ public final class HiddenCardsTest {
+                 HiddenCards.visible(
+                         context, new Cursor("source.two", "Other publisher", "42", routeA), false),
+                 "Other publishers must not inherit Plex identity normalization.");
++        sharedRoutesAndRowFallback(context);
+         channelManagement(context);
+         context.prefs.fail = true;
+         try {
+@@ -96,6 +97,55 @@ public final class HiddenCardsTest {
+         }
+     }
+ 
++    private static void sharedRoutesAndRowFallback(Context context) {
++        HiddenCards.restoreAll(context);
++        Cursor first = new Cursor("source.shared", "First shared title", "shared-a", "same-route", 9, 101);
++        Cursor second = new Cursor("source.shared", "Second shared title", "shared-b", "same-route", 9, 102);
++        HiddenCards.visible(context, first, false);
++        HiddenCards.visible(context, second, false);
++        String firstKey = HiddenCards.key(context, first, false);
++        String secondKey = HiddenCards.key(context, second, false);
++        check(HiddenCards.card("source.shared", Uri.parse("same-route"), false) == null,
++                "A shared route must never select an arbitrary title.");
++        check(HiddenCards.card(firstKey).title.equals("First shared title")
++                && HiddenCards.card(secondKey).title.equals("Second shared title"),
++                "Each displayed identity must retain its own menu target despite a shared route.");
++        HiddenCards.hide(context, firstKey);
++        check(!HiddenCards.visible(context, first, false) && HiddenCards.visible(context, second, false),
++                "Hiding the selected shared-route title must retain its neighbor.");
++        Cursor rowOnly = new Cursor("source.rows", "No provider ID", "", "shared-row-route", 7, 51);
++        Cursor otherRow = new Cursor("source.rows", "Other row", "", "shared-row-route", 7, 52);
++        Cursor watchNext = new Cursor("source.rows", "Other table", "", "shared-row-route", 7, 51);
++        HiddenCards.visible(context, rowOnly, false);
++        String rowKey = HiddenCards.key(context, rowOnly, false);
++        check(rowKey != null && HiddenCards.card(rowKey) != null,
++                "A published provider row remains individually dismissible without an optional provider ID.");
++        HiddenCards.hide(context, rowKey);
++        check(!HiddenCards.visible(context, rowOnly, false)
++                && HiddenCards.visible(context, otherRow, false)
++                && HiddenCards.visible(context, watchNext, true),
++                "Row fallback must retain other rows and the separate Watch Next table.");
++        check(!rowKey.equals(FeaturedCardRules.key("source.rows", false, "51", "")),
++                "A row ID must not collide with an optional provider ID.");
++        for (int i = 0; i < 2050; i++)
++            HiddenCards.visible(context, new Cursor("source.eviction", "Other", "eviction-" + i, "route-" + i), false);
++        check(HiddenCards.card(firstKey) == null, "Fixture must evict the original label cache entry.");
++        HiddenCards.Card selected = HiddenCards.selected(firstKey, "source.shared", "First shared title", 9);
++        check(selected != null && selected.key.equals(firstKey) && selected.title.equals("First shared title"),
++                "The selected model must remain dismissible after its label cache entry is evicted.");
++        check(HiddenCards.selected(firstKey, "source.shared", "||First shared title", 9).title.equals("||First shared title"),
++                "The original preview title must be retained literally, without interpreting renderer prefixes.");
++        check(HiddenCards.selected(firstKey, "source.shared", "||||Literal preview title", 9).title.equals("||||Literal preview title"),
++                "Repeated literal title prefixes must remain unchanged.");
++        check(HiddenCards.selected(firstKey, "source.shared", "||Literal Watch Next title", -1).title.equals("||Literal Watch Next title"),
++                "Watch Next title text must remain literal.");
++        HiddenCards.hide(context, selected.key);
++        check(!HiddenCards.visible(context, first, false), "Dismissal must use the exact carried key after cache eviction.");
++        check(HiddenCards.selected("not-an-item-key", "source.shared", "Other", 9) == null,
++                "An unestablished identity must remain rejected.");
++        HiddenCards.restoreAll(context);
++    }
++
+     private static void channelManagement(Context context) {
+         HiddenCards.restoreAll(context);
+         String uri = "content://android.media.tv/channel/7/preview_program";
+diff --git a/tests/test_hidden_cards.py b/tests/test_hidden_cards.py
+index dde27c2..0c3f7a7 100644
+--- a/tests/test_hidden_cards.py
++++ b/tests/test_hidden_cards.py
+@@ -15,7 +15,7 @@ class HiddenCardChecks(unittest.TestCase):
+             'android/content/Intent.java': '''package android.content; public class Intent { public static final int URI_INTENT_SCHEME=1; private String value; public static Intent parseUri(String value,int flags){Intent i=new Intent();i.value=value;return i;} public android.net.Uri getData(){return android.net.Uri.parse(value.split("#Intent;")[0]);} public ComponentName getComponent(){return value.contains("component=ui.test/.PlexItemActivity;")?new ComponentName():null;} }''',
+             'android/content/ContentResolver.java': '''package android.content; public class ContentResolver { public static final java.util.Map<String,android.database.Cursor> rows=new java.util.HashMap<>(); public android.database.Cursor query(android.net.Uri u,String[] p,String s,String[] a,String o){return rows.get(u.toString());} }''',
+             'android/content/Prefs.java': '''package android.content; import java.util.*; public class Prefs { public boolean fail; private Set<String> saved=new HashSet<>(); public Set<String> getStringSet(String k,Set<String> fallback){return saved;} public Editor edit(){return new Editor();} public class Editor { Set<String> pending; public Editor putStringSet(String k,Set<String> v){pending=new HashSet<>(v);return this;} public boolean commit(){if(fail)return false;saved=pending;return true;} } }''',
+-            'android/database/Cursor.java': '''package android.database; public class Cursor implements AutoCloseable { public void close(){} private Cursor[] rows;private int position=-1;public Cursor(Cursor... list){rows=list;values=null;} public boolean moveToNext(){return rows!=null&&++position<rows.length;} private final String[] values; public Cursor(String source,String title,String id,String intent){values=new String[]{source,title,id,"",intent,"1"};} public Cursor(String source,String title,String id,String intent,long channel){values=new String[]{source,title,id,"",intent,String.valueOf(channel)};} public int getColumnIndex(String name){return java.util.Arrays.asList("package_name","title","internal_provider_id","content_id","intent_uri","channel_id").indexOf(name);} public int getColumnIndexOrThrow(String name){int n=getColumnIndex(name);if(n<0)throw new IllegalArgumentException();return n;} public boolean isNull(int n){return getString(n)==null;} public long getLong(int n){return Long.parseLong(getString(n));} public String getString(int n){return rows==null?values[n]:rows[position].getString(n);} }''',
++            'android/database/Cursor.java': '''package android.database; public class Cursor implements AutoCloseable { public void close(){} private Cursor[] rows;private int position=-1;public Cursor(Cursor... list){rows=list;values=null;} public boolean moveToNext(){return rows!=null&&++position<rows.length;} private final String[] values; public Cursor(String source,String title,String id,String intent){values=new String[]{source,title,id,"",intent,"1"};} public Cursor(String source,String title,String id,String intent,long channel){values=new String[]{source,title,id,"",intent,String.valueOf(channel)};} public Cursor(String source,String title,String id,String intent,long channel,long row){values=new String[]{source,title,id,"",intent,String.valueOf(channel),String.valueOf(row)};} public int getColumnIndex(String name){return java.util.Arrays.asList("package_name","title","internal_provider_id","content_id","intent_uri","channel_id","_id").indexOf(name);} public int getColumnIndexOrThrow(String name){int n=getColumnIndex(name);if(n<0)throw new IllegalArgumentException();return n;} public boolean isNull(int n){return getString(n)==null;} public long getLong(int n){return Long.parseLong(getString(n));} public String getString(int n){return rows==null?(n<values.length?values[n]:null):rows[position].getString(n);} }''',
+             'android/net/Uri.java': '''package android.net; public class Uri { private final String value; private Uri(String v){value=v;} public static Uri parse(String v){return new Uri(v);} public String toString(){return value;} private java.net.URI uri(){return java.net.URI.create(value);} public String getScheme(){return uri().getScheme();} public String getAuthority(){return uri().getAuthority();} public String getQuery(){return uri().getRawQuery();} public String getFragment(){return uri().getRawFragment();} public String getEncodedPath(){return uri().getRawPath();} public java.util.List<String> getPathSegments(){return java.util.Arrays.asList(uri().getPath().substring(1).split("/"));} }''',
+             'com/jeremykenedy/firetv/ui/DeviceSettings.java': '''package com.jeremykenedy.firetv.ui; public class DeviceSettings { public static android.content.Prefs prefs(android.content.Context c){return c.prefs;} }''',
+         }
