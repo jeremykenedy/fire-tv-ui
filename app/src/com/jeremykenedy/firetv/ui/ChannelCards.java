@@ -23,6 +23,7 @@ final class ChannelCards {
                             .query(
                                     TvContract.buildPreviewProgramsUriForChannel(channel),
                                     new String[] {
+                                        "_id",
                                         "package_name",
                                         "channel_id",
                                         "title",

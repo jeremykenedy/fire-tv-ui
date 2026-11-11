@@ -16,14 +16,23 @@ public final class HiddenCards {
     private HiddenCards() {}
 
     public static boolean visible(Context context, Cursor cursor, boolean watchNext) {
+        if (!sourceVisible(context, value(cursor, "package_name"))) return false;
         Card card = identify(context, cursor, watchNext);
         if (card == null) return true;
-        String intent = value(cursor, "intent_uri");
         synchronized (cards) {
-            cards.put(FeaturedCardRules.lookup(card.source, watchNext, intent), card);
+            cards.put(card.key, card);
             while (cards.size() > 2048) cards.remove(cards.keySet().iterator().next());
         }
         return !keys(context).contains(card.key);
+    }
+
+    static boolean sourceVisible(Context context, String source) {
+        try {
+            org.json.JSONObject choices = new org.json.JSONObject(
+                    DeviceSettings.prefs(context).getString("app_visibility", "{}")).optJSONObject(source);
+            return choices == null || (!choices.optBoolean("hidden", false)
+                    && !choices.optBoolean("hideWatchNext", false));
+        } catch (Exception malformed) { return true; }
     }
 
     static Card identify(Context context, Cursor cursor, boolean watchNext) {
@@ -35,9 +44,17 @@ public final class HiddenCards {
                         watchNext,
                         providerId(context, source, value(cursor, "internal_provider_id"), intent),
                         value(cursor, "content_id"));
+        if (key == null) {
+            int rowIndex = cursor.getColumnIndex("_id");
+            if (rowIndex >= 0 && !cursor.isNull(rowIndex)) {
+                long row = cursor.getLong(rowIndex);
+                if (row > 0) key = FeaturedCardRules.rowKey(source, watchNext, row);
+            }
+        }
         int channelIndex = cursor.getColumnIndex("channel_id");
         long channel = channelIndex < 0 ? -1 : cursor.getLong(channelIndex);
-        return key == null ? null : new Card(key, source, value(cursor, "title"), channel);
+        return key == null ? null : new Card(key, source, value(cursor, "title"), channel,
+                FeaturedCardRules.lookup(source, watchNext, intent));
     }
 
     private static String providerId(Context context, String source, String id, String intent) {
@@ -63,11 +80,24 @@ public final class HiddenCards {
         }
     }
 
+    public static String key(Context context, Cursor cursor, boolean watchNext) {
+        Card card = identify(context, cursor, watchNext);
+        return card == null ? null : card.key;
+    }
+
+    static Card card(String key) {
+        synchronized (cards) { return cards.get(key); }
+    }
+
     static Card card(String source, Uri intent, boolean watchNext) {
+        String lookup = FeaturedCardRules.lookup(source, watchNext, intent == null ? "" : intent.toString());
         synchronized (cards) {
-            return cards.get(
-                    FeaturedCardRules.lookup(
-                            source, watchNext, intent == null ? "" : intent.toString()));
+            Card found = null;
+            for (Card card : cards.values()) if (lookup.equals(card.lookup)) {
+                if (found != null) return null;
+                found = card;
+            }
+            return found;
         }
     }
 
@@ -79,6 +109,7 @@ public final class HiddenCards {
                             .query(
                                     Uri.parse("content://android.media.tv/" + table),
                                     new String[] {
+                                        "_id",
                                         "package_name",
                                         "title",
                                         "internal_provider_id",
@@ -156,12 +187,18 @@ public final class HiddenCards {
         final String source;
         final String title;
         final long channel;
+        final String lookup;
 
         Card(String key, String source, String title) {
             this(key, source, title, -1);
         }
 
         Card(String key, String source, String title, long channel) {
+            this(key, source, title, channel, null);
+        }
+
+        Card(String key, String source, String title, long channel, String lookup) {
+            this.lookup = lookup;
             this.channel = channel;
             this.key = key;
             this.source = source;

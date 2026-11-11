@@ -87,12 +87,16 @@
     const-wide/16 v7, 0x0
     cmp-long v8, v5, v7
     iget-object v7, v3, LQ3/S8;->e:Landroid/net/Uri;
+    iget-object v5, v3, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
     const/4 v3, 0x0
     if-gez v8, :preview
     const/4 v3, 0x1
     :preview
     invoke-static {v4, v7, v3}, Lcom/jeremykenedy/firetv/ui/FeaturedGroups;->itemKey(Ljava/lang/String;Landroid/net/Uri;Z)Ljava/lang/String;
     move-result-object v3
+    if-eqz v5, :item_identity_ready
+    move-object v3, v5
+    :item_identity_ready
     invoke-virtual {v1, v3}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
     goto :next
     :ready

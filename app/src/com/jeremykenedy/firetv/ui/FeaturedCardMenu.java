@@ -16,10 +16,10 @@ public final class FeaturedCardMenu {
     }
 
     public static boolean handle(
-            Context context, KeyEvent event, String source, Uri intent, long channel) {
+            Context context, KeyEvent event, String source, Uri intent, long channel, String key) {
         if (event.getKeyCode() != KeyEvent.KEYCODE_MENU) return false;
         if (event.getAction() != KeyEvent.ACTION_UP || event.isCanceled()) return true;
-        final HiddenCards.Card card = HiddenCards.card(source, intent, channel < 0);
+        final HiddenCards.Card card = HiddenCards.card(key);
         if (card == null) {
             new AlertDialog.Builder(context)
                     .setTitle("Card options")

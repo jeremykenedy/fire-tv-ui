@@ -84,6 +84,8 @@ public final class HiddenCardsTest {
                 HiddenCards.visible(
                         context, new Cursor("source.two", "Other publisher", "42", routeA), false),
                 "Other publishers must not inherit Plex identity normalization.");
+        sourceVisibility(context);
+        sharedRoutesAndRowFallback(context);
         channelManagement(context);
         context.prefs.fail = true;
         try {
@@ -94,6 +96,52 @@ public final class HiddenCardsTest {
                     !HiddenCards.keys(context).contains(b),
                     "A failed save must not mutate the active hidden set.");
         }
+    }
+
+    private static void sourceVisibility(Context context) {
+        Cursor item = new Cursor("source.toggle", "Shown item", "toggle-id", "toggle-route");
+        context.prefs.visibility = "{\"source.toggle\":{\"hideWatchNext\":true}}";
+        check(!HiddenCards.visible(context, item, false) && !HiddenCards.visible(context, item, true),
+                "Unselecting a source must hide ordinary preview and Watch Next content.");
+        context.prefs.visibility = "{\"source.other\":{\"hideWatchNext\":true}}";
+        check(HiddenCards.visible(context, item, false), "One source must not suppress another source.");
+        context.prefs.visibility = "{\"source.toggle\":{\"hideWatchNext\":false}}";
+        check(HiddenCards.visible(context, item, false) && HiddenCards.visible(context, item, true),
+                "Reselecting a source must restore both kinds of cards.");
+        context.prefs.visibility = "{}";
+    }
+
+    private static void sharedRoutesAndRowFallback(Context context) {
+        HiddenCards.restoreAll(context);
+        Cursor first = new Cursor("source.shared", "First shared title", "shared-a", "same-route", 9, 101);
+        Cursor second = new Cursor("source.shared", "Second shared title", "shared-b", "same-route", 9, 102);
+        HiddenCards.visible(context, first, false);
+        HiddenCards.visible(context, second, false);
+        String firstKey = HiddenCards.key(context, first, false);
+        String secondKey = HiddenCards.key(context, second, false);
+        check(HiddenCards.card("source.shared", Uri.parse("same-route"), false) == null,
+                "A shared route must never select an arbitrary title.");
+        check(HiddenCards.card(firstKey).title.equals("First shared title")
+                && HiddenCards.card(secondKey).title.equals("Second shared title"),
+                "Each displayed identity must retain its own menu target despite a shared route.");
+        HiddenCards.hide(context, firstKey);
+        check(!HiddenCards.visible(context, first, false) && HiddenCards.visible(context, second, false),
+                "Hiding the selected shared-route title must retain its neighbor.");
+        Cursor rowOnly = new Cursor("source.rows", "No provider ID", "", "shared-row-route", 7, 51);
+        Cursor otherRow = new Cursor("source.rows", "Other row", "", "shared-row-route", 7, 52);
+        Cursor watchNext = new Cursor("source.rows", "Other table", "", "shared-row-route", 7, 51);
+        HiddenCards.visible(context, rowOnly, false);
+        String rowKey = HiddenCards.key(context, rowOnly, false);
+        check(rowKey != null && HiddenCards.card(rowKey) != null,
+                "A published provider row remains individually dismissible without an optional provider ID.");
+        HiddenCards.hide(context, rowKey);
+        check(!HiddenCards.visible(context, rowOnly, false)
+                && HiddenCards.visible(context, otherRow, false)
+                && HiddenCards.visible(context, watchNext, true),
+                "Row fallback must retain other rows and the separate Watch Next table.");
+        check(!rowKey.equals(FeaturedCardRules.key("source.rows", false, "51", "")),
+                "A row ID must not collide with an optional provider ID.");
+        HiddenCards.restoreAll(context);
     }
 
     private static void channelManagement(Context context) {

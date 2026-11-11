@@ -16,6 +16,11 @@ final class FeaturedCardRules {
         return digest((watchNext ? "watch-next" : "preview") + "\n" + source + "\n" + identity);
     }
 
+    static String rowKey(String source, boolean watchNext, long row) {
+        if (source == null || source.isEmpty() || row <= 0) return null;
+        return digest((watchNext ? "watch-next" : "preview") + "\n" + source + "\nrow:" + row);
+    }
+
     static String lookup(String source, boolean watchNext, String intent) {
         return digest(source + "\n" + watchNext + "\n" + intent);
     }

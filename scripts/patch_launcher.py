@@ -162,6 +162,7 @@ def patch(decoded):
         '    move-result-wide v1\n'
         '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
         '    invoke-virtual {v0}, LQ3/T3;->refreshFeaturedRotation()V\n'
+        '    invoke-virtual {v0}, LQ3/T3;->refreshCardVisibility()V\n'
         '    invoke-virtual {v0}, LQ3/T3;->refreshLauncherLayout()V\n'
         '    :resume_idle_reset_done\n'
         '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->start(Landroid/content/Context;)V\n'
@@ -382,11 +383,32 @@ def patch(decoded):
     pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
     copy = pattern.search(text).group(0)
     copy = replace_once(copy, '    .locals 13',
-        '    .locals 13\n\n    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;\n'
+        '    .locals 14\n\n'
+        '    iget-object v13, p0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
+        '    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;\n'
         '    invoke-static {v2}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->label(Ljava/lang/String;)Ljava/lang/String;\n'
         '    move-result-object v2')
     copy = replace_once(copy, '    const-string v2, "Watch Next"\n\n', '')
+    copy = replace_once(copy, '    return-object v0',
+        '    iput-object v13, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
+        '    return-object v0')
+    text = replace_once(text, '# instance fields',
+        '# instance fields\n.field public hiddenCardKey:Ljava/lang/String;\n')
     featured.write_text(replace_method(text, signature, copy))
+    program = class_paths['LQ3/k8;']
+    program.write_text(replace_once(program.read_text(), '# instance fields',
+        '# instance fields\n.field public hiddenCardKey:Ljava/lang/String;\n'))
+    for descriptor in ('LQ3/S8;', 'LQ3/k8;'):
+        path = class_paths[descriptor]
+        text = path.read_text()
+        anchor = '    check-cast p1, ' + descriptor
+        equality = ('\n    iget-object v1, p0, ' + descriptor + '->hiddenCardKey:Ljava/lang/String;\n'
+            + '    iget-object v3, p1, ' + descriptor + '->hiddenCardKey:Ljava/lang/String;\n'
+            + '    invoke-static {v1, v3}, Ljava/util/Objects;->equals(Ljava/lang/Object;Ljava/lang/Object;)Z\n'
+            + '    move-result v1\n    if-nez v1, :same_card_identity\n'
+            + '    const/4 v1, 0x0\n    return v1\n    :same_card_identity\n')
+        path.write_text(replace_once(text, anchor, anchor + equality))
+
 
     mapper = class_paths["Landroid/support/v4/media/session/b;"]
     mapper.write_text(replace_method(mapper.read_text(),
@@ -422,6 +444,16 @@ def patch(decoded):
                 '    iget-object v0, v1, LQ3/F8;->l:Landroid/content/Context;\n'
                 '    invoke-static {v0, v7}, Lcom/jeremykenedy/firetv/ui/CardOrder;->prepare(Landroid/content/Context;Landroid/database/Cursor;)Landroid/database/Cursor;\n'
                 '    move-result-object v7\n')
+        constructor = '    invoke-direct/range {' + ('v10 .. v18' if descriptor == 'LQ3/F8;' else 'v20 .. v28') + '}, LQ3/k8;-><init>(Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;Ljava/lang/String;FII)V'
+        attach = ('    iget-object ' + context + ', v1, ' + descriptor + '->l:Landroid/content/Context;\n'
+            + '    const/4 ' + temporary + ', ' + watched + '\n'
+            + '    invoke-static {' + context + ', ' + cursor + ', ' + temporary + '}, Lcom/jeremykenedy/firetv/ui/HiddenCards;->key(Landroid/content/Context;Landroid/database/Cursor;Z)Ljava/lang/String;\n'
+            + '    move-result-object ' + context + '\n')
+        if descriptor == 'LQ3/F8;':
+            attach += '    iput-object v0, v10, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
+        else:
+            attach += '    move-object/from16 v0, v20\n    iput-object v13, v0, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
+        contents = replace_once(contents, constructor, constructor + '\n' + attach)
         loader.write_text(contents)
 
     feed_loader = class_paths["LQ3/E7;"]
@@ -505,6 +537,21 @@ def patch(decoded):
     invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/FeaturedCardTiming;->setting(Landroid/content/SharedPreferences;)Ljava/lang/Integer;
     move-result-object v0
     iget-object v1, p0, LQ3/T3;->featuredRotation:LN/g0;
+    invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
+    return-void
+.end method
+'''
+    text += '''
+.method public final refreshCardVisibility()V
+    .locals 3
+    iget-object v0, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
+    const-string v1, "hide_watch_next"
+    const/4 v2, 0x0
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+    move-result v0
+    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    move-result-object v0
+    iget-object v1, p0, LQ3/T3;->C:LN/g0;
     invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
     return-void
 .end method
