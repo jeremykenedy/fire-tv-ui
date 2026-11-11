@@ -470,8 +470,7 @@ public final class HomeContentView extends HorizontalScrollView {
                 String raw = store.raw();
                 WidgetGroups data = store.load();
                 if (data == null) { ready = false; return; }
-                groupColumns = data.groups.size();
-                if (groupColumns == 0) { groupsRaw = raw; ready = false; return; }
+                groupColumns = data.displayColumnCount();
                 if (groups == null || !raw.equals(groupsRaw)) {
                     View focus = findFocus();
                     final Object tag = focus == null ? null : focus.getTag();
