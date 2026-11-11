@@ -65,6 +65,13 @@ public final class AppGridPreferencesTest {
         check(restored.columns == 16 && restored.rows == 2 && restored.horizontal
                 && restored.order.equals(wide.order) && restored.favorites.equals(wide.favorites),
                 "Sixteen columns and app choices survive preference save and reload");
+        Map<String, Object> previous = new HashMap<>(saved.prefs.values);
+        saved.prefs.failures = 1;
+        try {
+            AppGridPreferences.save(saved, wide.toggleHidden("example.one/.Main"));
+            throw new AssertionError("Failed explicit save accepted");
+        } catch (IllegalStateException expected) {}
+        check(previous.equals(saved.prefs.values), "Failed explicit app edit restores exact previous choices.");
         System.out.println("Discovery preserves absent controls, explicit values, missing order and failed writes");
     }
     private static void reject(Context context, java.util.List<String> apps) {

@@ -56,10 +56,23 @@ public final class AppGridPreferences {
         synchronized (PresentationState.class) {
             HolidayPresetTransaction.assertWritable(context);
             SharedPreferences prefs = context.getSharedPreferences("native_app_grid", Context.MODE_PRIVATE);
-            prefs.edit().putInt("columns", value.columns).putInt("rows", value.rows)
+            Map<String, ?> before = prefs.getAll();
+            if (prefs.edit().putInt("columns", value.columns).putInt("rows", value.rows)
                     .putBoolean("horizontal", value.horizontal).putString("order", String.join("\n", value.order))
                     .putString("hidden", String.join("\n", value.hidden))
-                    .putString("favorites", String.join("\n", value.favorites)).apply();
+                    .putString("favorites", String.join("\n", value.favorites)).commit()) return;
+            SharedPreferences.Editor restore = prefs.edit();
+            for (String key : Arrays.asList("columns", "rows", "horizontal", "order", "hidden", "favorites")) {
+                Object previous = before.get(key);
+                if (previous == null) restore.remove(key);
+                else if (previous instanceof Integer) restore.putInt(key, (Integer) previous);
+                else if (previous instanceof Boolean) restore.putBoolean(key, (Boolean) previous);
+                else if (previous instanceof String) restore.putString(key, (String) previous);
+                else throw new IllegalStateException("Saved app choices have an unsupported type. They were kept.");
+            }
+            boolean restored = restore.commit() && before.equals(prefs.getAll());
+            throw new IllegalStateException(restored ? "App choices could not be saved. Previous choices were kept."
+                    : "App choice recovery could not be verified. Reopen Home before editing them.");
         }
     }
 }

@@ -294,7 +294,10 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
         if (key.equals(focusKey)) button.requestFocus();
     }
 
-    private void save(AppGridOptions options) { AppGridPreferences.save(this, options); render(); }
+    private void save(AppGridOptions options) {
+        try { AppGridPreferences.save(this, options); render(); }
+        catch (IllegalStateException failure) { Toast.makeText(this, failure.getMessage(), Toast.LENGTH_LONG).show(); }
+    }
 
     private void appActions(final AppInventory.App app) {
         AppGridOptions options = AppGridPreferences.load(this);
