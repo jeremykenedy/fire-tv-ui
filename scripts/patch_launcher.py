@@ -483,8 +483,9 @@ def patch(decoded):
         '    iget-object v11, v4, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
         '    move-object/from16 v34, v11\n\n'
         '    iget-object v11, v4, LQ3/k8;->a:Ljava/lang/String;')
-    feed_text = replace_once(feed_text, '    move-object/from16 v0, v21',
-        '    move-object/from16 v0, v21\n'
+    feed_constructor = '    invoke-direct/range {v21 .. v33}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V'
+    feed_text = replace_once(feed_text, feed_constructor + '\n\n    move-object/from16 v0, v21',
+        feed_constructor + '\n\n    move-object/from16 v0, v21\n'
         '    move-object/from16 v11, v34\n'
         '    iput-object v11, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
         '    move-object/from16 v11, v22\n'
