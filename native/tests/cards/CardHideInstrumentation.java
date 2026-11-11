@@ -19,10 +19,13 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
     private Activity cardSettings;
     private TvRecommendations.Feed first, sibling, control;
     private String step = "publish owned recommendation fixtures";
+    private boolean editorOnly;
+    @Override public void onCreate(Bundle args) { editorOnly = args != null && "true".equals(args.getString("editor_only")); super.onCreate(args); }
     @Override public void onStart() {
         Bundle result = new Bundle();
         try {
             check("com.jeremykenedy.firetv.ui.preview".equals(getTargetContext().getPackageName()), "Preview only.");
+            if (editorOnly) { editorBounds(result); result.putString("status", "PASS"); finish(-1, result); return; }
             fixture(PRODUCER, "legacy-publish"); fixture(OTHER, "publish");
             TvRecommendations.Result payload = TvRecommendations.read(getTargetContext());
             List<TvRecommendations.Feed> primary = new ArrayList<>(), others = new ArrayList<>();
@@ -293,6 +296,111 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
         }, null, 0, null, null);
         check(latch.await(10, TimeUnit.SECONDS) && response[0] != null && "OK".equals(response[0].getString("status")), "Owned producer responds: " + publisher);
         return response[0];
+    }
+    private void editorBounds(Bundle result) throws Exception {
+        fixture(PRODUCER, "legacy-publish"); fixture(OTHER, "publish");
+        TvRecommendations.Result payload = TvRecommendations.read(getTargetContext());
+        first = payload.feeds.get(0);
+        CardPreferences.save(getTargetContext(), CardOptions.defaults().withGlobalSeconds(0));
+        LayoutOptions base = HomeSlots.discover(HomeSlots.defaults(), payload.feeds);
+        LayoutPreferences.save(getTargetContext(), base.setVisible(first.item.key(), false));
+        main = launch("MainActivity"); SystemClock.sleep(600); readHome(); assertShown(first, false);
+        step = "base editor clips scrolled content and Show restores card";
+        openGenericCards(); openLayoutEditor();
+        awaitTag(first.item.key() + ":visibility"); captureEditor(result, "base");
+        clickTag(first.item.key() + ":visibility"); backFromLayout(); readHome(); awaitShown(first, true);
+        Map<String, ?> baseBefore = getTargetContext().getSharedPreferences("native_layout", Context.MODE_PRIVATE).getAll();
+        final LayoutScheduleStore store = new LayoutScheduleStore(getTargetContext());
+        LayoutOptions profile = LayoutPreferences.load(getTargetContext(), HomeSlots.defaults()).withMode(LayoutOptions.Mode.BOTH);
+        final String active = store.save("Card visibility proof", null, profile);
+        String other = store.save("Untouched dashboard", null, profile.resizeCards(400, 225));
+        store.rotation(Arrays.asList(active, other), 3600, System.currentTimeMillis());
+        store.daily("UTC", Arrays.asList(new LayoutSchedule.Slot(0, active), new LayoutSchedule.Slot(720, other)));
+        store.selectManual(active); refreshDashboard(); awaitDashboard(active); awaitShown(first, true);
+        LayoutSchedule.State before = store.read();
+        String metadata = scheduleMetadata(before);
+        Map<String, Object> otherBefore = before.profile(other).layout.backupValues();
+        step = "actual active-dashboard Hide featured cards toggle then Back";
+        openGenericCards(); clickTag("hide-cards"); capture("active-dashboard-cards-off-setting.png");
+        check(store.read().profile(active).layout.mode == LayoutOptions.Mode.WIDGETS_ONLY, "Cards Off preserves active dashboard widgets.");
+        press(KeyEvent.KEYCODE_BACK); awaitWindow(main); awaitDashboard(active); readHome(); awaitShown(first, false);
+        capture("active-dashboard-cards-off-home.png");
+        openGenericCards(); clickTag("hide-cards");
+        check(store.read().profile(active).layout.mode == LayoutOptions.Mode.BOTH, "Cards On restores dashboard cards and preserves widgets.");
+        press(KeyEvent.KEYCODE_BACK); awaitWindow(main); awaitDashboard(active); readHome(); awaitShown(first, true);
+        capture("active-dashboard-cards-on-home.png");
+        check(baseBefore.equals(getTargetContext().getSharedPreferences("native_layout", Context.MODE_PRIVATE).getAll())
+                && otherBefore.equals(store.read().profile(other).layout.backupValues())
+                && metadata.equals(scheduleMetadata(store.read())), "Dashboard toggle keeps base, other profile and scheduling bytes unchanged.");
+        step = "profile editor clips content and Show survives Back";
+        store.save("Card visibility proof", active, profile.setVisible(first.item.key(), false));
+        refreshDashboard(); awaitDashboard(active); awaitShown(first, false);
+        openGenericCards(); openLayoutEditor(); awaitTag(first.item.key() + ":visibility");
+        captureEditor(result, "profile"); clickTag(first.item.key() + ":visibility");
+        backFromLayout(); awaitDashboard(active); readHome(); awaitShown(first, true);
+        check(baseBefore.equals(getTargetContext().getSharedPreferences("native_layout", Context.MODE_PRIVATE).getAll())
+                && otherBefore.equals(store.read().profile(other).layout.backupValues())
+                && metadata.equals(scheduleMetadata(store.read())), "Profile Show preserves unrelated state.");
+        step = "generic stale toggle refreshes before allowing another click";
+        openGenericCards(); store.selectManual(other);
+        byte[] changed = LayoutScheduleCodec.encode(store.read());
+        clickTag("hide-cards");
+        check(Arrays.equals(changed, LayoutScheduleCodec.encode(store.read())), "Stale generic toggle refuses write.");
+        clickTag("hide-cards");
+        check(store.read().profile(other).layout.mode == LayoutOptions.Mode.WIDGETS_ONLY
+                && store.read().profile(active).layout.mode == LayoutOptions.Mode.BOTH, "Refreshed toggle acts on the newly displayed target only.");
+        clickTag("hide-cards"); press(KeyEvent.KEYCODE_BACK); awaitWindow(main); awaitDashboard(other); readHome();
+        step = "explicit contextual toggle retains dashboard A after selection B";
+        store.selectManual(active); refreshDashboard(); awaitDashboard(active); awaitShown(first, true);
+        openCardSettings(first); store.selectManual(other);
+        clickTag("hide-cards");
+        check(store.read().profile(active).layout.mode == LayoutOptions.Mode.WIDGETS_ONLY
+                && store.read().profile(other).layout.mode == LayoutOptions.Mode.BOTH, "Captured dashboard A toggle cannot retarget to B.");
+        clickTag("hide-cards"); press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
+        check(baseBefore.equals(getTargetContext().getSharedPreferences("native_layout", Context.MODE_PRIVATE).getAll())
+                && otherBefore.equals(store.read().profile(other).layout.backupValues()), "Contextual toggle keeps base and B unchanged.");
+        result.putString("cases", "Base/profile editor scroll clipping and actual Show/Back; active dashboard Cards Off/Back/On with widget mode and unrelated state preserved; generic stale refusal then refreshed retry; explicit captured toggle scope");
+    }
+    private void openGenericCards() {
+        ActivityMonitor monitor = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
+        onMain(new Runnable() { @Override public void run() { main.startActivity(new Intent(main, CardsSettingsActivity.class)); } });
+        cards = waitForMonitorWithTimeout(monitor, 5000); removeMonitor(monitor);
+        check(cards != null, "Generic Cards settings opens."); cardSettings = cards; awaitWindow(cards);
+    }
+    private void openLayoutEditor() {
+        clickTag("channels");
+        ActivityMonitor monitor = addMonitor(ROOT + "layout.LayoutSettingsActivity", null, false); clickTag("layout");
+        cards = waitForMonitorWithTimeout(monitor, 5000); removeMonitor(monitor);
+        check(cards != null, "Actual channel layout route opens."); awaitWindow(cards);
+    }
+    private void captureEditor(Bundle result, String name) throws Exception {
+        final StringBuilder bounds = new StringBuilder();
+        onMain(new Runnable() { @Override public void run() {
+            android.widget.ScrollView scroll = findScroll(cards.getWindow().getDecorView());
+            android.view.ViewGroup page = (android.view.ViewGroup)scroll.getParent();
+            check(page.getClipChildren(), "Editor clips scrolled content below its fixed header.");
+            View explanation = page.getChildAt(1);
+            check(explanation.getBottom() <= scroll.getTop() && explanation.getHeight() > 0, "Header explanation has its own measured space.");
+            check(scroll.getScrollY() > 0, "Visibility control really scrolled the editor.");
+            describe(cards.getWindow().getDecorView(), bounds, "");
+        }});
+        result.putString(name + "_editor_bounds", bounds.toString()); capture(name + "-editor-clipped.png");
+    }
+    private android.widget.ScrollView findScroll(View view) {
+        if (view instanceof android.widget.ScrollView) return (android.widget.ScrollView)view;
+        if (view instanceof android.view.ViewGroup) { android.view.ViewGroup group=(android.view.ViewGroup)view;
+            for(int i=0;i<group.getChildCount();i++) { android.widget.ScrollView found=findScroll(group.getChildAt(i)); if(found!=null)return found; } }
+        return null;
+    }
+    private void describe(View view, StringBuilder out, String indent) {
+        int[] location = new int[2]; view.getLocationOnScreen(location);
+        out.append(indent).append(view.getClass().getSimpleName()).append(" xy=").append(location[0]).append(',').append(location[1])
+                .append(" size=").append(view.getWidth()).append('x').append(view.getHeight()).append(" scroll=").append(view.getScrollY());
+        if (view instanceof android.widget.TextView) out.append(" text=").append(((android.widget.TextView)view).getText().toString().replace('\n', '|'));
+        if (view instanceof android.view.ViewGroup) out.append(" clip=").append(((android.view.ViewGroup)view).getClipChildren()).append('/').append(((android.view.ViewGroup)view).getClipToPadding());
+        out.append('\n');
+        if (view instanceof android.view.ViewGroup) { android.view.ViewGroup group=(android.view.ViewGroup)view;
+            for(int i=0;i<group.getChildCount();i++) describe(group.getChildAt(i),out,indent+" "); }
     }
     private void capture(String name) throws Exception {
         waitForIdleSync(); SystemClock.sleep(500);
