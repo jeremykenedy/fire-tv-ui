@@ -874,7 +874,7 @@ index 91cbc0a5de03189ff56400782341448cc00c4e20..4056aeb2db35f47d445be169655b5348
 +.end method
 +'''
 diff --git a/scripts/patch_launcher.py b/scripts/patch_launcher.py
-index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..f314a9b211e38d1460f92313d927cc3985a26da2 100644
+index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..73614410641f6da9987719bd8a180c5be44ae680 100644
 --- a/scripts/patch_launcher.py
 +++ b/scripts/patch_launcher.py
 @@ -14,6 +14,7 @@ from icon_pack_patch import patch_builtin_icon_packs
@@ -885,10 +885,24 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..f314a9b211e38d1460f92313d927cc39
  
  ROOT = Path(__file__).resolve().parents[1]
  CONFIG = json.loads((ROOT / "build.json").read_text())
-@@ -27,6 +28,25 @@ def replace_once(text, old, new):
+@@ -27,6 +28,39 @@ def replace_once(text, old, new):
      return text.replace(old, new, 1)
  
  
++def patch_hidden_card_widget_row(text):
++    gate = ('    iget-object v6, v4, LQ3/T5;->R:LN/R0;\n\n'
++            '    if-eqz v2, :cond_1f\n\n'
++            '    if-eqz v39, :cond_1e\n\n'
++            '    goto :goto_f\n\n'
++            '    :cond_1e\n')
++    return replace_once(text, gate, gate.replace(
++            '    if-eqz v39, :cond_1e',
++            '    invoke-virtual {v1}, LQ3/T3;->j()Z\n\n'
++            '    move-result v2\n\n'
++            '    if-nez v2, :cond_1f\n\n'
++            '    if-eqz v39, :cond_1e'))
++
++
 +def patch_hidden_card_spacing(text):
 +    mini = ('    :cond_36\n'
 +            '    const v0, -0x2b40f54a\n\n'
@@ -911,7 +925,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..f314a9b211e38d1460f92313d927cc39
  def java_hash(value):
      result = 0
      for character in value:
-@@ -162,6 +182,7 @@ def patch(decoded):
+@@ -162,6 +196,7 @@ def patch(decoded):
          '    move-result-wide v1\n'
          '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
          '    invoke-virtual {v0}, LQ3/T3;->refreshFeaturedRotation()V\n'
@@ -919,7 +933,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..f314a9b211e38d1460f92313d927cc39
          '    invoke-virtual {v0}, LQ3/T3;->refreshLauncherLayout()V\n'
          '    :resume_idle_reset_done\n'
          '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->start(Landroid/content/Context;)V\n'
-@@ -382,11 +403,52 @@ def patch(decoded):
+@@ -382,11 +417,52 @@ def patch(decoded):
      pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
      copy = pattern.search(text).group(0)
      copy = replace_once(copy, '    .locals 13',
@@ -973,7 +987,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..f314a9b211e38d1460f92313d927cc39
  
      mapper = class_paths["Landroid/support/v4/media/session/b;"]
      mapper.write_text(replace_method(mapper.read_text(),
-@@ -422,10 +484,33 @@ def patch(decoded):
+@@ -422,10 +498,33 @@ def patch(decoded):
                  '    iget-object v0, v1, LQ3/F8;->l:Landroid/content/Context;\n'
                  '    invoke-static {v0, v7}, Lcom/jeremykenedy/firetv/ui/CardOrder;->prepare(Landroid/content/Context;Landroid/database/Cursor;)Landroid/database/Cursor;\n'
                  '    move-result-object v7\n')
@@ -1008,15 +1022,16 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..f314a9b211e38d1460f92313d927cc39
          '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;',
          '    iget-object v0, v1, LQ3/E7;->r:Landroid/content/Context;\n'
          '    invoke-static {v0, v10}, Lcom/jeremykenedy/firetv/ui/FeedOrderBridge;->order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;\n'
-@@ -433,6 +518,7 @@ def patch(decoded):
+@@ -433,6 +532,8 @@ def patch(decoded):
          '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;'))
  
      main_background = class_paths["LQ3/T5;"]
-+    main_background.write_text(patch_hidden_card_spacing(main_background.read_text()))
++    main_background.write_text(patch_hidden_card_spacing(
++        patch_hidden_card_widget_row(main_background.read_text())))
      main_background.write_text(replace_once(main_background.read_text(),
          '    if-eqz v4, :cond_f',
          '    iget-object v14, v0, LQ3/T5;->z:Landroid/content/Context;\n'
-@@ -478,6 +564,7 @@ def patch(decoded):
+@@ -478,6 +579,7 @@ def patch(decoded):
          '    move-object/from16 v4, v54\n'
          '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
      featured_image.write_text(replace_method(renderer, renderer_signature, card_render))
@@ -1024,7 +1039,7 @@ index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..f314a9b211e38d1460f92313d927cc39
  
      rotation = class_paths["LQ3/h8;"]
      rotation.write_text(replace_method(rotation.read_text(),
-@@ -508,6 +595,21 @@ def patch(decoded):
+@@ -508,6 +610,21 @@ def patch(decoded):
      invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
      return-void
  .end method
@@ -1479,6 +1494,61 @@ index 0000000000000000000000000000000000000000..1b431894ceda6f49c1cd8d6ecb442c5d
 +    invoke-virtual {v7, v8}, LN/p;->p(Z)V
 +
 +    :goto_1d
+diff --git a/tests/fixtures/hidden-card-widget-row.smali b/tests/fixtures/hidden-card-widget-row.smali
+new file mode 100644
+index 0000000000000000000000000000000000000000..af7d79356acf6c3501de27f3256c0f4b58857c17
+--- /dev/null
++++ b/tests/fixtures/hidden-card-widget-row.smali
+@@ -0,0 +1,49 @@
++    invoke-virtual {v1}, LQ3/T3;->m()Z
++
++    move-result v2
++
++    move-object/from16 v4, p0
++
++    iget-object v5, v4, LQ3/T5;->s:Ljava/util/List;
++
++    iget-object v6, v4, LQ3/T5;->R:LN/R0;
++
++    if-eqz v2, :cond_1f
++
++    if-eqz v39, :cond_1e
++
++    goto :goto_f
++
++    :cond_1e
++    move-object/from16 v23, v5
++
++    move-object/from16 v40, v6
++
++    move-wide/from16 v49, v18
++
++    move-object/from16 v2, v24
++
++    move-object/from16 v48, v41
++
++    move-object/from16 v51, v42
++
++    move-object/from16 v52, v43
++
++    const/4 v0, 0x0
++
++    move-object/from16 v42, v1
++
++    move-object v1, v14
++
++    goto/16 :goto_17
++
++    :cond_1f
++    :goto_f
++    invoke-virtual {v1}, LQ3/T3;->j()Z
++
++    move-result v2
++
++    if-eqz v2, :cond_2e
++
++    if-nez v39, :cond_2e
++
 diff --git a/tests/test_build.py b/tests/test_build.py
 index a837a77720c4c855a15deaa107ca67b536e4bc66..9e93b58885697a59cb561c9f6310fff734f2a3ec 100644
 --- a/tests/test_build.py
@@ -1721,6 +1791,85 @@ index 0000000000000000000000000000000000000000..01867f2aa1b895299071ebc0e5e21c40
 +            with self.subTest(changed=changed[:30]):
 +                with self.assertRaises(ValueError):
 +                    patch_hidden_card_spacing(changed)
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests/test_hidden_card_widget_row.py b/tests/test_hidden_card_widget_row.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..2a88a00fa6ef645aae349776b56d61353a12ffd1
+--- /dev/null
++++ b/tests/test_hidden_card_widget_row.py
+@@ -0,0 +1,73 @@
++from pathlib import Path
++import re
++import sys
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / 'scripts'))
++from patch_launcher import patch_hidden_card_widget_row
++
++SOURCE = (ROOT / 'tests/fixtures/hidden-card-widget-row.smali').read_text()
++
++
++def selected_row(source, hidden, widgets, picture):
++    lines = [line.strip() for line in source.splitlines() if line.strip()]
++    labels = {line: index for index, line in enumerate(lines) if line.startswith(':')}
++    values = {'v39': picture}
++    methods = {'m': hidden, 'j': widgets}
++    exits = {':goto_17': None, ':cond_2e': 'cards'}
++    index = 0
++    while index < len(lines):
++        line = lines[index]
++        operation = line.split()[0]
++        target = None
++        if operation == 'invoke-virtual':
++            result = methods[re.search(r'->(\w)\(', line).group(1)]
++        elif operation == 'move-result':
++            values[line.split()[1]] = result
++        elif operation in ('if-eqz', 'if-nez'):
++            register, label = line.split(' ', 1)[1].split(', ')
++            if bool(values[register]) == (operation == 'if-nez'):
++                target = label
++        elif operation.startswith('goto'):
++            target = line.split()[1]
++        elif not (line.startswith(':') or operation.startswith(('move-object', 'move-wide', 'iget-object', 'const/4'))):
++            raise AssertionError('Unsupported row fixture instruction: ' + line)
++        if target in exits:
++            return exits[target]
++        if target:
++            index = labels[target]
++        else:
++            index += 1
++    return 'widgets'
++
++
++class HiddenCardWidgetRowChecks(unittest.TestCase):
++    def test_original_gate_only_loses_widgets_when_cards_hidden(self):
++        patched = patch_hidden_card_widget_row(SOURCE)
++        cases = (
++            # hidden, widgets, picture, original row, patched row
++            (False, False, False, 'cards', 'cards'),
++            (False, True, False, 'widgets', 'widgets'),
++            (True, False, False, None, None),
++            (True, True, False, None, 'widgets'),
++            (False, False, True, 'cards', 'cards'),
++            (False, True, True, 'cards', 'cards'),
++            (True, False, True, 'cards', 'cards'),
++            (True, True, True, 'cards', 'cards'),
++        )
++        for hidden, widgets, picture, before, after in cases:
++            with self.subTest(hidden=hidden, widgets=widgets, picture=picture):
++                self.assertEqual(selected_row(SOURCE, hidden, widgets, picture), before)
++                self.assertEqual(selected_row(patched, hidden, widgets, picture), after)
++
++    def test_source_drift_and_reapplication_fail_closed(self):
++        for changed in (SOURCE.replace('if-eqz v2, :cond_1f', 'if-eqz v2, :cond_1e'),
++                        SOURCE.replace('if-eqz v39, :cond_1e', 'if-eqz v38, :cond_1e'),
++                        SOURCE + SOURCE, patch_hidden_card_widget_row(SOURCE)):
++            with self.assertRaises(ValueError):
++                patch_hidden_card_widget_row(changed)
 +
 +
 +if __name__ == '__main__':
