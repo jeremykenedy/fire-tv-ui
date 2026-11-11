@@ -72,12 +72,15 @@ public final class PresentationMappingTest {
         Map<String, Object> values = new LinkedHashMap<>(CardOptions.defaults().backupValues());
         values.putAll(plan.after.get(LegacyPresentationMapper.CARDS).values());
         CardOptions cards = CardOptions.fromBackup(values);
-        check(cards.isHidden("fixture.owner", "program:12") && cards.isHidden("com.plexapp.android", plexKey),
-                "Both representations of the same legacy hidden episode stay hidden.");
+        check(cards.isHidden(CardOptions.LEGACY_RECOMMENDATIONS, ITEM_A)
+                && cards.hiddenItems().size() == 1,
+                "Original episode hash is retained once for exact native recommendation consumption.");
         check(!cards.isHidden("com.plexapp.android", "plex:" + sourceKey + ":13"), "An unrelated episode remains visible.");
         check(plan.after.get(LauncherMigration.PREFERENCES).values().get("hidden_featured_cards").equals(set(ITEM_A)),
                 "Original legacy records survive mapping.");
-        reject(() -> LegacyPresentationMapper.plan(snapshot(original), PresentationMappingContext.empty(), Collections.emptyMap()));
+        LegacyPresentationMapper.Plan absent = LegacyPresentationMapper.plan(snapshot(original), PresentationMappingContext.empty(), Collections.emptyMap());
+        check(absent.after.get(LegacyPresentationMapper.CARDS).values().equals(plan.after.get(LegacyPresentationMapper.CARDS).values()),
+                "Unavailable recommendation identity preserves the same restorable original hash.");
         items.put(ITEM_B, new PresentationMappingContext.Item("fixture.owner", "program:13", "Other", false,
                 "com.plexapp.android", plexKey));
         reject(() -> new PresentationMappingContext(Collections.emptyMap(), Collections.emptyMap(), items, Collections.emptyMap()));
@@ -174,8 +177,10 @@ public final class PresentationMappingTest {
         cardValues.putAll(plan.after.get(LegacyPresentationMapper.CARDS).values());
         CardOptions cards = CardOptions.fromBackup(cardValues);
         check(cards.globalSeconds == 0 && cards.timerSeconds(NATIVE_A) == 7 && cards.timerSeconds(NATIVE_B) == 0, "Manual and per-feed custom timers survive hashed identity conversion.");
-        check(cards.isHidden("fixture.alpha", "program:one") && cards.isSeriesHidden("fixture.alpha", "series:fixture"), "Individual and series hides stay independent.");
-        check(cards.restoreSeries("fixture.alpha", "series:fixture").isHidden("fixture.alpha", "program:one"), "Restoring a series keeps an independent hidden episode.");
+        check(cards.isHidden(CardOptions.LEGACY_RECOMMENDATIONS, ITEM_A)
+                && cards.isHidden(CardOptions.LEGACY_RECOMMENDATIONS, SERIES), "Original opaque hides remain exact and independent.");
+        check(cards.restore(CardOptions.LEGACY_RECOMMENDATIONS, SERIES).isHidden(CardOptions.LEGACY_RECOMMENDATIONS, ITEM_A),
+                "Restoring one original hide preserves another without inferring a series from its hash.");
         check(cards.orderedKeys("fixture.alpha", NATIVE_A, Arrays.asList("program:two", "program:one")).equals(Arrays.asList("program:one", "program:two")), "Per-feed ranked title ordering maps to new card model.");
         Map<String, Object> layout = plan.after.get(LegacyPresentationMapper.LAYOUT).values();
         check(layout.get("order").equals("channel:" + NATIVE_B + "\nchannel:" + NATIVE_A), "Ranked feed order becomes stable shared slots.");
@@ -391,12 +396,12 @@ public final class PresentationMappingTest {
     private static void unsupportedAndConflicts() throws Exception {
         for (Object[] invalid : new Object[][]{{"apps_per_row", 0}, {"apps_per_row", 21}, {"apps_per_row", 7L},
                 {"app_max_rows", 7}, {"app_scroll_direction", "diagonal"}, {"display_order", "fixture.alpha,fixture.alpha"},
-                {"display_order", "fixture.unknown"}, {"display_order", "fixture.alpha,"},
-                {"display_order", "fixture.alpha,tvinput_name:Unknown input"}, {"featured_rotation_seconds", -1},
+                {"display_order", "not a package"}, {"display_order", "fixture.alpha,"},
+                {"display_order", "fixture.alpha,tvinput_name:"}, {"featured_rotation_seconds", -1},
                 {"featured_rotation_seconds", 86401}, {"white_border", "false"}, {"icon_focus_border", 123L},
                 {"featured_feed_rotation_seconds", set(FEED_A + ":7", FEED_A + ":8")},
                 {"featured_feed_rotation_seconds", set(FEED_A + ":86401")},
-                {"hidden_featured_cards", set(repeat('f'))}, {"featured_card_order", set(FEED_A + ":4096:" + ITEM_A)},
+                {"hidden_featured_cards", set("not-a-hash")}, {"featured_card_order", set(FEED_A + ":4096:" + ITEM_A)},
                 {"featured_card_order", set(FEED_A + ":0000:" + ITEM_A, FEED_A + ":0000:" + ITEM_B)},
                 {"featured_card_order", set(FEED_B + ":0000:" + ITEM_A)},
                 {"input_names", "{\"tvinput_name:HDMI 1\":\" Console\"}"},
@@ -730,7 +735,10 @@ public final class PresentationMappingTest {
         ProductionMigrationGate.preflight(new PresentationSnapshot(hiddenPlan.before), stable, null);
         hiddenItems.put(ITEM_A, new PresentationMappingContext.Item("fixture.alpha", "program:one", "Fixture", false));
         PresentationMappingContext transientIdentity = new PresentationMappingContext(Collections.emptyMap(), Collections.emptyMap(), hiddenItems, Collections.emptyMap());
-        reject(() -> ProductionMigrationGate.preflight(new PresentationSnapshot(hiddenPlan.before), transientIdentity, null));
+        ProductionMigrationGate.preflight(new PresentationSnapshot(hiddenPlan.before), transientIdentity, null);
+        ProductionMigrationGate.preflight(new PresentationSnapshot(hiddenPlan.before), PresentationMappingContext.empty(), null);
+        check(hiddenPlan.after.get(LauncherMigration.PREFERENCES).values().get("hidden_featured_cards").equals(set(ITEM_A)),
+                "Original hides survive generic, canonical and temporarily unavailable recommendation inventories.");
     }
     private static void protectionPreflight() throws Exception {
         Map<String, Object> saved = new LinkedHashMap<>();
