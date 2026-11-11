@@ -16,7 +16,7 @@
 .end method
 
 .method public final b(Ljava/lang/Object;)Ljava/lang/Object;
-    .locals 8
+    .locals 9
     move-object v0, p1
     check-cast v0, Lq0/b;
     iget-object v2, v0, Lq0/b;->a:Landroid/view/KeyEvent;
@@ -25,8 +25,9 @@
     iget-object v3, v7, LQ3/S8;->c:Ljava/lang/String;
     iget-object v4, v7, LQ3/S8;->e:Landroid/net/Uri;
     iget-wide v5, v7, LQ3/S8;->h:J
+    iget-object v8, v7, LQ3/S8;->a:Ljava/lang/String;
     iget-object v7, v7, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
-    invoke-static/range {v1 .. v7}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;JLjava/lang/String;)Z
+    invoke-static/range {v1 .. v8}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;JLjava/lang/String;Ljava/lang/String;)Z
     move-result v0
     if-eqz v0, :normal_card_key
     sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;

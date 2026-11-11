@@ -75,6 +75,10 @@ public final class HiddenCards {
         return card == null ? null : card.key;
     }
 
+    static Card selected(String key, String source, String title, long channel) {
+        return FeaturedCardRules.validKey(key) ? new Card(key, source, title, channel) : null;
+    }
+
     static Card card(String key) {
         synchronized (cards) { return cards.get(key); }
     }

@@ -127,6 +127,16 @@ public final class HiddenCardsTest {
                 "Row fallback must retain other rows and the separate Watch Next table.");
         check(!rowKey.equals(FeaturedCardRules.key("source.rows", false, "51", "")),
                 "A row ID must not collide with an optional provider ID.");
+        for (int i = 0; i < 2050; i++)
+            HiddenCards.visible(context, new Cursor("source.eviction", "Other", "eviction-" + i, "route-" + i), false);
+        check(HiddenCards.card(firstKey) == null, "Fixture must evict the original label cache entry.");
+        HiddenCards.Card selected = HiddenCards.selected(firstKey, "source.shared", "First shared title", 9);
+        check(selected != null && selected.key.equals(firstKey) && selected.title.equals("First shared title"),
+                "The selected model must remain dismissible after its label cache entry is evicted.");
+        HiddenCards.hide(context, selected.key);
+        check(!HiddenCards.visible(context, first, false), "Dismissal must use the exact carried key after cache eviction.");
+        check(HiddenCards.selected("not-an-item-key", "source.shared", "Other", 9) == null,
+                "An unestablished identity must remain rejected.");
         HiddenCards.restoreAll(context);
     }
 
