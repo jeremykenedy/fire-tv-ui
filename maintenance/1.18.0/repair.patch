@@ -1,0 +1,1823 @@
+diff --git a/app/preference-types.json b/app/preference-types.json
+index 8bd830d44a7fd9f655a54385614b57575a23c9ff..c24696d1d3feab48b0dae51f64e70c8aa92c8db8 100644
+--- a/app/preference-types.json
++++ b/app/preference-types.json
+@@ -86,6 +86,8 @@
+   "icon_focus_style": "String",
+   "icon_focus_background": "Int",
+   "icon_focus_border": "Int",
++  "icon_focus_growth": "Int",
++  "icon_focus_shadow_size": "Int",
+   "featured_feed_rotation_seconds": "StringSet",
+   "menu_animation_frozen": "Boolean",
+   "menu_background_palette": "String",
+diff --git a/app/smali/CardClickAction.smali b/app/smali/CardClickAction.smali
+new file mode 100644
+index 0000000000000000000000000000000000000000..8ac814b4c023cf03fd27089c87f34bdfcff22fa5
+--- /dev/null
++++ b/app/smali/CardClickAction.smali
+@@ -0,0 +1,39 @@
++.class public final Lcom/jeremykenedy/firetv/ui/CardClickAction;
++.super Ljava/lang/Object;
++.implements Ln4/a;
++.implements Ljava/lang/Runnable;
++
++.field private final context:Landroid/content/Context;
++.field private final card:LQ3/S8;
++.field private final open:Ln4/a;
++
++.method public constructor <init>(Landroid/content/Context;LQ3/S8;Ln4/a;)V
++    .locals 0
++    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
++    iput-object p1, p0, Lcom/jeremykenedy/firetv/ui/CardClickAction;->context:Landroid/content/Context;
++    iput-object p2, p0, Lcom/jeremykenedy/firetv/ui/CardClickAction;->card:LQ3/S8;
++    iput-object p3, p0, Lcom/jeremykenedy/firetv/ui/CardClickAction;->open:Ln4/a;
++    return-void
++.end method
++
++.method public a()Ljava/lang/Object;
++    .locals 8
++    iget-object v0, p0, Lcom/jeremykenedy/firetv/ui/CardClickAction;->context:Landroid/content/Context;
++    iget-object v7, p0, Lcom/jeremykenedy/firetv/ui/CardClickAction;->card:LQ3/S8;
++    iget-object v1, v7, LQ3/S8;->c:Ljava/lang/String;
++    iget-object v2, v7, LQ3/S8;->e:Landroid/net/Uri;
++    iget-wide v3, v7, LQ3/S8;->h:J
++    iget-object v5, v7, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    iget-object v6, v7, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
++    move-object v7, p0
++    invoke-static/range {v0 .. v7}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->show(Landroid/content/Context;Ljava/lang/String;Landroid/net/Uri;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Runnable;)V
++    sget-object v0, Lb4/n;->a:Lb4/n;
++    return-object v0
++.end method
++
++.method public run()V
++    .locals 1
++    iget-object v0, p0, Lcom/jeremykenedy/firetv/ui/CardClickAction;->open:Ln4/a;
++    invoke-interface {v0}, Ln4/a;->a()Ljava/lang/Object;
++    return-void
++.end method
+diff --git a/app/smali/CardKeyAction.smali b/app/smali/CardKeyAction.smali
+index 46d2174fbb39f8162b7a11c1d7401db087339618..9274f67e523fa60c30c917086ccdcff7a5919980 100644
+--- a/app/smali/CardKeyAction.smali
++++ b/app/smali/CardKeyAction.smali
+@@ -5,18 +5,20 @@
+ .field private final delegate:Ln4/c;
+ .field private final context:Landroid/content/Context;
+ .field private final card:LQ3/S8;
++.field private final open:Ljava/lang/Runnable;
+ 
+-.method public constructor <init>(Ln4/c;Landroid/content/Context;LQ3/S8;)V
++.method public constructor <init>(Ln4/c;Landroid/content/Context;LQ3/S8;Ljava/lang/Runnable;)V
+     .locals 0
+     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+     iput-object p1, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->delegate:Ln4/c;
+     iput-object p2, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->context:Landroid/content/Context;
+     iput-object p3, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->card:LQ3/S8;
++    iput-object p4, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->open:Ljava/lang/Runnable;
+     return-void
+ .end method
+ 
+ .method public final b(Ljava/lang/Object;)Ljava/lang/Object;
+-    .locals 8
++    .locals 10
+     move-object v0, p1
+     check-cast v0, Lq0/b;
+     iget-object v2, v0, Lq0/b;->a:Landroid/view/KeyEvent;
+@@ -25,7 +27,10 @@
+     iget-object v3, v7, LQ3/S8;->c:Ljava/lang/String;
+     iget-object v4, v7, LQ3/S8;->e:Landroid/net/Uri;
+     iget-wide v5, v7, LQ3/S8;->h:J
+-    invoke-static/range {v1 .. v6}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;J)Z
++    iget-object v8, v7, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
++    iget-object v7, v7, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    iget-object v9, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->open:Ljava/lang/Runnable;
++    invoke-static/range {v1 .. v9}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Runnable;)Z
+     move-result v0
+     if-eqz v0, :normal_card_key
+     sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+diff --git a/app/smali/FeaturedGroupBridge.smali b/app/smali/FeaturedGroupBridge.smali
+index 1114653d0f5ef29182965c0b3404f076cd2c8eb9..8e47ed4aec4a2a0e9beb39c79a87af62cd11d259 100644
+--- a/app/smali/FeaturedGroupBridge.smali
++++ b/app/smali/FeaturedGroupBridge.smali
+@@ -87,12 +87,16 @@
+     const-wide/16 v7, 0x0
+     cmp-long v8, v5, v7
+     iget-object v7, v3, LQ3/S8;->e:Landroid/net/Uri;
++    iget-object v5, v3, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
+     const/4 v3, 0x0
+     if-gez v8, :preview
+     const/4 v3, 0x1
+     :preview
+     invoke-static {v4, v7, v3}, Lcom/jeremykenedy/firetv/ui/FeaturedGroups;->itemKey(Ljava/lang/String;Landroid/net/Uri;Z)Ljava/lang/String;
+     move-result-object v3
++    if-eqz v5, :item_identity_ready
++    move-object v3, v5
++    :item_identity_ready
+     invoke-virtual {v1, v3}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+     goto :next
+     :ready
+diff --git a/app/smali/FeaturedProgramMapper.smali b/app/smali/FeaturedProgramMapper.smali
+index 0b2d3735c237ce2d3450447cc54ff3bdbf03cf4f..05a06fe7f6c3b63337f2beb72c698720ea059cd8 100644
+--- a/app/smali/FeaturedProgramMapper.smali
++++ b/app/smali/FeaturedProgramMapper.smali
+@@ -70,6 +70,10 @@
+     move-object v12, v2
+     :ready
+     invoke-direct/range {v0 .. v12}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V
++    iget-object v13, p0, LQ3/k8;->hiddenCardKey:Ljava/lang/String;
++    iput-object v13, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    iget-object v13, p0, LQ3/k8;->a:Ljava/lang/String;
++    iput-object v13, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
+     return-object v0
+ .end method
+ 
+@@ -116,5 +120,9 @@
+     iget v11, p1, LQ3/S8;->j:I
+     new-instance v0, LQ3/S8;
+     invoke-direct/range {v0 .. v12}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V
++    iget-object v1, p1, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    iput-object v1, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
++    iget-object v1, p1, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
++    iput-object v1, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
+     return-object v0
+ .end method
+diff --git a/app/smali/IconFocusRevision.smali b/app/smali/IconFocusRevision.smali
+new file mode 100644
+index 0000000000000000000000000000000000000000..eeed55540951d89c0a4a8d442ea136425942320c
+--- /dev/null
++++ b/app/smali/IconFocusRevision.smali
+@@ -0,0 +1,38 @@
++.class public final Lcom/jeremykenedy/firetv/ui/IconFocusRevision;
++.super Ljava/lang/Object;
++
++.field private static final revision:LN/g0;
++
++.method static constructor <clinit>()V
++    .locals 2
++    const/4 v0, 0x0
++    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
++    move-result-object v0
++    sget-object v1, LN/T;->l:LN/T;
++    invoke-static {v0, v1}, LN/d;->M(Ljava/lang/Object;LN/I0;)LN/g0;
++    move-result-object v0
++    sput-object v0, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->revision:LN/g0;
++    return-void
++.end method
++
++.method public static observe()V
++    .locals 1
++    sget-object v0, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->revision:LN/g0;
++    invoke-virtual {v0}, LN/g0;->getValue()Ljava/lang/Object;
++    return-void
++.end method
++
++.method public static changed()V
++    .locals 2
++    sget-object v0, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->revision:LN/g0;
++    invoke-virtual {v0}, LN/g0;->getValue()Ljava/lang/Object;
++    move-result-object v1
++    check-cast v1, Ljava/lang/Integer;
++    invoke-virtual {v1}, Ljava/lang/Integer;->intValue()I
++    move-result v1
++    add-int/lit8 v1, v1, 0x1
++    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
++    move-result-object v1
++    invoke-virtual {v0, v1}, LN/g0;->setValue(Ljava/lang/Object;)V
++    return-void
++.end method
+diff --git a/app/src/com/jeremykenedy/firetv/ui/BackupStore.java b/app/src/com/jeremykenedy/firetv/ui/BackupStore.java
+index d160e0f0e5daf40a84f4f80143febf9a083caf8f..a0e44acd860fadb961b395ec2a37b7bb523cd994 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/BackupStore.java
++++ b/app/src/com/jeremykenedy/firetv/ui/BackupStore.java
+@@ -195,6 +195,14 @@ public final class BackupStore {
+                     && !("vertical".equals(value) || "horizontal".equals(value))) {
+                 throw new JSONException("Invalid app scroll direction.");
+             }
++            if ("icon_focus_growth".equals(key)
++                    && (!(value instanceof Integer) || (Integer) value < 0 || (Integer) value > 30)) {
++                throw new JSONException("Invalid app focus growth.");
++            }
++            if ("icon_focus_shadow_size".equals(key)
++                    && (!(value instanceof Integer) || (Integer) value < 1 || (Integer) value > 38)) {
++                throw new JSONException("Invalid app focus shadow size.");
++            }
+             if ("app_max_rows".equals(key)
+                     && (!(value instanceof Integer) || (Integer) value < 0 || (Integer) value > 6)) {
+                 throw new JSONException("Invalid maximum app rows.");
+diff --git a/app/src/com/jeremykenedy/firetv/ui/ChannelCards.java b/app/src/com/jeremykenedy/firetv/ui/ChannelCards.java
+index 8eb583ce96e54e007fbbd23bc9e1d506085d241f..cbbf05b55f4ad7e0c18f5b51da0c218c5236c3df 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/ChannelCards.java
++++ b/app/src/com/jeremykenedy/firetv/ui/ChannelCards.java
+@@ -23,6 +23,7 @@ final class ChannelCards {
+                             .query(
+                                     TvContract.buildPreviewProgramsUriForChannel(channel),
+                                     new String[] {
++                                        "_id",
+                                         "package_name",
+                                         "channel_id",
+                                         "title",
+diff --git a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java
+index a0ad3e5fe00d414f2d37ec80d5c495ffc56e8122..5ae7650361080b07bcd5208a299cbfeb35dac373 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java
++++ b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java
+@@ -3,6 +3,10 @@ package com.jeremykenedy.firetv.ui;
+ import android.app.AlertDialog;
+ import android.content.Context;
+ import android.content.Intent;
++import android.content.SharedPreferences;
++import java.util.ArrayList;
++import java.util.List;
++import org.json.JSONObject;
+ import android.net.Uri;
+ import android.view.KeyEvent;
+ 
+@@ -10,29 +14,38 @@ public final class FeaturedCardMenu {
+     private FeaturedCardMenu() {}
+ 
+     public static String label(String source) {
+-        String original = source == null ? "" : source;
+-        return original.endsWith("Menu: Card options") ? original
+-                : original + " | Menu: Card options";
++        return source == null ? "" : source;
+     }
+ 
+     public static boolean handle(
+-            Context context, KeyEvent event, String source, Uri intent, long channel) {
+-        if (event.getKeyCode() != KeyEvent.KEYCODE_MENU) return false;
++            Context context, KeyEvent event, String source, Uri intent, long channel,
++            String key, String title, Runnable open) {
++        int code = event.getKeyCode();
++        if (code != KeyEvent.KEYCODE_MENU && code != KeyEvent.KEYCODE_DPAD_CENTER
++                && code != KeyEvent.KEYCODE_ENTER && code != KeyEvent.KEYCODE_NUMPAD_ENTER) return false;
+         if (event.getAction() != KeyEvent.ACTION_UP || event.isCanceled()) return true;
+-        final HiddenCards.Card card = HiddenCards.card(source, intent, channel < 0);
+-        if (card == null) {
+-            new AlertDialog.Builder(context)
+-                    .setTitle("Card options")
+-                    .setMessage(
+-                            "This source has not supplied a stable item identity for this card.")
+-                    .setPositiveButton("OK", null)
+-                    .show();
+-            return true;
+-        }
++        show(context, source, intent, channel, key, title, open);
++        return true;
++    }
++
++    public static void show(Context context, String source, Uri intent, long channel,
++            String key, String title, Runnable open) {
++        final HiddenCards.Card card = HiddenCards.selected(key, source, title, channel);
++        final String sourceOption = validSource(source) ? "Hide all cards from " + FeedOrder.appName(context, source) : null;
+         final long feed = channel;
+-        final String[] options = feed >= 0
+-                ? new String[]{"Hide this card", "Next title in this feed", "Previous title in this feed", "Manage this feed and card order", "Choose feeds and card settings", "Arrange top-level cards", "Cancel"}
+-                : new String[]{"Hide this card", "Next title in this feed", "Previous title in this feed", "Choose feeds and card settings", "Arrange top-level cards", "Cancel"};
++        List<String> choices = new ArrayList<>();
++        if (open != null) choices.add("Open");
++        if (card != null) choices.add("Hide this title");
++        if (sourceOption != null) choices.add(sourceOption);
++        if (card != null) {
++            choices.add("Next title in this feed");
++            choices.add("Previous title in this feed");
++            if (feed >= 0) choices.add("Manage this feed and card order");
++        }
++        choices.add("Choose feeds and card settings");
++        choices.add("Arrange top-level cards");
++        choices.add("Cancel");
++        final String[] options = choices.toArray(new String[0]);
+         FeaturedCardClock.pause();
+         new AlertDialog.Builder(context)
+                 .setOnDismissListener(new android.content.DialogInterface.OnDismissListener() {
+@@ -40,13 +53,27 @@ public final class FeaturedCardMenu {
+                         FeaturedCardClock.resume();
+                     }
+                 })
+-                .setTitle(card.title)
++                .setTitle(title == null || title.isEmpty() ? "Card options" : title)
+                 .setItems(
+                         options,
+                         new android.content.DialogInterface.OnClickListener() {
+                             @Override
+                             public void onClick(android.content.DialogInterface dialog, int which) {
+                                 String action = options[which];
++                                if (action.equals("Open")) {
++                                    open.run();
++                                    return;
++                                }
++                                if (action.equals(sourceOption)) {
++                                    try {
++                                        hideSource(context, source);
++                                        reload(context);
++                                    } catch (IllegalStateException error) {
++                                        new AlertDialog.Builder(context).setTitle("App cards could not be hidden")
++                                                .setMessage(error.getMessage()).setPositiveButton("OK", null).show();
++                                    }
++                                    return;
++                                }
+                                 if (action.equals("Next title in this feed") || action.equals("Previous title in this feed")) {
+                                     FeaturedGroups.move(FeedOrder.key(context, card.source, feed),
+                                             action.startsWith("Next") ? 1 : -1);
+@@ -66,7 +93,7 @@ public final class FeaturedCardMenu {
+                                     context.startActivity(new Intent(context, FeedOrderActivity.class));
+                                     return;
+                                 }
+-                                if (which != 0) return;
++                                if (!action.equals("Hide this title") || card == null) return;
+                                 try {
+                                     HiddenCards.hide(context, card.key);
+                                     reload(context);
+@@ -80,7 +107,38 @@ public final class FeaturedCardMenu {
+                             }
+                         })
+                 .show();
+-        return true;
++    }
++
++    private static boolean validSource(String source) {
++        return source != null && source.matches("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+");
++    }
++
++    static void hideSource(Context context, String source) {
++        if (!validSource(source)) throw new IllegalStateException("This app's cards are unavailable.");
++        SharedPreferences preferences = DeviceSettings.prefs(context);
++        Object previous = preferences.getAll().get("app_visibility");
++        if (previous != null && !(previous instanceof String))
++            throw new IllegalStateException("The app card settings could not be read. Existing settings were kept.");
++        final String updated;
++        try {
++            JSONObject all = new JSONObject(previous == null ? "{}" : (String) previous);
++            JSONObject app = all.optJSONObject(source);
++            if (all.has(source) && app == null) throw new IllegalStateException();
++            if (app == null) app = new JSONObject();
++            app.put("hideWatchNext", true);
++            all.put(source, app);
++            updated = all.toString();
++        } catch (Exception invalid) {
++            throw new IllegalStateException("The app card settings could not be read. Existing settings were kept.", invalid);
++        }
++        if (preferences.edit().putString("app_visibility", updated).commit()
++                && updated.equals(preferences.getAll().get("app_visibility"))) return;
++        SharedPreferences.Editor rollback = preferences.edit();
++        if (previous == null) rollback.remove("app_visibility");
++        else rollback.putString("app_visibility", (String) previous);
++        if (!rollback.commit() || !java.util.Objects.equals(previous, preferences.getAll().get("app_visibility")))
++            throw new IllegalStateException("The app card settings could not be recovered. Please try again.");
++        throw new IllegalStateException("The app card setting could not be saved. Existing settings were kept.");
+     }
+ 
+     static void reload(Context context) {
+diff --git a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java
+index 0f5290bb2b15e6593fe5aca4779a64c899e91a44..90466bf821ed3bd3413f9070206de9fb1bee8d7b 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java
++++ b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardRules.java
+@@ -16,6 +16,11 @@ final class FeaturedCardRules {
+         return digest((watchNext ? "watch-next" : "preview") + "\n" + source + "\n" + identity);
+     }
+ 
++    static String rowKey(String source, boolean watchNext, long row) {
++        if (source == null || source.isEmpty() || row <= 0) return null;
++        return digest((watchNext ? "watch-next" : "preview") + "\n" + source + "\nrow:" + row);
++    }
++
+     static String lookup(String source, boolean watchNext, String intent) {
+         return digest(source + "\n" + watchNext + "\n" + intent);
+     }
+diff --git a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardsActivity.java b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardsActivity.java
+index 8d7c069ab9d8dc1b27b24f70b1366a2ff63fd352..e114f5fee51b2874c8070b00ce2241d94c0161b4 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/FeaturedCardsActivity.java
++++ b/app/src/com/jeremykenedy/firetv/ui/FeaturedCardsActivity.java
+@@ -147,8 +147,9 @@ public final class FeaturedCardsActivity extends CardActivity {
+         body.addView(sources);
+         body.addView(
+                 text(
+-                        "Press Menu while a featured card is focused to hide only that card."
+-                                + " Changes are saved. Reload home cards to apply setup changes.",
++                        "Select a featured card or press Menu for Open and card controls."
++                                + " Hide this title removes the current item; Hide cards from an app"
++                                + " hides all of that app's feeds. Changes are saved.",
+                         17,
+                         MUTED));
+         labels();
+diff --git a/app/src/com/jeremykenedy/firetv/ui/HiddenCards.java b/app/src/com/jeremykenedy/firetv/ui/HiddenCards.java
+index 40c03c18f90b9aca843bc8165ae0a153e0871089..7bf8c37a433c99449ffa83a7caa32964201c4d4e 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/HiddenCards.java
++++ b/app/src/com/jeremykenedy/firetv/ui/HiddenCards.java
+@@ -18,9 +18,8 @@ public final class HiddenCards {
+     public static boolean visible(Context context, Cursor cursor, boolean watchNext) {
+         Card card = identify(context, cursor, watchNext);
+         if (card == null) return true;
+-        String intent = value(cursor, "intent_uri");
+         synchronized (cards) {
+-            cards.put(FeaturedCardRules.lookup(card.source, watchNext, intent), card);
++            cards.put(card.key, card);
+             while (cards.size() > 2048) cards.remove(cards.keySet().iterator().next());
+         }
+         return !keys(context).contains(card.key);
+@@ -35,9 +34,17 @@ public final class HiddenCards {
+                         watchNext,
+                         providerId(context, source, value(cursor, "internal_provider_id"), intent),
+                         value(cursor, "content_id"));
++        if (key == null) {
++            int rowIndex = cursor.getColumnIndex("_id");
++            if (rowIndex >= 0 && !cursor.isNull(rowIndex)) {
++                long row = cursor.getLong(rowIndex);
++                if (row > 0) key = FeaturedCardRules.rowKey(source, watchNext, row);
++            }
++        }
+         int channelIndex = cursor.getColumnIndex("channel_id");
+         long channel = channelIndex < 0 ? -1 : cursor.getLong(channelIndex);
+-        return key == null ? null : new Card(key, source, value(cursor, "title"), channel);
++        return key == null ? null : new Card(key, source, value(cursor, "title"), channel,
++                FeaturedCardRules.lookup(source, watchNext, intent));
+     }
+ 
+     private static String providerId(Context context, String source, String id, String intent) {
+@@ -63,11 +70,29 @@ public final class HiddenCards {
+         }
+     }
+ 
++    public static String key(Context context, Cursor cursor, boolean watchNext) {
++        Card card = identify(context, cursor, watchNext);
++        return card == null ? null : card.key;
++    }
++
++    static Card selected(String key, String source, String title, long channel) {
++        if (!FeaturedCardRules.validKey(key)) return null;
++        return new Card(key, source, title, channel);
++    }
++
++    static Card card(String key) {
++        synchronized (cards) { return cards.get(key); }
++    }
++
+     static Card card(String source, Uri intent, boolean watchNext) {
++        String lookup = FeaturedCardRules.lookup(source, watchNext, intent == null ? "" : intent.toString());
+         synchronized (cards) {
+-            return cards.get(
+-                    FeaturedCardRules.lookup(
+-                            source, watchNext, intent == null ? "" : intent.toString()));
++            Card found = null;
++            for (Card card : cards.values()) if (lookup.equals(card.lookup)) {
++                if (found != null) return null;
++                found = card;
++            }
++            return found;
+         }
+     }
+ 
+@@ -79,6 +104,7 @@ public final class HiddenCards {
+                             .query(
+                                     Uri.parse("content://android.media.tv/" + table),
+                                     new String[] {
++                                        "_id",
+                                         "package_name",
+                                         "title",
+                                         "internal_provider_id",
+@@ -156,12 +182,18 @@ public final class HiddenCards {
+         final String source;
+         final String title;
+         final long channel;
++        final String lookup;
+ 
+         Card(String key, String source, String title) {
+             this(key, source, title, -1);
+         }
+ 
+         Card(String key, String source, String title, long channel) {
++            this(key, source, title, channel, null);
++        }
++
++        Card(String key, String source, String title, long channel, String lookup) {
++            this.lookup = lookup;
+             this.channel = channel;
+             this.key = key;
+             this.source = source;
+diff --git a/app/src/com/jeremykenedy/firetv/ui/IconFocus.java b/app/src/com/jeremykenedy/firetv/ui/IconFocus.java
+index b8eef82ddfb30c3ed4df39fd29b71dc7e15db146..0de39d465ddf9a6d5208449acdee665b12f705af 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/IconFocus.java
++++ b/app/src/com/jeremykenedy/firetv/ui/IconFocus.java
+@@ -9,6 +9,12 @@ import java.util.WeakHashMap;
+ 
+ /** Focus colors sit behind artwork; transparent pack glyphs keep their contrast. */
+ public final class IconFocus {
++    public static final String GROWTH = "icon_focus_growth";
++    public static final String SHADOW_SIZE = "icon_focus_shadow_size";
++    public static final int DEFAULT_GROWTH = 18;
++    public static final int DEFAULT_SHADOW = 18;
++    public static final int MAX_GROWTH = 30;
++    public static final int MAX_SHADOW = 38;
+     public static final String STYLE = "icon_focus_style";
+     public static final String BACKGROUND = "icon_focus_background";
+     public static final String BORDER = "icon_focus_border";
+@@ -18,6 +24,7 @@ public final class IconFocus {
+     public static final int DEFAULT_BORDER = 0xffffffff;
+ 
+     private static volatile SharedPreferences preferences;
++    private static boolean sizeRefreshPending;
+     private static final Map<Bitmap, Glyph> glyphs = new WeakHashMap<>();
+ 
+     private IconFocus() {}
+@@ -35,6 +42,94 @@ public final class IconFocus {
+         }
+     }
+ 
++    public static int growth(Context context) {
++        return number(DeviceSettings.prefs(context), GROWTH, DEFAULT_GROWTH, 0, MAX_GROWTH);
++    }
++
++    public static int shadow(Context context) {
++        SharedPreferences prefs = DeviceSettings.prefs(context);
++        return Boolean.FALSE.equals(prefs.getAll().get("icon_shadow")) ? 0
++                : number(prefs, SHADOW_SIZE, DEFAULT_SHADOW, 1, MAX_SHADOW);
++    }
++
++    public static void setGrowth(Context context, Integer percent) {
++        if (percent != null && (percent < 0 || percent > MAX_GROWTH))
++            throw new IllegalArgumentException("Choose focus growth from 0 through 30 percent.");
++        saveSize(context, GROWTH, percent, null);
++    }
++
++    public static void setShadow(Context context, int size) {
++        if (size != 0 && size != DEFAULT_SHADOW && size != 28 && size != MAX_SHADOW)
++            throw new IllegalArgumentException("Choose a supported focus shadow size.");
++        SharedPreferences prefs = DeviceSettings.prefs(context);
++        Integer selected = size == 0 ? optionalNumber(prefs, SHADOW_SIZE)
++                : size == DEFAULT_SHADOW ? null : size;
++        saveSize(context, SHADOW_SIZE, selected, size != 0);
++    }
++
++    private static synchronized void saveSize(Context context, String key, Integer value, Boolean shadow) {
++        SharedPreferences prefs = DeviceSettings.prefs(context);
++        Integer previous = optionalNumber(prefs, key);
++        Object enabled = prefs.getAll().get("icon_shadow");
++        if (shadow != null && enabled != null && !(enabled instanceof Boolean))
++            throw new IllegalStateException("The saved shadow setting is unavailable.");
++        SharedPreferences.Editor edit = prefs.edit();
++        putNumber(edit, key, value);
++        if (shadow != null) edit.putBoolean("icon_shadow", shadow);
++        boolean committed = edit.commit();
++        Map<String, ?> actual = prefs.getAll();
++        if (committed && java.util.Objects.equals(actual.get(key), value)
++                && (shadow == null || shadow.equals(actual.get("icon_shadow")))) {
++            sizeRefreshPending = true;
++            return;
++        }
++        SharedPreferences.Editor rollback = prefs.edit();
++        putNumber(rollback, key, previous);
++        if (shadow != null) {
++            if (enabled == null) rollback.remove("icon_shadow");
++            else rollback.putBoolean("icon_shadow", (Boolean) enabled);
++        }
++        rollback.commit();
++        throw new IllegalStateException("The focus size could not be saved. Please try again.");
++    }
++
++    public static synchronized boolean consumeSizeRefresh() {
++        boolean pending = sizeRefreshPending;
++        sizeRefreshPending = false;
++        return pending;
++    }
++
++    private static Integer optionalNumber(SharedPreferences prefs, String key) {
++        Object value = prefs.getAll().get(key);
++        if (value != null && !(value instanceof Integer))
++            throw new IllegalStateException("The saved focus size is unavailable.");
++        return (Integer) value;
++    }
++
++    private static void putNumber(SharedPreferences.Editor edit, String key, Integer value) {
++        if (value == null) edit.remove(key);
++        else edit.putInt(key, value);
++    }
++
++    private static int number(SharedPreferences prefs, String key, int fallback, int min, int max) {
++        if (prefs == null) return fallback;
++        try {
++            int value = prefs.getInt(key, fallback);
++            return value >= min && value <= max ? value : fallback;
++        } catch (ClassCastException invalid) { return fallback; }
++    }
++
++    /** Keep the existing focus animation, replacing only its growth amount. */
++    public static float scale(float progress) {
++        return 1f + progress * (number(preferences, GROWTH, DEFAULT_GROWTH, 0, MAX_GROWTH) / 100f);
++    }
++
++    public static float shadowSize(float original) {
++        SharedPreferences prefs = preferences;
++        if (prefs != null && Boolean.FALSE.equals(prefs.getAll().get("icon_shadow"))) return 0f;
++        return number(prefs, SHADOW_SIZE, Math.round(original), 1, MAX_SHADOW);
++    }
++
+     public static int color(Context context, String key, int fallback) {
+         checkColorKey(key);
+         return DeviceSettings.prefs(context).getInt(key, fallback) | 0xff000000;
+diff --git a/app/src/com/jeremykenedy/firetv/ui/SavedSetupSettings.java b/app/src/com/jeremykenedy/firetv/ui/SavedSetupSettings.java
+index a3834047846dee730bf790aea1004570db3782ea..6888f1d545b76c8b3189e55427a40e14fe248838 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/SavedSetupSettings.java
++++ b/app/src/com/jeremykenedy/firetv/ui/SavedSetupSettings.java
+@@ -33,7 +33,7 @@ final class SavedSetupSettings {
+                 "menu_animation_frozen", "menu_overlay_frozen");
+         add(result, "Int", "apps_per_row", "app_max_rows", "featured_rotation_seconds", "icon_radius",
+                 "menu_animation_speed", "menu_animation_intensity", "menu_animation_brightness",
+-                "icon_focus_background", "icon_focus_border", "menu_overlay_speed",
++                "icon_focus_background", "icon_focus_border", "icon_focus_growth", "icon_focus_shadow_size", "menu_overlay_speed",
+                 "menu_overlay_intensity", "menu_overlay_opacity");
+         add(result, "StringSet", "featured_card_order", "featured_feed_order", "hidden_featured_cards",
+                 "featured_feed_rotation_seconds", "factory_icon_packages");
+@@ -103,6 +103,8 @@ final class SavedSetupSettings {
+             value = strings;
+         }
+         if ("featured_rotation_seconds".equals(key) && ((Integer) value < 0 || (Integer) value > 86400)) throw invalid();
++        if ("icon_focus_growth".equals(key) && ((Integer) value < 0 || (Integer) value > 30)) throw invalid();
++        if ("icon_focus_shadow_size".equals(key) && ((Integer) value < 1 || (Integer) value > 38)) throw invalid();
+         if ("app_max_rows".equals(key) && ((Integer) value < 0 || (Integer) value > 6)) throw invalid();
+         if ("app_scroll_direction".equals(key) && !Arrays.asList("vertical", "horizontal").contains(value)) throw invalid();
+         if ("menu_transition_style".equals(key) && !Arrays.asList("default", "none", "fade", "slide").contains(value)) throw invalid();
+diff --git a/app/src/com/jeremykenedy/firetv/ui/UiSettingsActivity.java b/app/src/com/jeremykenedy/firetv/ui/UiSettingsActivity.java
+index 71e9797df872ef2e89424bbebb8920950168b26a..3354eca0dd3fdb0213185f5fbdd625877bfd5329 100644
+--- a/app/src/com/jeremykenedy/firetv/ui/UiSettingsActivity.java
++++ b/app/src/com/jeremykenedy/firetv/ui/UiSettingsActivity.java
+@@ -16,7 +16,7 @@ import android.widget.TextView;
+ import java.util.Locale;
+ 
+ public final class UiSettingsActivity extends CardActivity {
+-    private TextView columns, direction, maximumRows, transitions, focusStyle, focusBackground, focusBorder;
++    private TextView columns, direction, maximumRows, transitions, focusStyle, focusBackground, focusBorder, focusGrowth, focusShadow;
+     private static final int[] FOCUS_COLORS = {
+             0xffffffff, 0xff9ebcfa, 0xffbcacff, 0xffffcd78, 0xffffa9a2, 0xff263a5c
+     };
+@@ -75,6 +75,14 @@ public final class UiSettingsActivity extends CardActivity {
+         addButton(body, focusStyle);
+         addButton(body, focusBackground);
+         addButton(body, focusBorder);
++        focusGrowth = button("", new View.OnClickListener() {
++            @Override public void onClick(View view) { chooseFocusSize(false); }
++        });
++        focusShadow = button("", new View.OnClickListener() {
++            @Override public void onClick(View view) { chooseFocusSize(true); }
++        });
++        addButton(body, focusGrowth);
++        addButton(body, focusShadow);
+         refreshFocus();
+         columns.requestFocus();
+     }
+@@ -201,12 +209,38 @@ public final class UiSettingsActivity extends CardActivity {
+             if (IconFocus.STYLES[i].equals(selected)) label = IconFocus.LABELS[i];
+         }
+         focusStyle.setText("Focus style: " + label);
++        int growth = IconFocus.growth(this), shadow = IconFocus.shadow(this);
++        focusGrowth.setText("App focus growth: " + (growth == 0 ? "Off" : growth + "%")
++                + (DeviceSettings.prefs(this).contains(IconFocus.GROWTH) ? "" : " (Default)"));
++        focusShadow.setText("App focus shadow: " + (shadow == 0 ? "Off" : shadow == 18
++                ? "Default" : shadow == 28 ? "Large" : shadow == 38 ? "Extra large" : shadow + " dp"));
+         focusBackground.setText("Fill color (Color and border): " + hex(IconFocus.color(
+                 this, IconFocus.BACKGROUND, IconFocus.DEFAULT_BACKGROUND)));
+         focusBorder.setText("Border color (custom styles): " + hex(IconFocus.color(
+                 this, IconFocus.BORDER, IconFocus.DEFAULT_BORDER)));
+     }
+ 
++    private void chooseFocusSize(final boolean shadow) {
++        final String[] labels = shadow ? new String[]{"Off", "Default", "Large", "Extra large"}
++                : new String[]{"Default (18%)", "Off", "6%", "12%", "24%", "30%"};
++        final int[] values = shadow ? new int[]{0, 18, 28, 38} : new int[]{18, 0, 6, 12, 24, 30};
++        int current = shadow ? IconFocus.shadow(this) : IconFocus.growth(this);
++        int selected = -1;
++        for (int i = 0; i < values.length; i++) if (values[i] == current) selected = i;
++        new AlertDialog.Builder(this).setTitle(shadow ? "App focus shadow" : "App focus growth")
++                .setSingleChoiceItems(labels, selected, new DialogInterface.OnClickListener() {
++                    @Override public void onClick(DialogInterface dialog, int which) {
++                        try {
++                            if (shadow) IconFocus.setShadow(UiSettingsActivity.this, values[which]);
++                            else IconFocus.setGrowth(UiSettingsActivity.this, which == 0 ? null : values[which]);
++                            dialog.dismiss();
++                            refreshFocus();
++                            (shadow ? focusShadow : focusGrowth).requestFocus();
++                        } catch (IllegalStateException failed) { error(failed); }
++                    }
++                }).setNegativeButton("Cancel", null).show();
++    }
++
+     private void chooseFocusStyle() {
+         int selected = 0;
+         String current = IconFocus.style(this);
+diff --git a/build.json b/build.json
+index 67ebe7e983edbc98221de6aa010ff70ad295a34c..0a0943d157304156af132e620ada061cda5493ed 100644
+--- a/build.json
++++ b/build.json
+@@ -1,8 +1,8 @@
+ {
+   "name": "Fire TV UI",
+   "package": "com.jeremykenedy.firetv.ui",
+-  "version": "1.17.0",
+-  "version_code": 78,
++  "version": "1.18.0",
++  "version_code": 80,
+   "base_sha256": "ac34c0abf1ceee5d5133dc3e99bde9173a00c5a16132852507ed23c0fbd41341",
+   "apktool_version": "3.0.3",
+   "apktool_sha256": "dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423"
+diff --git a/scripts/card_controls_patch.py b/scripts/card_controls_patch.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..e093633b026134d578d134b62dbb4997475b09af
+--- /dev/null
++++ b/scripts/card_controls_patch.py
+@@ -0,0 +1,47 @@
++"""Connect card selection and Menu to the same controls without changing provider launch."""
++from pathlib import Path
++import re
++import shutil
++
++ROOT = Path(__file__).resolve().parents[1]
++SIGNATURE = '.method public static final m(LQ3/S8;Ln4/a;Le0/p;ZZZZJIJJLn4/a;Ln4/a;Ln4/c;IILn4/a;JLN2/k;LN/p;II)V'
++OLD = '''    new-instance v54, Lcom/jeremykenedy/firetv/ui/CardKeyAction;
++    move-object/from16 v55, v4
++    move-object/from16 v56, v19
++    move-object/from16 v57, p0
++    invoke-direct/range {v54 .. v57}, Lcom/jeremykenedy/firetv/ui/CardKeyAction;-><init>(Ln4/c;Landroid/content/Context;LQ3/S8;)V
++    move-object/from16 v4, v54
++    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;'''
++NEW = '''    new-instance v54, Lcom/jeremykenedy/firetv/ui/CardClickAction;
++    move-object/from16 v55, v19
++    move-object/from16 v56, p0
++    move-object/from16 v57, v2
++    invoke-direct/range {v54 .. v57}, Lcom/jeremykenedy/firetv/ui/CardClickAction;-><init>(Landroid/content/Context;LQ3/S8;Ln4/a;)V
++    move-object/from16 v2, v54
++    new-instance v58, Lcom/jeremykenedy/firetv/ui/CardKeyAction;
++    move-object/from16 v59, v4
++    move-object/from16 v60, v19
++    move-object/from16 v61, p0
++    move-object/from16 v62, v54
++    invoke-direct/range {v58 .. v62}, Lcom/jeremykenedy/firetv/ui/CardKeyAction;-><init>(Ln4/c;Landroid/content/Context;LQ3/S8;Ljava/lang/Runnable;)V
++    move-object/from16 v4, v58
++    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;'''
++
++
++def patch_card_controls(class_paths, decoded):
++    path = class_paths['La/a;']
++    text = path.read_text()
++    pattern = re.compile(r'^' + re.escape(SIGNATURE) + r'\n.*?^\.end method', re.M | re.S)
++    matches = list(pattern.finditer(text))
++    if len(matches) != 1:
++        raise ValueError('Expected one featured card renderer.')
++    method = matches[0].group(0)
++    if method.count('    .locals 58') != 1 or method.count(OLD) != 1:
++        raise ValueError('Expected the exact maintained featured card key wrapper.')
++    method = method.replace('    .locals 58', '    .locals 63', 1).replace(OLD, NEW, 1)
++    text = text[:matches[0].start()] + method + text[matches[0].end():]
++    path.write_text(text)
++    destination = decoded / 'smali/com/jeremykenedy/firetv/ui'
++    destination.mkdir(parents=True, exist_ok=True)
++    for name in ('CardClickAction.smali', 'CardKeyAction.smali'):
++        shutil.copy(ROOT / 'app/smali' / name, destination / name)
+diff --git a/scripts/icon_focus_patch.py b/scripts/icon_focus_patch.py
+index 91cbc0a5de03189ff56400782341448cc00c4e20..4056aeb2db35f47d445be169655b53486f2265e4 100644
+--- a/scripts/icon_focus_patch.py
++++ b/scripts/icon_focus_patch.py
+@@ -1,4 +1,6 @@
+-"""Keep the pinned Compose icon focus background separate from its artwork."""
++"""Apply app focus choices without changing the pinned artwork or animation."""
++
++from pathlib import Path
+ 
+ 
+ def replace_once(text, old, new):
+@@ -16,7 +18,8 @@ def patch_icon_focus(class_paths):
+     method = replace_once(method,
+         '    check-cast v5, Landroid/content/Context;',
+         '    check-cast v5, Landroid/content/Context;\n\n'
+-        '    invoke-static {v5}, Lcom/jeremykenedy/firetv/ui/IconFocus;->configure(Landroid/content/Context;)V')
++        '    invoke-static {v5}, Lcom/jeremykenedy/firetv/ui/IconFocus;->configure(Landroid/content/Context;)V\n'
++        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->observe()V')
+     # Compose remembers the draw lambda across pack changes. Its artwork model
+     # must follow the currently rendered tile, including a reused lambda.
+     method = replace_once(method,
+@@ -28,8 +31,55 @@ def patch_icon_focus(class_paths):
+         '    check-cast p20, LQ3/C0;\n'
+         '    invoke-virtual/range {p20 .. p22}, LQ3/C0;->setArtwork(LQ3/q;Z)V\n\n'
+         '    check-cast v5, Ln4/c;')
++    method = replace_once(method,
++        '    const/16 v0, 0x12\n\n    int-to-float v0, v0',
++        '    const/16 v0, 0x12\n\n    int-to-float v0, v0\n'
++        '    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/IconFocus;->shadowSize(F)F\n'
++        '    move-result v0')
+     renderer.write_text(text[:start] + method + text[end:])
+ 
++    scale = class_paths['LQ3/G0;']
++    scale_text = replace_once(scale.read_text(),
++        '    :pswitch_5\n    check-cast p1, Lg0/O;',
++        '    :pswitch_5\n    check-cast p1, Lg0/O;\n'
++        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->observe()V')
++    scale.write_text(replace_once(scale_text,
++        '    const v1, 0x3e3851ec    # 0.18f\n\n'
++        '    mul-float/2addr v0, v1\n\n'
++        '    const/high16 v1, 0x3f800000    # 1.0f\n\n'
++        '    add-float/2addr v0, v1',
++        '    invoke-static {v0}, Lcom/jeremykenedy/firetv/ui/IconFocus;->scale(F)F\n'
++        '    move-result v0'))
++
++    folder = class_paths['LQ3/C1;']
++    folder_text = replace_once(folder.read_text(),
++        '    const v6, 0x3f970a3d    # 1.18f',
++        '    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->observe()V\n'
++        '    const/high16 v6, 0x3f800000    # 1.0f\n'
++        '    invoke-static {v6}, Lcom/jeremykenedy/firetv/ui/IconFocus;->scale(F)F\n'
++        '    move-result v6')
++    folder.write_text(replace_once(folder_text,
++        '    int-to-float v11, v8\n\n'
++        '    invoke-static {v14, v11, v2}, Lcom/overdevs/at4k/a;->a(LZ/o;FLC/d;)LZ/o;',
++        '    int-to-float v11, v8\n'
++        '    invoke-static {v11}, Lcom/jeremykenedy/firetv/ui/IconFocus;->shadowSize(F)F\n'
++        '    move-result v11\n\n'
++        '    invoke-static {v14, v11, v2}, Lcom/overdevs/at4k/a;->a(LZ/o;FLC/d;)LZ/o;'))
++
++    revision = renderer.parents[1] / 'com/jeremykenedy/firetv/ui/IconFocusRevision.smali'
++    revision.parent.mkdir(parents=True, exist_ok=True)
++    revision.write_text((Path(__file__).resolve().parents[1] / 'app/smali/IconFocusRevision.smali').read_text())
++
++    model = class_paths['LQ3/T3;']
++    model.write_text(model.read_text() + REFRESH)
++    main = class_paths['Lcom/overdevs/at4k/MainActivity;']
++    anchor = '    invoke-super {p0}, Landroid/app/Activity;->onResume()V'
++    main.write_text(replace_once(main.read_text(), anchor, anchor +
++        '\n    iget-object v0, p0, Lcom/overdevs/at4k/MainActivity;->A:LQ3/T3;\n'
++        '    if-eqz v0, :icon_focus_refresh_done\n'
++        '    invoke-virtual {v0}, LQ3/T3;->refreshIconFocusShadow()V\n'
++        '    :icon_focus_refresh_done\n'))
++
+     background = class_paths['LQ3/C0;']
+     text = background.read_text()
+     text = replace_once(text, '# direct methods',
+@@ -79,3 +129,25 @@ def patch_icon_focus(class_paths):
+         '    invoke-static {v4, v5}, Lcom/jeremykenedy/firetv/ui/IconFocus;->border(J)J\n'
+         '    move-result-wide v4\n\n    :goto_0')
+     border.write_text(text)
++
++
++REFRESH = '''
++.method public final refreshIconFocusShadow()V
++    .locals 3
++    iget-object v0, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
++    const-string v1, "icon_shadow"
++    const/4 v2, 0x1
++    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
++    move-result v0
++    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
++    move-result-object v0
++    iget-object v1, p0, LQ3/T3;->k:LN/g0;
++    invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
++    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocus;->consumeSizeRefresh()Z
++    move-result v0
++    if-eqz v0, :icon_focus_no_size_change
++    invoke-static {}, Lcom/jeremykenedy/firetv/ui/IconFocusRevision;->changed()V
++    :icon_focus_no_size_change
++    return-void
++.end method
++'''
+diff --git a/scripts/patch_launcher.py b/scripts/patch_launcher.py
+index 76f9e68d3025dc4560720120aac52ef2f1a3ed3b..f314a9b211e38d1460f92313d927cc3985a26da2 100644
+--- a/scripts/patch_launcher.py
++++ b/scripts/patch_launcher.py
+@@ -14,6 +14,7 @@ from icon_pack_patch import patch_builtin_icon_packs
+ from launcher_grid_patch import patch_launcher_grid
+ from menu_motion_patch import patch_menu_motion
+ from tile_appearance_patch import patch_tile_appearance
++from card_controls_patch import patch_card_controls
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+ CONFIG = json.loads((ROOT / "build.json").read_text())
+@@ -27,6 +28,25 @@ def replace_once(text, old, new):
+     return text.replace(old, new, 1)
+ 
+ 
++def patch_hidden_card_spacing(text):
++    mini = ('    :cond_36\n'
++            '    const v0, -0x2b40f54a\n\n'
++            '    invoke-virtual {v7, v0}, LN/p;->V(I)V\n\n'
++            '    const/16 v0, 0x15e')
++    text = replace_once(text, mini, mini.replace('0x15e', '0x32'))
++    bottom = ('    invoke-virtual/range {v42 .. v42}, LQ3/T3;->q()Z\n\n'
++              '    move-result v0\n\n'
++              '    if-eqz v0, :cond_39\n\n'
++              '    invoke-virtual/range {v42 .. v42}, LQ3/T3;->m()Z\n\n'
++              '    move-result v0\n\n'
++              '    if-eqz v0, :cond_39\n\n'
++              '    if-nez v39, :cond_39\n\n')
++    return replace_once(text, bottom, bottom +
++            '    invoke-virtual/range {v42 .. v42}, LQ3/T3;->j()Z\n\n'
++            '    move-result v0\n\n'
++            '    if-eqz v0, :cond_39\n\n')
++
++
+ def java_hash(value):
+     result = 0
+     for character in value:
+@@ -162,6 +182,7 @@ def patch(decoded):
+         '    move-result-wide v1\n'
+         '    invoke-virtual {v0, v1, v2}, LQ3/T3;->S(J)V\n'
+         '    invoke-virtual {v0}, LQ3/T3;->refreshFeaturedRotation()V\n'
++        '    invoke-virtual {v0}, LQ3/T3;->refreshCardVisibility()V\n'
+         '    invoke-virtual {v0}, LQ3/T3;->refreshLauncherLayout()V\n'
+         '    :resume_idle_reset_done\n'
+         '    invoke-static {p0}, Lcom/jeremykenedy/firetv/ui/FeaturedGroupBridge;->start(Landroid/content/Context;)V\n'
+@@ -382,11 +403,52 @@ def patch(decoded):
+     pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
+     copy = pattern.search(text).group(0)
+     copy = replace_once(copy, '    .locals 13',
+-        '    .locals 13\n\n    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;\n'
++        '    .locals 15\n\n'
++        '    iget-object v13, p0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
++        '    iget-object v14, p0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;\n'
++        '    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;\n'
+         '    invoke-static {v2}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->label(Ljava/lang/String;)Ljava/lang/String;\n'
+         '    move-result-object v2')
+     copy = replace_once(copy, '    const-string v2, "Watch Next"\n\n', '')
++    copy = replace_once(copy, '    return-object v0',
++        '    iput-object v13, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
++        '    iput-object v14, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;\n'
++        '    return-object v0')
++    text = replace_once(text, '# instance fields',
++        '# instance fields\n.field public hiddenCardKey:Ljava/lang/String;\n.field public hiddenCardTitle:Ljava/lang/String;\n')
+     featured.write_text(replace_method(text, signature, copy))
++    program = class_paths['LQ3/k8;']
++    program.write_text(replace_once(program.read_text(), '# instance fields',
++        '# instance fields\n.field public hiddenCardKey:Ljava/lang/String;\n'))
++    for descriptor in ('LQ3/S8;', 'LQ3/k8;'):
++        path = class_paths[descriptor]
++        text = path.read_text()
++        anchor = '    check-cast p1, ' + descriptor
++        equality = ('\n    iget-object v1, p0, ' + descriptor + '->hiddenCardKey:Ljava/lang/String;\n'
++            + '    iget-object v3, p1, ' + descriptor + '->hiddenCardKey:Ljava/lang/String;\n'
++            + '    invoke-static {v1, v3}, Ljava/util/Objects;->equals(Ljava/lang/Object;Ljava/lang/Object;)Z\n'
++            + '    move-result v1\n    if-nez v1, :same_card_identity\n'
++            + '    const/4 v1, 0x0\n    return v1\n    :same_card_identity\n')
++        path.write_text(replace_once(text, anchor, anchor + equality))
++
++
++    rebuilt = class_paths['LQ3/S3;']
++    rebuilt_text = replace_once(rebuilt.read_text(), '    .locals 26', '    .locals 27')
++    for program_register, card_register, title_register, arguments in (
++            ('v5', 'v6', 'v7', 'v6 .. v18'),
++            ('v10', 'v11', 'v12', 'v11 .. v23')):
++        anchor = '    check-cast ' + program_register + ', LQ3/k8;\n\n    new-instance ' + card_register + ', LQ3/S8;'
++        rebuilt_text = replace_once(rebuilt_text, anchor,
++            '    check-cast ' + program_register + ', LQ3/k8;\n'
++            + '    iget-object ' + card_register + ', ' + program_register + ', LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
++            + '    move-object/from16 v26, ' + card_register + '\n\n'
++            + '    new-instance ' + card_register + ', LQ3/S8;')
++        constructor = '    invoke-direct/range {' + arguments + '}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V'
++        rebuilt_text = replace_once(rebuilt_text, constructor, constructor + '\n'
++            + '    move-object/from16 ' + program_register + ', v26\n'
++            + '    iput-object ' + program_register + ', ' + card_register + ', LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
++            + '    iput-object ' + title_register + ', ' + card_register + ', LQ3/S8;->hiddenCardTitle:Ljava/lang/String;')
++    rebuilt.write_text(rebuilt_text)
+ 
+     mapper = class_paths["Landroid/support/v4/media/session/b;"]
+     mapper.write_text(replace_method(mapper.read_text(),
+@@ -422,10 +484,33 @@ def patch(decoded):
+                 '    iget-object v0, v1, LQ3/F8;->l:Landroid/content/Context;\n'
+                 '    invoke-static {v0, v7}, Lcom/jeremykenedy/firetv/ui/CardOrder;->prepare(Landroid/content/Context;Landroid/database/Cursor;)Landroid/database/Cursor;\n'
+                 '    move-result-object v7\n')
++        constructor = '    invoke-direct/range {' + ('v10 .. v18' if descriptor == 'LQ3/F8;' else 'v20 .. v28') + '}, LQ3/k8;-><init>(Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;Ljava/lang/String;FII)V'
++        attach = ('    iget-object ' + context + ', v1, ' + descriptor + '->l:Landroid/content/Context;\n'
++            + '    const/4 ' + temporary + ', ' + watched + '\n'
++            + '    invoke-static {' + context + ', ' + cursor + ', ' + temporary + '}, Lcom/jeremykenedy/firetv/ui/HiddenCards;->key(Landroid/content/Context;Landroid/database/Cursor;Z)Ljava/lang/String;\n'
++            + '    move-result-object ' + context + '\n')
++        if descriptor == 'LQ3/F8;':
++            attach += '    iput-object v0, v10, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
++        else:
++            attach += '    move-object/from16 v0, v20\n    iput-object v13, v0, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
++        contents = replace_once(contents, constructor, constructor + '\n' + attach)
+         loader.write_text(contents)
+ 
+     feed_loader = class_paths["LQ3/E7;"]
+-    feed_loader.write_text(replace_once(feed_loader.read_text(),
++    feed_text = replace_once(feed_loader.read_text(), '    .locals 34', '    .locals 35')
++    feed_text = replace_once(feed_text, '    check-cast v4, LQ3/k8;\n\n    iget-object v11, v4, LQ3/k8;->a:Ljava/lang/String;',
++        '    check-cast v4, LQ3/k8;\n'
++        '    iget-object v11, v4, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
++        '    move-object/from16 v34, v11\n\n'
++        '    iget-object v11, v4, LQ3/k8;->a:Ljava/lang/String;')
++    feed_constructor = '    invoke-direct/range {v21 .. v33}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V'
++    feed_text = replace_once(feed_text, feed_constructor + '\n\n    move-object/from16 v0, v21',
++        feed_constructor + '\n\n    move-object/from16 v0, v21\n'
++        '    move-object/from16 v11, v34\n'
++        '    iput-object v11, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
++        '    move-object/from16 v11, v22\n'
++        '    iput-object v11, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;')
++    feed_loader.write_text(replace_once(feed_text,
+         '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;',
+         '    iget-object v0, v1, LQ3/E7;->r:Landroid/content/Context;\n'
+         '    invoke-static {v0, v10}, Lcom/jeremykenedy/firetv/ui/FeedOrderBridge;->order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;\n'
+@@ -433,6 +518,7 @@ def patch(decoded):
+         '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;'))
+ 
+     main_background = class_paths["LQ3/T5;"]
++    main_background.write_text(patch_hidden_card_spacing(main_background.read_text()))
+     main_background.write_text(replace_once(main_background.read_text(),
+         '    if-eqz v4, :cond_f',
+         '    iget-object v14, v0, LQ3/T5;->z:Landroid/content/Context;\n'
+@@ -478,6 +564,7 @@ def patch(decoded):
+         '    move-object/from16 v4, v54\n'
+         '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
+     featured_image.write_text(replace_method(renderer, renderer_signature, card_render))
++    patch_card_controls(class_paths, decoded)
+ 
+     rotation = class_paths["LQ3/h8;"]
+     rotation.write_text(replace_method(rotation.read_text(),
+@@ -508,6 +595,21 @@ def patch(decoded):
+     invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
+     return-void
+ .end method
++'''
++    text += '''
++.method public final refreshCardVisibility()V
++    .locals 3
++    iget-object v0, p0, LQ3/T3;->a:Landroid/content/SharedPreferences;
++    const-string v1, "hide_watch_next"
++    const/4 v2, 0x0
++    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
++    move-result v0
++    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
++    move-result-object v0
++    iget-object v1, p0, LQ3/T3;->C:LN/g0;
++    invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
++    return-void
++.end method
+ '''
+     text += '''
+ .method public final refreshLauncherLayout()V
+diff --git a/tests/BackupMigrationTest.java b/tests/BackupMigrationTest.java
+index 5afc4ea8b5c670b1c33e228bee059729409a3574..b1f804cef24d9b678add041e7e449776c3bda134 100644
+--- a/tests/BackupMigrationTest.java
++++ b/tests/BackupMigrationTest.java
+@@ -174,6 +174,24 @@ public final class BackupMigrationTest {
+             try { BackupStore.restore(context, true); throw new AssertionError("Invalid rotation accepted"); }
+             catch (org.json.JSONException expected) { check(hiddenBefore.equals(context.prefs.values)); }
+         }
++        for (String key : new String[]{"icon_focus_growth", "icon_focus_shadow_size"}) {
++            for (int value : key.equals("icon_focus_growth") ? new int[]{0,18,30} : new int[]{1,18,28,38}) {
++                Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).put(key,value).put("icon_shadow",false).toString());
++                BackupStore.restore(context,true);
++                check(context.prefs.values.get(key).equals(value));
++                check(context.prefs.values.get("icon_shadow").equals(false));
++                BackupStore.save(context);
++                check(new JSONObject(Files.readString(BackupStore.file(false).toPath())).getInt(key)==value);
++            }
++            for(Object invalid:new Object[]{-1,39,"18",18.5,true}) {
++                Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).put(key,invalid).toString());
++                Map<String,Object> beforeInvalid=new HashMap<>(context.prefs.values);
++                try { BackupStore.restore(context,true);throw new AssertionError("Invalid focus size accepted"); }
++                catch(org.json.JSONException expected){check(beforeInvalid.equals(context.prefs.values));}
++            }
++        }
++        Files.writeString(BackupStore.file(true).toPath(), new JSONObject(hiddenBefore).toString());
++        BackupStore.restore(context,true);
+         for (String key : new String[] {"menu_transition_style", "app_scroll_direction", "app_max_rows"}) {
+             Object[] good = key.equals("menu_transition_style") ? new Object[] {"default", "none", "fade", "slide"}
+                     : key.equals("app_scroll_direction") ? new Object[] {"vertical", "horizontal"}
+diff --git a/tests/CardControlsTest.java b/tests/CardControlsTest.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..83743f938ce0ba3f6a6d44c8577ba0abede72156
+--- /dev/null
++++ b/tests/CardControlsTest.java
+@@ -0,0 +1,73 @@
++package com.jeremykenedy.firetv.ui;
++
++import android.app.AlertDialog;
++import android.content.Context;
++import android.net.Uri;
++import android.view.KeyEvent;
++import java.util.Arrays;
++import java.util.Map;
++import java.util.HashMap;
++import org.json.JSONObject;
++
++public final class CardControlsTest {
++    public static void main(String[] args) {
++        Context context = new Context();
++        String key = String.format("%064x", 42);
++        String source = "com.example.player";
++        Uri originalIntent = new Uri();
++        int[] opened = {0};
++        Runnable open = new Runnable() { @Override public void run() { opened[0]++; } };
++        check("Player".equals(FeaturedCardMenu.label("Player")), "Cards must not show the Menu instruction suffix.");
++        for (int code : new int[]{KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_DPAD_CENTER,
++                KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER}) {
++            int shown = AlertDialog.shown;
++            check(FeaturedCardMenu.handle(context, new KeyEvent(0, code, false), source, originalIntent, 7, key, "||Current title", open),
++                    "Action down is consumed before the inherited provider callback.");
++            check(AlertDialog.shown == shown, "Action down cannot launch or open duplicate menus.");
++            check(FeaturedCardMenu.handle(context, new KeyEvent(1, code, true), source, originalIntent, 7, key, "||Current title", open), "Canceled action consumed.");
++            check(AlertDialog.shown == shown, "Canceled action cannot open menus.");
++            check(FeaturedCardMenu.handle(context, new KeyEvent(1, code, false), source, originalIntent, 7, key, "||Current title", open), "Every action key opens controls.");
++            check("||Current title".equals(AlertDialog.last.title), "Menu names the exact current title without prefix guessing.");
++            check(Arrays.asList(AlertDialog.last.options).containsAll(Arrays.asList("Open", "Hide this title", "Hide all cards from Player")),
++                    "Provider, one-title and whole-source actions are clearly separated.");
++            check(opened[0] == 0, "Opening controls never invokes the original provider action.");
++            AlertDialog.last.choose("Cancel");
++        }
++        check(!FeaturedCardMenu.handle(context, new KeyEvent(1, 21, false), source, originalIntent, 7, key, "Title", open), "Directional navigation remains delegated.");
++        FeaturedCardMenu.show(context, source, originalIntent, 7, key, "Title", open);
++        AlertDialog.last.choose("Open");
++        check(opened[0] == 1, "Only explicit Open invokes the untouched original provider callback.");
++        FeaturedCardMenu.show(context, source, originalIntent, 7, key, "Same route Beta", open);
++        AlertDialog.last.choose("Hide this title");
++        check(key.equals(HiddenCards.hidden), "Hide consumes the carried exact item key, not title or shared route.");
++        FeaturedCardMenu.show(context, source, originalIntent, 7, null, "Unidentified item", open);
++        check(!Arrays.asList(AlertDialog.last.options).contains("Hide this title"), "Missing identity never guesses an item hide.");
++        AlertDialog.last.choose("Open");
++        check(opened[0] == 2, "Missing identity preserves functional original Open.");
++        check(FeaturedCardClock.paused == 0, "Closing every action restores card rotation.");
++
++        JSONObject original = new JSONObject().put(source, new JSONObject().put("showIcon", false).put("custom", "keep"))
++                .put("com.other.app", new JSONObject().put("hideWatchNext", false));
++        String encoded = original.toString();
++        context.prefs.values.put("app_visibility", encoded); context.prefs.values.put("other-setting", "keep");
++        FeaturedCardMenu.hideSource(context, source);
++        JSONObject changed = new JSONObject((String) context.prefs.values.get("app_visibility"));
++        check(Boolean.TRUE.equals(changed.optJSONObject(source).get("hideWatchNext")), "Whole source hide writes the existing Boolean choice.");
++        check(Boolean.FALSE.equals(changed.optJSONObject(source).get("showIcon")) && "keep".equals(changed.optJSONObject(source).get("custom"))
++                && Boolean.FALSE.equals(changed.optJSONObject("com.other.app").get("hideWatchNext")), "Other app metadata and other sources are preserved.");
++        context.prefs.values.put("app_visibility", encoded);
++        Map<String,Object> before = new HashMap<>(context.prefs.values); context.prefs.failNext = true;
++        try { FeaturedCardMenu.hideSource(context, source); throw new AssertionError("Failed write accepted."); }
++        catch (IllegalStateException expected) { check(before.equals(context.prefs.values), "Failed commit restores exact prior preference, including in-memory update."); }
++        for (Object invalid : new Object[]{42, "malformed", new JSONObject().put(source, "invalid app entry").toString()}) {
++            context.prefs.values.put("app_visibility", invalid); before = new HashMap<>(context.prefs.values);
++            try { FeaturedCardMenu.hideSource(context, source); throw new AssertionError("Invalid existing state overwritten."); }
++            catch (IllegalStateException expected) { check(before.equals(context.prefs.values), "Malformed or typed existing state remains untouched."); }
++        }
++        context.prefs.values.remove("app_visibility"); before = new HashMap<>(context.prefs.values); context.prefs.failNext = true;
++        try { FeaturedCardMenu.hideSource(context, source); throw new AssertionError("Failed new setting accepted."); }
++        catch (IllegalStateException expected) { check(before.equals(context.prefs.values), "Failed first write restores prior absence."); }
++        System.out.println("Select/Menu controls, explicit original Open, exact title hide, missing identity and source-setting recovery passed.");
++    }
++    private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
++}
+diff --git a/tests/HiddenCardsTest.java b/tests/HiddenCardsTest.java
+index 80a6367bd429fdbcebe15924f54cdf61e7275cb9..b29ebdb39dd8bd766034c5227e076a5b54756721 100644
+--- a/tests/HiddenCardsTest.java
++++ b/tests/HiddenCardsTest.java
+@@ -84,6 +84,7 @@ public final class HiddenCardsTest {
+                 HiddenCards.visible(
+                         context, new Cursor("source.two", "Other publisher", "42", routeA), false),
+                 "Other publishers must not inherit Plex identity normalization.");
++        sharedRoutesAndRowFallback(context);
+         channelManagement(context);
+         context.prefs.fail = true;
+         try {
+@@ -96,6 +97,55 @@ public final class HiddenCardsTest {
+         }
+     }
+ 
++    private static void sharedRoutesAndRowFallback(Context context) {
++        HiddenCards.restoreAll(context);
++        Cursor first = new Cursor("source.shared", "First shared title", "shared-a", "same-route", 9, 101);
++        Cursor second = new Cursor("source.shared", "Second shared title", "shared-b", "same-route", 9, 102);
++        HiddenCards.visible(context, first, false);
++        HiddenCards.visible(context, second, false);
++        String firstKey = HiddenCards.key(context, first, false);
++        String secondKey = HiddenCards.key(context, second, false);
++        check(HiddenCards.card("source.shared", Uri.parse("same-route"), false) == null,
++                "A shared route must never select an arbitrary title.");
++        check(HiddenCards.card(firstKey).title.equals("First shared title")
++                && HiddenCards.card(secondKey).title.equals("Second shared title"),
++                "Each displayed identity must retain its own menu target despite a shared route.");
++        HiddenCards.hide(context, firstKey);
++        check(!HiddenCards.visible(context, first, false) && HiddenCards.visible(context, second, false),
++                "Hiding the selected shared-route title must retain its neighbor.");
++        Cursor rowOnly = new Cursor("source.rows", "No provider ID", "", "shared-row-route", 7, 51);
++        Cursor otherRow = new Cursor("source.rows", "Other row", "", "shared-row-route", 7, 52);
++        Cursor watchNext = new Cursor("source.rows", "Other table", "", "shared-row-route", 7, 51);
++        HiddenCards.visible(context, rowOnly, false);
++        String rowKey = HiddenCards.key(context, rowOnly, false);
++        check(rowKey != null && HiddenCards.card(rowKey) != null,
++                "A published provider row remains individually dismissible without an optional provider ID.");
++        HiddenCards.hide(context, rowKey);
++        check(!HiddenCards.visible(context, rowOnly, false)
++                && HiddenCards.visible(context, otherRow, false)
++                && HiddenCards.visible(context, watchNext, true),
++                "Row fallback must retain other rows and the separate Watch Next table.");
++        check(!rowKey.equals(FeaturedCardRules.key("source.rows", false, "51", "")),
++                "A row ID must not collide with an optional provider ID.");
++        for (int i = 0; i < 2050; i++)
++            HiddenCards.visible(context, new Cursor("source.eviction", "Other", "eviction-" + i, "route-" + i), false);
++        check(HiddenCards.card(firstKey) == null, "Fixture must evict the original label cache entry.");
++        HiddenCards.Card selected = HiddenCards.selected(firstKey, "source.shared", "First shared title", 9);
++        check(selected != null && selected.key.equals(firstKey) && selected.title.equals("First shared title"),
++                "The selected model must remain dismissible after its label cache entry is evicted.");
++        check(HiddenCards.selected(firstKey, "source.shared", "||First shared title", 9).title.equals("||First shared title"),
++                "The original preview title must be retained literally, without interpreting renderer prefixes.");
++        check(HiddenCards.selected(firstKey, "source.shared", "||||Literal preview title", 9).title.equals("||||Literal preview title"),
++                "Repeated literal title prefixes must remain unchanged.");
++        check(HiddenCards.selected(firstKey, "source.shared", "||Literal Watch Next title", -1).title.equals("||Literal Watch Next title"),
++                "Watch Next title text must remain literal.");
++        HiddenCards.hide(context, selected.key);
++        check(!HiddenCards.visible(context, first, false), "Dismissal must use the exact carried key after cache eviction.");
++        check(HiddenCards.selected("not-an-item-key", "source.shared", "Other", 9) == null,
++                "An unestablished identity must remain rejected.");
++        HiddenCards.restoreAll(context);
++    }
++
+     private static void channelManagement(Context context) {
+         HiddenCards.restoreAll(context);
+         String uri = "content://android.media.tv/channel/7/preview_program";
+diff --git a/tests/SavedSetupsTest.java b/tests/SavedSetupsTest.java
+index 9708df97ff428c4a90baa25ca7f12278bb949d66..2532d163b6813caa803a925bffdfcf18273d7bea 100644
+--- a/tests/SavedSetupsTest.java
++++ b/tests/SavedSetupsTest.java
+@@ -18,6 +18,9 @@ public class SavedSetupsTest {
+     }
+     public static void main(String[] args) throws Exception {
+         Context c = new Context(new File(args[0], "data"));
++        c.prefs.values.put("icon_focus_growth", 30);
++        c.prefs.values.put("icon_focus_shadow_size", 38);
++        c.prefs.values.put("icon_shadow", false);
+         c.prefs.values.put("apps_per_row", 7);
+         c.prefs.values.put("input_names", "{\"tvinput_name:HDMI 1\":\"Sony Receiver\"}");
+         c.prefs.values.put("factory_icon_packages", new LinkedHashSet<>(Arrays.asList("app.one")));
+@@ -32,6 +35,15 @@ public class SavedSetupsTest {
+         JSONObject capture = SavedSetupSettings.capture(c.prefs.getAll());
+         Map<String,Object> saved = SavedSetupSettings.validate(capture);
+         check(saved.get("apps_per_row").equals(7), "typed integer");
++        check(saved.get("icon_focus_growth").equals(30) && saved.get("icon_focus_shadow_size").equals(38)
++                && saved.get("icon_shadow").equals(false), "focus size and explicit shadow Off round trip");
++        for (String key : new String[]{"icon_focus_growth", "icon_focus_shadow_size"}) {
++            for (Object invalid : new Object[]{-1, 39, "18", 18.5, true}) {
++                JSONObject malformed = new JSONObject(capture.toString());
++                malformed.getJSONObject("values").put(key, invalid);
++                rejects(() -> SavedSetupSettings.validate(malformed), "invalid focus size rejected");
++            }
++        }
+         check(((String)saved.get("input_names")).contains("Sony Receiver"), "input names saved");
+         check(((Set<?>)saved.get("factory_icon_packages")).contains("app.one"), "factory icon choice saved");
+         check(saved.get("menu_overlay_frozen").equals(false), "typed boolean");
+diff --git a/tests/fixtures/hidden-card-spacing.smali b/tests/fixtures/hidden-card-spacing.smali
+new file mode 100644
+index 0000000000000000000000000000000000000000..1b431894ceda6f49c1cd8d6ecb442c5d0c459d8a
+--- /dev/null
++++ b/tests/fixtures/hidden-card-spacing.smali
+@@ -0,0 +1,221 @@
++    :goto_17
++    invoke-virtual {v7, v0}, LN/p;->p(Z)V
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->s()Z
++
++    move-result v0
++
++    if-eqz v0, :cond_37
++
++    const v0, -0x2b42c688
++
++    invoke-virtual {v7, v0}, LN/p;->V(I)V
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->j()Z
++
++    move-result v0
++
++    if-nez v0, :cond_35
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->m()Z
++
++    move-result v0
++
++    if-eqz v0, :cond_35
++
++    if-eqz v39, :cond_36
++
++    :cond_35
++    move-object/from16 v3, v48
++
++    goto :goto_18
++
++    :cond_36
++    const v0, -0x2b40f54a
++
++    invoke-virtual {v7, v0}, LN/p;->V(I)V
++
++    const/16 v0, 0x15e
++
++    int-to-float v0, v0
++
++    move-object/from16 v3, v48
++
++    invoke-static {v3, v0}, Landroidx/compose/foundation/layout/d;->g(LZ/o;F)LZ/o;
++
++    move-result-object v0
++
++    invoke-static {v7, v0}, Lx/b;->b(LN/p;LZ/o;)V
++
++    const/4 v8, 0x0
++
++    invoke-virtual {v7, v8}, LN/p;->p(Z)V
++
++    const/4 v8, 0x0
++
++    goto :goto_19
++
++    :goto_18
++    const v0, -0x2b41ce69
++
++    invoke-virtual {v7, v0}, LN/p;->V(I)V
++
++    const/16 v0, 0x32
++
++    int-to-float v0, v0
++
++    invoke-static {v3, v0}, Landroidx/compose/foundation/layout/d;->g(LZ/o;F)LZ/o;
++
++    move-result-object v0
++
++    invoke-static {v7, v0}, Lx/b;->b(LN/p;LZ/o;)V
++
++    const/4 v8, 0x0
++
++    invoke-virtual {v7, v8}, LN/p;->p(Z)V
++
++    :goto_19
++    invoke-virtual {v7, v8}, LN/p;->p(Z)V
++
++    goto/16 :goto_1d
++
++    :cond_37
++    move-object/from16 v3, v48
++
++    const v0, -0x2b3fadbb
++
++    invoke-virtual {v7, v0}, LN/p;->V(I)V
++
++    const v0, -0x16526de
++
++    invoke-virtual {v7, v0}, LN/p;->V(I)V
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->q()Z
++
++    move-result v0
++
++    if-eqz v0, :cond_39
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->m()Z
++
++    move-result v0
++
++    if-eqz v0, :cond_39
++
++    if-nez v39, :cond_39
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->f()I
++
++    move-result v0
++
++    add-int/lit8 v0, v0, -0x5
++
++    int-to-float v0, v0
++
++    const/high16 v4, 0x41a00000    # 20.0f
++
++    mul-float/2addr v0, v4
++
++    const/high16 v4, 0x43900000    # 288.0f
++
++    add-float/2addr v0, v4
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->s()Z
++
++    move-result v4
++
++    if-eqz v4, :cond_38
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->f()I
++
++    move-result v4
++
++    add-int/lit8 v4, v4, -0x5
++
++    int-to-float v4, v4
++
++    const/high16 v5, 0x40c00000    # 6.0f
++
++    mul-float/2addr v4, v5
++
++    const/high16 v5, 0x42700000    # 60.0f
++
++    sub-float/2addr v5, v4
++
++    add-float/2addr v0, v5
++
++    :cond_38
++    invoke-static {v3, v0}, Landroidx/compose/foundation/layout/d;->g(LZ/o;F)LZ/o;
++
++    move-result-object v0
++
++    invoke-static {v7, v0}, Lx/b;->b(LN/p;LZ/o;)V
++
++    :cond_39
++    const/4 v8, 0x0
++
++    invoke-virtual {v7, v8}, LN/p;->p(Z)V
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->q()Z
++
++    move-result v0
++
++    if-eqz v0, :cond_3a
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->m()Z
++
++    move-result v0
++
++    if-eqz v0, :cond_3b
++
++    if-eqz v39, :cond_3a
++
++    goto :goto_1b
++
++    :cond_3a
++    :goto_1a
++    const/4 v8, 0x0
++
++    goto :goto_1c
++
++    :cond_3b
++    :goto_1b
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->f()I
++
++    move-result v0
++
++    add-int/lit8 v0, v0, -0x5
++
++    int-to-float v0, v0
++
++    const/high16 v4, 0x41200000    # 10.0f
++
++    mul-float/2addr v0, v4
++
++    const/4 v4, 0x0
++
++    add-float/2addr v0, v4
++
++    invoke-virtual/range {v42 .. v42}, LQ3/T3;->s()Z
++
++    move-result v5
++
++    if-eqz v5, :cond_3c
++
++    const/high16 v4, 0x423c0000    # 47.0f
++
++    :cond_3c
++    add-float/2addr v0, v4
++
++    invoke-static {v3, v0}, Landroidx/compose/foundation/layout/d;->g(LZ/o;F)LZ/o;
++
++    move-result-object v0
++
++    invoke-static {v7, v0}, Lx/b;->b(LN/p;LZ/o;)V
++
++    goto :goto_1a
++
++    :goto_1c
++    invoke-virtual {v7, v8}, LN/p;->p(Z)V
++
++    :goto_1d
+diff --git a/tests/test_build.py b/tests/test_build.py
+index a837a77720c4c855a15deaa107ca67b536e4bc66..9e93b58885697a59cb561c9f6310fff734f2a3ec 100644
+--- a/tests/test_build.py
++++ b/tests/test_build.py
+@@ -13,6 +13,31 @@ from capture_previews import full_component, preview_file
+ 
+ 
+ class BuildChecks(unittest.TestCase):
++    def test_app_focus_sizes_reach_home_folder_and_return_without_changing_card_scale(self):
++        decoded = ROOT / '.build/decoded'
++        if not decoded.exists():
++            self.skipTest('Build the launcher to check the focus size integration.')
++        built = classes(decoded)
++        renderer = built['LA3/a;'].read_text()
++        app = renderer.split('.method public static final g(LQ3/q;', 1)[1].split('.end method', 1)[0]
++        self.assertIn('IconFocus;->shadowSize(F)F', app)
++        self.assertIn('IconFocusRevision;->observe()V', app)
++        scale = built['LQ3/G0;'].read_text()
++        self.assertIn('IconFocus;->scale(F)F', scale)
++        self.assertIn('IconFocusRevision;->observe()V', scale)
++        folder = built['LQ3/C1;'].read_text()
++        self.assertIn('IconFocus;->scale(F)F', folder)
++        self.assertIn('IconFocus;->shadowSize(F)F', folder)
++        main = built['Lcom/jeremykenedy/firetv/ui/MainActivity;'].read_text()
++        resume = main.split('.method public final onResume()V', 1)[1].split('.end method', 1)[0]
++        self.assertIn('LQ3/T3;->refreshIconFocusShadow()V', resume)
++        refresh = built['LQ3/T3;'].read_text().split('.method public final refreshIconFocusShadow()V', 1)[1].split('.end method', 1)[0]
++        self.assertIn('LQ3/T3;->k:LN/g0;', refresh)
++        self.assertIn('IconFocusRevision;->changed()V', refresh)
++        self.assertNotIn('->recreate()', refresh)
++        self.assertEqual(renderer.count('IconFocus;->shadowSize(F)F'), 1)
++        self.assertNotIn('IconFocus;->scale(F)F', renderer)
++
+     def test_rotation_setting_restarts_the_effect_without_recreating_home(self):
+         decoded = ROOT / '.build/decoded'
+         if not decoded.exists():
+diff --git a/tests/test_card_controls.py b/tests/test_card_controls.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..fb88a6d9a6e6bf46da9db6eee1d22c07d0e7125e
+--- /dev/null
++++ b/tests/test_card_controls.py
+@@ -0,0 +1,100 @@
++from pathlib import Path
++import subprocess
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++
++
++class CardControlChecks(unittest.TestCase):
++    def test_select_menu_open_exact_hide_and_source_write_recovery(self):
++        sources = {
++            'android/net/Uri.java': 'package android.net; public class Uri {}',
++            'android/view/KeyEvent.java': '''package android.view; public class KeyEvent {
++ public static final int KEYCODE_MENU=82,KEYCODE_DPAD_CENTER=23,KEYCODE_ENTER=66,KEYCODE_NUMPAD_ENTER=160,ACTION_UP=1;
++ private final int code,action; private final boolean canceled;
++ public KeyEvent(int a,int c,boolean x){action=a;code=c;canceled=x;} public int getKeyCode(){return code;}
++ public int getAction(){return action;} public boolean isCanceled(){return canceled;}
++}''',
++            'android/content/DialogInterface.java': '''package android.content; public interface DialogInterface {
++ interface OnDismissListener {void onDismiss(DialogInterface d);} interface OnClickListener {void onClick(DialogInterface d,int i);}
++}''',
++            'android/app/AlertDialog.java': '''package android.app;
++import android.content.*;
++public class AlertDialog implements DialogInterface {
++ public static Builder last; public static int shown;
++ public static class Builder {
++  public String title,message;public String[] options;public DialogInterface.OnClickListener click;
++  public DialogInterface.OnDismissListener dismiss;
++  public Builder(Context c){} public Builder setTitle(String t){title=t;return this;}
++  public Builder setMessage(String t){message=t;return this;} public Builder setPositiveButton(String t,Object c){return this;}
++  public Builder setOnDismissListener(DialogInterface.OnDismissListener d){dismiss=d;return this;}
++  public Builder setItems(String[] a,DialogInterface.OnClickListener l){options=a;click=l;return this;}
++  public AlertDialog show(){last=this;shown++;return new AlertDialog();}
++  public void choose(String label){for(int i=0;i<options.length;i++)if(options[i].equals(label)){click.onClick(null,i);if(dismiss!=null)dismiss.onDismiss(null);return;}throw new AssertionError(label);}
++ }
++}''',
++            'android/content/SharedPreferences.java': '''package android.content; import java.util.*;
++public class SharedPreferences {
++ public final Map<String,Object> values=new HashMap<>();public boolean failNext;
++ public Map<String,?> getAll(){return new HashMap<>(values);} public Editor edit(){return new Editor();}
++ public class Editor { final Map<String,Object> pending=new HashMap<>();
++ public Editor putString(String k,String v){pending.put(k,v);return this;} public Editor remove(String k){pending.put(k,null);return this;}
++ public boolean commit(){for(String k:pending.keySet())if(pending.get(k)==null)values.remove(k);else values.put(k,pending.get(k));
++ boolean success=!failNext;failNext=false;return success;}
++ }
++}''',
++            'android/content/Context.java': '''package android.content;public class Context {
++ public final SharedPreferences prefs=new SharedPreferences();public Context getPackageManager(){return this;}
++ public Intent getLaunchIntentForPackage(String s){return new Intent(this,Object.class);}public String getPackageName(){return "com.example.home";}
++ public void startActivity(Intent i){}
++}''',
++            'android/content/Intent.java': '''package android.content;public class Intent {
++ public static final String CATEGORY_HOME="home";public static final int FLAG_ACTIVITY_CLEAR_TOP=1,FLAG_ACTIVITY_SINGLE_TOP=2;
++ public Intent(Context c,Class<?> t){}public Intent addCategory(String c){return this;} public Intent addFlags(int f){return this;}
++}''',
++            'org/json/JSONObject.java': '''package org.json;import java.util.*;
++public class JSONObject {
++ private final Map<String,Object> values=new LinkedHashMap<>();private static final Map<String,JSONObject> saved=new HashMap<>();
++ public JSONObject(){} public JSONObject(String s){if(s.equals("{}"))return;JSONObject other=saved.get(s);if(other==null)throw new IllegalArgumentException();copy(other);}
++ private void copy(JSONObject other){for(String k:other.values.keySet()){Object v=other.values.get(k);if(v instanceof JSONObject){JSONObject child=new JSONObject();child.copy((JSONObject)v);v=child;}values.put(k,v);}}
++ public JSONObject put(String k,Object v){values.put(k,v);return this;}public boolean has(String k){return values.containsKey(k);}
++ public JSONObject optJSONObject(String k){Object v=values.get(k);return v instanceof JSONObject?(JSONObject)v:null;}
++ public Object get(String k){return values.get(k);} public String toString(){String k="fixture:"+saved.size();JSONObject copy=new JSONObject();copy.copy(this);saved.put(k,copy);return k;}
++}''',
++            'com/jeremykenedy/firetv/ui/DeviceSettings.java': '''package com.jeremykenedy.firetv.ui;public class DeviceSettings {
++ public static android.content.SharedPreferences prefs(android.content.Context c){return c.prefs;}
++}''',
++            'com/jeremykenedy/firetv/ui/HiddenCards.java': '''package com.jeremykenedy.firetv.ui;
++public class HiddenCards {
++ public static String hidden;
++ static Card selected(String k,String s,String t,long f){return k!=null&&k.matches("[a-f0-9]{64}")?new Card(k,s,t):null;}
++ static void hide(android.content.Context c,String k){hidden=k;}
++ static class Card{final String key,source,title;Card(String k,String s,String t){key=k;source=s;title=t;}}
++}''',
++            'com/jeremykenedy/firetv/ui/FeaturedCardClock.java': '''package com.jeremykenedy.firetv.ui;public class FeaturedCardClock {
++ public static int paused;public static void pause(){paused++;}public static void resume(){paused--;}public static void changed(){}
++}''',
++            'com/jeremykenedy/firetv/ui/FeedOrder.java': '''package com.jeremykenedy.firetv.ui;public class FeedOrder {
++ static String appName(android.content.Context c,String s){return "Player";}static String key(android.content.Context c,String s,long f){return s+f;}
++}''',
++            'com/jeremykenedy/firetv/ui/FeaturedGroups.java': '''package com.jeremykenedy.firetv.ui;public class FeaturedGroups {static void move(String f,int d){}}''',
++            'com/jeremykenedy/firetv/ui/ChannelCardsActivity.java': '''package com.jeremykenedy.firetv.ui;public class ChannelCardsActivity {
++ static void open(android.content.Context c,String t,String s,java.util.List<Long> f){}
++}''',
++            'com/jeremykenedy/firetv/ui/FeaturedCardsActivity.java': 'package com.jeremykenedy.firetv.ui;public class FeaturedCardsActivity {}',
++            'com/jeremykenedy/firetv/ui/FeedOrderActivity.java': 'package com.jeremykenedy.firetv.ui;public class FeedOrderActivity {}',
++        }
++        with tempfile.TemporaryDirectory() as directory:
++            folder = Path(directory)
++            files = []
++            for name, content in sources.items():
++                target = folder / name
++                target.parent.mkdir(parents=True, exist_ok=True)
++                target.write_text(content)
++                files.append(target)
++            subprocess.run(['javac', '-d', folder, *files,
++                            ROOT / 'app/src/com/jeremykenedy/firetv/ui/FeaturedCardMenu.java',
++                            ROOT / 'tests/CardControlsTest.java'], check=True)
++            subprocess.run(['java', '-cp', folder,
++                            'com.jeremykenedy.firetv.ui.CardControlsTest'], check=True)
+diff --git a/tests/test_hidden_card_spacing.py b/tests/test_hidden_card_spacing.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..01867f2aa1b895299071ebc0e5e21c40349f4d8c
+--- /dev/null
++++ b/tests/test_hidden_card_spacing.py
+@@ -0,0 +1,98 @@
++from pathlib import Path
++import re
++import struct
++import sys
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / 'scripts'))
++from patch_launcher import patch_hidden_card_spacing
++
++SOURCE = (ROOT / 'tests/fixtures/hidden-card-spacing.smali').read_text()
++
++
++def spacer_heights(source, columns, mini, bottom, widgets, hidden, picture):
++    lines = [line.strip() for line in source.splitlines() if line.strip()]
++    labels = {line: index for index, line in enumerate(lines) if line.startswith(':')}
++    values = {'v39': int(picture)}
++    methods = {'s': mini, 'q': bottom, 'j': widgets, 'm': hidden, 'f': columns}
++    heights = []
++    result = None
++    index = 0
++    while index < len(lines):
++        line = lines[index]
++        operation = line.split()[0]
++        if operation.startswith('invoke-virtual') and 'LQ3/T3;' in line:
++            result = methods[re.search(r'->(\w)\(', line).group(1)]
++        elif operation.startswith('invoke-static') and 'layout/d;->g(' in line:
++            result = values['v0']
++        elif operation.startswith('invoke-static') and 'Lx/b;->b(' in line:
++            heights.append(values['v0'])
++        elif operation in ('move-result', 'move-result-object'):
++            values[line.split()[1]] = result
++        elif operation.startswith('const'):
++            register, literal = line.split(' ', 1)[1].split(', ', 1)
++            literal = literal.split(' #', 1)[0]
++            if operation == 'const/high16':
++                values[register] = struct.unpack('!f', int(literal, 16).to_bytes(4, 'big'))[0]
++            else:
++                values[register] = int(literal, 16)
++        elif operation == 'int-to-float':
++            destination, origin = line.split(' ', 1)[1].split(', ')
++            values[destination] = float(values[origin])
++        elif operation == 'add-int/lit8':
++            destination, origin, literal = line.split(' ', 1)[1].split(', ')
++            values[destination] = values[origin] + int(literal, 16)
++        elif operation in ('mul-float/2addr', 'add-float/2addr', 'sub-float/2addr'):
++            destination, origin = line.split(' ', 1)[1].split(', ')
++            left, right = values[destination], values[origin]
++            values[destination] = left * right if operation.startswith('mul') else left + right if operation.startswith('add') else left - right
++        elif operation == 'add-float':
++            destination, left, right = line.split(' ', 1)[1].split(', ')
++            values[destination] = values[left] + values[right]
++        elif operation in ('if-eqz', 'if-nez'):
++            register, label = line.split(' ', 1)[1].split(', ')
++            condition = not values[register] if operation == 'if-eqz' else bool(values[register])
++            if condition:
++                index = labels[label]
++                continue
++        elif operation.startswith('goto'):
++            index = labels[line.split()[1]]
++            continue
++        elif not (line.startswith(':') or operation.startswith('invoke-') or operation == 'move-object/from16'):
++            raise AssertionError('Unsupported spacer fixture instruction: ' + line)
++        index += 1
++    return heights
++
++
++class HiddenCardSpacingChecks(unittest.TestCase):
++    def test_actual_spacer_branches_collapse_only_vacated_card_space(self):
++        patched = patch_hidden_card_spacing(SOURCE)
++        for columns in (6, 7):
++            for mini in (False, True):
++                for bottom in (False, True):
++                    for widgets in (False, True):
++                        for hidden in (False, True):
++                            for picture in (False, True):
++                                with self.subTest(columns=columns, mini=mini, bottom=bottom, widgets=widgets, hidden=hidden, picture=picture):
++                                    before = spacer_heights(SOURCE, columns, mini, bottom, widgets, hidden, picture)
++                                    after = spacer_heights(patched, columns, mini, bottom, widgets, hidden, picture)
++                                    if hidden and not widgets and not picture and mini:
++                                        self.assertEqual(before, [350])
++                                        self.assertEqual(after, [50])
++                                    elif hidden and not widgets and not picture and bottom:
++                                        self.assertEqual(before, [288 + 20 * (columns - 5)])
++                                        self.assertEqual(after, [])
++                                    else:
++                                        self.assertEqual(after, before)
++
++    def test_source_drift_and_reapplication_fail_closed(self):
++        for changed in (SOURCE.replace('0x15e', '0x15f'), SOURCE.replace('if-nez v39, :cond_39', 'if-nez v38, :cond_39'), SOURCE + SOURCE,
++                        patch_hidden_card_spacing(SOURCE)):
++            with self.subTest(changed=changed[:30]):
++                with self.assertRaises(ValueError):
++                    patch_hidden_card_spacing(changed)
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests/test_hidden_cards.py b/tests/test_hidden_cards.py
+index dde27c269a767df78d44bd4674fd37d96bf33267..0c3f7a7862520cf80b9ad990f93f316cab9ccaec 100644
+--- a/tests/test_hidden_cards.py
++++ b/tests/test_hidden_cards.py
+@@ -15,7 +15,7 @@ class HiddenCardChecks(unittest.TestCase):
+             'android/content/Intent.java': '''package android.content; public class Intent { public static final int URI_INTENT_SCHEME=1; private String value; public static Intent parseUri(String value,int flags){Intent i=new Intent();i.value=value;return i;} public android.net.Uri getData(){return android.net.Uri.parse(value.split("#Intent;")[0]);} public ComponentName getComponent(){return value.contains("component=ui.test/.PlexItemActivity;")?new ComponentName():null;} }''',
+             'android/content/ContentResolver.java': '''package android.content; public class ContentResolver { public static final java.util.Map<String,android.database.Cursor> rows=new java.util.HashMap<>(); public android.database.Cursor query(android.net.Uri u,String[] p,String s,String[] a,String o){return rows.get(u.toString());} }''',
+             'android/content/Prefs.java': '''package android.content; import java.util.*; public class Prefs { public boolean fail; private Set<String> saved=new HashSet<>(); public Set<String> getStringSet(String k,Set<String> fallback){return saved;} public Editor edit(){return new Editor();} public class Editor { Set<String> pending; public Editor putStringSet(String k,Set<String> v){pending=new HashSet<>(v);return this;} public boolean commit(){if(fail)return false;saved=pending;return true;} } }''',
+-            'android/database/Cursor.java': '''package android.database; public class Cursor implements AutoCloseable { public void close(){} private Cursor[] rows;private int position=-1;public Cursor(Cursor... list){rows=list;values=null;} public boolean moveToNext(){return rows!=null&&++position<rows.length;} private final String[] values; public Cursor(String source,String title,String id,String intent){values=new String[]{source,title,id,"",intent,"1"};} public Cursor(String source,String title,String id,String intent,long channel){values=new String[]{source,title,id,"",intent,String.valueOf(channel)};} public int getColumnIndex(String name){return java.util.Arrays.asList("package_name","title","internal_provider_id","content_id","intent_uri","channel_id").indexOf(name);} public int getColumnIndexOrThrow(String name){int n=getColumnIndex(name);if(n<0)throw new IllegalArgumentException();return n;} public boolean isNull(int n){return getString(n)==null;} public long getLong(int n){return Long.parseLong(getString(n));} public String getString(int n){return rows==null?values[n]:rows[position].getString(n);} }''',
++            'android/database/Cursor.java': '''package android.database; public class Cursor implements AutoCloseable { public void close(){} private Cursor[] rows;private int position=-1;public Cursor(Cursor... list){rows=list;values=null;} public boolean moveToNext(){return rows!=null&&++position<rows.length;} private final String[] values; public Cursor(String source,String title,String id,String intent){values=new String[]{source,title,id,"",intent,"1"};} public Cursor(String source,String title,String id,String intent,long channel){values=new String[]{source,title,id,"",intent,String.valueOf(channel)};} public Cursor(String source,String title,String id,String intent,long channel,long row){values=new String[]{source,title,id,"",intent,String.valueOf(channel),String.valueOf(row)};} public int getColumnIndex(String name){return java.util.Arrays.asList("package_name","title","internal_provider_id","content_id","intent_uri","channel_id","_id").indexOf(name);} public int getColumnIndexOrThrow(String name){int n=getColumnIndex(name);if(n<0)throw new IllegalArgumentException();return n;} public boolean isNull(int n){return getString(n)==null;} public long getLong(int n){return Long.parseLong(getString(n));} public String getString(int n){return rows==null?(n<values.length?values[n]:null):rows[position].getString(n);} }''',
+             'android/net/Uri.java': '''package android.net; public class Uri { private final String value; private Uri(String v){value=v;} public static Uri parse(String v){return new Uri(v);} public String toString(){return value;} private java.net.URI uri(){return java.net.URI.create(value);} public String getScheme(){return uri().getScheme();} public String getAuthority(){return uri().getAuthority();} public String getQuery(){return uri().getRawQuery();} public String getFragment(){return uri().getRawFragment();} public String getEncodedPath(){return uri().getRawPath();} public java.util.List<String> getPathSegments(){return java.util.Arrays.asList(uri().getPath().substring(1).split("/"));} }''',
+             'com/jeremykenedy/firetv/ui/DeviceSettings.java': '''package com.jeremykenedy.firetv.ui; public class DeviceSettings { public static android.content.Prefs prefs(android.content.Context c){return c.prefs;} }''',
+         }
+diff --git a/tests/test_icon_focus.py b/tests/test_icon_focus.py
+index a674f1dd0cfe5b82b07d936cd612b8a04a87048b..91f5e0dc82297ac3f7147dd76685f09e0f72f016 100644
+--- a/tests/test_icon_focus.py
++++ b/tests/test_icon_focus.py
+@@ -11,8 +11,8 @@ class IconFocusChecks(unittest.TestCase):
+         stubs = {
+             'android/content/SharedPreferences.java': '''package android.content;
+ public interface SharedPreferences {
+- String getString(String key,String fallback); int getInt(String key,int fallback); Editor edit();
+- interface Editor { Editor putString(String key,String value); Editor putInt(String key,int value); boolean commit(); }
++ java.util.Map<String,?> getAll(); String getString(String key,String fallback); int getInt(String key,int fallback); Editor edit();
++ interface Editor { Editor putString(String key,String value); Editor putInt(String key,int value); Editor putBoolean(String key,boolean value); Editor remove(String key); boolean commit(); }
+ }''',
+             'android/content/Context.java': '''package android.content;
+ public class Context { public Context getApplicationContext(){return this;} }''',
+@@ -29,13 +29,16 @@ public class DeviceSettings {
+  static final Map<String,Object> values=new HashMap<>();
+  static boolean commit=true;
+  public static SharedPreferences prefs(Context context){return new SharedPreferences(){
++ public Map<String,?> getAll(){return new HashMap<>(values);}
+  public String getString(String k,String d){return (String)values.getOrDefault(k,d);}
+  public int getInt(String k,int d){return (Integer)values.getOrDefault(k,d);}
+  public Editor edit(){return new Editor(){
+  Map<String,Object> pending=new HashMap<>();
+  public Editor putString(String k,String v){pending.put(k,v);return this;}
+  public Editor putInt(String k,int v){pending.put(k,v);return this;}
+- public boolean commit(){if(commit)values.putAll(pending);return commit;}
++ public Editor putBoolean(String k,boolean v){pending.put(k,v);return this;}
++ public Editor remove(String k){pending.put(k,null);return this;}
++ public boolean commit(){for(Map.Entry<String,Object> e:pending.entrySet()){if(e.getValue()==null)values.remove(e.getKey());else values.put(e.getKey(),e.getValue());}return commit;}
+  };}
+  };}
+ }''',
+@@ -78,7 +81,48 @@ public class IconFocusTest {
+  try{IconFocus.setColor(context,"mode",0);throw new AssertionError("Unrelated preference changed");}catch(IllegalArgumentException expected){}
+  DeviceSettings.commit=false;
+  try{IconFocus.setStyle(context,"border");throw new AssertionError("Failed save reported success");}catch(IllegalStateException expected){}
+- System.out.println("Icon focus choices and artwork contrast passed");
++ DeviceSettings.commit=true;
++ check(Math.abs(IconFocus.scale(1f)-1.18f)<0.00001f,"Existing18percent growth preserved");
++ check(IconFocus.shadowSize(18f)==18f,"Existing18dp shadow preserved");
++ DeviceSettings.values.put("icon_radius",12);DeviceSettings.values.put("white_border",false);
++ java.util.Map<String,Object> original=new java.util.HashMap<>(DeviceSettings.values);
++ for(int percent:new int[]{0,6,12,24,30}){
++  IconFocus.setGrowth(context,percent);
++  check(IconFocus.growth(context)==percent,"Selected growth saved");
++  check(Math.abs(IconFocus.scale(1f)-(1f+percent/100f))<0.00001f,"Selected growth reaches renderer");
++  check(IconFocus.scale(0f)==1f,"Resting artwork size remains fixed");
++ }
++ check(IconFocus.consumeSizeRefresh(),"Successful saves request immediate redraw");
++ check(!IconFocus.consumeSizeRefresh(),"Refresh consumed once");
++ IconFocus.setGrowth(context,null);
++ check(!DeviceSettings.values.containsKey(IconFocus.GROWTH)&&Math.abs(IconFocus.scale(1f)-1.18f)<0.00001f,"Default removes override");
++ for(int size:new int[]{18,28,38}){
++  IconFocus.setShadow(context,size);
++  check(IconFocus.shadow(context)==size&&IconFocus.shadowSize(18f)==size,"Selected shadow reaches renderer");
++ }
++ IconFocus.setShadow(context,0);
++ check(IconFocus.shadow(context)==0&&IconFocus.shadowSize(18f)==0,"Off disables shadow");
++ check(DeviceSettings.values.get(IconFocus.SHADOW_SIZE).equals(38),"Off retains previous size");
++ DeviceSettings.values.put("icon_shadow",true);
++ check(IconFocus.shadowSize(18f)==38,"Original toggle restores selected size");
++ DeviceSettings.values.put("icon_shadow",false);
++ check(IconFocus.shadowSize(18f)==0,"Original Off remains authoritative");
++ IconFocus.setShadow(context,18);
++ check(!DeviceSettings.values.containsKey(IconFocus.SHADOW_SIZE),"Default removes size override");
++ for(String k:original.keySet()) if(!k.equals("icon_shadow"))check(original.get(k).equals(DeviceSettings.values.get(k)),"Other choices unchanged:"+k);
++ for(int bad:new int[]{-1,31})try{IconFocus.setGrowth(context,bad);throw new AssertionError("Unbounded growth");}catch(IllegalArgumentException expected){}
++ try{IconFocus.setShadow(context,39);throw new AssertionError("Unbounded shadow");}catch(IllegalArgumentException expected){}
++ java.util.Map<String,Object> before=new java.util.HashMap<>(DeviceSettings.values);
++ DeviceSettings.commit=false;
++ try{IconFocus.setGrowth(context,30);throw new AssertionError("Failed growth save accepted");}catch(IllegalStateException expected){}
++ check(before.equals(DeviceSettings.values),"Failed growth save restored in-memory values");
++ try{IconFocus.setShadow(context,38);throw new AssertionError("Failed shadow save accepted");}catch(IllegalStateException expected){}
++ check(before.equals(DeviceSettings.values),"Failed shadow save restored both values");
++ DeviceSettings.commit=true;DeviceSettings.values.put(IconFocus.GROWTH,"broken");
++ before=new java.util.HashMap<>(DeviceSettings.values);
++ try{IconFocus.setGrowth(context,30);throw new AssertionError("Malformed original overwritten");}catch(IllegalStateException expected){}
++ check(before.equals(DeviceSettings.values),"Malformed saved value preserved");
++ System.out.println("Icon focus colors, growth, shadow, defaults and failed saves passed");
+  }
+ }''',
+         }
