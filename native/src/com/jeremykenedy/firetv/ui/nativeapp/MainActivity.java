@@ -81,6 +81,7 @@ public final class MainActivity extends Activity {
     private HomeContentView homeContent;
     private ScrollView slotViewport;
     private boolean groupedWidgetsVisible;
+    private boolean contentVisible;
     private BackgroundLayer background;
     private ChannelCardView artworkOwner;
     private final java.util.List<View> appScrolls = new java.util.ArrayList<>();
@@ -197,6 +198,7 @@ public final class MainActivity extends Activity {
         allApps.setId(0x1003); allApps.setTag("home:all-apps");
         allApps.setVisibility(AllAppsPreferences.enabled(this) ? View.VISIBLE : View.GONE);
         body.addView(allApps);
+        contentVisible = false; groupedWidgetsVisible = false;
         homeContent = new HomeContentView(this, new ChannelCardView.Listener() {
             @Override public void onSelect(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
             @Override public void onLongPress(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
@@ -204,6 +206,10 @@ public final class MainActivity extends Activity {
             @Override public void onSlotFocused(String key) { focusedApp = null; }
             @Override public void onGroupedWidgetsVisibilityChanged(boolean visible) {
                 groupedWidgetsVisible = visible;
+                refreshHomeInsets();
+            }
+            @Override public void onContentVisibilityChanged(boolean visible) {
+                contentVisible = visible;
                 refreshHomeInsets();
             }
             @Override public void onArtworkChanged(ChannelCardView card, android.graphics.Bitmap artwork) {
@@ -280,10 +286,17 @@ public final class MainActivity extends Activity {
     }
 
     private void refreshHomeInsets() {
-        int bottom = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(this)
-                ? 40 : groupedWidgetsVisible ? 24 : 96;
+        boolean dockBottom = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(this);
+        int bottom = dockBottom ? 40 : groupedWidgetsVisible ? 24 : 96;
         homeBody.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32), Pages.dp(this, bottom));
-        if (slotViewport != null) slotViewport.setFillViewport(groupedWidgetsVisible);
+        if (slotViewport != null) {
+            boolean reserveSpace = contentVisible || dockBottom;
+            LinearLayout.LayoutParams bounds = (LinearLayout.LayoutParams) slotViewport.getLayoutParams();
+            float weight = reserveSpace ? 1f : 0f;
+            if (bounds.weight != weight) { bounds.weight = weight; slotViewport.setLayoutParams(bounds); }
+            slotViewport.setVisibility(contentVisible ? View.VISIBLE : dockBottom ? View.INVISIBLE : View.GONE);
+            slotViewport.setFillViewport(groupedWidgetsVisible);
+        }
     }
 
     private void refreshStatusBar() {

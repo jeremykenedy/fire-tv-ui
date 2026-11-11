@@ -34,6 +34,7 @@ public final class HomeContentView extends HorizontalScrollView {
         void onUnavailable(LayoutItem item);
         default void onArtworkChanged(ChannelCardView card, android.graphics.Bitmap artwork) {}
         default void onGroupedWidgetsVisibilityChanged(boolean visible) {}
+        default void onContentVisibilityChanged(boolean visible) {}
     }
 
     private final Activity activity;
@@ -48,6 +49,7 @@ public final class HomeContentView extends HorizontalScrollView {
     private boolean resumed;
     private boolean widgetReadability;
     private boolean groupedWidgetsVisible;
+    private boolean contentVisible;
     private boolean checking = true;
     private LayoutOptions dashboardLayout;
     private boolean preserveDashboardSlots;
@@ -185,6 +187,11 @@ public final class HomeContentView extends HorizontalScrollView {
             rowBounds.gravity = visible ? Gravity.CENTER_VERTICAL : Gravity.TOP;
             row.setLayoutParams(rowBounds);
             if (listener != null) listener.onGroupedWidgetsVisibilityChanged(visible);
+        }
+        boolean hasContent = row.getChildCount() > 0;
+        if (contentVisible != hasContent) {
+            contentVisible = hasContent;
+            if (listener != null) listener.onContentVisibilityChanged(hasContent);
         }
         requestLayout();
     }
