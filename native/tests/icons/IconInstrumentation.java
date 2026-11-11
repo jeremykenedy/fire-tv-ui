@@ -16,11 +16,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomePreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +113,8 @@ public final class IconInstrumentation extends Instrumentation {
                     && imported.equals(IconSelectionStore.choice(context, first)),
                     "A corrupt selected image must show factory artwork and retain its saved choice.");
             IconSelectionStore.save(context, first, IconSelectionStore.THEME);
+            checkRetainedImage(context, prefs, image.toByteArray());
+            result.putBoolean("retained_image_and_theme_reset_verified", true);
 
             IconPackStore.select(context, IconPackStore.ORIGINAL);
             home = startActivitySync(new Intent().setClassName(context, "com.jeremykenedy.firetv.ui.nativeapp.MainActivity")
@@ -187,11 +194,59 @@ public final class IconInstrumentation extends Instrumentation {
             for (Map.Entry<String, ?> entry : originalPacks.entrySet()) restorePacks.putString(entry.getKey(), (String) entry.getValue());
             result.putBoolean("icon_pack_preferences_restored", restorePacks.commit());
             SharedPreferences.Editor restore=prefs.edit().clear();
-            for(Map.Entry<String,?> entry:original.entrySet()) restore.putString(entry.getKey(),(String)entry.getValue());
+            for(Map.Entry<String,?> entry:original.entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof String) restore.putString(entry.getKey(), (String) value);
+                else if (value instanceof Boolean) restore.putBoolean(entry.getKey(), (Boolean) value);
+            }
             result.putBoolean("preferences_restored",restore.commit());
             if(imported!=null) IconSelectionStore.discardPreparedImage(context,imported);
         }
         finish(0,result);
+    }
+
+    private static void checkRetainedImage(Context context, SharedPreferences prefs, byte[] image) throws IOException {
+        String target = "proof.pending/proof.pending.Main";
+        check(!prefs.contains(RetainedHomeChoices.KEY) && !prefs.contains(target)
+                        && !prefs.contains("edited:" + target)
+                        && !context.getSharedPreferences(RetainedHomeChoices.GRID, 0).contains(RetainedHomeChoices.KEY),
+                "A fresh icon fixture is required for retained choice proof.");
+        String pendingImage = null, uncertainImage = null;
+        try {
+            pendingImage = IconSelectionStore.prepareImage(context, new ByteArrayInputStream(image));
+            File pendingFile = new File(new File(context.getFilesDir(), "icons"), pendingImage.substring(6));
+            Map<String, Object> pending = new LinkedHashMap<>();
+            pending.put("icon:proof.pending", pendingImage);
+            check(prefs.edit().putString(RetainedHomeChoices.KEY,
+                    RetainedHomeChoices.write(RetainedHomeChoices.ICONS, pending)).commit(),
+                    "Retained icon fixture must be saved.");
+            IconSelectionStore.discardPreparedImage(context, pendingImage);
+            check(pendingFile.isFile(), "An image referenced only by a pending choice must be kept.");
+
+            IconSelectionStore.save(context, target, IconSelectionStore.THEME);
+            check(prefs.getBoolean("edited:" + target, false) && IconSelectionStore.THEME.equals(IconSelectionStore.choice(context, target)),
+                    "An explicit theme reset must record an edit even when it removes the icon value.");
+            RetainedHomePreferences.apps(context, Collections.singletonList(target));
+            check(IconSelectionStore.THEME.equals(IconSelectionStore.choice(context, target))
+                            && !prefs.contains(RetainedHomeChoices.KEY),
+                    "A returning app must consume the old icon without replacing an explicit theme reset.");
+            IconSelectionStore.discardPreparedImage(context, pendingImage);
+            check(!pendingFile.exists(), "A fully unreferenced pending image must be removed.");
+
+            uncertainImage = IconSelectionStore.prepareImage(context, new ByteArrayInputStream(image));
+            File uncertainFile = new File(new File(context.getFilesDir(), "icons"), uncertainImage.substring(6));
+            check(prefs.edit().putString(RetainedHomeChoices.KEY, "{invalid").commit(),
+                    "Malformed retained fixture must be saved.");
+            IconSelectionStore.discardPreparedImage(context, uncertainImage);
+            check(uncertainFile.isFile(), "Malformed retained choices must conservatively keep private images.");
+            check(prefs.edit().remove(RetainedHomeChoices.KEY).commit(), "Malformed fixture must be removed.");
+            IconSelectionStore.discardPreparedImage(context, uncertainImage);
+            check(!uncertainFile.exists(), "The image must be removable after uncertain references clear.");
+        } finally {
+            prefs.edit().remove(RetainedHomeChoices.KEY).remove(target).remove("edited:" + target).commit();
+            IconSelectionStore.discardPreparedImage(context, pendingImage);
+            IconSelectionStore.discardPreparedImage(context, uncertainImage);
+        }
     }
 
     private static void checkMutedArtwork(Context context) {
