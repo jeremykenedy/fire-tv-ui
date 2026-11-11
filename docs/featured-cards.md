@@ -1,12 +1,20 @@
 # Featured cards
 
+The 1.18.0 card controls below are a working release draft. Final native verification and publication are pending.
+
 Open Preferences > UI settings > Cards > Featured card setup. Existing card and appearance controls remain available below it.
 
 ## Choose cards
 
 Enable cards, choose Fit or Fill artwork, and select which published sources appear. Hiding a source affects its cards only, not its app tile. Refresh queries the actual available feeds. Reload home cards closes setup and rebuilds Home.
 
-Focus a card on Home and press the remote Menu button. Card options can hide that exact item, open its feed for ordering, or choose feeds and card settings.
+Select a card on Home, press Enter, or press the remote Menu button to open its controls. The menu names the exact current title and offers **Open**, **Hide this title**, and **Hide all cards from &lt;app&gt;**, alongside feed navigation, ordering and settings. The visible `Menu: Card options` suffix has been removed.
+
+**Open** runs the card's original provider action. Opening the controls does not launch the provider. **Hide this title** saves the exact selected item identity; another title sharing its playback link stays available. If the provider supplies no usable item identity, Open remains available and title hiding is omitted.
+
+**Hide all cards from &lt;app&gt;** applies to the entire publishing app, including its other channels and Watch Next feeds. Its app tile remains visible. For personal Plex cards published by Fire TV UI, the publishing app can be Fire TV UI; that source choice covers its other published feeds too. This action does not infer a movie, show or series identity. Restore the source in Featured card setup to show its feeds again.
+
+Turning cards Off also removes the reserved card band when widgets are disabled. Enabled widgets keep their row and remain available.
 
 **Cards > Channel Cards** offers Manage cards under each channel. Back discards unsaved channel-visibility changes and returns focus to Channel Cards; Save commits them and returns to the same entry. Right or Menu on a channel also opens its individual cards. Hide or restore one card without disabling the channel. Move up or Move down changes the item order within that feed, and Home rotates the visible items in your saved order within that feed's fixed card. Newly published items follow your saved items; removed items are ignored. Restore all affects only that channel. The separate Hidden cards screen restores individual cards or all hidden cards. Hidden choices are included in portable launcher backups; publisher rows and watch history remain unchanged.
 
@@ -16,7 +24,7 @@ The global interval also controls Big picture artwork. Individual channel overri
 
 ## Arrange top-level feeds
 
-Choose Arrange top-level cards in Featured card setup or the focused card Menu. Move left and Move right reorder the Plex, IPTV and other feed cards on Home. This is separate from Move up and Move down inside a feed. Reset top-level order restores the normal feed sequence. Order choices are included in portable backups.
+Choose Arrange top-level cards in Featured card setup or the selected card's controls. Move left and Move right reorder the Plex, IPTV and other feed cards on Home. This is separate from Move up and Move down inside a feed. Reset top-level order restores the normal feed sequence. Order choices are included in portable backups.
 
 ## App recommendations
 
@@ -34,4 +42,4 @@ Feeds and users provides Continue Watching, New movies, New TV episodes, Current
 
 Choose a requested card count per feed. The combined cache limits the effective total to 24 cards. Disabling a feed removes its cards after the next successful update. A failed request preserves the prior working connection.
 
-Opening a personal card validates its server and media identity. The item screen shows available saved progress and one Open item in Plex action. It does not offer an unverified automatic Resume action. Plex may request a household profile selection before opening the item. The installed Plex app may consume an external item request while selecting a household profile and return to Plex Home. Automatic card-to-item handoff and offset resume are not verified on that version. The original TV check confirmed playback only after manually choosing the matching Continue Watching item inside Plex. Other installed Plex versions may behave differently.
+Choose Open in a personal card's controls to validate its server and media identity. The item screen shows available saved progress and one Open item in Plex action. It does not offer an unverified automatic Resume action. Plex may request a household profile selection before opening the item. The installed Plex app may consume an external item request while selecting a household profile and return to Plex Home. Automatic card-to-item handoff and offset resume are not verified on that version. The original TV check confirmed playback only after manually choosing the matching Continue Watching item inside Plex. Other installed Plex versions may behave differently.

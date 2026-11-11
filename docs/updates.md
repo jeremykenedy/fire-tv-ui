@@ -18,7 +18,9 @@ The small helper APK is downloaded and verified against its published size and S
 
 ## Fire TV UI releases
 
-Stable 1.17.1 repairs the card visibility switch and individual item dismissal. Its versioned APK and checksum use the existing update flow; no new update settings are required. See the [upgrade guide](releases/v1.17.1.md).
+Published stable 1.17.1 repairs the card visibility switch and individual item dismissal. See its [upgrade guide](releases/v1.17.1.md).
+
+The 1.18.0/code 80 maintenance draft adds visible Select/Menu card controls and app focus growth and shadow choices. Its intended replacement source is 1.17.1/code 79. Once published, its versioned APK and checksum use this existing update flow with the same production package and signer. No new update settings, permissions or migration are required. Final native behavior, signed replacement and public update discovery are pending; a local candidate is not an available published update. See the [1.18.0 upgrade draft](releases/v1.18.0.md).
 
 The TV checks the public UI release directly, selects its exact versioned APK and verifies the compiled Android version, package and current production signer. A desktop or other APK is never substituted for a missing UI asset. No GitHub token is stored on the TV.
 

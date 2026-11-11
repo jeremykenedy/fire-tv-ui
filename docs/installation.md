@@ -1,6 +1,6 @@
 # Installation and updates
 
-Stable Fire TV UI 1.17.1 is the latest stable release. The separate preview is Source Preview 2.0.0-alpha.3, a separate application with separate settings. Use [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases) for available downloads and the [preview guide](source-preview.md) for its qualified installation path. A draft or local candidate is not a published release.
+Stable Fire TV UI 1.17.1 is the latest published stable release. The 1.18.0/code 80 maintenance update is a working draft; final verification and publication are pending. Its intended upgrade source is 1.17.1/code 79. See the [1.18.0 upgrade draft](releases/v1.18.0.md). The separate preview is Source Preview 2.0.0-alpha.3, a separate application with separate settings. Use [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases) for available downloads and the [preview guide](source-preview.md) for its qualified installation path. A draft or local candidate is not a published release.
 
 The preview package is `com.jeremykenedy.firetv.ui.preview`; it does not replace stable Fire TV UI, import its private data or register as the TV's Home app. Alpha.3 uses version code 4 and retains the maintained preview signing certificate from public alpha.1. This permits an Android update only when the installed preview has the same certificate. A local lab build may use another signer. A matching signer alone does not qualify preservation of a populated preview installation; that result must be recorded for the final release.
 
@@ -30,7 +30,7 @@ Manage TV backups saves `/sdcard/Download/fire-tv-ui-backup.txt`, which survives
 
 ## Updating
 
-For stable 1.17.0, install the signed [1.17.1 card repair](releases/v1.17.1.md) in place, or select **Settings > Updates > Check for updates**. Keep the existing installation and data. The separate preview does not replace it.
+For stable 1.17.0, the published [1.17.1 card repair](releases/v1.17.1.md) remains available in place through **Settings > Updates > Check for updates**. The planned next update is 1.17.1/code 79 to 1.18.0/code 80, using the same production package and certificate. Follow the [1.18.0 upgrade guide](releases/v1.18.0.md) once that release is published; its final replacement checks are pending. Keep the existing installation and data. No new permissions or migration are required for these card and focus controls. Android API 27 remains the runtime minimum. The separate preview does not replace stable Fire TV UI.
 
 Save a backup before any upgrade. The source-native production candidate has not yet passed its migration and device acceptance gates; do not replace the published app with it. Installing an APK signed with a different key requires uninstalling the existing installation, which deletes its app data.
 
