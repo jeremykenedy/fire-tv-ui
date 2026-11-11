@@ -634,7 +634,8 @@ public final class MainActivity extends Activity {
 
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
         if (homeReady && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
-            if (event.getAction() == KeyEvent.ACTION_UP)
+            if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()
+                    && !homeContent.showFocusedCardActions())
                 startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
@@ -644,11 +645,6 @@ public final class MainActivity extends Activity {
     @Override public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (!hasFocus && remoteButtons != null) remoteButtons.clear();
-    }
-
-    private void configureCard(ChannelCardView card, CardOptions options) {
-        card.setPrograms(CardPreferences.visiblePrograms(options, card.feed()));
-        card.setRotationIntervalMillis(options.timerSeconds(card.feed().item.id) * 1000L);
     }
 
     private void cardActions(final TvRecommendations.Feed feed, final TvRecommendations.Program program) {
@@ -685,7 +681,7 @@ public final class MainActivity extends Activity {
                 @Override public void run() {
                     try {
                         CardOptions updated = CardPreferences.load(MainActivity.this).hide(program.source, program.key, program.title);
-                        CardPreferences.save(MainActivity.this, updated); configureCard(card, updated);
+                        CardPreferences.save(MainActivity.this, updated); homeContent.refreshPreferences();
                     } catch (RuntimeException failed) { Toast.makeText(MainActivity.this, "This item could not be hidden. Please try again.", Toast.LENGTH_SHORT).show(); }
                 }
             });

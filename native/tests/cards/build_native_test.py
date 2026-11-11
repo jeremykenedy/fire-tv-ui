@@ -21,7 +21,7 @@ def run(*args):
     subprocess.run([str(arg) for arg in args], check=True)
 
 run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-    '-sourcepath', str(ROOT / 'src') + ':' + str(ROOT / '.build/gen'), '-implicit:none', '-d', WORK / 'classes', HERE / 'CardControlsInstrumentation.java', HERE / 'ChannelRenderInstrumentation.java', HERE / 'RenderArtworkProvider.java', HERE / 'HomeContentInstrumentation.java', HERE / 'PlexCardsInstrumentation.java', HERE / 'DiscoveryInstrumentation.java', ROOT / 'tests/plex/PlexFixture.java')
+    '-sourcepath', str(ROOT / 'src') + ':' + str(ROOT / '.build/gen'), '-implicit:none', '-d', WORK / 'classes', HERE / 'CardControlsInstrumentation.java', HERE / 'CardVisibilityInstrumentation.java', ROOT / 'tests/allapps/fixture/OrdinaryActivity.java', HERE / 'ChannelRenderInstrumentation.java', HERE / 'RenderArtworkProvider.java', HERE / 'HomeContentInstrumentation.java', HERE / 'PlexCardsInstrumentation.java', HERE / 'DiscoveryInstrumentation.java', ROOT / 'tests/plex/PlexFixture.java')
 run(TOOLS / 'd8', '--release', '--lib', ANDROID, '--min-api', '27', '--output', WORK / 'dex',
     *sorted((WORK / 'classes').rglob('*.class')))
 run(TOOLS / 'aapt2', 'link', '-I', ANDROID, '--manifest', HERE / 'AndroidManifest.xml', '-o', WORK / 'base.apk')

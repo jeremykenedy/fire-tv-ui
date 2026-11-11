@@ -194,6 +194,13 @@ public final class HomeContentView extends HorizontalScrollView {
         return slot == null ? null : slot.card;
     }
 
+    public boolean showFocusedCardActions() {
+        Slot slot = focusedSlot();
+        if (slot == null || !slot.ready || slot.card == null || cardListener == null) return false;
+        cardListener.onLongPress(slot.card.feed(), slot.card.currentProgram());
+        return true;
+    }
+
     public List<ChannelCardView> cards() {
         List<ChannelCardView> result = new ArrayList<>();
         for (Slot slot : slots.values()) if (slot.card != null) result.add(slot.card);
