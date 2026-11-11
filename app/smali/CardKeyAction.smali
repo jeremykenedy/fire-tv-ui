@@ -25,7 +25,7 @@
     iget-object v3, v7, LQ3/S8;->c:Ljava/lang/String;
     iget-object v4, v7, LQ3/S8;->e:Landroid/net/Uri;
     iget-wide v5, v7, LQ3/S8;->h:J
-    iget-object v8, v7, LQ3/S8;->a:Ljava/lang/String;
+    iget-object v8, v7, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
     iget-object v7, v7, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
     invoke-static/range {v1 .. v8}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;JLjava/lang/String;Ljava/lang/String;)Z
     move-result v0

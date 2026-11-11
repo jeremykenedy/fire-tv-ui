@@ -77,8 +77,7 @@ public final class HiddenCards {
 
     static Card selected(String key, String source, String title, long channel) {
         if (!FeaturedCardRules.validKey(key)) return null;
-        String label = channel >= 0 && title.startsWith("||") ? title.substring(2) : title;
-        return new Card(key, source, label, channel);
+        return new Card(key, source, title, channel);
     }
 
     static Card card(String key) {

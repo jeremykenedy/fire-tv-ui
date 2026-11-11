@@ -383,17 +383,19 @@ def patch(decoded):
     pattern = re.compile(r'^' + re.escape(signature) + r'\n.*?^\.end method', re.M | re.S)
     copy = pattern.search(text).group(0)
     copy = replace_once(copy, '    .locals 13',
-        '    .locals 14\n\n'
+        '    .locals 15\n\n'
         '    iget-object v13, p0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
+        '    iget-object v14, p0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;\n'
         '    iget-object v2, p0, LQ3/S8;->b:Ljava/lang/String;\n'
         '    invoke-static {v2}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->label(Ljava/lang/String;)Ljava/lang/String;\n'
         '    move-result-object v2')
     copy = replace_once(copy, '    const-string v2, "Watch Next"\n\n', '')
     copy = replace_once(copy, '    return-object v0',
         '    iput-object v13, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
+        '    iput-object v14, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;\n'
         '    return-object v0')
     text = replace_once(text, '# instance fields',
-        '# instance fields\n.field public hiddenCardKey:Ljava/lang/String;\n')
+        '# instance fields\n.field public hiddenCardKey:Ljava/lang/String;\n.field public hiddenCardTitle:Ljava/lang/String;\n')
     featured.write_text(replace_method(text, signature, copy))
     program = class_paths['LQ3/k8;']
     program.write_text(replace_once(program.read_text(), '# instance fields',
@@ -409,6 +411,24 @@ def patch(decoded):
             + '    const/4 v1, 0x0\n    return v1\n    :same_card_identity\n')
         path.write_text(replace_once(text, anchor, anchor + equality))
 
+
+    rebuilt = class_paths['LQ3/S3;']
+    rebuilt_text = replace_once(rebuilt.read_text(), '    .locals 26', '    .locals 27')
+    for program_register, card_register, title_register, arguments in (
+            ('v5', 'v6', 'v7', 'v6 .. v18'),
+            ('v10', 'v11', 'v12', 'v11 .. v23')):
+        anchor = '    check-cast ' + program_register + ', LQ3/k8;\n\n    new-instance ' + card_register + ', LQ3/S8;'
+        rebuilt_text = replace_once(rebuilt_text, anchor,
+            '    check-cast ' + program_register + ', LQ3/k8;\n'
+            + '    iget-object ' + card_register + ', ' + program_register + ', LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
+            + '    move-object/from16 v26, ' + card_register + '\n\n'
+            + '    new-instance ' + card_register + ', LQ3/S8;')
+        constructor = '    invoke-direct/range {' + arguments + '}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V'
+        rebuilt_text = replace_once(rebuilt_text, constructor, constructor + '\n'
+            + '    move-object/from16 ' + program_register + ', v26\n'
+            + '    iput-object ' + program_register + ', ' + card_register + ', LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
+            + '    iput-object ' + title_register + ', ' + card_register + ', LQ3/S8;->hiddenCardTitle:Ljava/lang/String;')
+    rebuilt.write_text(rebuilt_text)
 
     mapper = class_paths["Landroid/support/v4/media/session/b;"]
     mapper.write_text(replace_method(mapper.read_text(),
@@ -457,7 +477,19 @@ def patch(decoded):
         loader.write_text(contents)
 
     feed_loader = class_paths["LQ3/E7;"]
-    feed_loader.write_text(replace_once(feed_loader.read_text(),
+    feed_text = replace_once(feed_loader.read_text(), '    .locals 34', '    .locals 35')
+    feed_text = replace_once(feed_text, '    check-cast v4, LQ3/k8;\n\n    iget-object v11, v4, LQ3/k8;->a:Ljava/lang/String;',
+        '    check-cast v4, LQ3/k8;\n'
+        '    iget-object v11, v4, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
+        '    move-object/from16 v34, v11\n\n'
+        '    iget-object v11, v4, LQ3/k8;->a:Ljava/lang/String;')
+    feed_text = replace_once(feed_text, '    move-object/from16 v0, v21',
+        '    move-object/from16 v0, v21\n'
+        '    move-object/from16 v11, v34\n'
+        '    iput-object v11, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
+        '    move-object/from16 v11, v22\n'
+        '    iput-object v11, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;')
+    feed_loader.write_text(replace_once(feed_text,
         '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;',
         '    iget-object v0, v1, LQ3/E7;->r:Landroid/content/Context;\n'
         '    invoke-static {v0, v10}, Lcom/jeremykenedy/firetv/ui/FeedOrderBridge;->order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;\n'

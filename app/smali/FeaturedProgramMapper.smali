@@ -72,6 +72,8 @@
     invoke-direct/range {v0 .. v12}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V
     iget-object v13, p0, LQ3/k8;->hiddenCardKey:Ljava/lang/String;
     iput-object v13, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
+    iget-object v13, p0, LQ3/k8;->a:Ljava/lang/String;
+    iput-object v13, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
     return-object v0
 .end method
 
@@ -120,5 +122,7 @@
     invoke-direct/range {v0 .. v12}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V
     iget-object v1, p1, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
     iput-object v1, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
+    iget-object v1, p1, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
+    iput-object v1, v0, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
     return-object v0
 .end method
