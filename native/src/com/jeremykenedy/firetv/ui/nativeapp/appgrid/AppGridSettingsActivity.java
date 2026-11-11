@@ -40,6 +40,7 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private List<AppInventory.App> apps = new ArrayList<>();
     private LinearLayout body;
+    private ScrollView managerScroll;
     private String focusKey = "";
     private boolean gridOptions;
     private boolean resumedOnce;
@@ -81,6 +82,7 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
 
     private void render() {
         if (gridOptions) { renderGridOptions(); return; }
+        final int scrollY = managerScroll == null ? 0 : managerScroll.getScrollY();
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(0xaa000000);
         LinearLayout dialog = new LinearLayout(this);
@@ -111,12 +113,14 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
         View divider = new View(this); divider.setBackgroundColor(0xff555555);
         dialog.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
         ScrollView scroll = new ScrollView(this);
+        managerScroll = scroll;
         scroll.setClipChildren(false); scroll.setClipToPadding(false);
         body = new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(body); dialog.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         TextView section = label("Apps", 14, 0xffaaaaaa); section.setPadding(dp(8), dp(14), 0, dp(8)); body.addView(section);
         AppGridOptions options = AppGridPreferences.load(this);
         View first = null;
+        boolean restorePosition = false;
         for (final AppInventory.App app : apps) {
             LinearLayout row = new LinearLayout(this); row.setGravity(Gravity.CENTER_VERTICAL);
             row.setPadding(dp(12), 0, dp(12), 0); row.setBackground(round(0xff333333, 8));
@@ -166,7 +170,9 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
             });
             details.setContentDescription("Settings for " + app.label + ". Hold for app options."); details.setTag("app-manager:settings:" + app.key()); wrap(row, details, 1.5f);
             if (first == null) first = hide;
-            for (View child : new View[]{hide, cards, pick, details}) if (focusKey.equals(child.getTag())) first = child;
+            for (View child : new View[]{hide, cards, pick, details}) if (focusKey.equals(child.getTag())) {
+                first = child; restorePosition = true;
+            }
         }
         if (apps.isEmpty()) body.addView(label("No TV apps available.", 16, 0xffcccccc));
         Button save = smallButton("Save", new View.OnClickListener() {
@@ -178,6 +184,19 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
         dialog.addView(save, saveBounds);
         setContentView(root);
         if (first != null) first.requestFocus(); else save.requestFocus();
+        final View restoredFocus = first;
+        if (restorePosition) scroll.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override public void onGlobalLayout() {
+                scroll.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                scroll.scrollTo(0, scrollY);
+                android.graphics.Rect visible = new android.graphics.Rect();
+                if (!restoredFocus.getGlobalVisibleRect(visible) || visible.width() < restoredFocus.getWidth()
+                        || visible.height() < restoredFocus.getHeight()) {
+                    restoredFocus.requestRectangleOnScreen(new android.graphics.Rect(0, 0,
+                            restoredFocus.getWidth(), restoredFocus.getHeight()), true);
+                }
+            }
+        });
     }
 
     private interface Toggle { void changed(boolean value); }
@@ -300,6 +319,7 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
     }
 
     private void appActions(final AppInventory.App app) {
+        focusKey = "app-manager:settings:" + app.key();
         AppGridOptions options = AppGridPreferences.load(this);
         AlertDialog actions = new AlertDialog.Builder(this).setTitle(app.label).setItems(new String[] {
             options.hidden.contains(app.key()) ? "Show on Home" : "Hide from Home",
