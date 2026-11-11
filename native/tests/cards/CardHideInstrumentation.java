@@ -63,13 +63,14 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             ActivityMonitor monitor = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
             onMain(new Runnable() { @Override public void run() { main.startActivity(new Intent(main, CardsSettingsActivity.class)); } });
             cards = waitForMonitorWithTimeout(monitor, 5000); removeMonitor(monitor); check(cards != null, "Cards settings opened."); awaitWindow(cards);
+            clickTag("channels");
             ActivityMonitor layoutMonitor = addMonitor(ROOT + "layout.LayoutSettingsActivity", null, false);
             clickTag("layout");
             Activity layout = waitForMonitorWithTimeout(layoutMonitor, 5000); removeMonitor(layoutMonitor);
             check(layout != null, "Existing layout restoration route opened."); cards = layout; awaitWindow(cards);
             awaitTag(first.item.key() + ":visibility"); clickTag(first.item.key() + ":visibility");
             capture("restore-feed-layout.png");
-            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main); readHome();
+            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main); readHome();
             assertShown(first, true); assertShown(sibling, true); assertShown(control, true);
             onMain(new Runnable() { @Override public void run() {
                 check(selected[0].equals(home.findCard(first.item.key()).currentProgram().key), "Restored card retains its selected visible title.");
