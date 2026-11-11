@@ -28,7 +28,7 @@ public final class CardControlsTest {
             check(AlertDialog.shown == shown, "Canceled action cannot open menus.");
             check(FeaturedCardMenu.handle(context, new KeyEvent(1, code, false), source, originalIntent, 7, key, "||Current title", open), "Every action key opens controls.");
             check("||Current title".equals(AlertDialog.last.title), "Menu names the exact current title without prefix guessing.");
-            check(Arrays.asList(AlertDialog.last.options).containsAll(Arrays.asList("Open", "Hide this title", "Hide cards from Player")),
+            check(Arrays.asList(AlertDialog.last.options).containsAll(Arrays.asList("Open", "Hide this title", "Hide all cards from Player")),
                     "Provider, one-title and whole-source actions are clearly separated.");
             check(opened[0] == 0, "Opening controls never invokes the original provider action.");
             AlertDialog.last.choose("Cancel");

@@ -31,7 +31,7 @@ public final class FeaturedCardMenu {
     public static void show(Context context, String source, Uri intent, long channel,
             String key, String title, Runnable open) {
         final HiddenCards.Card card = HiddenCards.selected(key, source, title, channel);
-        final String sourceOption = validSource(source) ? "Hide cards from " + FeedOrder.appName(context, source) : null;
+        final String sourceOption = validSource(source) ? "Hide all cards from " + FeedOrder.appName(context, source) : null;
         final long feed = channel;
         List<String> choices = new ArrayList<>();
         if (open != null) choices.add("Open");

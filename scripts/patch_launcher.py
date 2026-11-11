@@ -14,6 +14,7 @@ from icon_pack_patch import patch_builtin_icon_packs
 from launcher_grid_patch import patch_launcher_grid
 from menu_motion_patch import patch_menu_motion
 from tile_appearance_patch import patch_tile_appearance
+from card_controls_patch import patch_card_controls
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads((ROOT / "build.json").read_text())
@@ -563,6 +564,7 @@ def patch(decoded):
         '    move-object/from16 v4, v54\n'
         '    invoke-static {v13, v4}, Landroidx/compose/ui/input/key/a;->a(LZ/o;Ln4/c;)LZ/o;')
     featured_image.write_text(replace_method(renderer, renderer_signature, card_render))
+    patch_card_controls(class_paths, decoded)
 
     rotation = class_paths["LQ3/h8;"]
     rotation.write_text(replace_method(rotation.read_text(),
