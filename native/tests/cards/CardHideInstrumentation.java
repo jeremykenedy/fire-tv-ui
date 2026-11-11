@@ -67,8 +67,8 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             clickTag("layout");
             Activity layout = waitForMonitorWithTimeout(layoutMonitor, 5000); removeMonitor(layoutMonitor);
             check(layout != null, "Existing layout restoration route opened."); cards = layout; awaitWindow(cards);
-            awaitTag(first.item.key() + ":visibility"); capture("restore-feed-layout.png");
-            clickTag(first.item.key() + ":visibility");
+            awaitTag(first.item.key() + ":visibility"); clickTag(first.item.key() + ":visibility");
+            capture("restore-feed-layout.png");
             press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main); readHome();
             assertShown(first, true); assertShown(sibling, true); assertShown(control, true);
             onMain(new Runnable() { @Override public void run() {
@@ -86,12 +86,33 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             onMain(new Runnable() { @Override public void run() { main.startActivity(new Intent(main, AppGridSettingsActivity.class)); } });
             cards = waitForMonitorWithTimeout(managerMonitor, 5000); removeMonitor(managerMonitor);
             check(cards != null, "Existing App Manager opens."); awaitWindow(cards);
-            awaitTag("app-manager:cards:" + PRODUCER); capture("restore-publisher-app-manager.png");
-            clickTag("app-manager:cards:" + PRODUCER); clickTag("app-manager:save"); awaitWindow(main); SystemClock.sleep(300); readHome();
+            awaitTag("app-manager:cards:" + PRODUCER); clickTag("app-manager:cards:" + PRODUCER);
+            capture("restore-publisher-app-manager.png"); clickTag("app-manager:save"); awaitWindow(main); SystemClock.sleep(300); readHome();
             check(!CardPreferences.isPackageHidden(getTargetContext(), PRODUCER), "App Manager restores source setting.");
             for (TvRecommendations.Feed feed : primary) assertShown(feed, true);
             for (TvRecommendations.Feed feed : others) assertShown(feed, true);
             check(!LayoutPreferences.load(getTargetContext(), HomeSlots.defaults()).hidden.contains(first.item.key()), "Source restore preserves independent restored feed choice.");
+            step = "last visible publisher returns focus to an app or header";
+            select(control, KeyEvent.KEYCODE_MENU); clickText("Hide all cards from Other recommendation producer"); awaitWindow(main);
+            assertShown(first, true); assertShown(control, false);
+            select(first, KeyEvent.KEYCODE_DPAD_CENTER); clickText("Hide all cards from Recommendation test producer"); awaitWindow(main);
+            for (TvRecommendations.Feed feed : primary) assertShown(feed, false);
+            for (TvRecommendations.Feed feed : others) assertShown(feed, false);
+            onMain(new Runnable() { @Override public void run() {
+                View focused = main.getCurrentFocus();
+                check(focused != null && focused.isShown() && focused.isFocusable()
+                        && !(String.valueOf(focused.getTag()).startsWith("slot:")), "Hiding final cards leaves visible app/header focus.");
+            }});
+            capture("all-cards-hidden-app-focus.png");
+            ActivityMonitor finalManager = addMonitor(ROOT + "appgrid.AppGridSettingsActivity", null, false);
+            onMain(new Runnable() { @Override public void run() { main.startActivity(new Intent(main, AppGridSettingsActivity.class)); } });
+            cards = waitForMonitorWithTimeout(finalManager, 5000); removeMonitor(finalManager);
+            check(cards != null, "App Manager remains reachable with all cards hidden."); awaitWindow(cards);
+            awaitTag("app-manager:cards:" + PRODUCER); clickTag("app-manager:cards:" + PRODUCER);
+            awaitTag("app-manager:cards:" + OTHER); clickTag("app-manager:cards:" + OTHER); clickTag("app-manager:save");
+            awaitWindow(main); SystemClock.sleep(300); readHome();
+            for (TvRecommendations.Feed feed : primary) assertShown(feed, true);
+            for (TvRecommendations.Feed feed : others) assertShown(feed, true);
             capture("all-feeds-restored.png");
             result.putString("status", "PASS");
             result.putString("cases", "Actual Select and Menu; original provider link; next title retention; exact feed hide retains same-source sibling and unrelated source; logical next focus; existing layout Show; whole publisher hide across preview/WatchNext; App Manager checkbox+Save restores all");

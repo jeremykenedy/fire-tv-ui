@@ -676,6 +676,10 @@ public final class MainActivity extends Activity {
                     View candidate = homeContent.findViewWithTag("slot:" + order.get(i));
                     if (candidate != null && candidate.isShown()) nextFocus[0] = candidate;
                 }
+                if (nextFocus[0] == null) {
+                    for (View tile : tiles) if (tile.isShown() && tile.isFocusable()) { nextFocus[0] = tile; break; }
+                    if (nextFocus[0] == null && settings != null && settings.isShown()) nextFocus[0] = settings;
+                }
             }
         };
         if (program != null) {
