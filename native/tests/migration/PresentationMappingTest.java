@@ -301,6 +301,17 @@ public final class PresentationMappingTest {
         reject(() -> LegacyPresentationMapper.plan(snapshot(Collections.singletonMap("icon_pack_package", "unavailable.pack")), packs, Collections.emptyMap()));
     }
     private static void appearanceMapping() throws Exception {
+        Map<String, Object> noOverlay = Collections.<String, Object>singletonMap("overlay_mode", "none");
+        LegacyPresentationMapper.Plan noOverlayPlan = LegacyPresentationMapper.plan(snapshot(noOverlay), identities(), Collections.emptyMap());
+        check(noOverlayPlan.unmappedLegacyKeys.isEmpty()
+                && "none".equals(noOverlayPlan.after.get(LauncherMigration.PREFERENCES).values().get("overlay_mode"))
+                && !noOverlayPlan.after.get(LegacyPresentationMapper.APPEARANCE).values().containsKey("overlay"),
+                "Disabled inherited overlay is preserved without overriding independent overlay choices.");
+        for (Object unsupported : Arrays.<Object>asList("auto", "future", false)) {
+            LegacyPresentationMapper.Plan held = LegacyPresentationMapper.plan(snapshot(Collections.<String, Object>singletonMap("overlay_mode", unsupported)), identities(), Collections.emptyMap());
+            check(held.unmappedLegacyKeys.contains("overlay_mode"), "Unverified inherited overlay behavior remains blocked.");
+        }
+
         Map<String, Object> background = new LinkedHashMap<>();
         background.put("menu_animation", "aurora"); background.put("menu_animation_frozen", true);
         background.put("menu_animation_speed", 0); background.put("menu_animation_intensity", 100);
