@@ -564,6 +564,16 @@
   ],
   "approvedReplacements": [
     {
+      "id": "insignia",
+      "sourceFile": "native/icons/sources/insignia.svg",
+      "sourceUrl": null,
+      "sourceSha256": "bee27577e843924fcfa88c4a39e0ed696453093aabc69c4cdb66fa1b4cd446ed",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "reviewed": "2026-11-11",
+      "reason": "Original plain-text brand label on the project's tile background. No paths, type treatment, or pixels from the held Iconape artwork are used. The held source remains excluded; trademark rights remain with Insignia."
+    },
+    {
       "id": "denon",
       "sourceFile": "native/icons/sources/denon.svg",
       "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/7/75/Denon_(logo).svg",

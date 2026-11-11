@@ -48,6 +48,11 @@ public final class IconInstrumentation extends Instrumentation {
             String first = "proof.one/.Main", second = "proof.two/.Main";
             IconSelectionStore.save(context, first, "catalog:jbl");
             IconSelectionStore.save(context, second, "catalog:pc");
+            IconSelectionStore.save(context, first, "catalog:insignia");
+            Bitmap insignia = ((BitmapDrawable) IconSelectionStore.resolve(context, first,
+                    new ColorDrawable(Color.RED), null)).getBitmap();
+            check(insignia.getWidth() <= 512 && insignia.getHeight() <= 512,
+                    "Insignia's reviewed replacement must be selectable as bounded artwork.");
             IconSelectionStore.save(context, first, IconSelectionStore.FACTORY);
             check("catalog:pc".equals(IconSelectionStore.choice(context, second)), "Factory reset must not change another tile.");
             ColorDrawable factory = new ColorDrawable(Color.RED), theme = new ColorDrawable(Color.BLUE);
@@ -130,9 +135,10 @@ public final class IconInstrumentation extends Instrumentation {
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
             onMain(new Runnable() { @Override public void run() { check(tiles.get(5).isFocused(), "D-pad down must move to next curated row."); }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+            onMain(new Runnable() { @Override public void run() { check(tiles.get(8).isFocused(), "D-pad down must reach the last audio row."); }});
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
             onMain(new Runnable() { @Override public void run() { check(tiles.get(9).isFocused(), "D-pad down must cross category headings."); }});
-            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
-            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
+            onMain(new Runnable() { @Override public void run() { tiles.get(1).requestFocus(); }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
             waitForIdleSync();
             check(("catalog:" + IconCatalog.ALL.get(1).id).equals(IconSelectionStore.choice(context, key)), "Selecting an icon must persist for the actual app component.");

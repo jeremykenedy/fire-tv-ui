@@ -184,6 +184,18 @@
       "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Kenwood_Logo.svg"
     },
     {
+      "id": "insignia",
+      "name": "Insignia",
+      "resource": "icon_insignia.png",
+      "source": "Original project plain-text tile",
+      "sourceFile": "native/icons/sources/insignia.svg",
+      "sourceSha256": "bee27577e843924fcfa88c4a39e0ed696453093aabc69c4cdb66fa1b4cd446ed",
+      "imageSha256": "d5cf3d06842dc236ffef7ebcdef3303efdfcb032fdc526fedc5097f30249478e",
+      "license": "MIT original project text tile",
+      "licenseEvidence": null,
+      "replacesLegacySourceSha256": "b642b644584858a5254d759ee5d58ca1adb8998473ed3e687feb00903e4d6c21"
+    },
+    {
       "id": "pioneer",
       "name": "Pioneer",
       "resource": "icon_pioneer.png",
