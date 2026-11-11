@@ -56,9 +56,19 @@ def patch_hidden_card_spacing(text):
               '    if-eqz v0, :cond_39\n\n'
               '    if-nez v39, :cond_39\n\n')
     return replace_once(text, bottom, bottom +
-            '    invoke-virtual/range {v42 .. v42}, LQ3/T3;->j()Z\n\n'
-            '    move-result v0\n\n'
-            '    if-eqz v0, :cond_39\n\n')
+            '    goto :cond_39\n\n')
+
+
+def patch_widget_focus(text):
+    for register, label in (('v3', ':cond_40'), ('v2', ':cond_67')):
+        hidden = (f'    invoke-virtual {{v0}}, LQ3/T3;->m()Z\n\n'
+                  f'    move-result {register}\n\n'
+                  f'    if-nez {register}, {label}\n\n')
+        widgets = (f'    invoke-virtual {{v0}}, LQ3/T3;->j()Z\n\n'
+                   f'    move-result {register}\n\n'
+                   f'    if-eqz {register}, {label}\n')
+        text = replace_once(text, hidden + widgets, widgets)
+    return text
 
 
 def java_hash(value):
@@ -533,7 +543,7 @@ def patch(decoded):
 
     main_background = class_paths["LQ3/T5;"]
     main_background.write_text(patch_hidden_card_spacing(
-        patch_hidden_card_widget_row(main_background.read_text())))
+        patch_widget_focus(patch_hidden_card_widget_row(main_background.read_text()))))
     main_background.write_text(replace_once(main_background.read_text(),
         '    if-eqz v4, :cond_f',
         '    iget-object v14, v0, LQ3/T5;->z:Landroid/content/Context;\n'

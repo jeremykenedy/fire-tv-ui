@@ -80,7 +80,7 @@ class HiddenCardSpacingChecks(unittest.TestCase):
                                     if hidden and not widgets and not picture and mini:
                                         self.assertEqual(before, [350])
                                         self.assertEqual(after, [50])
-                                    elif hidden and not widgets and not picture and bottom:
+                                    elif hidden and not picture and bottom and not mini:
                                         self.assertEqual(before, [288 + 20 * (columns - 5)])
                                         self.assertEqual(after, [])
                                     else:
