@@ -72,6 +72,21 @@ public final class AppGridPreferencesTest {
             throw new AssertionError("Failed explicit save accepted");
         } catch (IllegalStateException expected) {}
         check(previous.equals(saved.prefs.values), "Failed explicit app edit restores exact previous choices.");
+        saved.prefs.corrupt = true;
+        try {
+            AppGridPreferences.save(saved, wide.toggleHidden("example.one/.Main"));
+            throw new AssertionError("Mismatched saved app choices accepted");
+        } catch (IllegalStateException expected) {}
+        check(previous.equals(saved.prefs.values), "A successful commit acknowledgement with wrong readback restores previous choices.");
+        Object[] malformed = {1.0f, 1L, Collections.singleton("unexpected"), 3, false, 4};
+        String[] keys = {"columns", "rows", "horizontal", "order", "hidden", "favorites"};
+        for (int index = 0; index < keys.length; index++) {
+            Context invalid = new Context(); invalid.prefs.values.put(keys[index], malformed[index]);
+            Map<String, Object> snapshot = new HashMap<>(invalid.prefs.values);
+            try { AppGridPreferences.save(invalid, wide); throw new AssertionError("Wrong-typed saved choices accepted"); }
+            catch (IllegalStateException expected) {}
+            check(snapshot.equals(invalid.prefs.values) && invalid.prefs.commits == 0, "Wrong-typed original " + keys[index] + " remains untouched before writes.");
+        }
         System.out.println("Discovery preserves absent controls, explicit values, missing order and failed writes");
     }
     private static void reject(Context context, java.util.List<String> apps) {

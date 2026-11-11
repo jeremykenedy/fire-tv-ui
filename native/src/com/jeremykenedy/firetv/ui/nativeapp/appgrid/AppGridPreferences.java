@@ -7,6 +7,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,10 +58,22 @@ public final class AppGridPreferences {
             HolidayPresetTransaction.assertWritable(context);
             SharedPreferences prefs = context.getSharedPreferences("native_app_grid", Context.MODE_PRIVATE);
             Map<String, ?> before = prefs.getAll();
+            for (String key : Arrays.asList("columns", "rows", "horizontal", "order", "hidden", "favorites")) {
+                if (!before.containsKey(key)) continue;
+                Object previous = before.get(key);
+                boolean supported = key.equals("columns") || key.equals("rows") ? previous instanceof Integer
+                        : key.equals("horizontal") ? previous instanceof Boolean : previous instanceof String;
+                if (!supported) throw new IllegalStateException("Saved app choices have an unsupported type. They were kept.");
+            }
+            Map<String, Object> after = new LinkedHashMap<>(before);
+            after.put("columns", value.columns); after.put("rows", value.rows); after.put("horizontal", value.horizontal);
+            after.put("order", String.join("\n", value.order)); after.put("hidden", String.join("\n", value.hidden));
+            after.put("favorites", String.join("\n", value.favorites));
             if (prefs.edit().putInt("columns", value.columns).putInt("rows", value.rows)
                     .putBoolean("horizontal", value.horizontal).putString("order", String.join("\n", value.order))
                     .putString("hidden", String.join("\n", value.hidden))
-                    .putString("favorites", String.join("\n", value.favorites)).commit()) return;
+                    .putString("favorites", String.join("\n", value.favorites)).commit()
+                    && after.equals(prefs.getAll())) return;
             SharedPreferences.Editor restore = prefs.edit();
             for (String key : Arrays.asList("columns", "rows", "horizontal", "order", "hidden", "favorites")) {
                 Object previous = before.get(key);
