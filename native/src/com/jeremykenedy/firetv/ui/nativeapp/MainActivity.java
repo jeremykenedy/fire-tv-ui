@@ -662,6 +662,22 @@ public final class MainActivity extends Activity {
         card.onHostPause();
         final List<String> labels = new ArrayList<>();
         final List<Runnable> actions = new ArrayList<>();
+        final View[] nextFocus = new View[1];
+        final Runnable refreshVisibility = new Runnable() {
+            @Override public void run() {
+                homeContent.refreshPreferences();
+                List<String> order = LayoutPreferences.load(MainActivity.this, HomeSlots.defaults()).order;
+                int current = order.indexOf(feed.item.key());
+                for (int i = current + 1; i < order.size() && nextFocus[0] == null; i++) {
+                    View candidate = homeContent.findViewWithTag("slot:" + order.get(i));
+                    if (candidate != null && candidate.isShown()) nextFocus[0] = candidate;
+                }
+                for (int i = current - 1; i >= 0 && nextFocus[0] == null; i--) {
+                    View candidate = homeContent.findViewWithTag("slot:" + order.get(i));
+                    if (candidate != null && candidate.isShown()) nextFocus[0] = candidate;
+                }
+            }
+        };
         if (program != null) {
             RecommendationActions.Availability links = RecommendationActions.inspect(this, program);
             if (links.details) {
@@ -708,6 +724,29 @@ public final class MainActivity extends Activity {
                 });
             }
         }
+        labels.add("Hide this card"); actions.add(new Runnable() {
+            @Override public void run() {
+                try {
+                    LayoutPreferences.save(MainActivity.this, LayoutPreferences.load(MainActivity.this, HomeSlots.defaults())
+                            .discover(java.util.Collections.singletonList(feed.item)).setVisible(feed.item.key(), false));
+                    refreshVisibility.run();
+                    Toast.makeText(MainActivity.this, "Card hidden. Restore it in Card settings.", Toast.LENGTH_SHORT).show();
+                } catch (RuntimeException failed) { Toast.makeText(MainActivity.this, "This card could not be hidden. Please try again.", Toast.LENGTH_SHORT).show(); }
+            }
+        });
+        String publisher = feed.source;
+        try {
+            publisher = getPackageManager().getApplicationLabel(getPackageManager().getApplicationInfo(feed.source, 0)).toString();
+        } catch (android.content.pm.PackageManager.NameNotFoundException | RuntimeException unavailable) { }
+        labels.add("Hide all cards from " + publisher); actions.add(new Runnable() {
+            @Override public void run() {
+                try {
+                    CardPreferences.setPackageHidden(MainActivity.this, feed.source, true);
+                    refreshVisibility.run();
+                    Toast.makeText(MainActivity.this, "App cards hidden. Restore them in App Manager.", Toast.LENGTH_SHORT).show();
+                } catch (RuntimeException failed) { Toast.makeText(MainActivity.this, "This app's cards could not be hidden. Please try again.", Toast.LENGTH_SHORT).show(); }
+            }
+        });
         labels.add("Card settings"); actions.add(new Runnable() {
             @Override public void run() { startActivity(new Intent(MainActivity.this, CardsSettingsActivity.class)); }
         });
@@ -716,7 +755,10 @@ public final class MainActivity extends Activity {
                     @Override public void onClick(DialogInterface dialog, int which) { actions.get(which).run(); }
                 }).setNegativeButton("Cancel", null).create();
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override public void onDismiss(DialogInterface ignored) { if (resumed) card.onHostResume(); }
+            @Override public void onDismiss(DialogInterface ignored) {
+                if (resumed && card.isShown()) card.onHostResume();
+                if (nextFocus[0] != null && nextFocus[0].isShown()) nextFocus[0].requestFocus();
+            }
         });
         dialog.show(); dialog.getListView().requestFocus(); dialog.getListView().setSelection(0);
     }
