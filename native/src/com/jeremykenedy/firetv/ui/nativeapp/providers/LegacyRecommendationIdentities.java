@@ -19,6 +19,12 @@ final class LegacyRecommendationIdentities {
         return RecommendationKeys.hash((watchNext ? "watch-next" : "preview") + "\n" + source + "\nrow:" + row);
     }
 
+    static String plexItem(String source, String key, boolean watchNext) {
+        if (!"com.plexapp.android".equals(source) || key == null
+                || !key.matches("plex:[a-f0-9]{64}:[0-9]{1,18}")) return null;
+        return item("com.jeremykenedy.firetv.ui", watchNext, key.substring(5), "");
+    }
+
     static String feed(String source, boolean watchNext, String providerId, String displayName) {
         String stable = providerId == null || providerId.isEmpty() ? "name:" + displayName : providerId;
         return item(source, watchNext, watchNext ? "feed:watch-next" : "feed:" + stable, "");

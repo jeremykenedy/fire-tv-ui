@@ -44,7 +44,7 @@ for name, manifest, sources, dependencies, key in (
     (build / 'classes').mkdir(parents=True)
     (build / 'dex').mkdir()
     run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-        '-d', build / 'classes', *dependencies, *sources)
+        '-classpath', ROOT / '.build/classes', '-d', build / 'classes', *dependencies, *sources)
     # Production classes compile for API verification, but instrumentation loads them from its target.
     dex_classes = sorted((build / 'classes').rglob('*.class'))
     if name == 'provider-proof':

@@ -27,6 +27,7 @@ public final class TvRecommendations {
         public final String key;
         public final String compatibilityKey;
         public final String legacyKey;
+        public final String legacyWatchNextKey;
         public final String source;
         public final String title;
         public final Uri artwork;
@@ -60,7 +61,8 @@ public final class TvRecommendations {
                 String seriesKey, String seriesTitle, String detailsIntentUri, String playIntentUri,
                 String notificationKey, String compatibilityKey, String legacyKey) {
             this.key = key;
-            this.legacyKey = legacyKey;
+            this.legacyKey = legacyKey == null ? LegacyRecommendationIdentities.plexItem(source, key, false) : legacyKey;
+            this.legacyWatchNextKey = LegacyRecommendationIdentities.plexItem(source, key, true);
             this.compatibilityKey = compatibilityKey;
             this.source = source;
             this.title = title;

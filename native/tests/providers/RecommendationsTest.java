@@ -53,6 +53,13 @@ public final class RecommendationsTest {
         check(TvRecommendations.read(historical).feeds.get(0).programs.get(0).legacyKey.equals(
                 LegacyRecommendationIdentities.item("tv.example.movies", true, "", "", 90)),
                 "Latest original row fallback stays table and publisher scoped.");
+        String plexKey = "plex:" + String.format("%064x", 7) + ":42";
+        TvRecommendations.Program plexItem = new TvRecommendations.Program(plexKey, "com.plexapp.android", "Plex item", null, "fixture://shared");
+        check(plexItem.legacyKey.equals(LegacyRecommendationIdentities.item("com.jeremykenedy.firetv.ui", false, plexKey.substring(5), ""))
+                        && plexItem.legacyWatchNextKey.equals(LegacyRecommendationIdentities.item("com.jeremykenedy.firetv.ui", true, plexKey.substring(5), "")),
+                "Direct canonical Plex items consume exact original preview and Watch Next identities.");
+        check(new TvRecommendations.Program(plexKey, "com.other.app", "Plex item", null, "fixture://shared").legacyKey == null,
+                "A different publisher cannot inherit an owned Plex hide by label, link or native-looking key.");
         Context partial = context();
         partial.resolver.fail = "preview_program";
         partial.resolver.tables.put("watch_next_program", rows(program(2, "tv.example.movies", 0, "", "a")));

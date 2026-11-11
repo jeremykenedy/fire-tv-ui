@@ -123,6 +123,7 @@ public final class CardPreferences {
 
     public static boolean itemHidden(CardOptions options, TvRecommendations.Program program) {
         return (program.legacyKey != null && options.isHidden(CardOptions.LEGACY_RECOMMENDATIONS, program.legacyKey))
+                || (program.legacyWatchNextKey != null && options.isHidden(CardOptions.LEGACY_RECOMMENDATIONS, program.legacyWatchNextKey))
                 || options.isHidden(program.source, program.key) || (program.compatibilityKey != null
                 && options.isHidden(program.source, program.compatibilityKey));
     }
@@ -130,6 +131,7 @@ public final class CardPreferences {
     public static CardOptions restoreItem(CardOptions options, TvRecommendations.Program program) {
         CardOptions restored = options.restore(program.source, program.key);
         if (program.legacyKey != null) restored = restored.restore(CardOptions.LEGACY_RECOMMENDATIONS, program.legacyKey);
+        if (program.legacyWatchNextKey != null) restored = restored.restore(CardOptions.LEGACY_RECOMMENDATIONS, program.legacyWatchNextKey);
         return program.compatibilityKey == null ? restored : restored.restore(program.source, program.compatibilityKey);
     }
 
