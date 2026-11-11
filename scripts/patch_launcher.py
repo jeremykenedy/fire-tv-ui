@@ -27,6 +27,25 @@ def replace_once(text, old, new):
     return text.replace(old, new, 1)
 
 
+def patch_hidden_card_spacing(text):
+    mini = ('    :cond_36\n'
+            '    const v0, -0x2b40f54a\n\n'
+            '    invoke-virtual {v7, v0}, LN/p;->V(I)V\n\n'
+            '    const/16 v0, 0x15e')
+    text = replace_once(text, mini, mini.replace('0x15e', '0x32'))
+    bottom = ('    invoke-virtual/range {v42 .. v42}, LQ3/T3;->q()Z\n\n'
+              '    move-result v0\n\n'
+              '    if-eqz v0, :cond_39\n\n'
+              '    invoke-virtual/range {v42 .. v42}, LQ3/T3;->m()Z\n\n'
+              '    move-result v0\n\n'
+              '    if-eqz v0, :cond_39\n\n'
+              '    if-nez v39, :cond_39\n\n')
+    return replace_once(text, bottom, bottom +
+            '    invoke-virtual/range {v42 .. v42}, LQ3/T3;->j()Z\n\n'
+            '    move-result v0\n\n'
+            '    if-eqz v0, :cond_39\n\n')
+
+
 def java_hash(value):
     result = 0
     for character in value:
@@ -498,6 +517,7 @@ def patch(decoded):
         '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;'))
 
     main_background = class_paths["LQ3/T5;"]
+    main_background.write_text(patch_hidden_card_spacing(main_background.read_text()))
     main_background.write_text(replace_once(main_background.read_text(),
         '    if-eqz v4, :cond_f',
         '    iget-object v14, v0, LQ3/T5;->z:Landroid/content/Context;\n'
