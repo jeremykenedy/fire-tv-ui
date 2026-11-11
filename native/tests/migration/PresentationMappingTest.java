@@ -11,7 +11,7 @@ public final class PresentationMappingTest {
     private static final String ALPHA = "fixture.alpha/fixture.alpha.Main", BETA = "fixture.beta/fixture.beta.Main";
     private static final String INPUT_ALIAS = "tvinput_name:HDMI 1", INPUT_ID = "fixture.input/.Service/HDMI1000001";
     public static void main(String[] args) throws Exception {
-        actualMapping(); packageCardVisibility(); menuTransitionGate(); savedGridColumns(); plexAliasMapping(); focusOwnedDefaults(); legacyAppFocusMode(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); productionGate(); groupedWidgetProduction(); protectionPreflight();
+        actualMapping(); packageCardVisibility(); menuTransitionGate(); savedGridColumns(); plexAliasMapping(); focusOwnedDefaults(); legacyAppFocusMode(); inputOrderAndVisibility(); privateMediaMapping(); contentModeMapping(); iconPackMapping(); appearanceMapping(); absentDefaults(); unsupportedAndConflicts(); strictJson(); multiFileRecovery(); processRestartRecovery(); upgradeLifecycle(); folderPublication(); consumedCardAndWidgetChoices(); productionGate(); groupedWidgetProduction(); protectionPreflight();
         System.out.println("Native presentation mappings, unsupported-value rejection and interrupted multi-store recovery passed.");
     }
     private static void packageCardVisibility() throws Exception {
@@ -257,17 +257,21 @@ public final class PresentationMappingTest {
         }
         Map<String, Object> hiddenWithWidgets = new LinkedHashMap<>(); hiddenWithWidgets.put("hide_watch_next", true); hiddenWithWidgets.put("enable_widgets", true);
         LegacyPresentationMapper.Plan unresolved = LegacyPresentationMapper.plan(snapshot(hiddenWithWidgets), identities(), Collections.emptyMap());
-        check(unresolved.unmappedLegacyKeys.equals(set("hide_watch_next", "enable_widgets")) && unresolved.patches.isEmpty(), "The observed hidden row remains unresolved until its behavior with cards is verified.");
+        check(unresolved.unmappedLegacyKeys.equals(set("hide_watch_next", "enable_widgets")) && unresolved.patches.isEmpty(), "Enabled groups are prepared by the grouped-layout migration stage.");
         check(unresolved.after.get(LauncherMigration.PREFERENCES).values().get("hide_watch_next").equals(true)
                 && unresolved.after.get(LauncherMigration.PREFERENCES).values().get("enable_widgets").equals(true), "Original content choices remain intact.");
         hiddenWithWidgets.put("hide_watch_next", false);
         LegacyPresentationMapper.Plan coexistence = LegacyPresentationMapper.plan(snapshot(hiddenWithWidgets), identities(), Collections.emptyMap());
-        check(coexistence.unmappedLegacyKeys.equals(set("hide_watch_next", "enable_widgets")) && coexistence.patches.isEmpty(), "Cards and widgets together require visible-feed proof.");
+        check(coexistence.unmappedLegacyKeys.equals(set("hide_watch_next", "enable_widgets")) && coexistence.patches.isEmpty(), "The grouped-layout stage owns enabled content mode.");
         for (LegacyPresentationMapper.Plan held : Arrays.asList(unresolved, coexistence)) {
             PresentationSnapshot original = new PresentationSnapshot(held.before);
             FixtureDisk disk = new FixtureDisk(original);
-            reject(() -> ProductionMigrationGate.commit(new FixtureStore(disk), original, identities(), null));
-            check(disk.events.isEmpty() && original.sameValues(new FixtureStore(disk).read()), "Unverified content mode blocks before writing any store.");
+            ProductionMigrationGate.commit(new FixtureStore(disk), original, identities(), null);
+            Map<String, Object> layout = disk.files.get(LegacyPresentationMapper.LAYOUT).values();
+            boolean hidden = Boolean.TRUE.equals(original.stores.get(LauncherMigration.PREFERENCES).values().get("hide_watch_next"));
+            check((hidden ? "NONE" : "WIDGETS_ONLY").equals(layout.get("mode"))
+                    && "[[],[],[],[]]".equals(layout.get("widget_groups")),
+                    "Enabled original defaults produce four columns and preserve hidden-row semantics.");
         }
         for (Object[] choice : new Object[][] {{"hide_watch_next", false, "CARDS_ONLY"}, {"hide_watch_next", true, "NONE"}, {"enable_widgets", false, "CARDS_ONLY"}}) {
             LegacyPresentationMapper.Plan lone = LegacyPresentationMapper.plan(snapshot(Collections.<String,Object>singletonMap((String) choice[0], choice[1])), identities(), Collections.emptyMap());
@@ -277,7 +281,7 @@ public final class PresentationMappingTest {
                     "Absent original flag remains absent.");
         }
         LegacyPresentationMapper.Plan enabledOnly = LegacyPresentationMapper.plan(snapshot(Collections.<String,Object>singletonMap("enable_widgets", true)), identities(), Collections.emptyMap());
-        check(enabledOnly.unmappedLegacyKeys.equals(set("enable_widgets")), "Enabled widgets remain blocked pending preview-channel behavior.");
+        check(enabledOnly.unmappedLegacyKeys.equals(set("enable_widgets")), "Enabled widgets are resolved by the grouped-layout stage.");
     }
     private static void iconPackMapping() throws Exception {
         PresentationMappingContext standard = identities();
@@ -549,6 +553,37 @@ public final class PresentationMappingTest {
                 && oldDisk.files.get(LegacyPresentationMapper.FOLDERS).values().get("folders").equals("[owner data]"),
                 "Older recovery journals restore only the stores they captured and leave later folders intact.");
     }
+    private static void consumedCardAndWidgetChoices() throws Exception {
+        Map<String, Object> choices = new LinkedHashMap<>();
+        choices.put("poster_mode", true);
+        choices.put("hide_watch_next_titles", true);
+        choices.put("text_outside_cards", false);
+        for (String prefix : Arrays.asList("color_cards_text_color_", "color_widget_bg_color_", "color_widget_text_color_")) {
+            choices.put(prefix + "argb", 0xff123456);
+            choices.put(prefix + "opacity", 75);
+        }
+        LegacyPresentationMapper.Plan plan = LegacyPresentationMapper.plan(snapshot(choices), identities(), Collections.emptyMap(), null, false, true);
+        FixtureDisk disk = new FixtureDisk(new PresentationSnapshot(plan.before));
+        ProductionMigrationGate.commit(new FixtureStore(disk), new FixtureStore(disk).read(), identities(), null);
+        for (Map.Entry<String, Object> entry : choices.entrySet())
+            check(entry.getValue().equals(disk.files.get(LauncherMigration.PREFERENCES).values().get(entry.getKey())),
+                    "Existing card and widget display consumers retain exact migrated choices.");
+        for (Object[] bad : new Object[][]{{"poster_mode", 1}, {"hide_watch_next_titles", "false"},
+                {"text_outside_cards", "true"}, {"color_cards_text_color_argb", 1L},
+                {"color_cards_text_color_opacity", 101}, {"color_widget_bg_color_argb", "black"},
+                {"color_widget_bg_color_opacity", -1}, {"color_widget_text_color_argb", 1f},
+                {"color_widget_text_color_opacity", 50L}, {"color_unknown_color_argb", 0}}) {
+            Map<String, Object> malformed = new LinkedHashMap<>(choices);
+            malformed.put((String) bad[0], bad[1]);
+            LegacyPresentationMapper.Plan invalid = LegacyPresentationMapper.plan(snapshot(malformed), identities(), Collections.emptyMap(), null, false, true);
+            PresentationSnapshot before = new PresentationSnapshot(invalid.before);
+            FixtureDisk untouched = new FixtureDisk(before);
+            reject(() -> ProductionMigrationGate.commit(new FixtureStore(untouched), before, identities(), null));
+            check(untouched.events.isEmpty() && before.sameValues(new FixtureStore(untouched).read()),
+                    "Malformed or unknown display setting leaves all stores untouched.");
+        }
+    }
+
     private static void productionGate() throws Exception {
         Map<String, PreferenceSnapshot> emptyFiles = new LinkedHashMap<>();
         for (String file : LegacyPresentationMapper.FILES) emptyFiles.put(file, snapshot(Collections.emptyMap()));
@@ -738,9 +773,9 @@ public final class PresentationMappingTest {
         String clock = "{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Small\",\"data\":{}}";
         String year = "{\"id\":\"22222222-2222-2222-2222-222222222222\",\"type\":\"YearProgress\",\"size\":\"Small\",\"data\":{}}";
         String groups = "[[" + clock + "," + year + "]]";
-        for (boolean hide : new boolean[]{false, true}) {
+        for (boolean widgets : new boolean[]{false, true}) for (boolean hide : new boolean[]{false, true}) {
             Map<String, Object> values = new LinkedHashMap<>();
-            values.put("widgets_config", groups); values.put("enable_widgets", false); values.put("hide_watch_next", hide);
+            values.put("widgets_config", groups); values.put("enable_widgets", widgets); values.put("hide_watch_next", hide);
             LegacyPresentationMapper.Plan base = LegacyPresentationMapper.plan(snapshot(values), identities(), Collections.emptyMap());
             PresentationSnapshot before = new PresentationSnapshot(base.before);
             FixtureDisk disk = new FixtureDisk(before);
@@ -750,7 +785,7 @@ public final class PresentationMappingTest {
                 check(prepared.target.stores.get(file).values().equals(disk.files.get(file).values()), "Commit writes the exact preflight target.");
             Map<String, Object> layout = disk.files.get(LegacyPresentationMapper.LAYOUT).values();
             check(groups.equals(layout.get("widget_groups")) && groups.equals(disk.files.get(LauncherMigration.PREFERENCES).values().get("widgets_config")), "Group IDs, order and original JSON are retained exactly.");
-            check((hide ? "NONE" : "CARDS_ONLY").equals(layout.get("mode")), "Original mapped content mode remains intact.");
+            check((hide ? "NONE" : widgets ? "WIDGETS_ONLY" : "CARDS_ONLY").equals(layout.get("mode")), "Original mapped content mode remains intact.");
             check(((String) layout.get("hidden")).contains("widget:clock"), "Duplicate singleton content clock is hidden.");
             check(!disk.files.get(LauncherMigration.PREFERENCES).values().containsKey("minimal_status_bar")
                     && !disk.files.get(LauncherMigration.PREFERENCES).values().containsKey("source_status_bar_off"),
@@ -808,12 +843,19 @@ public final class PresentationMappingTest {
             Map<String, Object> values = new LinkedHashMap<>(); values.put("widgets_config", bad); values.put("enable_widgets", false); values.put("hide_watch_next", false);
             assertWidgetRejected(values);
         }
-        for (Object enabled : Arrays.<Object>asList(true, "false", 0)) {
+        for (Object enabled : Arrays.<Object>asList("false", 0)) {
             Map<String, Object> values = new LinkedHashMap<>(); values.put("widgets_config", groups); values.put("enable_widgets", enabled); values.put("hide_watch_next", false);
             assertWidgetRejected(values);
         }
         Map<String, Object> missing = new LinkedHashMap<>(); missing.put("widgets_config", groups);
-        assertWidgetRejected(missing);
+        LegacyPresentationMapper.Plan absentFlags = LegacyPresentationMapper.plan(snapshot(missing), identities(), Collections.emptyMap());
+        PresentationSnapshot absentBefore = new PresentationSnapshot(absentFlags.before);
+        FixtureDisk absentDisk = new FixtureDisk(absentBefore);
+        ProductionMigrationGate.commit(new FixtureStore(absentDisk), absentBefore, identities(), null);
+        check("CARDS_ONLY".equals(absentDisk.files.get(LegacyPresentationMapper.LAYOUT).values().get("mode"))
+                && !absentDisk.files.get(LauncherMigration.PREFERENCES).values().containsKey("enable_widgets")
+                && !absentDisk.files.get(LauncherMigration.PREFERENCES).values().containsKey("hide_watch_next"),
+                "Absent original flags retain their false defaults without inventing saved flags.");
         Map<String, Object> source = new LinkedHashMap<>();
         source.put("widgets_config", groups); source.put("enable_widgets", false); source.put("hide_watch_next", false);
         for (Map<String, Object> layout : Arrays.asList(
