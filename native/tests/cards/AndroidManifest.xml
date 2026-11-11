@@ -14,4 +14,5 @@
     <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.cards.DiscoveryInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
     <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.CardVisibilityInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
     <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.providers.LegacyHiddenCardsInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.cards.LegacyPlexCardsInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
 </manifest>
