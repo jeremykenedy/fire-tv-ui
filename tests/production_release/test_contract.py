@@ -40,12 +40,14 @@ class ProductionReleaseContractTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             build.verify_signer_output('Signer #1 certificate SHA-256 digest: ' + 'a' * 64,
                                        self.config['signerSha256'])
-        header = "package: name='com.jeremykenedy.firetv.ui' versionCode='79' versionName='2.0.0'"
+        header = ("package: name='com.jeremykenedy.firetv.ui' "
+                  f"versionCode='{self.config['versionCode']}' versionName='{self.config['version']}'")
         build.verify_apk_metadata(header, self.config)
         with self.assertRaises(ValueError):
             build.verify_apk_metadata(header + "\napplication-debuggable", self.config)
         with self.assertRaises(ValueError):
-            build.verify_apk_metadata(header.replace("'79'", "'78'"), self.config)
+            build.verify_apk_metadata(header.replace(
+                f"versionCode='{self.config['versionCode']}'", "versionCode='78'"), self.config)
 
     def test_release_labels_are_verified_in_compiled_manifest(self):
         badging = "application-label:'Fire TV UI'"
