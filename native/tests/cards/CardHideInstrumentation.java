@@ -16,6 +16,7 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
     private static final String PRODUCER = "com.jeremykenedy.firetv.ui.providerfixture";
     private static final String OTHER = "com.jeremykenedy.firetv.ui.othercardfixture";
     private HomeContentView home;
+    private Activity cardSettings;
     private TvRecommendations.Feed first, sibling, control;
     private String step = "publish owned recommendation fixtures";
     @Override public void onStart() {
@@ -63,7 +64,7 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             step = "restore exact feed through existing Cards layout route";
             ActivityMonitor monitor = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
             onMain(new Runnable() { @Override public void run() { main.startActivity(new Intent(main, CardsSettingsActivity.class)); } });
-            cards = waitForMonitorWithTimeout(monitor, 5000); removeMonitor(monitor); check(cards != null, "Cards settings opened."); awaitWindow(cards);
+            cards = waitForMonitorWithTimeout(monitor, 5000); removeMonitor(monitor); check(cards != null, "Cards settings opened."); cardSettings = cards; awaitWindow(cards);
             clickTag("channels");
             ActivityMonitor layoutMonitor = addMonitor(ROOT + "layout.LayoutSettingsActivity", null, false);
             clickTag("layout");
@@ -71,7 +72,7 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             check(layout != null, "Existing layout restoration route opened."); cards = layout; awaitWindow(cards);
             awaitTag(first.item.key() + ":visibility"); clickTag(first.item.key() + ":visibility");
             capture("restore-feed-layout.png");
-            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main); readHome();
+            backFromLayout(); readHome();
             assertShown(first, true); assertShown(sibling, true); assertShown(control, true);
             onMain(new Runnable() { @Override public void run() {
                 check(selected[0].equals(home.findCard(first.item.key()).currentProgram().key), "Restored card retains its selected visible title.");
@@ -140,14 +141,14 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             step = "restore last dashboard card through existing Cards settings";
             ActivityMonitor profileCards = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
             onMain(new Runnable() { @Override public void run() { main.startActivity(new Intent(main, CardsSettingsActivity.class)); } });
-            cards = waitForMonitorWithTimeout(profileCards, 5000); removeMonitor(profileCards); check(cards != null, "Cards remains reachable without any dashboard card."); awaitWindow(cards);
+            cards = waitForMonitorWithTimeout(profileCards, 5000); removeMonitor(profileCards); check(cards != null, "Cards remains reachable without any dashboard card."); cardSettings = cards; awaitWindow(cards);
             clickTag("channels");
             ActivityMonitor profileEditor = addMonitor(ROOT + "layout.LayoutSettingsActivity", null, false); clickTag("layout");
             cards = waitForMonitorWithTimeout(profileEditor, 5000); removeMonitor(profileEditor); check(cards != null, "Active profile editor opens."); awaitWindow(cards);
             check(activeId.equals(cards.getIntent().getStringExtra(LayoutSettingsActivity.DASHBOARD_PROFILE)), "Cards targets the current dashboard explicitly.");
             onMain(new Runnable() { @Override public void run() { check(containsText(cards.getWindow().getDecorView(), "Dashboard: Card proof dashboard"), "Visible editor heading identifies profile scope."); } });
             awaitTag(first.item.key() + ":visibility"); clickTag(first.item.key() + ":visibility"); capture("restore-active-dashboard-card.png");
-            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main); awaitDashboard(activeId); awaitShown(first, true);
+            backFromLayout(); awaitDashboard(activeId); awaitShown(first, true);
             assertShown(first, true); assertShown(sibling, false); assertShown(control, false);
             check(baseBefore.equals(getTargetContext().getSharedPreferences("native_layout", Context.MODE_PRIVATE).getAll())
                     && otherBefore.equals(schedules.read().profile(otherId).layout.backupValues())
@@ -169,7 +170,7 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             cards = waitForMonitorWithTimeout(capturedEditor, 5000); removeMonitor(capturedEditor); check(cards != null, "Captured editor opens."); awaitWindow(cards);
             check(activeId.equals(cards.getIntent().getStringExtra(LayoutSettingsActivity.DASHBOARD_PROFILE)), "Later selection cannot retarget captured dashboard A to B.");
             capture("captured-dashboard-editor.png");
-            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main); awaitDashboard(otherId);
+            backFromLayout(); awaitDashboard(otherId);
             check(Arrays.equals(contextualState, LayoutScheduleCodec.encode(schedules.read())), "Contextual editor visit changes neither profile nor selection.");
             step = "captured base Settings stays base after dashboard activation";
             schedules.resumeAutomatic(); refreshDashboard(); awaitDashboard(null); awaitShown(first, true);
@@ -182,7 +183,7 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             cards = waitForMonitorWithTimeout(baseEditor, 5000); removeMonitor(baseEditor); check(cards != null, "Captured base editor opens."); awaitWindow(cards);
             check(LayoutSettingsActivity.BASE_LAYOUT.equals(cards.getIntent().getStringExtra(LayoutSettingsActivity.DASHBOARD_PROFILE)), "Base context cannot become later active profile.");
             onMain(new Runnable() { @Override public void run() { check(containsText(cards.getWindow().getDecorView(), "Your cards and widgets"), "Base editor retains its original heading."); } });
-            press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); press(KeyEvent.KEYCODE_BACK); awaitWindow(main); awaitDashboard(activeId); awaitShown(first, true);
+            backFromLayout(); awaitDashboard(activeId); awaitShown(first, true);
             check(Arrays.equals(contextualState, LayoutScheduleCodec.encode(schedules.read())), "Base context visit preserves all profile and schedule state.");
             step = "direct default editor remains base and deleted captured profile refuses";
             ActivityMonitor defaultEditor = addMonitor(ROOT + "layout.LayoutSettingsActivity", null, false);
@@ -210,6 +211,7 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
             result.putString("cases", "Actual Select and Menu; original provider link; next title retention; exact feed hide retains same-source sibling and unrelated source; logical next focus; existing layout Show; whole publisher hide across preview/WatchNext; App Manager checkbox+Save restores all; last-card app focus; exact active dashboard hide and Show; unchanged base/other profile/schedule; stale-popup refusal; default and missing editor targets");
         } catch (Throwable failure) {
             result.putString("status", "FAIL"); result.putString("step", step); result.putString("reason", failure.toString());
+            try { capture("failure.png"); } catch (Exception captureError) { result.putString("capture", captureError.toString()); }
         }
         finish("PASS".equals(result.getString("status")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
     }
@@ -241,12 +243,18 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
         }
         throw new AssertionError("Dashboard did not become active: " + id);
     }
+    private void backFromLayout() {
+        press(KeyEvent.KEYCODE_BACK); awaitWindow(cardSettings);
+        cards = cardSettings;
+        press(KeyEvent.KEYCODE_BACK); awaitWindow(cardSettings);
+        press(KeyEvent.KEYCODE_BACK); awaitWindow(main);
+    }
     private void openCardSettings(TvRecommendations.Feed feed) {
         select(feed, KeyEvent.KEYCODE_MENU);
         ActivityMonitor monitor = addMonitor(ROOT + "cards.CardsSettingsActivity", null, false);
         clickText("Card settings");
         cards = waitForMonitorWithTimeout(monitor, 5000); removeMonitor(monitor);
-        check(cards != null, "Actual card menu opens Settings."); awaitWindow(cards);
+        check(cards != null, "Actual card menu opens Settings."); cardSettings = cards; awaitWindow(cards);
     }
     private void awaitShown(final TvRecommendations.Feed feed, final boolean expected) {
         long end = SystemClock.uptimeMillis() + 5000;
