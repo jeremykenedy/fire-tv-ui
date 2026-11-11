@@ -374,6 +374,9 @@ public final class CardHideInstrumentation extends CardControlsInstrumentation {
         check(cards != null, "Actual channel layout route opens."); awaitWindow(cards);
     }
     private void captureEditor(Bundle result, String name) throws Exception {
+        final View[] visibility = new View[1];
+        onMain(new Runnable() { @Override public void run() { visibility[0] = cards.getWindow().getDecorView().findViewWithTag(first.item.key() + ":visibility"); } });
+        focus(visibility[0]); SystemClock.sleep(500);
         final StringBuilder bounds = new StringBuilder();
         onMain(new Runnable() { @Override public void run() {
             android.widget.ScrollView scroll = findScroll(cards.getWindow().getDecorView());
