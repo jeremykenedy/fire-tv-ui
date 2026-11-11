@@ -6,12 +6,16 @@ import java.util.*;
 public final class LegacyJson {
     private final String text;
     private int position, nodes;
-    private LegacyJson(String text) {
-        if (text == null || text.length() > 1024 * 1024) throw invalid();
+    private LegacyJson(String text, int maxCharacters) {
+        if (maxCharacters < 1 || maxCharacters > 8 * 1024 * 1024
+                || text == null || text.length() > maxCharacters) throw invalid();
         this.text = text;
     }
     public static Map<String, Object> object(String text) {
-        LegacyJson parser = new LegacyJson(text);
+        return object(text, 1024 * 1024);
+    }
+    public static Map<String, Object> object(String text, int maxCharacters) {
+        LegacyJson parser = new LegacyJson(text, maxCharacters);
         Object value = parser.value(0);
         parser.space();
         if (!(value instanceof Map) || parser.position != text.length()) throw invalid();

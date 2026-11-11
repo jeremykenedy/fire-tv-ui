@@ -5,11 +5,29 @@ import java.util.*;
 
 public final class MigrationTest {
     public static void main(String[] args) throws Exception {
+        originalBackupJsonBounds();
         typedRecovery();
         portableBoundary();
         malformedSnapshots();
         transactionRecovery();
         System.out.println("Typed migration, portable boundaries and recovery regressions passed.");
+    }
+
+    private static void originalBackupJsonBounds() throws Exception {
+        char[] text = new char[1024 * 1024];
+        Arrays.fill(text, 'x');
+        String original = "{\"saved\":\"" + new String(text) + "\"}";
+        reject(() -> LegacyJson.object(original));
+        check(((String) LegacyJson.object(original, 8 * 1024 * 1024).get("saved")).length() == text.length,
+                "Original backup parser accepts a larger explicitly bounded document.");
+        reject(() -> LegacyJson.object(original, original.length() - 1));
+        reject(() -> LegacyJson.object("{}", 8 * 1024 * 1024 + 1));
+        reject(() -> LegacyJson.object("{}", 0));
+        reject(() -> LegacyJson.object("{\"a\":1,\"a\":2}", 8 * 1024 * 1024));
+        String deep = "0";
+        for (int i = 0; i < 34; i++) deep = "[" + deep + "]";
+        final String nested = "{\"a\":" + deep + "}";
+        reject(() -> LegacyJson.object(nested, 8 * 1024 * 1024));
     }
 
     private static Map<String, Object> fixture() {
