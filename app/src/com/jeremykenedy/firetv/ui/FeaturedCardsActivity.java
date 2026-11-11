@@ -147,8 +147,9 @@ public final class FeaturedCardsActivity extends CardActivity {
         body.addView(sources);
         body.addView(
                 text(
-                        "Press Menu while a featured card is focused to hide only that card."
-                                + " Changes are saved. Reload home cards to apply setup changes.",
+                        "Select a featured card or press Menu for Open and card controls."
+                                + " Hide this title removes the current item; Hide cards from an app"
+                                + " hides all of that app's feeds. Changes are saved.",
                         17,
                         MUTED));
         labels();

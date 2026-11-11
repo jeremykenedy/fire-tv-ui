@@ -5,18 +5,20 @@
 .field private final delegate:Ln4/c;
 .field private final context:Landroid/content/Context;
 .field private final card:LQ3/S8;
+.field private final open:Ljava/lang/Runnable;
 
-.method public constructor <init>(Ln4/c;Landroid/content/Context;LQ3/S8;)V
+.method public constructor <init>(Ln4/c;Landroid/content/Context;LQ3/S8;Ljava/lang/Runnable;)V
     .locals 0
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
     iput-object p1, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->delegate:Ln4/c;
     iput-object p2, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->context:Landroid/content/Context;
     iput-object p3, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->card:LQ3/S8;
+    iput-object p4, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->open:Ljava/lang/Runnable;
     return-void
 .end method
 
 .method public final b(Ljava/lang/Object;)Ljava/lang/Object;
-    .locals 9
+    .locals 10
     move-object v0, p1
     check-cast v0, Lq0/b;
     iget-object v2, v0, Lq0/b;->a:Landroid/view/KeyEvent;
@@ -27,7 +29,8 @@
     iget-wide v5, v7, LQ3/S8;->h:J
     iget-object v8, v7, LQ3/S8;->hiddenCardTitle:Ljava/lang/String;
     iget-object v7, v7, LQ3/S8;->hiddenCardKey:Ljava/lang/String;
-    invoke-static/range {v1 .. v8}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;JLjava/lang/String;Ljava/lang/String;)Z
+    iget-object v9, p0, Lcom/jeremykenedy/firetv/ui/CardKeyAction;->open:Ljava/lang/Runnable;
+    invoke-static/range {v1 .. v9}, Lcom/jeremykenedy/firetv/ui/FeaturedCardMenu;->handle(Landroid/content/Context;Landroid/view/KeyEvent;Ljava/lang/String;Landroid/net/Uri;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Runnable;)Z
     move-result v0
     if-eqz v0, :normal_card_key
     sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
