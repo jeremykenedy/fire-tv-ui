@@ -133,6 +133,10 @@ public final class HiddenCardsTest {
         HiddenCards.Card selected = HiddenCards.selected(firstKey, "source.shared", "First shared title", 9);
         check(selected != null && selected.key.equals(firstKey) && selected.title.equals("First shared title"),
                 "The selected model must remain dismissible after its label cache entry is evicted.");
+        check(HiddenCards.selected(firstKey, "source.shared", "||First shared title", 9).title.equals("First shared title"),
+                "A preview model's internal prefix must not appear in its menu title.");
+        check(HiddenCards.selected(firstKey, "source.shared", "||Literal Watch Next title", -1).title.equals("||Literal Watch Next title"),
+                "Watch Next title text must remain literal.");
         HiddenCards.hide(context, selected.key);
         check(!HiddenCards.visible(context, first, false), "Dismissal must use the exact carried key after cache eviction.");
         check(HiddenCards.selected("not-an-item-key", "source.shared", "Other", 9) == null,
