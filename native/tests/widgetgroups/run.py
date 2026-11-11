@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-widgetgroups-') as folder:
     journal_sources = sorted(path for path in (source / 'migration').glob('*.java') if not path.name.startswith('Android'))
     journal_sources += [source / name for name in (
         'device/protection/LegacyDeviceProtection.java', 'holidays/HolidayScenes.java', 'folders/FolderOptions.java', 'appgrid/AppGridOptions.java',
-        'appgrid/HomeTileOrder.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
+        'appgrid/HomeTileOrder.java', 'appgrid/RetainedHomeChoices.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
         'layout/LayoutItem.java', 'cards/CardOptions.java', 'appearance/AppearanceOptions.java',
         'appearance/PaletteRecipes.java', 'inputs/InputEntry.java', 'inputs/InputOptions.java',
         'widgetgroups/WidgetGroupMigration.java', 'widgetgroups/WidgetGroupPresentationPlan.java', 'widgetgroups/WidgetGroups.java', 'widgetgroups/WeatherGroupOptions.java', 'widget/weather/WeatherOptions.java')]
