@@ -54,7 +54,8 @@ public final class RetainedHomePreferences {
                 : file.equals(RetainedHomeChoices.INPUTS) ? RetainedHomeChoices.promoteInputs(before, identities)
                 : RetainedHomeChoices.promoteIcons(before, identities);
         Set<String> keys = new LinkedHashSet<>(before.keySet()); keys.addAll(after.keySet());
-        keys.removeIf(key -> Objects.equals(before.get(key), after.get(key)));
+        for (String key : new ArrayList<>(keys))
+            if (Objects.equals(before.get(key), after.get(key))) keys.remove(key);
         if (keys.isEmpty()) return;
         if (write(preferences, after, keys) && matches(preferences.getAll(), after, keys)) return;
         boolean restored = write(preferences, before, keys) && matches(preferences.getAll(), before, keys);
