@@ -31,6 +31,11 @@ public final class BackupFixtureProvider extends ContentProvider {
         try {
             if ("reset".equals(method)) { document().delete(); }
             else if ("malformed".equals(method)) { try(OutputStream output=new FileOutputStream(document())) { output.write("{broken".getBytes("UTF-8")); } }
+            else if ("original".equals(method) || "original-unsupported".equals(method)) {
+                String value = "original".equals(method) ? "{\"apps_per_row\":4,\"use_24h_clock\":true,\"icon_radius\":13}"
+                        : "{\"apps_per_row\":6,\"fire_tv_ui_sleep\":60}";
+                try(OutputStream output=new FileOutputStream(document())) { output.write(value.getBytes("UTF-8")); }
+            }
             else if ("read".equals(method)) {
                 ByteArrayOutputStream bytes=new ByteArrayOutputStream();
                 try(InputStream input=new FileInputStream(document())) { byte[] buffer=new byte[8192];int count;while((count=input.read(buffer))!=-1) { if(bytes.size()+count>PortableBackup.MAX_BYTES)throw new IOException();bytes.write(buffer,0,count); } }

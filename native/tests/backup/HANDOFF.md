@@ -48,3 +48,20 @@ A first test fixture used an invalid synthetic card source and failed before ope
 The same exact APK also passed the complete native proof at 1920 by 1080, 320dpi on the owned API31 Android TV AVD. The landscape capture was inspected with every action and scope label visible without clipping. Receipt directory: `/tmp/fire-tv-backup-controls-20261111/landscape/`. Guard case `backup-controls-landscape-20261111`, manifest `90be2cb894215569f4ce8e0cfda43a56a1a23c9361d36c91c4c82bcfd6b60af1`, completed capture, restore, independent stopped verification and resolution, each `VERIFIED` with `matches=true`.
 
 The owned screenshot file was removed from the emulator, all three owned test/application packages were uninstalled, the emulator was shut down and the newly created AVD was deleted. All existing AVDs and physical TVs were preserved.
+
+## Original launcher document compatibility
+
+The existing Import presentation backup action now recognizes original flat launcher JSON documents up to 8 MiB through the strict duplicate/depth/node bounded parser. The reviewed original scalar/StringSet schema is applied before preparing any state. A review dialog lists included presentation choices. Any unsupported device, account, PIN, game, cache or unknown field produces a concrete unsupported section and offers Close only. The entire document is refused; supported entries are never silently applied from a blocked file.
+
+Supported presentation imports use `SavedSetupManager.prepareOriginalBackup` with the existing verified platform identity inventory and migration mapper. Only included choices change. Omitted grid, cards, widget groups, colors, credentials and local locks remain. Personal URIs must already match the TV's selected source references, and mapped personal icons must already exist locally. No media file, new URI grant, network setting or permission is imported. Preparation is read only and repeated at confirmation under the shared presentation lock. `BackupTransaction.applyOriginal` uses the existing durable presentation journal, checked commits/readback and rollback.
+
+Verification on November 11, 2026:
+
+* 26 portable codec, 10 household privacy and 15 original codec checks passed.
+* Saved setup host suite: 205 checks passed, including original preparation without mutation, included direct choices, omitted grid/color preservation, local lock preservation and refusal of device keys/new artwork references. Real Android SDK manager compilation passed.
+* Source debug build and native proof APK compilation passed. Exact installed APK SHA256: `ae474b532f40063dd3d166d7202dc07a754ea9feb575d347688ec2f1eaac1554`, using the same disposable debug signer recorded above.
+* API31 Android TV, 1920 by 1080: actual controlled SAF original-file import mapped grid, clock and icon radius choices; preserved omitted widget/card choices; a failed grid commit restored the exact previous presentation; a file with a sleep setting was wholly refused, showed the concrete unsupported key and offered no Import action. Existing portable/privacy/recovery cases also passed.
+* Native review and refusal dialogs were visually inspected. Evidence: `/tmp/fire-tv-backup-controls-20261111/original/`.
+* Durable guard case `original-backup-20261111`, manifest `40cb8b2a1e2019432e5a97327e6e6a5c1e9a56e2a5ec7686b20fbf2f92255f02`, captured an empty owner state with zero Keystore aliases; restore, independent stopped verify and resolve each returned `VERIFIED`, `matches=true`. Owned external screenshots were separately removed.
+
+Full original backup parity remains open: ordinary original exports can include unsupported device and other nonpresentation fields and are refused as a whole. The selected local custom icon and weather widget city/unit compatibility cases additionally depend on the shared migration/inventory work; the receipt above qualifies the explicitly exercised original choices only.

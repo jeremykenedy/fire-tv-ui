@@ -16,6 +16,8 @@ from java_runtime import json_runtime
 from android_stubs import SOURCES
 
 sources = dict(SOURCES)
+sources['com/jeremykenedy/firetv/ui/nativeapp/migration/AndroidPresentationInventory.java'] = 'package com.jeremykenedy.firetv.ui.nativeapp.migration;\npublic final class AndroidPresentationInventory {\n public static PresentationMappingContext read(android.content.Context context, PreferenceSnapshot legacy) { return PresentationMappingContext.empty(); }\n}'
+
 # Resource constants are compile-only; tests exercise the real reviewed catalog entries.
 catalog = (SOURCE / 'icons/IconCatalog.java').read_text()
 resources = sorted(set(re.findall(r'R.drawable.(\w+)', catalog)))

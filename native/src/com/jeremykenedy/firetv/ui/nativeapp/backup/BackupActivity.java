@@ -52,7 +52,7 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
         scroll.addView(body); page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         body.addView(Pages.text(this, "Backup and restore", 28));
         body.addView(Pages.text(this, "Export saves launcher layout, app organization, card choices and appearance in a document you select. Import replaces those choices after you confirm. Accounts, passwords, device settings and private connection files stay on this TV.", 18));
-        body.addView(Pages.text(this, "Backups from the original launcher cannot be imported here. Personal photos, videos, timers, location and quick actions stay on this TV. Export requires built-in artwork. Notes and reminders are included only when selected below and allowed in their settings.", 16));
+        body.addView(Pages.text(this, "Original launcher backups can restore supported presentation choices on this TV after review. Files containing unsupported settings are refused as a whole. Personal photos, videos, timers, location and quick actions stay local. Portable export requires built-in artwork. Notes and reminders are included only when selected below and allowed in their settings.", 16));
         notesOption = new CheckBox(this); notesOption.setTextColor(android.graphics.Color.WHITE); notesOption.setText("Include notes in this export (requires local notes export permission)");
         remindersOption = new CheckBox(this); remindersOption.setTextColor(android.graphics.Color.WHITE); remindersOption.setText("Include reminders in this export (requires local reminders export permission)");
         if (state != null) {
@@ -127,19 +127,53 @@ public final class BackupActivity extends com.jeremykenedy.firetv.ui.nativeapp.M
         worker.execute(new Runnable() {
             @Override public void run() {
                 try {
-                    final BackupPayload payload;
-                    try (InputStream input = getContentResolver().openInputStream(uri)) {
-                        payload = BackupPayload.decode(PortableBackup.read(input), VALIDATOR);
+                    final byte[] bytes;
+                    try (InputStream input = getContentResolver().openInputStream(uri)) { bytes = OriginalBackup.read(input); }
+                    final OriginalBackup original = OriginalBackup.decode(bytes);
+                    if (original != null) {
+                        String problem = null;
+                        if (original.unsupported.isEmpty()) {
+                            try { new com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupManager(BackupActivity.this).prepareOriginalBackup(original.settings); }
+                            catch (Exception unavailable) { problem = unavailable instanceof java.io.IOException ? unavailable.getMessage()
+                                    : "Some presentation choices are invalid or unavailable on this TV. Nothing was changed."; }
+                        }
+                        final String reason = problem;
+                        runOnUiThread(new Runnable() { @Override public void run() { if (!destroyed) confirmOriginal(original,reason); } });
+                    } else {
+                        final BackupPayload payload = BackupPayload.decode(bytes, VALIDATOR);
+                        runOnUiThread(new Runnable() { @Override public void run() { if (!destroyed) confirmImport(payload); } });
                     }
-                    runOnUiThread(new Runnable() {
-                        @Override public void run() { if (!destroyed) confirmImport(payload); }
-                    });
                 } catch (Exception failed) {
                     report(failed instanceof IllegalArgumentException ? failed.getMessage()
                             : "The selected document could not be read. Nothing was changed.");
                 }
             }
         });
+    }
+    private void confirmOriginal(final OriginalBackup original, String problem) {
+        boolean allowed = original.unsupported.isEmpty() && problem == null;
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this).setTitle(allowed ? "Import original launcher backup?" : "Original backup cannot be imported")
+                .setMessage(original.summary() + (problem == null ? "" : "\n\n" + problem))
+                .setNegativeButton(allowed ? "Cancel" : "Close", new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog,int which) { finishWork("Original backup review closed. No settings were changed."); }
+                }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override public void onCancel(DialogInterface dialog) { finishWork("Original backup review closed. No settings were changed."); }
+                });
+        if (allowed) dialog.setPositiveButton("Import",new DialogInterface.OnClickListener() {
+            @Override public void onClick(DialogInterface dialog,int which) { applyOriginal(original); }
+        });
+        dialog.show();
+    }
+    private void applyOriginal(final OriginalBackup original) {
+        if (!ready()) return;
+        setBusy(true);
+        worker.execute(new Runnable() { @Override public void run() {
+            String message;
+            try { BackupTransaction.applyOriginal(BackupActivity.this,original); message = "Original launcher presentation imported. Other local settings were preserved."; }
+            catch (Exception failed) { message = hasRecovery() ? "Import failed. Restore the interrupted presentation change before importing again."
+                    : "Original backup could not be applied. Previous presentation settings were retained or restored."; }
+            report(message);
+        }});
     }
     private void confirmImport(final BackupPayload payload) {
         new AlertDialog.Builder(this).setTitle("Import presentation backup?")

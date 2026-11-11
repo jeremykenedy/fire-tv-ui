@@ -703,8 +703,33 @@ public final class SetupTest {
         check(!prefs(legacyContext, "source_accessibility").values.containsKey("text_percent")
                 && prefs(legacyContext, "source_accessibility").values.get("future_private").equals("kept"),
                 "applying older setup removes owned readability choices while preserving unknown data");
+        originalBackup(new File(args[0],"original-backup"));
         System.out.println("Saved setups: " + checks + " checks passed.");
     }
+    private static void originalBackup(File folder) throws Exception {
+        Context context = new Context(folder);
+        SavedSetupManager manager = new SavedSetupManager(context);
+        prefs(context,"launcher_prefs").values.put("use_24h_clock",false);
+        prefs(context,"launcher_prefs").values.put("color_back_color_argb",123);
+        prefs(context,"launcher_prefs").values.put("folder_lock_pin","local-lock-fixture");
+        prefs(context,"native_app_grid").values.put("columns",7);
+        Map<String,PreferenceSnapshot> before = PresentationState.capture(context);
+        Map<String,Object> incoming = new LinkedHashMap<>(); incoming.put("use_24h_clock",true);
+        Map<String,PreferenceSnapshot> target = manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(same(before,PresentationState.capture(context)),"Original review never writes current settings.");
+        check(Boolean.TRUE.equals(target.get("launcher_prefs").values().get("use_24h_clock")),"Original included direct choice prepared.");
+        check(Integer.valueOf(123).equals(target.get("launcher_prefs").values().get("color_back_color_argb")),"Original omitted local color retained.");
+        check(Integer.valueOf(7).equals(target.get("native_app_grid").values().get("columns")),"Original omitted grid retained.");
+        PresentationState.apply(context,target,true);
+        check("local-lock-fixture".equals(prefs(context,"launcher_prefs").values.get("folder_lock_pin")),"Original apply preserves local lock.");
+        incoming.clear(); incoming.put("fire_tv_ui_sleep",60);
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original unsupported device key refused.");
+        incoming.clear(); incoming.put("custom_wallpaper_uri","file:/unselected/private-fixture.png");
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original unselected personal URI refused before opening.");
+        incoming.clear(); incoming.put("app_visibility","{\"com.example.fixture\":{\"customIconUri\":\"content://unselected/icon\"}}");
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original new icon grant refused.");
+    }
+
     private static void holidayPresets(File folder) throws Exception {
         Context context = new Context(folder);
         Context.Prefs appearance=prefs(context,"source_appearance"), focus=prefs(context,"native_focus"), packs=prefs(context,"native_icon_packs");

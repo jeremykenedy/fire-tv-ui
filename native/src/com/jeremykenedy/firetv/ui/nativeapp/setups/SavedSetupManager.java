@@ -162,6 +162,52 @@ public final class SavedSetupManager {
         }
     }
 
+    public Map<String, PreferenceSnapshot> prepareOriginalBackup(PreferenceSnapshot incoming) throws Exception {
+        Map<String,Object> values = incoming.values();
+        JSONObject settings = LegacySetupSettings.capture(values);
+        Map<String,Object> checked = LegacySetupSettings.validate(settings);
+        checked.values().removeAll(Collections.singleton(null));
+        if (!checked.equals(values)) throw new IOException("This backup includes unsupported settings. Nothing was changed.");
+        settings.put("keys",new JSONArray(values.keySet()));
+        Map<String,?> local = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll();
+        for (String key : Arrays.asList("custom_wallpaper_uri", "custom_video_uri")) {
+            Object value = values.get(key);
+            if (value instanceof String && !((String)value).isEmpty() && !value.equals(local.get(key)))
+                throw new IOException("Personal artwork must already be selected on this TV. No files or access permissions were imported.");
+        }
+        if (values.containsKey("app_visibility")) {
+            JSONObject next = new JSONObject((String)values.get("app_visibility"));
+            Object stored = local.get("app_visibility");
+            JSONObject current = new JSONObject(stored instanceof String ? (String)stored : "{}");
+            for (Iterator<String> ids = next.keys(); ids.hasNext();) {
+                String id = ids.next(); JSONObject choice = next.getJSONObject(id);
+                if (!choice.has("customIconUri")) continue;
+                Object uri = choice.get("customIconUri");
+                if (uri instanceof String && ((String)uri).isEmpty()) continue;
+                JSONObject existing = current.optJSONObject(id);
+                if (existing == null || !Objects.equals(uri, existing.opt("customIconUri")))
+                    throw new IOException("A personal icon must already be selected on this TV. Choose it locally before importing this backup.");
+            }
+        }
+        PresentationMappingContext identities = com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidPresentationInventory.read(context,incoming);
+        Map<String,PreferenceSnapshot> target = prepareLegacy(settings,identities,true);
+        Map<String,Object> raw = new LinkedHashMap<>(target.get("launcher_prefs").values());
+        for (Map.Entry<String,Object> entry : PresentationState.capture(context).get("launcher_prefs").values().entrySet())
+            if (!values.containsKey(entry.getKey()) && entry.getKey().startsWith("color_")) raw.put(entry.getKey(),entry.getValue());
+        target = new LinkedHashMap<>(target);
+        target.put("launcher_prefs",new PreferenceSnapshot(raw));
+        verifyVideo(target.get("launcher_prefs").values());
+        verifyImages(target.get("launcher_prefs").values());
+        for (Object selected : target.get("native_icons").values().values()) {
+            String value = (String)selected;
+            if (!value.startsWith("image:")) continue;
+            File icon = new File(new File(context.getFilesDir(),"icons"),value.substring(6));
+            if (!icon.isFile() || icon.length() == 0 || icon.length() > 20L * 1024 * 1024)
+                throw new IOException("A personal icon is unavailable on this TV. No settings were changed.");
+        }
+        return target;
+    }
+
     /**
      * Explicit verified identity inventory can be supplied for legacy feeds, inputs and custom
      * icons.
@@ -193,8 +239,8 @@ public final class SavedSetupManager {
         unresolved.removeAll(LegacyPresentationMapper.directlyConsumedPresentationKeys(present));
         if (!unresolved.isEmpty())
             throw new IOException(
-                    "This legacy setup contains presentation choices that still need verified"
-                            + " migration. The setup and all images have been kept.");
+                    "Unsupported presentation choices: " + String.join(", ", unresolved)
+                            + ". No settings or images were changed.");
         Map<String, PreferenceSnapshot> target =
                 new LinkedHashMap<>(PresentationState.capture(context));
         Map<String, Set<String>> owned = new LinkedHashMap<>(

@@ -50,12 +50,8 @@ public final class BackupInstrumentation extends Instrumentation {
             screen=startActivitySync(new Intent().setClassName(context,BackupActivity.class.getName()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             waitForIdleSync();
             check(text("Export saves launcher layout"),"Native backup scope is visible.");
-            check(text("Backups from the original launcher"),"Original backup and local data boundaries are visible.");
-            android.graphics.Bitmap screenshot=getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES).takeScreenshot();
-            check(screenshot!=null,"Native backup screen capture is available.");
-            try(java.io.OutputStream output=new java.io.FileOutputStream(new java.io.File(getTargetContext().getExternalFilesDir(null),"backup-ui.png"))) {
-                check(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output),"Native backup capture saved.");
-            } finally { screenshot.recycle(); }
+            check(text("Original launcher backups can restore"),"Original backup and local data boundaries are visible.");
+            captureScreenshot("backup-ui.png");
             ActivityMonitor canceled=addMonitor(pickerFilter(Intent.ACTION_OPEN_DOCUMENT),new ActivityResult(Activity.RESULT_CANCELED,null),true);
             click("Import presentation backup"); waitStatus("Canceled.");removeMonitor(canceled);
             check(canceled.getHits()==1,"Native document picker was requested.");
@@ -82,6 +78,26 @@ public final class BackupInstrumentation extends Instrumentation {
             ActivityMonitor malformed=selected(Intent.ACTION_OPEN_DOCUMENT);
             click("Import presentation backup");waitStatus("Malformed");removeMonitor(malformed);
             same(fixture,PresentationState.capture(context),"Malformed document changes nothing.");
+
+            context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original",null,null);
+            ActivityMonitor original=selected(Intent.ACTION_OPEN_DOCUMENT);
+            click("Import presentation backup");confirm("Import","Import original launcher backup?");
+            waitStatus("Original launcher presentation imported.");removeMonitor(original);
+            check(context.getSharedPreferences("native_app_grid",0).getInt("columns",0)==4,"Original flat backup maps grid presentation.");
+            check(context.getSharedPreferences("launcher_prefs",0).getBoolean("use_24h_clock",false),"Original direct presentation choice applied.");
+            check(groups.equals(context.getSharedPreferences("native_layout",0).getString("widget_groups",null)),"Original import preserves omitted local widget grouping.");
+            check(fixture.get("native_cards").values().equals(PresentationState.capture(context).get("native_cards").values()),"Original import preserves omitted card choices.");
+            PresentationState.apply(context,fixture,true);
+            OriginalBackup originalPayload=OriginalBackup.decode("{\"apps_per_row\":4,\"use_24h_clock\":true}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            try { BackupTransaction.applyOriginal(new FailingStoreContext(context,"native_app_grid"),originalPayload);throw new AssertionError("Original failed commit accepted"); }
+            catch(java.io.IOException expected) { }
+            same(fixture,PresentationState.capture(context),"Original failed commit restores the exact prior presentation.");
+            check(!PresentationState.hasRecovery(context),"Original verified rollback resolves journal.");
+            context.getContentResolver().call(BackupFixtureProvider.DOCUMENT,"original-unsupported",null,null);
+            ActivityMonitor unsupported=selected(Intent.ACTION_OPEN_DOCUMENT);
+            click("Import presentation backup");confirm("Close","Original backup cannot be imported");
+            waitStatus("Original backup review closed.");removeMonitor(unsupported);
+            same(fixture,PresentationState.capture(context),"Original file with device settings is wholly refused.");
 
             runOnMainSync(new Runnable(){@Override public void run(){screen.finish();}});
             Method saveRecovery=PresentationState.class.getDeclaredMethod("saveRecovery",Context.class,Map.class);
@@ -117,12 +133,12 @@ public final class BackupInstrumentation extends Instrumentation {
             click("Import presentation backup");confirm("Import");waitStatus("Presentation backup imported.");removeMonitor(householdImport);
             check(NotesPreferences.load(context).items.size()==1&&NotesPreferences.load(context).summaryOnly&&!NotesPreferences.load(context).allowExport,"SAF household import restores content without enabling detail display or export consent.");
             String privateSnapshot=NotesPreferences.encode(NotesPreferences.load(context));
-            try { BackupTransaction.apply(new FailingNotesContext(context),privatePayload);throw new AssertionError("Failed commit accepted"); }
+            try { BackupTransaction.apply(new FailingStoreContext(context,NotesPreferences.STORE),privatePayload);throw new AssertionError("Failed commit accepted"); }
             catch(java.io.IOException expected) { }
             same(fixture,PresentationState.capture(context),"Failure after private memory mutation rolls presentation back.");
             check(privateSnapshot.equals(NotesPreferences.encode(NotesPreferences.load(context))),"Private document rollback is exact.");
             check(!BackupTransaction.hasRecovery(context)&&!PresentationState.hasRecovery(context),"Verified rollback resolves both private journals.");
-            result.putString("result","PASS: real controlled provider export/import, cancellation, malformed input, explicit recovery, privacy consent reset and rollback after commit mutation.");
+            result.putString("result","PASS: real controlled provider export/import, cancellation, malformed input, original flat file mapping and whole-file refusal, explicit recovery, privacy consent reset and rollback after commit mutation.");
         } catch(Throwable failure) {
             result.putString("result","FAIL: "+failure.getClass().getSimpleName()+": "+failure.getMessage());
         } finally {
@@ -142,6 +158,13 @@ public final class BackupInstrumentation extends Instrumentation {
             if(screen!=null)runOnMainSync(new Runnable(){@Override public void run(){screen.finish();}});
         }
         finish(result.getString("result").startsWith("PASS")?Activity.RESULT_OK:Activity.RESULT_CANCELED,result);
+    }
+    private void captureScreenshot(String name) throws Exception {
+        android.graphics.Bitmap screenshot=getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES).takeScreenshot();
+        check(screenshot!=null,"Native backup screen capture is available.");
+        try(java.io.OutputStream output=new java.io.FileOutputStream(new java.io.File(getTargetContext().getExternalFilesDir(null),name))) {
+            check(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,output),"Native backup capture saved.");
+        } finally { screenshot.recycle(); }
     }
     private static IntentFilter pickerFilter(String action) throws IntentFilter.MalformedMimeTypeException {
         IntentFilter filter=new IntentFilter(action);
@@ -188,9 +211,18 @@ public final class BackupInstrumentation extends Instrumentation {
                 AccessibilityNodeInfo title=matching(root,dialogTitle,false,0,new int[]{0});
                 if(title!=null) {
                     titlePresent=true;title.recycle();
+                    if (dialogTitle.equals("Import original launcher backup?")) captureScreenshot("original-review-ui.png");
+                    if (dialogTitle.equals("Original backup cannot be imported")) captureScreenshot("original-refusal-ui.png");
+                    if (dialogTitle.equals("Original backup cannot be imported")) {
+                        AccessibilityNodeInfo forbidden=matching(root,"Import",true,0,new int[]{0});
+                        check(forbidden==null,"Unsupported original file never offers partial import.");
+                        List<AccessibilityNodeInfo> reasons=root.findAccessibilityNodeInfosByText("fire tv ui sleep");
+                        check(!reasons.isEmpty(),"Unsupported original section identifies concrete device setting.");
+                        for(AccessibilityNodeInfo reason:reasons)reason.recycle();
+                    }
                     AccessibilityNodeInfo action=matching(root,label,true,0,new int[]{0});
                     if(action!=null) {
-                        if (dialogTitle.equals("Import presentation backup?")) same(beforeConfirmation,PresentationState.capture(getTargetContext()),"Presentation cannot change before explicit confirmation.");
+                        if (dialogTitle.startsWith("Import ")) same(beforeConfirmation,PresentationState.capture(getTargetContext()),"Presentation cannot change before explicit confirmation.");
                         for(Map.Entry<String,Object> entry:privateBeforeConfirmation.entrySet())check(Objects.equals(entry.getValue(),getTargetContext().getSharedPreferences(HouseholdContent.store(entry.getKey()),0).getAll().get("document")),"Household content cannot change before explicit confirmation.");
                         boolean clicked=action.performAction(AccessibilityNodeInfo.ACTION_CLICK);action.recycle();
                         for(AccessibilityNodeInfo owned:roots)owned.recycle();
@@ -219,12 +251,13 @@ public final class BackupInstrumentation extends Instrumentation {
     private static Button button(View view,String label){if(view instanceof Button&&label.contentEquals(((Button)view).getText()))return(Button)view;if(view instanceof ViewGroup)for(int i=0;i<((ViewGroup)view).getChildCount();i++){Button found=button(((ViewGroup)view).getChildAt(i),label);if(found!=null)return found;}return null;}
     private static void same(Map<String,PreferenceSnapshot> first,Map<String,PreferenceSnapshot> second,String message){check(first.keySet().equals(second.keySet()),message);for(String file:first.keySet())check(first.get(file).values().equals(second.get(file).values()),message);}
     private static void check(boolean value,String message){if(!value)throw new AssertionError(message);}
-    private static final class FailingNotesContext extends ContextWrapper {
+    private static final class FailingStoreContext extends ContextWrapper {
         private boolean failed;
-        FailingNotesContext(Context context){super(context);}
+        private final String store;
+        FailingStoreContext(Context context,String store){super(context);this.store=store;}
         @Override public SharedPreferences getSharedPreferences(String name,int mode){
             final SharedPreferences delegate=super.getSharedPreferences(name,mode);
-            if(!name.equals(NotesPreferences.STORE))return delegate;
+            if(!name.equals(store))return delegate;
             return(SharedPreferences)Proxy.newProxyInstance(SharedPreferences.class.getClassLoader(),new Class<?>[]{SharedPreferences.class},new InvocationHandler(){
                 @Override public Object invoke(Object proxy,Method method,Object[] args)throws Throwable{
                     if(!method.getName().equals("edit"))return method.invoke(delegate,args);
