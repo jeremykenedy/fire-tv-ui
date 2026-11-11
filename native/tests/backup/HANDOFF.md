@@ -44,3 +44,7 @@ Verification on November 11, 2026:
 * Sanitized native proof output and screen capture: `/tmp/fire-tv-backup-controls-20261111/`. Screen capture uses only this disposable application's external files directory; remove that owned file separately after pulling it. No physical device, owner account, production signer or production installation was used.
 
 A first test fixture used an invalid synthetic card source and failed before opening the screen. Its durable state guard was restored, independently verified and resolved before correcting the fixture. This was a test fixture error, not an accepted application result.
+
+The same exact APK also passed the complete native proof at 1920 by 1080, 320dpi on the owned API31 Android TV AVD. The landscape capture was inspected with every action and scope label visible without clipping. Receipt directory: `/tmp/fire-tv-backup-controls-20261111/landscape/`. Guard case `backup-controls-landscape-20261111`, manifest `90be2cb894215569f4ce8e0cfda43a56a1a23c9361d36c91c4c82bcfd6b60af1`, completed capture, restore, independent stopped verification and resolution, each `VERIFIED` with `matches=true`.
+
+The owned screenshot file was removed from the emulator, all three owned test/application packages were uninstalled, the emulator was shut down and the newly created AVD was deleted. All existing AVDs and physical TVs were preserved.
