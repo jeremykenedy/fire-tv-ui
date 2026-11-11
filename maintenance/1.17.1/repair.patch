@@ -223,7 +223,7 @@ index 67ebe7e..e463a7c 100644
    "apktool_version": "3.0.3",
    "apktool_sha256": "dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423"
 diff --git a/scripts/patch_launcher.py b/scripts/patch_launcher.py
-index 76f9e68..ac5786c 100644
+index 76f9e68..058e1e0 100644
 --- a/scripts/patch_launcher.py
 +++ b/scripts/patch_launcher.py
 @@ -162,6 +162,7 @@ def patch(decoded):
@@ -288,7 +288,7 @@ index 76f9e68..ac5786c 100644
  
      mapper = class_paths["Landroid/support/v4/media/session/b;"]
      mapper.write_text(replace_method(mapper.read_text(),
-@@ -422,10 +464,32 @@ def patch(decoded):
+@@ -422,10 +464,33 @@ def patch(decoded):
                  '    iget-object v0, v1, LQ3/F8;->l:Landroid/content/Context;\n'
                  '    invoke-static {v0, v7}, Lcom/jeremykenedy/firetv/ui/CardOrder;->prepare(Landroid/content/Context;Landroid/database/Cursor;)Landroid/database/Cursor;\n'
                  '    move-result-object v7\n')
@@ -312,8 +312,9 @@ index 76f9e68..ac5786c 100644
 +        '    iget-object v11, v4, LQ3/k8;->hiddenCardKey:Ljava/lang/String;\n'
 +        '    move-object/from16 v34, v11\n\n'
 +        '    iget-object v11, v4, LQ3/k8;->a:Ljava/lang/String;')
-+    feed_text = replace_once(feed_text, '    move-object/from16 v0, v21',
-+        '    move-object/from16 v0, v21\n'
++    feed_constructor = '    invoke-direct/range {v21 .. v33}, LQ3/S8;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Landroid/net/Uri;ZFJIILjava/lang/String;)V'
++    feed_text = replace_once(feed_text, feed_constructor + '\n\n    move-object/from16 v0, v21',
++        feed_constructor + '\n\n    move-object/from16 v0, v21\n'
 +        '    move-object/from16 v11, v34\n'
 +        '    iput-object v11, v0, LQ3/S8;->hiddenCardKey:Ljava/lang/String;\n'
 +        '    move-object/from16 v11, v22\n'
@@ -322,7 +323,7 @@ index 76f9e68..ac5786c 100644
          '    sget-object v0, LQ3/J8;->c:Ljava/util/ArrayList;',
          '    iget-object v0, v1, LQ3/E7;->r:Landroid/content/Context;\n'
          '    invoke-static {v0, v10}, Lcom/jeremykenedy/firetv/ui/FeedOrderBridge;->order(Landroid/content/Context;Ljava/util/List;)Ljava/util/ArrayList;\n'
-@@ -508,6 +572,21 @@ def patch(decoded):
+@@ -508,6 +573,21 @@ def patch(decoded):
      invoke-virtual {v1, v0}, LN/g0;->setValue(Ljava/lang/Object;)V
      return-void
  .end method
