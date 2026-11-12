@@ -176,6 +176,13 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
         heading.setPadding(0, dp(4), 0, dp(26)); page.addView(heading);
         ScrollView scroll = new ScrollView(this);
         scroll.setClipChildren(false); scroll.setClipToPadding(false); scroll.setVerticalScrollBarEnabled(false);
+        scroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                view.setClipBounds(new android.graphics.Rect(-page.getPaddingLeft(), 0,
+                        view.getWidth() + page.getPaddingRight(), view.getHeight()));
+            }
+        });
         final LinearLayout controls = column(); controls.setClipChildren(false); controls.setClipToPadding(false);
         controls.setPadding(0, dp(4), 0, dp(8)); scroll.addView(controls);
         page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));

@@ -24,7 +24,7 @@ def run(*values):
     subprocess.run([str(value) for value in values], check=True)
 
 run('javac', '-source', '8', '-target', '8', '-Xlint:-options', '-bootclasspath', ANDROID,
-    '-cp', args.classes, '-d', WORK / 'classes', HERE / 'AppearanceViewportInstrumentation.java',
+    '-cp', args.classes, '-d', WORK / 'classes', HERE / 'AppearanceViewportInstrumentation.java', HERE / 'SettingsViewportInstrumentation.java',
     ROOT / 'tests/state_guard/GuardStore.java')
 run(TOOLS / 'd8', '--release', '--lib', ANDROID, '--min-api', '27', '--output', WORK / 'dex',
     *sorted((WORK / 'classes').rglob('*.class')))

@@ -21,6 +21,7 @@ public final class SettingsActivity extends MenuActivity {
     private TextView heading;
     private ScrollView scroll;
     private String screen = "root";
+    private int focusId;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -34,6 +35,13 @@ public final class SettingsActivity extends MenuActivity {
         page.addView(heading);
         scroll = new ScrollView(this);
         scroll.setClipChildren(false); scroll.setClipToPadding(false);
+        scroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                view.setClipBounds(new android.graphics.Rect(-page.getPaddingLeft(), 0,
+                        view.getWidth() + page.getPaddingRight(), view.getHeight()));
+            }
+        });
         scroll.setVerticalScrollBarEnabled(false);
         menu = new LinearLayout(this); menu.setOrientation(LinearLayout.VERTICAL);
         menu.setClipChildren(false); menu.setClipToPadding(false);
@@ -136,7 +144,7 @@ public final class SettingsActivity extends MenuActivity {
         if (focus == null) for (int i = 0; i < menu.getChildCount(); i++) {
             if (menu.getChildAt(i).isFocusable()) { focus = menu.getChildAt(i); break; }
         }
-        if (focus != null) focus.requestFocus();
+        if (focus != null) { focusId = focus.getId(); focus.requestFocus(); }
     }
 
     private void favoritesControls() {
@@ -284,12 +292,24 @@ public final class SettingsActivity extends MenuActivity {
             return;
         }
         com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityStyle.apply(this, getWindow().getDecorView());
+        View selected = menu.findViewById(focusId);
+        if (selected != null) selected.requestFocus();
+    }
+
+    private void rememberFocus() {
+        View focused = getCurrentFocus();
+        if (focused != null && focused.isShown()) focusId = focused.getId();
+    }
+
+    @Override protected void onPause() {
+        rememberFocus();
+        super.onPause();
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
         state.putString("screen", screen);
-        View focus = getCurrentFocus();
-        if (focus != null) state.putInt("focus", focus.getId());
+        rememberFocus();
+        state.putInt("focus", focusId);
         super.onSaveInstanceState(state);
     }
 }
