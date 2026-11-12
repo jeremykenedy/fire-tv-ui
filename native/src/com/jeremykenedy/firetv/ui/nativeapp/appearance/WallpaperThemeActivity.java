@@ -23,6 +23,7 @@ public final class WallpaperThemeActivity extends MenuActivity {
     private static final int IMAGE = 7101, VIDEO = 7102;
     private boolean startupBlocked;
     private Button light, dark;
+    private String focusTag;
     private WallpaperRemoteImages.Request download;
 
     @Override protected void onCreate(Bundle state) {
@@ -36,6 +37,13 @@ public final class WallpaperThemeActivity extends MenuActivity {
         ScrollView scroll = new ScrollView(this);
         scroll.setClipChildren(false); scroll.setClipToPadding(false);
         scroll.setVerticalScrollBarEnabled(false);
+        scroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                view.setClipBounds(new android.graphics.Rect(-page.getPaddingLeft(), 0,
+                        view.getWidth() + page.getPaddingRight(), view.getHeight()));
+            }
+        });
         LinearLayout rows = new LinearLayout(this); rows.setOrientation(LinearLayout.VERTICAL);
         rows.setClipChildren(false); rows.setClipToPadding(false);
         rows.setPadding(0, Pages.dp(this, 4), 0, Pages.dp(this, 8));
@@ -63,7 +71,8 @@ public final class WallpaperThemeActivity extends MenuActivity {
         } });
         refresh();
         String focus = state == null ? "light" : state.getString("focus", "light");
-        View selected = rows.findViewWithTag("wallpaper:" + focus);
+        focusTag = "wallpaper:" + focus;
+        View selected = rows.findViewWithTag(focusTag);
         if (selected != null) selected.requestFocus();
     }
 
@@ -191,7 +200,16 @@ public final class WallpaperThemeActivity extends MenuActivity {
         super.onResume();
         if (startupBlocked) return;
         if (!SourceStartup.ready(this)) { startupBlocked = SourceStartup.redirectIfBlocked(this); return; }
-        if (light != null) refresh();
+        if (light != null) {
+            refresh();
+            View selected = getWindow().getDecorView().findViewWithTag(focusTag);
+            if (selected != null) selected.requestFocus();
+        }
+    }
+    @Override protected void onPause() {
+        View focused = getCurrentFocus();
+        if (focused != null && focused.getTag() instanceof String) focusTag = focused.getTag().toString();
+        super.onPause();
     }
     @Override protected void onSaveInstanceState(Bundle state) {
         View focused = getCurrentFocus();
