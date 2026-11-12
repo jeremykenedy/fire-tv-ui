@@ -67,7 +67,7 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
             @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
                     int oldLeft, int oldTop, int oldRight, int oldBottom) {
                 view.setClipBounds(new android.graphics.Rect(-page.getPaddingLeft(), 0,
-                        view.getWidth() + page.getPaddingRight(), view.getHeight()));
+                        view.getWidth() + page.getPaddingRight(), view.getHeight() + page.getPaddingBottom()));
             }
         });
         rows = new LinearLayout(this);

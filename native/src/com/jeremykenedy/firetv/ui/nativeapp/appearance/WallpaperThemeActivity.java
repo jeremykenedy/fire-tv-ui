@@ -41,7 +41,7 @@ public final class WallpaperThemeActivity extends MenuActivity {
             @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
                     int oldLeft, int oldTop, int oldRight, int oldBottom) {
                 view.setClipBounds(new android.graphics.Rect(-page.getPaddingLeft(), 0,
-                        view.getWidth() + page.getPaddingRight(), view.getHeight()));
+                        view.getWidth() + page.getPaddingRight(), view.getHeight() + page.getPaddingBottom()));
             }
         });
         LinearLayout rows = new LinearLayout(this); rows.setOrientation(LinearLayout.VERTICAL);

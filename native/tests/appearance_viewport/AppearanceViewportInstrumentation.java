@@ -35,6 +35,7 @@ public final class AppearanceViewportInstrumentation extends Instrumentation {
             File appearanceFile = new File(getTargetContext().getDataDir(), "shared_prefs/source_appearance.xml");
             byte[] appearanceBytes = appearanceFile.isFile() ? read(appearanceFile) : null;
             boolean fixed = "true".equals(args.getString("expect_fixed"));
+            boolean cornersOnly = "true".equals(args.getString("corners_only"));
             int overflows = 0;
             for (int percent : new int[]{100, 120}) {
                 step = "theme and saved setups at text " + percent;
@@ -53,6 +54,11 @@ public final class AppearanceViewportInstrumentation extends Instrumentation {
                 focus(setups, last); press(KeyEvent.KEYCODE_DPAD_UP); press(KeyEvent.KEYCODE_DPAD_DOWN);
                 check(last.equals(setups.getCurrentFocus().getTag()), "Actual remote Up/Down returns to last setup.");
                 SystemClock.sleep(500); overflows += inspect(setups, result, "setups" + percent, fixed);
+                if (cornersOnly) {
+                    press(KeyEvent.KEYCODE_BACK); window(theme);
+                    onMain(new Runnable() { @Override public void run() { theme.finish(); } });
+                    continue;
+                }
                 press(KeyEvent.KEYCODE_DPAD_CENTER); waitForIdleSync();
                 press(KeyEvent.KEYCODE_BACK); window(setups);
                 check(last.equals(setups.getCurrentFocus().getTag()), "Dismissing setup actions keeps the focused saved setup.");
@@ -82,7 +88,8 @@ public final class AppearanceViewportInstrumentation extends Instrumentation {
             }
             result.putInt("unclipped_viewports", overflows);
             result.putString("status", fixed ? "PASS" : "BASELINE_OBSERVED");
-            result.putBoolean("setup_bytes_and_appearance_unchanged", true);
+            if (!cornersOnly) result.putBoolean("setup_bytes_and_appearance_unchanged", true);
+            result.putString("scope", cornersOnly ? "Header and focused bottom corners at default and largest text" : "Navigation, state and viewport");
         } catch (Throwable failure) {
             result.putString("status", "FAIL"); result.putString("step", step); result.putString("reason", failure.toString());
             try { capture("failure.png"); } catch (Exception ignored) { }
@@ -97,13 +104,15 @@ public final class AppearanceViewportInstrumentation extends Instrumentation {
             View focused = activity.getCurrentFocus();
             check(scroll.getScrollY() > 0, "Bottom row must scroll the actual screen.");
             Rect viewport = new Rect(); scroll.getGlobalVisibleRect(viewport);
-            int[] position = new int[2]; focused.getLocationOnScreen(position);
-            float extraY = focused.getHeight() * (focused.getScaleY() - 1) / 2;
-            boolean visible = position[1] - extraY >= viewport.top - 1
-                    && position[1] + focused.getHeight() + extraY <= viewport.bottom + 1;
+            android.graphics.Matrix transform = new android.graphics.Matrix();
+            focused.transformMatrixToGlobal(transform);
+            android.graphics.RectF expected = new android.graphics.RectF(0, 0, focused.getWidth(), focused.getHeight());
+            transform.mapRect(expected);
             Rect focusedBounds = new Rect(); focused.getGlobalVisibleRect(focusedBounds);
-            boolean growthVisible = focusedBounds.width() >= Math.floor(focused.getWidth() * focused.getScaleX()) - 2
-                    && focusedBounds.height() >= Math.floor(focused.getHeight() * focused.getScaleY()) - 2;
+            boolean growthVisible = focusedBounds.left <= expected.left + 1 && focusedBounds.top <= expected.top + 1
+                    && focusedBounds.right >= expected.right - 1 && focusedBounds.bottom >= expected.bottom - 1;
+            boolean visible = expected.top >= viewport.top && expected.bottom <= viewport.bottom + page.getPaddingBottom();
+            bounds.putString("focus_expected_bounds", expected.toShortString());
             bounds.putBoolean("focus_growth_fully_visible", growthVisible);
             bounds.putString("focus_visible_bounds", focusedBounds.toShortString());
             bounds.putBoolean("focus_fully_visible", visible); bounds.putInt("scroll_y", scroll.getScrollY());
@@ -113,7 +122,7 @@ public final class AppearanceViewportInstrumentation extends Instrumentation {
             bounds.putFloat("focus_scale", focused.getScaleX());
             boolean clipped = page.getClipChildren() || scroll.getClipBounds() != null;
             bounds.putBoolean("viewport_clipped", clipped);
-            if (fixed) { check(clipped, "Content must clip below the fixed header."); check(visible && growthVisible, "Focused row including horizontal and vertical growth must remain visible."); }
+            if (fixed) { check(clipped, "Content must clip below the fixed header."); check(visible && growthVisible, "Focused row including growth must remain visible: expected " + expected + ", visible " + focusedBounds); }
         }});
         result.putString(name, bounds.toString()); capture(name + ".png");
         return bounds.getBoolean("viewport_clipped") ? 0 : 1;
@@ -143,7 +152,7 @@ public final class AppearanceViewportInstrumentation extends Instrumentation {
     private void press(int key) { sendKeyDownUpSync(key); waitForIdleSync(); }
     private void onMain(final Runnable action) {
         final Throwable[] failure={null};runOnMainSync(new Runnable(){@Override public void run(){try{action.run();}catch(Throwable error){failure[0]=error;}}});
-        if(failure[0]!=null)throw new AssertionError("Native action failed",failure[0]);
+        if(failure[0]!=null)throw new AssertionError("Native action failed: " + failure[0].getMessage(),failure[0]);
     }
     private void capture(String name) throws Exception {
         waitForIdleSync();SystemClock.sleep(500);
