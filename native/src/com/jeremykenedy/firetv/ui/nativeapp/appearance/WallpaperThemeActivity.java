@@ -206,14 +206,18 @@ public final class WallpaperThemeActivity extends MenuActivity {
             if (selected != null) selected.requestFocus();
         }
     }
-    @Override protected void onPause() {
+    private void rememberFocus() {
         View focused = getCurrentFocus();
-        if (focused != null && focused.getTag() instanceof String) focusTag = focused.getTag().toString();
+        if (focused != null && focused.isShown() && focused.getTag() instanceof String)
+            focusTag = focused.getTag().toString();
+    }
+    @Override protected void onPause() {
+        rememberFocus();
         super.onPause();
     }
     @Override protected void onSaveInstanceState(Bundle state) {
-        View focused = getCurrentFocus();
-        if (focused != null && focused.getTag() instanceof String) state.putString("focus", focused.getTag().toString().replace("wallpaper:", ""));
+        rememberFocus();
+        if (focusTag != null) state.putString("focus", focusTag.replace("wallpaper:", ""));
         super.onSaveInstanceState(state);
     }
     @Override protected void onDestroy() {

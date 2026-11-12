@@ -65,6 +65,14 @@ public final class AppearanceViewportInstrumentation extends Instrumentation {
                 if (fixed) onMain(new Runnable() { @Override public void run() {
                     check(themeScroll[0] == scroll(theme.getWindow().getDecorView()).getScrollY(), "Back preserves Theme scroll position.");
                 } });
+                if (fixed && percent == 120) {
+                    ActivityMonitor recreated = addMonitor(WallpaperThemeActivity.class.getName(), null, false);
+                    onMain(new Runnable() { @Override public void run() { theme.recreate(); } });
+                    Activity replacement = waitForMonitorWithTimeout(recreated, 5000); removeMonitor(recreated);
+                    check(replacement != null, "Theme recreation completes."); theme = replacement; window(theme);
+                    check("wallpaper:setups".equals(theme.getCurrentFocus().getTag()), "Recreated Theme retains captured Saved setups focus.");
+                    inspect(theme, result, "theme120-recreated", true);
+                }
                 onMain(new Runnable() { @Override public void run() { theme.finish(); } });
                 check(Arrays.equals(before, read(saved)), "Browsing and Back preserve exact setup file bytes.");
                 check(appearance.equals(AppearancePreferences.file(getTargetContext()).getAll()),
