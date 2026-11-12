@@ -38,6 +38,7 @@ final class LegacyAppearanceMapper {
             else if (!(value instanceof Integer) || (Integer) value < 0 || (Integer) value > 100) throw invalid();
             values.put(target, value); mapped.add(entry.getKey());
         }
+        if ("none".equals(legacy.get("overlay_mode"))) mapped.add("overlay_mode");
         if (legacy.containsKey("custom_gradient")) {
             Object original = legacy.get("custom_gradient");
             String selected;

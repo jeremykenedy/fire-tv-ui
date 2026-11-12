@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 public final class CardOptions {
+    public static final String LEGACY_RECOMMENDATIONS = "legacy.recommendations";
     public static final int DEFAULT_SECONDS = 8;
     public static final int MAX_SECONDS = 86400;
     public final int globalSeconds;
@@ -33,7 +34,10 @@ public final class CardOptions {
             Map<String, HiddenItem> series, Map<String, List<String>> order, Set<String> hiddenPackages) {
         validateSeconds(seconds);
         this.hiddenPackages = decodePackages(encodePackages(hiddenPackages));
-        if (timers.size() > 256 || hidden.size() + series.size() > 512 || order.size() > 256)
+        int legacyCount = 0;
+        for (HiddenItem item : hidden.values()) if (LEGACY_RECOMMENDATIONS.equals(item.source)) legacyCount++;
+        if (legacyCount > 2048 || hidden.size() + series.size() - legacyCount > 512
+                || timers.size() > 256 || order.size() > 256)
             throw new IllegalArgumentException("Too many saved card settings.");
         int items = 0;
         Map<String, List<String>> copy = new LinkedHashMap<>();
@@ -86,6 +90,10 @@ public final class CardOptions {
         return seriesKey != null && !seriesKey.isEmpty() && series.containsKey(scopedKey(source, seriesKey));
     }
 
+    public CardOptions hideLegacy(String hash) {
+        return hide(LEGACY_RECOMMENDATIONS, hash, "Previously hidden card");
+    }
+
     public CardOptions hide(String source, String key, String title) {
         Map<String, HiddenItem> copy = new LinkedHashMap<>(hidden);
         copy.put(scopedKey(source, key), entry(source, key, title));
@@ -93,6 +101,7 @@ public final class CardOptions {
     }
 
     public CardOptions hideSeries(String source, String key, String title) {
+        if (LEGACY_RECOMMENDATIONS.equals(source)) throw new IllegalArgumentException("Legacy choices identify items only.");
         Map<String, HiddenItem> copy = new LinkedHashMap<>(series);
         copy.put(scopedKey(source, key), entry(source, key, title));
         return new CardOptions(globalSeconds, feedSeconds, hidden, copy, itemOrder, hiddenPackages);
@@ -260,6 +269,8 @@ public final class CardOptions {
 
     private static HiddenItem entry(String source, String key, String title) {
         scopedKey(source, key);
+        if (LEGACY_RECOMMENDATIONS.equals(source) && !key.matches("[a-f0-9]{64}"))
+            throw new IllegalArgumentException("Invalid historical card identity.");
         if (title == null || title.length() > 512) throw new IllegalArgumentException("Invalid item title.");
         return new HiddenItem(source, key, title);
     }

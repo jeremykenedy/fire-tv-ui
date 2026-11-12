@@ -37,7 +37,7 @@ public final class AndroidPresentationInventory {
         Map<String, PresentationMappingContext.Feed> feeds = new LinkedHashMap<>();
         Map<String, PresentationMappingContext.Item> items = new LinkedHashMap<>();
         boolean recommendations = false;
-        for (String key : new String[]{"featured_feed_order", "featured_card_order", "hidden_featured_cards", "featured_feed_rotation_seconds"}) {
+        for (String key : new String[]{"featured_feed_order", "featured_card_order", "featured_feed_rotation_seconds"}) {
             Object value = legacy.values().get(key);
             if (value instanceof Set && !((Set<?>) value).isEmpty()) recommendations = true;
         }
@@ -60,7 +60,7 @@ public final class AndroidPresentationInventory {
         }
         Map<String, String> icons = new LinkedHashMap<>();
         return new PresentationMappingContext(components, feeds, items, icons,
-                IdentityInventory.inputs(labels), packs, media);
+                IdentityInventory.inputs(labels), packs, media, IdentityInventory.ambiguousInputs(labels));
     }
 
     static List<String> launchActivities(Context context) throws IOException {

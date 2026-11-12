@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 
 /** Source preview never treats the legacy production release as a compatible update. */
 public class UpdatesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuActivity {
+    private static final String NO_RELEASE_DETAILS = "Check for updates compatible with this app.";
     private boolean startupBlocked;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private UpdateCoordinator coordinator;
@@ -50,7 +51,7 @@ public class UpdatesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuAc
         staged = new StagedUpdateStore(getCacheDir());
         LinearLayout page = Pages.page(this);
         page.addView(Pages.text(this, "Updates", 30));
-        status = Pages.text(this, "Check for a compatible source release. Installation always requires your confirmation.", 18);
+        status = Pages.text(this, "Check for updates. Installation always requires your confirmation.", 18);
         status.setTag("updates:status");
         status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         page.addView(status);
@@ -74,7 +75,7 @@ public class UpdatesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuAc
         cancel.setTag("updates:cancel"); page.addView(cancel);
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(false);
-        details = Pages.text(this, "Check GitHub for source releases compatible with this installed package.", 16);
+        details = Pages.text(this, NO_RELEASE_DETAILS, 16);
         details.setTag("updates:release"); scroll.addView(details);
         page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         render(); check.requestFocus();
@@ -129,7 +130,8 @@ public class UpdatesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuAc
     }
     private void discard() { if (verified != null) verified.discard(); verified = null; staged.clear(); }
     private void checkRelease() {
-        discard(); release = null; begin("Checking compatible source releases...");
+        discard(); release = null; details.setText(NO_RELEASE_DETAILS);
+        begin("Checking for updates...");
         final UpdateCoordinator.Cancellation request = cancellation;
         worker.execute(new Runnable() {
             @Override public void run() {
@@ -139,8 +141,8 @@ public class UpdatesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuAc
                         @Override public void run() {
                             if (destroyed) return;
                             busy = false; release = found;
-                            status.setText(found == null ? "No compatible source release is available. This preview was not changed."
-                                    : "A reviewed update is available. Read the release information before downloading.");
+                            status.setText(found == null ? "No compatible update is available."
+                                    : "An update is available. Read the details before downloading.");
                             if (found != null) details.setText(found.versionName + " (" + found.version + ")\n" + found.bytes
                                     + " bytes\n" + found.releaseUrl() + "\n\n" + found.notes);
                             render(); (found == null ? check : download).requestFocus();
@@ -152,7 +154,7 @@ public class UpdatesActivity extends com.jeremykenedy.firetv.ui.nativeapp.MenuAc
     }
     private void downloadRelease() {
         if (release == null || busy) return;
-        begin("Downloading reviewed update...");
+        begin("Downloading update...");
         final UpdateCoordinator.Cancellation request = cancellation;
         final UpdateCoordinator.Release candidate = release;
         worker.execute(new Runnable() {

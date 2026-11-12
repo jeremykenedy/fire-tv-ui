@@ -18,6 +18,10 @@ public final class WidgetGroupsTest {
                 "The observed November fixture has 83 percent and 43 filled dots of 52.");
         WidgetGroups groups = WidgetGroups.decode(SOURCE);
         check(groups.groups.size() == 3 && groups.groups.get(0).isEmpty(), "Empty group and order are retained.");
+        check(groups.displayColumnCount() == 4 && groups.withDisplayColumns().groups.size() == 4
+                && groups.withDisplayColumns().groups.get(3).isEmpty() && groups.groups.size() == 3,
+                "Original four-column display pads absent columns without changing saved records.");
+        check(WidgetGroups.decode("[]").withDisplayColumns().groups.size() == 4, "Explicit empty groups show four editable columns.");
         check(groups.groups.get(2).size() == 2 && !groups.groups.get(2).get(0).id.equals(groups.groups.get(2).get(1).id), "Duplicate clock types retain independent ids.");
         check(!groups.groups.get(1).get(0).isRenderable() && groups.groups.get(2).get(0).isRenderable(), "Weather is explicitly unavailable until per-instance location works.");
         check(WidgetGroups.decode(groups.encode()).encode().equals(groups.encode()), "Group serialization round trips.");
@@ -61,7 +65,53 @@ public final class WidgetGroupsTest {
         check(!second.configured && second.label.equals("Seattle") && second.metric, "Second weather choice is not overwritten.");
         check(changedWeather.groups.get(0).get(0).data.get("location").equals("Portland")
                 && changedWeather.groups.get(0).get(0).data.get("unit").equals("F"), "Original legacy weather fields remain intact.");
+        enabledMigration();
         System.out.println("Grouped widget identity, data, editing and migration checks passed.");
+    }
+    private static void enabledMigration() {
+        String clock = "{\"id\":\"" + A + "\",\"type\":\"DigitalClock\",\"size\":\"Small\",\"data\":{}}";
+        String year = "{\"id\":\"" + B + "\",\"type\":\"YearProgress\",\"size\":\"Small\",\"data\":{}}";
+        String raw = "[[],[" + clock + "," + year + "],[],[]]";
+        for (Boolean enabled : new Boolean[]{null, false, true}) for (Boolean hide : new Boolean[]{null, false, true}) {
+            Map<String, Object> legacy = new LinkedHashMap<>(); legacy.put("widgets_config", raw);
+            if (enabled != null) legacy.put("enable_widgets", enabled);
+            if (hide != null) legacy.put("hide_watch_next", hide);
+            Map<String, Object> original = new LinkedHashMap<>(legacy);
+            Map<String, Object> mapped = WidgetGroupMigration.supportedPatch(legacy, Collections.emptyMap());
+            String mode = Boolean.TRUE.equals(hide) ? "NONE" : Boolean.TRUE.equals(enabled) ? "WIDGETS_ONLY" : "CARDS_ONLY";
+            check(mode.equals(mapped.get("mode")), "Original row and widget defaults select the equivalent native mode.");
+            check(raw.equals(mapped.get(WidgetGroupMigration.KEY)) && legacy.equals(original), "Enabled migration keeps raw records and flag absence unchanged.");
+            check(((String) mapped.get("hidden")).equals("widget:clock"), "Only the duplicate default clock is hidden.");
+            Map<String, Object> existing = new LinkedHashMap<>(mapped);
+            check(mode.equals(WidgetGroupMigration.supportedPatch(legacy, existing).get("mode")),
+                    "An identical existing mode remains migratable.");
+            existing.put("mode", mode.equals("NONE") ? "BOTH" : "NONE");
+            reject(() -> WidgetGroupMigration.supportedPatch(legacy, existing));
+        }
+        Map<String, Object> enabled = new LinkedHashMap<>(); enabled.put("enable_widgets", true);
+        Map<String, Object> defaults = WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap());
+        check("[[],[],[],[]]".equals(defaults.get(WidgetGroupMigration.KEY)) && "WIDGETS_ONLY".equals(defaults.get("mode")),
+                "Enabling widgets without a saved configuration restores the original four empty columns.");
+        enabled.put("widgets_config", "");
+        check(defaults.equals(WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap())) && "".equals(enabled.get("widgets_config")),
+                "The original empty configuration selects four columns without rewriting the source.");
+        enabled.put("widgets_config", raw);
+        reject(() -> WidgetGroupMigration.supportedPatch(enabled, Collections.singletonMap("hidden", "widget:grouped-widgets")));
+        reject(() -> WidgetGroupMigration.supportedPatch(enabled, Collections.singletonMap("order", "widget:clock")));
+        for (Object invalidFlag : new Object[]{"true", 1}) {
+            enabled.put("enable_widgets", invalidFlag);
+            reject(() -> WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap()));
+        }
+        enabled.put("enable_widgets", true);
+        enabled.put("widgets_config", SOURCE);
+        check(SOURCE.equals(WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap()).get(WidgetGroupMigration.KEY)),
+                "Enabled empty-location weather retains the exact record for explicit setup.");
+        enabled.put("widgets_config", SOURCE.replace("\"location\":\"\"", "\"location\":\"Portland\""));
+        reject(() -> WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap()));
+        enabled.put("widgets_config", raw.replace("DigitalClock", "FutureWidget"));
+        reject(() -> WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap()));
+        enabled.put("widgets_config", raw.replace("\"data\":{}", "\"data\":{\"future\":true}"));
+        reject(() -> WidgetGroupMigration.supportedPatch(enabled, Collections.emptyMap()));
     }
     private static void reject(Runnable action) { try { action.run(); } catch (IllegalArgumentException expected) { return; } throw new AssertionError("Invalid groups accepted."); }
     private static void check(boolean condition, String reason) { if (!condition) throw new AssertionError(reason); }

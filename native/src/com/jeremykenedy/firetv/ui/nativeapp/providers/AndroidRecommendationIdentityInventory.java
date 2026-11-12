@@ -92,7 +92,7 @@ public final class AndroidRecommendationIdentityInventory {
                 if (watchNext) addFeed(feeds, LegacyRecommendationIdentities.feed(source, true, "", ""), source, nativeFeed);
                 if (source.equals(context.getPackageName()) && plexId == null) continue;
                 String legacyItem = LegacyRecommendationIdentities.item(source, watchNext,
-                        plexId == null ? rawProvider : plexId, text(rows, "content_id"));
+                        plexId == null ? rawProvider : plexId, text(rows, "content_id"), rowId);
                 if (legacyItem != null) addItem(items, legacyItem, source, nativeItem, observed.title,
                         plexId == null ? null : "com.plexapp.android", plexId == null ? null : "plex:" + plexId);
             }

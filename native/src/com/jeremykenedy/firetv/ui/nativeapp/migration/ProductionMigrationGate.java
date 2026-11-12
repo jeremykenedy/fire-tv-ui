@@ -18,14 +18,6 @@ public final class ProductionMigrationGate {
         PreferenceSnapshot legacy = before.stores.get(LauncherMigration.PREFERENCES);
         if (legacy.values().containsKey(LegacyPresentationMapper.VERSION_KEY))
             throw new IOException("An earlier partial presentation migration requires recovery before startup.");
-        Object hidden = legacy.values().get("hidden_featured_cards");
-        if (hidden instanceof Set) for (Object hash : (Set<?>) hidden) {
-            PresentationMappingContext.Item item = identities.items.get(hash);
-            if (item == null || item.series || !"com.jeremykenedy.firetv.ui".equals(item.source)
-                    || !item.nativeKey.matches("plex:[a-f0-9]{64}:[0-9]{1,18}")
-                    || !"com.plexapp.android".equals(item.aliasSource) || !item.nativeKey.equals(item.aliasKey))
-                throw new IOException("A saved hidden item has no durable verified identity. Original settings were kept.");
-        }
         Map<String, PreferenceSnapshot> nativeBefore = new LinkedHashMap<>(before.stores);
         nativeBefore.remove(LauncherMigration.PREFERENCES);
         try {
@@ -46,11 +38,7 @@ public final class ProductionMigrationGate {
             // has no premium gate. Keep its original typed value for recovery.
             if (Boolean.TRUE.equals(legacy.values().get("is_premium"))) unresolved.remove("is_premium");
             for (String key : new String[]{"fire_tv_ui_block_updates", "fire_tv_ui_block_appstore"})
-                if (Boolean.FALSE.equals(legacy.values().get(key))) unresolved.remove(key);
-            if (Boolean.TRUE.equals(legacy.values().get("fire_tv_ui_block_appstore"))
-                    && (!legacy.values().containsKey("fire_tv_ui_block_updates")
-                    || Boolean.FALSE.equals(legacy.values().get("fire_tv_ui_block_updates"))))
-                unresolved.remove("fire_tv_ui_block_appstore");
+                if (legacy.values().get(key) instanceof Boolean) unresolved.remove(key);
             // The maintained legacy initializer removes both obsolete rating counters.
             unresolved.remove("app_launch_count");
             unresolved.remove("rate_app_shown");

@@ -121,7 +121,43 @@ public final class FocusPreferencesTest {
         try { FocusPreferences.saveIconOption(appearance, "icon_radius", 20); throw new AssertionError("Failed icon save accepted."); }
         catch (IllegalStateException expected) { check(beforeIconFailure.equals(appearance.prefs.values), "Failed icon save restores prior values."); }
         appearance.prefs.fail = false;
+        SeparateContext app = new SeparateContext();
+        check(FocusPreferences.appGrowth(app) == 18 && FocusPreferences.appShadowSize(app) == 18,
+                "Absent app sizes retain original eighteen percent and eighteen dp without writes.");
+        app.focus.values.put("app_focus_style","border");
+        check(FocusPreferences.appGrowth(app) == 18,"App growth default is independent of color and border style.");
+        app.focus.values.put("growth_percent",7);
+        check(FocusPreferences.appGrowth(app) == 7,"Existing explicit source growth remains the app compatibility fallback.");
+        Map<String,Object> generic = new HashMap<>(app.focus.values);
+        FocusPreferences.saveAppSize(app,FocusPreferences.APP_GROWTH,30);
+        FocusPreferences.saveAppShadow(app,38);
+        check(FocusPreferences.appGrowth(app) == 30 && FocusPreferences.appShadowSize(app) == 38
+                && generic.equals(app.focus.values),"Stable app sizing wins without changing generic focus choices.");
+        FocusPreferences.saveAppShadow(app,0);
+        check(FocusPreferences.appShadowSize(app) == 0 && Integer.valueOf(38).equals(app.legacy.values.get(FocusPreferences.APP_SHADOW_SIZE)),
+                "Shadow Off is authoritative and retains the selected shadow size.");
+        Map<String,Object> beforeAppFailure = new HashMap<>(app.legacy.values);
+        app.legacy.fail=true;
+        try { FocusPreferences.saveAppShadow(app,18);throw new AssertionError("Failed shadow save accepted"); }
+        catch (IllegalStateException expected) {check(beforeAppFailure.equals(app.legacy.values),"Failed shadow save restores enabled state and size exactly.");}
+        app.legacy.fail=false;
+        FocusPreferences.saveAppShadow(app,18);
+        check(FocusPreferences.appShadowSize(app) == 18 && !app.legacy.values.containsKey(FocusPreferences.APP_SHADOW_SIZE),"Default shadow restores original absent-size semantics.");
+        for (String key : new String[]{FocusPreferences.APP_GROWTH,FocusPreferences.APP_SHADOW_SIZE}) {
+            for (Object bad : new Object[]{-1,39,18L,"18",true}) {
+                app.legacy.values.put(key,bad);
+                try {if(key.equals(FocusPreferences.APP_GROWTH))FocusPreferences.appGrowth(app);else FocusPreferences.appShadowSize(app);throw new AssertionError("Malformed app size accepted");}
+                catch (IllegalStateException expected) {check(bad.equals(app.legacy.values.get(key)),"Malformed app size is never overwritten.");}
+            }
+            app.legacy.values.remove(key);
+        }
         System.out.println("Focus persistence, failed-save rollback and malformed settings passed.");
+    }
+
+    private static final class SeparateContext extends Context {
+        final android.content.SharedPreferences focus = new android.content.SharedPreferences();
+        final android.content.SharedPreferences legacy = new android.content.SharedPreferences();
+        @Override public android.content.SharedPreferences getSharedPreferences(String name,int mode) {return name.equals("native_focus")?focus:legacy;}
     }
 
     private static void check(boolean value, String message) {

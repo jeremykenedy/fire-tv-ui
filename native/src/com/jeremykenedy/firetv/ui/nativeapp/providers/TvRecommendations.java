@@ -26,6 +26,8 @@ public final class TvRecommendations {
     public static final class Program {
         public final String key;
         public final String compatibilityKey;
+        public final String legacyKey;
+        public final String legacyWatchNextKey;
         public final String source;
         public final String title;
         public final Uri artwork;
@@ -52,7 +54,15 @@ public final class TvRecommendations {
         }
         Program(String key, String source, String title, Uri artwork, String intentUri,
                 String seriesKey, String seriesTitle, String detailsIntentUri, String playIntentUri, String notificationKey, String compatibilityKey) {
+            this(key, source, title, artwork, intentUri, seriesKey, seriesTitle, detailsIntentUri,
+                    playIntentUri, notificationKey, compatibilityKey, null);
+        }
+        Program(String key, String source, String title, Uri artwork, String intentUri,
+                String seriesKey, String seriesTitle, String detailsIntentUri, String playIntentUri,
+                String notificationKey, String compatibilityKey, String legacyKey) {
             this.key = key;
+            this.legacyKey = legacyKey == null ? LegacyRecommendationIdentities.plexItem(source, key, false) : legacyKey;
+            this.legacyWatchNextKey = LegacyRecommendationIdentities.plexItem(source, key, true);
             this.compatibilityKey = compatibilityKey;
             this.source = source;
             this.title = title;
@@ -168,8 +178,8 @@ public final class TvRecommendations {
     private static boolean readPrograms(Context context, Uri uri, boolean watchNext,
             Map<Long, Channel> channels, List<Feed> output, CancellationSignal cancellation) {
         String[] columns = watchNext
-                ? new String[]{"_id", "package_name", "title", "poster_art_uri", "intent_uri", "internal_provider_id"}
-                : new String[]{"_id", "package_name", "title", "poster_art_uri", "intent_uri", "internal_provider_id", "channel_id"};
+                ? new String[]{"_id", "package_name", "title", "poster_art_uri", "intent_uri", "internal_provider_id", "content_id"}
+                : new String[]{"_id", "package_name", "title", "poster_art_uri", "intent_uri", "internal_provider_id", "content_id", "channel_id"};
         if (Build.VERSION.SDK_INT >= 29) {
             String[] withSeries = java.util.Arrays.copyOf(columns, columns.length + 1);
             withSeries[columns.length] = "series_id";
@@ -218,7 +228,10 @@ public final class TvRecommendations {
                 if (!duplicate) programs.add(new Program(key, source, title.isEmpty() ? "Untitled item" : title,
                         artwork(context, source, text(rows, "poster_art_uri", 8192)), intent,
                         RecommendationKeys.series(source, Build.VERSION.SDK_INT >= 29 ? text(rows, "series_id", 2048) : ""),
-                        null, null, null, null, plexId == null ? null : oldKey));
+                        null, null, null, null, plexId == null ? null : oldKey,
+                        LegacyRecommendationIdentities.item(source, watchNext,
+                                plexId == null ? rawText(rows, "internal_provider_id") : plexId,
+                                rawText(rows, "content_id"), rowId)));
             }
         } catch (OperationCanceledException canceled) { throw canceled; }
         catch (RuntimeException inaccessible) { return true; }
@@ -233,6 +246,11 @@ public final class TvRecommendations {
         try { return context.getPackageManager().getApplicationLabel(
                 context.getPackageManager().getApplicationInfo(source, 0)).toString(); }
         catch (PackageManager.NameNotFoundException | RuntimeException unavailable) { return source; }
+    }
+
+    private static String rawText(Cursor rows, String column) {
+        int index = rows.getColumnIndex(column);
+        return index < 0 || rows.isNull(index) ? "" : rows.getString(index);
     }
 
     private static String text(Cursor rows, String column, int limit) {

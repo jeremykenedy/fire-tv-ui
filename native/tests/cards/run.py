@@ -20,7 +20,7 @@ public final class HolidayPresetTransaction {
 import java.util.*;
 public final class TvRecommendations {
  public static final class Program {
-  public final String key,source,title,seriesKey,seriesTitle,compatibilityKey;
+  public final String key,source,title,seriesKey,seriesTitle,compatibilityKey; public String legacyKey,legacyWatchNextKey;
   public Program(String k,String s,String t,Object a,String intent,String sk,String st){key=k;source=s;title=t;seriesKey=sk;seriesTitle=st;compatibilityKey=null;}
  }
  public static final class Item { public final String id; Item(String v){id=v;} public String key(){return "channel:"+id;} }

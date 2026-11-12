@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /** Only launcher presentation choices belong to a saved setup. */
@@ -45,7 +46,8 @@ final class LegacySetupSettings {
                 "menu_background_palette",
                 "menu_overlay",
                 "menu_overlay_palette",
-                "input_names");
+                "input_names",
+                "overlay_mode");
         add(
                 result,
                 "Boolean",
@@ -77,6 +79,8 @@ final class LegacySetupSettings {
                 "app_max_rows",
                 "featured_rotation_seconds",
                 "icon_radius",
+                "icon_focus_growth",
+                "icon_focus_shadow_size",
                 "menu_animation_speed",
                 "menu_animation_intensity",
                 "menu_animation_brightness",
@@ -170,6 +174,8 @@ final class LegacySetupSettings {
         }
         if ("featured_rotation_seconds".equals(key)
                 && ((Integer) value < 0 || (Integer) value > 86400)) throw invalid();
+        if ("icon_focus_growth".equals(key) && ((Integer)value < 0 || (Integer)value > 30)) throw invalid();
+        if ("icon_focus_shadow_size".equals(key) && ((Integer)value < 1 || (Integer)value > 38)) throw invalid();
         if ("app_max_rows".equals(key) && ((Integer) value < 0 || (Integer) value > 6))
             throw invalid();
         if ("app_scroll_direction".equals(key)
@@ -213,7 +219,8 @@ final class LegacySetupSettings {
         if (!icons) {
             result.remove("icon_pack_package");
             result.remove("factory_icon_packages");
-            if (result.containsKey("app_visibility")) {
+            if (result.containsKey("app_visibility")
+                    && !Objects.equals(result.get("app_visibility"), current.get("app_visibility"))) {
                 Object saved = result.get("app_visibility");
                 Object present = current.get("app_visibility");
                 JSONObject target = new JSONObject(saved == null ? "{}" : (String) saved);

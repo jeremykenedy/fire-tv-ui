@@ -1,0 +1,53 @@
+Actual update protection continuity
+
+Use a new disposable emulator and review candidate signer. For TV images, create
+the AVD with the explicit tv_1080p device profile; the default phone profile can
+crash Google TV SystemUI. Never select a physical
+TV, a preserved AVD, production credentials, or an existing app installation.
+
+Build the full native production-package review candidate with production-build.py
+--review-candidate. Build fixtures with build.py --candidate-key <review-key>
+--output-dir <private-fixtures>. Run run.py --serial emulator-<reserved-port>
+--candidate <candidate-apk> --fixtures <private-fixtures> --evidence <new-directory>.
+The optional --kill-recovery check requires a disposable userdebug image whose
+existing su binary can kill only the verified app PID; it changes no root policy.
+
+The runner refuses package collisions. It captures a durable three-root guard
+under a provider-free seed, verifies it before writing declared synthetic saved
+choices and a completed source-startup marker, then installs the actual source
+candidate. This isolates service continuity; it does not prove legacy migration.
+No provider credentials or AndroidKeyStore aliases are created or removed.
+
+Checks use actual native controls and Android consent. They cover a never-consented
+saved On choice, Off/On, Appstore scope, retained service after an identical APK
+replacement, actual competing VPN revocation, and no takeover on retained start
+or package replacement. Evidence includes connectivity dumps for independent VPN
+owner and UID-scope inspection. Instrumentation completion stops its target,
+so the runner launches the actual app before checks outside instrumentation.
+
+On completion or failure, the runner installs the provider-free seed, restores the
+exact durable guard, independently verifies it in a fresh stopped process, and
+resolves it. Only then does it uninstall the four owned fixture packages. It
+compares the original secure settings and Home resolution. A failed guard leaves
+the emulator intact for recovery. Stop and delete only this unique test AVD after
+reviewing the receipts. No emulator deletion is part of the runner.
+
+Older-platform basis:
+Android 9 VpnService.prepare calls prepareVpn(packageName, null, userId).
+The server prepare implementation can switch to a previously consented package
+and revoke the current VPN. Automatic recovery must not call prepare.
+https://github.com/aosp-mirror/platform_frameworks_base/blob/android-9.0.0_r61/core/java/android/net/VpnService.java
+https://github.com/aosp-mirror/platform_frameworks_base/blob/android-9.0.0_r61/services/core/java/com/android/server/connectivity/Vpn.java
+
+The same Android 9 server's establish checks current owner UID and retained
+consent before creating a tunnel. Its persisted lockdown default is zero. The
+older native path reads this policy conservatively, checks it again before
+establish, and monitors changes. It never authorizes itself or changes VPN policy.
+An unavailable or unexpected policy value prevents establishment. Actual Fire OS
+acceptance still needs the target device's installed updater UID/package scope.
+
+START_STICKY preserves the former service contract and permits null-intent
+re-entry through the same retained authorization checks. It is not proof that
+every platform restarts a killed VPN process. A SIGKILL recovery attempt on API28
+and an am-crash attempt on API31 did not recover within the bounded observation;
+keep these separate from passing package-replacement continuity results.

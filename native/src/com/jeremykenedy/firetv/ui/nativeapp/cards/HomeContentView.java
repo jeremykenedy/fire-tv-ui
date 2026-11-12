@@ -33,6 +33,8 @@ public final class HomeContentView extends HorizontalScrollView {
         void onSlotFocused(String key);
         void onUnavailable(LayoutItem item);
         default void onArtworkChanged(ChannelCardView card, android.graphics.Bitmap artwork) {}
+        default void onGroupedWidgetsVisibilityChanged(boolean visible) {}
+        default void onContentVisibilityChanged(boolean visible) {}
     }
 
     private final Activity activity;
@@ -46,6 +48,8 @@ public final class HomeContentView extends HorizontalScrollView {
     private TvRecommendations.Status status = TvRecommendations.Status.EMPTY;
     private boolean resumed;
     private boolean widgetReadability;
+    private boolean groupedWidgetsVisible;
+    private boolean contentVisible;
     private boolean checking = true;
     private LayoutOptions dashboardLayout;
     private boolean preserveDashboardSlots;
@@ -142,9 +146,9 @@ public final class HomeContentView extends HorizontalScrollView {
                 slots.put(key, slot);
             }
             slot.update(byKey.get(key), options);
-            int width = slot.groups != null ? Math.max(320, slot.groupColumns * 328 - 8)
+            int width = slot.groups != null ? Math.max(212, slot.groupColumns * 228 - 16)
                     : layout.widthDp(item, slot.provider == null ? 320 : slot.provider.widthDp());
-            int height = layout.heightDp(item, slot.groups != null ? 180 : slot.provider == null ? 160 : slot.provider.heightDp());
+            int height = layout.heightDp(item, slot.groups != null ? 270 : slot.provider == null ? 160 : slot.provider.heightDp());
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(width), dp(height));
             if (slot.getParent() == null) row.addView(slot, Math.min(index, row.getChildCount()), params);
             else if (row.indexOfChild(slot) != index) {
@@ -174,12 +178,34 @@ public final class HomeContentView extends HorizontalScrollView {
             if (target != null && target.isFocusable()) target.requestFocus(); else previouslyFocused.requestFocus();
         }
         else if (previouslyFocused != null && row.getChildCount() > 0) row.getChildAt(0).requestFocus();
+        Slot grouped = slots.get(WidgetGroupsView.ITEM.key());
+        boolean visible = grouped != null && grouped.groups != null && grouped.getParent() == row;
+        if (groupedWidgetsVisible != visible) {
+            groupedWidgetsVisible = visible;
+            setPadding(0, visible ? dp(20) : 0, 0, 0);
+            FrameLayout.LayoutParams rowBounds = (FrameLayout.LayoutParams) row.getLayoutParams();
+            rowBounds.gravity = visible ? Gravity.CENTER_VERTICAL : Gravity.TOP;
+            row.setLayoutParams(rowBounds);
+            if (listener != null) listener.onGroupedWidgetsVisibilityChanged(visible);
+        }
+        boolean hasContent = row.getChildCount() > 0;
+        if (contentVisible != hasContent) {
+            contentVisible = hasContent;
+            if (listener != null) listener.onContentVisibilityChanged(hasContent);
+        }
         requestLayout();
     }
 
     public ChannelCardView findCard(String key) {
         Slot slot = slots.get(key);
         return slot == null ? null : slot.card;
+    }
+
+    public boolean showFocusedCardActions() {
+        Slot slot = focusedSlot();
+        if (slot == null || !slot.ready || slot.card == null || cardListener == null) return false;
+        cardListener.onLongPress(slot.card.feed(), slot.card.currentProgram());
+        return true;
     }
 
     public List<ChannelCardView> cards() {
@@ -451,8 +477,7 @@ public final class HomeContentView extends HorizontalScrollView {
                 String raw = store.raw();
                 WidgetGroups data = store.load();
                 if (data == null) { ready = false; return; }
-                groupColumns = data.groups.size();
-                if (groupColumns == 0) { groupsRaw = raw; ready = false; return; }
+                groupColumns = data.displayColumnCount();
                 if (groups == null || !raw.equals(groupsRaw)) {
                     View focus = findFocus();
                     final Object tag = focus == null ? null : focus.getTag();
@@ -460,7 +485,7 @@ public final class HomeContentView extends HorizontalScrollView {
                     groups = new WidgetGroupsView(activity, data,
                             new WidgetGroupsEditor(activity, new Runnable() {
                                 @Override public void run() { refreshPreferences(); }
-                            }), 320, 180);
+                            }), 212, 270);
                     groupsRaw = raw;
                     addView(groups, new FrameLayout.LayoutParams(-1, -1));
                     if (tag instanceof String) {

@@ -74,6 +74,15 @@ public final class WidgetGroups {
         return new WidgetGroups(result);
     }
 
+    public int displayColumnCount() { return Math.max(4, groups.size()); }
+
+    public WidgetGroups withDisplayColumns() {
+        if (groups.size() >= 4) return this;
+        List<List<Entry>> copy = mutable();
+        while (copy.size() < 4) copy.add(new ArrayList<Entry>());
+        return new WidgetGroups(copy);
+    }
+
     public WidgetGroups remove(String id) {
         List<List<Entry>> copy = mutable();
         for (List<Entry> group : copy) for (int i = 0; i < group.size(); i++) if (group.get(i).id.equals(id)) {

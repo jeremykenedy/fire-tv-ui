@@ -13,8 +13,8 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-migration-') as directory:
     target = Path(directory)
     sources = sorted(path for path in SOURCE.glob('*.java') if not path.name.startswith('Android'))
     models = [ROOT / ('src/com/jeremykenedy/firetv/ui/nativeapp/' + name) for name in (
-        'device/protection/LegacyDeviceProtection.java', 'holidays/HolidayScenes.java', 'folders/FolderOptions.java', 'appgrid/AppGridOptions.java', 'appgrid/HomeTileOrder.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
-        'widgetgroups/WidgetGroups.java', 'widgetgroups/WidgetGroupMigration.java', 'widgetgroups/WidgetGroupPresentationPlan.java', 'layout/LayoutItem.java', 'cards/CardOptions.java', 'appearance/AppearanceOptions.java', 'appearance/LegacyGradients.java', 'appearance/PaletteRecipes.java', 'inputs/InputEntry.java', 'inputs/InputOptions.java')]
+        'device/protection/LegacyDeviceProtection.java', 'holidays/HolidayScenes.java', 'folders/FolderOptions.java', 'appgrid/AppGridOptions.java', 'appgrid/RetainedHomeChoices.java', 'appgrid/HomeTileOrder.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
+        'widgetgroups/WidgetGroups.java', 'widgetgroups/WidgetGroupMigration.java', 'widgetgroups/WidgetGroupPresentationPlan.java', 'widgetgroups/WeatherGroupOptions.java', 'widget/weather/WeatherOptions.java', 'layout/LayoutItem.java', 'cards/CardOptions.java', 'appearance/AppearanceOptions.java', 'appearance/LegacyGradients.java', 'appearance/PaletteRecipes.java', 'inputs/InputEntry.java', 'inputs/InputOptions.java')]
     sources += models
     subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', str(target),
                     *map(str, sources), *map(str, Path(__file__).parent.glob('*Test.java'))], check=True)
@@ -26,6 +26,8 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-migration-') as directory:
                     'com.jeremykenedy.firetv.ui.nativeapp.migration.LegacyFolderTest'], check=True)
     subprocess.run(['java', '-cp', str(target),
                     'com.jeremykenedy.firetv.ui.nativeapp.migration.IdentityInventoryTest'], check=True)
+    subprocess.run(['java', '-cp', str(target),
+                    'com.jeremykenedy.firetv.ui.nativeapp.migration.UnavailableChoicesMigrationTest'], check=True)
     subprocess.run(['javac', '-source', '8', '-target', '8', '-Xlint:-options',
                     '-bootclasspath', str(SDK / 'platforms/android-36/android.jar'),
                     '-d', str(target / 'android'), *map(str, SOURCE.glob('*.java')), *map(str, models),

@@ -5,6 +5,9 @@ import android.net.Uri;
 import android.util.AtomicFile;
 import android.util.Base64;
 
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupPresentationPlan;
+
 import com.jeremykenedy.firetv.ui.nativeapp.migration.LegacyPresentationMapper;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext;
@@ -56,10 +59,13 @@ public final class SavedSetupManager {
             if (!directory.isDirectory() && !directory.mkdirs())
                 throw new IOException("Saved setup storage is unavailable.");
             Map<String, PreferenceSnapshot> nativeState = PresentationState.capture(context);
-            JSONObject snapshot =
-                    LegacySetupSettings.capture(
-                            context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
-                                    .getAll());
+            Map<String, Object> legacy = new LinkedHashMap<>(
+                    context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll());
+            if (completedMigration()) {
+                legacy.remove("app_visibility");
+                legacy.remove("widgets_config");
+            }
+            JSONObject snapshot = LegacySetupSettings.capture(legacy);
             List<File> created = new ArrayList<>();
             try {
                 Map<String, String> copies = new HashMap<>();
@@ -136,30 +142,148 @@ public final class SavedSetupManager {
             if (index < 0) throw new IOException("This setup no longer exists.");
             JSONObject item = items.getJSONObject(index);
             synchronized (PresentationState.class) {
-                Map<String, PreferenceSnapshot> target =
-                        item.has("native")
-                                ? decodeNative(item.getJSONObject("native"))
-                                : prepareLegacy(
-                                        item.getJSONObject("settings"),
-                                        identities,
-                                        icons);
-                if (item.has("native") && !item.has("nativeVersion")) {
-                    Map<String, Object> layout = new LinkedHashMap<>(target.get("native_layout").values());
-                    Object groups = context.getSharedPreferences("native_layout", Context.MODE_PRIVATE)
-                            .getAll().get("widget_groups");
-                    if (groups != null) layout.put("widget_groups", groups);
-                    target = new LinkedHashMap<>(target);
-                    target.put("native_layout", new PreferenceSnapshot(layout));
+                boolean legacyRecord = !item.has("native");
+                boolean preparedIcons = false;
+                try {
+                    PresentationMappingContext selected = identities;
+                    if (legacyRecord && icons) {
+                        Set<String> references = retainedIconReferences(item.getJSONObject("settings"));
+                        if (!references.isEmpty()) {
+                            Map<String,String> placeholders = new LinkedHashMap<>();
+                            for (String reference : references) placeholders.put(reference,"image:00000000-0000-0000-0000-000000000000.png");
+                            prepareLegacy(item.getJSONObject("settings"),withIcons(identities,placeholders),true);
+                            preparedIcons = true;
+                            selected = withIcons(identities,com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidLegacyIconMigration.prepare(context,references));
+                        }
+                    }
+                    Map<String, PreferenceSnapshot> target = item.has("native")
+                            ? decodeNative(item.getJSONObject("native"))
+                            : prepareLegacy(item.getJSONObject("settings"),selected,icons);
+                    if (item.has("native") && !item.has("nativeVersion")) {
+                        Map<String, Object> layout = new LinkedHashMap<>(target.get("native_layout").values());
+                        Object groups = context.getSharedPreferences("native_layout", Context.MODE_PRIVATE)
+                                .getAll().get("widget_groups");
+                        if (groups != null) layout.put("widget_groups", groups);
+                        target = new LinkedHashMap<>(target);
+                        target.put("native_layout", new PreferenceSnapshot(layout));
+                    }
+                    Map<String, Object> legacy = target.get("launcher_prefs").values();
+                    verifyVideo(legacy);
+                    Map<String, Object> imagesToVerify = new LinkedHashMap<>(legacy);
+                    if (!icons) imagesToVerify.remove("app_visibility");
+                    verifyImages(imagesToVerify);
+                    verifyNativeMedia(target, item.optJSONObject("nativeImages"), legacyRecord ? false : icons);
+                    if (legacyRecord && icons) verifyManagedIcons(target);
+                    if (!legacyRecord && completedMigration()) {
+                        Map<String, Object> retained = new LinkedHashMap<>(target.get("launcher_prefs").values());
+                        Map<String, ?> current = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll();
+                        for (String key : Arrays.asList("app_visibility", "widgets_config"))
+                            if (!retained.containsKey(key) && current.containsKey(key)) retained.put(key, current.get(key));
+                        target = new LinkedHashMap<>(target);
+                        target.put("launcher_prefs", new PreferenceSnapshot(retained));
+                    }
+                    PresentationState.apply(context, target, icons);
+                } catch (Exception failure) {
+                    if (preparedIcons) throw new IOException(failure.getMessage()
+                            + " Original saved images were kept. Any prepared icon copies remain available for retry.",failure);
+                    throw failure;
                 }
-                Map<String, Object> legacy = target.get("launcher_prefs").values();
-                verifyVideo(legacy);
-                Map<String, Object> imagesToVerify = new LinkedHashMap<>(legacy);
-                if (!icons) imagesToVerify.remove("app_visibility");
-                verifyImages(imagesToVerify);
-                verifyNativeMedia(target, item.optJSONObject("nativeImages"), icons);
-                PresentationState.apply(context, target, icons);
             }
         }
+    }
+
+    private boolean completedMigration() {
+        return Integer.valueOf(1).equals(context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
+                .getAll().get("source_ui_strict_migration_version"));
+    }
+
+    private PresentationMappingContext withIcons(PresentationMappingContext base,Map<String,String> changes) {
+        Map<String,String> icons = new LinkedHashMap<>(base.icons);icons.putAll(changes);
+        return new PresentationMappingContext(base.components,base.feeds,base.items,icons,base.inputs,
+                base.advertisedIconPacks,base.privateMedia.values(),base.ambiguousInputs);
+    }
+
+    private Set<String> retainedIconReferences(JSONObject settings) throws Exception {
+        Map<String,Object> values = LegacySetupSettings.validate(settings);
+        Set<String> references = new LinkedHashSet<>();
+        Object visibility = values.get("app_visibility");
+        if (!(visibility instanceof String)) return references;
+        for (Object value : com.jeremykenedy.firetv.ui.nativeapp.migration.LegacyJson.object((String)visibility).values()) {
+            if (!(value instanceof Map)) throw new IOException("Invalid saved icon choices.");
+            Object uri = ((Map<?,?>)value).get("customIconUri");
+            if (uri == null) continue;
+            if (!(uri instanceof String)) throw new IOException("Invalid saved icon reference.");
+            Uri parsed = Uri.parse((String)uri);
+            if (!"file".equals(parsed.getScheme()) || parsed.getPath() == null)
+                throw new IOException("This setup needs a retained image stored on this TV.");
+            File image = new File(parsed.getPath());
+            File root = directory.getCanonicalFile();
+            File owned = new File(root,image.getName());
+            if (!root.equals(image.getCanonicalFile().getParentFile()) || !image.getName().endsWith(".image")
+                    || !owned.getCanonicalFile().equals(owned.getAbsoluteFile()))
+                throw new IOException("This setup contains an unsupported retained image reference.");
+            if (!owned.isFile() || owned.length() == 0 || owned.length() > 20L * 1024 * 1024)
+                throw new IOException("A saved image is unavailable. The setup and your current choices were kept.");
+            references.add((String)uri);
+        }
+        return references;
+    }
+
+    private void verifyManagedIcons(Map<String,PreferenceSnapshot> target) throws IOException {
+        for (String value : nativeIconValues(target)) {
+            if (!value.startsWith("image:")) continue;
+            File icon = new File(new File(context.getFilesDir(),"icons"),value.substring(6));
+            if (!icon.isFile() || icon.length() == 0 || icon.length() > 20L * 1024 * 1024)
+                throw new IOException("A personal icon is unavailable on this TV. No settings were changed.");
+        }
+    }
+
+    public Map<String, PreferenceSnapshot> prepareOriginalBackup(PreferenceSnapshot incoming) throws Exception {
+        Map<String,Object> values = incoming.values();
+        JSONObject settings = LegacySetupSettings.capture(values);
+        Map<String,Object> checked = LegacySetupSettings.validate(settings);
+        checked.values().removeAll(Collections.singleton(null));
+        if (!checked.equals(values)) throw new IOException("This backup includes unsupported settings. Nothing was changed.");
+        settings.put("keys",new JSONArray(values.keySet()));
+        Map<String,?> local = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll();
+        for (String key : Arrays.asList("custom_wallpaper_uri", "custom_video_uri")) {
+            Object value = values.get(key);
+            if (value instanceof String && !((String)value).isEmpty() && !value.equals(local.get(key)))
+                throw new IOException("Personal artwork must already be selected on this TV. No files or access permissions were imported.");
+        }
+        Set<String> iconReferences = new LinkedHashSet<>();
+        if (values.containsKey("app_visibility")) {
+            JSONObject next = new JSONObject((String)values.get("app_visibility"));
+            Object stored = local.get("app_visibility");
+            JSONObject current = new JSONObject(stored instanceof String ? (String)stored : "{}");
+            for (Iterator<String> ids = next.keys(); ids.hasNext();) {
+                String id = ids.next(); JSONObject choice = next.getJSONObject(id);
+                if (!choice.has("customIconUri")) continue;
+                Object uri = choice.get("customIconUri");
+                if (uri instanceof String && ((String)uri).isEmpty()) continue;
+                JSONObject existing = current.optJSONObject(id);
+                if (existing == null || !Objects.equals(uri, existing.opt("customIconUri")))
+                    throw new IOException("A personal icon must already be selected on this TV. Choose it locally before importing this backup.");
+                iconReferences.add((String)uri);
+            }
+        }
+        PresentationMappingContext identities = com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidPresentationInventory.read(context,incoming);
+        if (!iconReferences.isEmpty()) {
+            Map<String,String> verified = new LinkedHashMap<>(identities.icons);
+            verified.putAll(com.jeremykenedy.firetv.ui.nativeapp.migration.AndroidLegacyIconMigration.verifyExisting(context,iconReferences));
+            identities = new PresentationMappingContext(identities.components,identities.feeds,identities.items,verified,
+                    identities.inputs,identities.advertisedIconPacks,identities.privateMedia.values(),identities.ambiguousInputs);
+        }
+        Map<String,PreferenceSnapshot> target = prepareLegacy(settings,identities,true);
+        Map<String,Object> raw = new LinkedHashMap<>(target.get("launcher_prefs").values());
+        for (Map.Entry<String,Object> entry : PresentationState.capture(context).get("launcher_prefs").values().entrySet())
+            if (!values.containsKey(entry.getKey()) && entry.getKey().startsWith("color_")) raw.put(entry.getKey(),entry.getValue());
+        target = new LinkedHashMap<>(target);
+        target.put("launcher_prefs",new PreferenceSnapshot(raw));
+        verifyVideo(values);
+        verifyImages(values);
+        verifyManagedIcons(target);
+        return target;
     }
 
     /**
@@ -183,20 +307,37 @@ public final class SavedSetupManager {
                 present.put("app_visibility", visibility.toString());
             }
         }
+        Map<String, PreferenceSnapshot> current = PresentationState.capture(context);
+        boolean groupsRequested = present.containsKey("widgets_config") || present.containsKey("enable_widgets") || present.containsKey("hide_watch_next");
+        if (groupsRequested) {
+            Map<String,Object> local = current.get("launcher_prefs").values();
+            Map<String,Object> layout = current.get("native_layout").values();
+            Object mode = layout.get("mode");
+            boolean enabled = mode == null || "BOTH".equals(mode) || "WIDGETS_ONLY".equals(mode);
+            Object hidden = layout.get("hidden");
+            if (hidden instanceof String && Arrays.asList(((String)hidden).split("\n")).contains("widget:grouped-widgets")) enabled = false;
+            if (!present.containsKey("enable_widgets")) present.put("enable_widgets",enabled);
+            if (!present.containsKey("hide_watch_next")) present.put("hide_watch_next","NONE".equals(mode));
+            if (!present.containsKey("widgets_config")) {
+                Object existing = current.get("native_layout").values().get("widget_groups");
+                if (existing instanceof String) present.put("widgets_config",existing);
+                else if (local.get("widgets_config") instanceof String) present.put("widgets_config",local.get("widgets_config"));
+            }
+        }
         Map<String, PreferenceSnapshot> empty = new LinkedHashMap<>();
         for (String file : LegacyPresentationMapper.FILES)
             if (!file.equals("launcher_prefs"))
                 empty.put(file, new PreferenceSnapshot(Collections.emptyMap()));
         LegacyPresentationMapper.Plan plan =
                 LegacyPresentationMapper.plan(new PreferenceSnapshot(present), identities, empty);
-        Set<String> unresolved = new LinkedHashSet<>(plan.unmappedLegacyKeys);
+        WidgetGroupPresentationPlan grouped = WidgetGroupPresentationPlan.prepare(plan);
+        Set<String> unresolved = new LinkedHashSet<>(grouped.unmappedLegacyKeys);
         unresolved.removeAll(LegacyPresentationMapper.directlyConsumedPresentationKeys(present));
         if (!unresolved.isEmpty())
             throw new IOException(
-                    "This legacy setup contains presentation choices that still need verified"
-                            + " migration. The setup and all images have been kept.");
-        Map<String, PreferenceSnapshot> target =
-                new LinkedHashMap<>(PresentationState.capture(context));
+                    "Unsupported presentation choices: " + String.join(", ", unresolved)
+                            + ". No settings or images were changed.");
+        Map<String, PreferenceSnapshot> target = new LinkedHashMap<>(current);
         Map<String, Set<String>> owned = new LinkedHashMap<>(
                 LegacyPresentationMapper.ownedNativeKeys(saved.keySet(), identities));
         if (saved.containsKey("mode") && !"custom".equals(present.get("mode"))) {
@@ -209,11 +350,33 @@ public final class SavedSetupManager {
             if (!target.containsKey(file.getKey()))
                 throw new IOException("Unsupported legacy target.");
             if (!icons && (file.getKey().equals("native_icons") || file.getKey().equals("native_icon_packs"))) continue;
+            if (file.getKey().equals("native_icons")) {
+                PreferenceSnapshot patch = plan.patches.get(file.getKey());
+                target.put(file.getKey(),new PreferenceSnapshot(mergeLegacyIcons(current.get(file.getKey()).values(),
+                        patch == null ? Collections.emptyMap() : patch.values(),present,identities)));
+                continue;
+            }
             Map<String, Object> values = new LinkedHashMap<>(target.get(file.getKey()).values());
             for (String key : file.getValue()) values.remove(key);
             PreferenceSnapshot patch = plan.patches.get(file.getKey());
             if (patch != null) values.putAll(patch.values());
             target.put(file.getKey(), new PreferenceSnapshot(values));
+        }
+        Map<String,Object> preparedGroups = grouped.target.stores.get("native_layout").values();
+        if (groupsRequested && preparedGroups.containsKey("widget_groups")) {
+            Map<String,Object> layout = new LinkedHashMap<>(target.get("native_layout").values());
+            Map<String,Object> prepared = preparedGroups;
+            layout.put("widget_groups",prepared.get("widget_groups"));
+            if (saved.containsKey("enable_widgets") || saved.containsKey("hide_watch_next")) layout.put("mode",prepared.get("mode"));
+            if (Boolean.TRUE.equals(present.get("enable_widgets"))) {
+                Set<String> hidden = new LinkedHashSet<>();
+                Object previous = layout.get("hidden");
+                if (previous instanceof String && !((String)previous).isEmpty()) hidden.addAll(Arrays.asList(((String)previous).split("\n")));
+                hidden.add("widget:clock");
+                if (Boolean.TRUE.equals(saved.get("enable_widgets")) && !Boolean.TRUE.equals(present.get("hide_watch_next"))) hidden.remove("widget:grouped-widgets");
+                layout.put("hidden",String.join("\n",hidden));
+            }
+            target.put("native_layout",new PreferenceSnapshot(layout));
         }
         Map<String, Object> raw = new LinkedHashMap<>(target.get("launcher_prefs").values());
         if (saved.containsKey("minimal_status_bar") && !saved.containsKey("source_status_bar_off"))
@@ -226,6 +389,48 @@ public final class SavedSetupManager {
         target.put("launcher_prefs", new PreferenceSnapshot(raw));
         PresentationState.validate(target);
         return target;
+    }
+
+    private static Map<String,Object> mergeLegacyIcons(Map<String,Object> current,Map<String,Object> patch,
+            Map<String,Object> legacy,PresentationMappingContext identities) {
+        Set<String> references = new LinkedHashSet<>();
+        if (legacy.get("app_visibility") instanceof String)
+            references.addAll(com.jeremykenedy.firetv.ui.nativeapp.migration.LegacyJson.object((String)legacy.get("app_visibility")).keySet());
+        if (legacy.get("factory_icon_packages") instanceof Set)
+            for (Object value : (Set<?>)legacy.get("factory_icon_packages")) references.add((String)value);
+        Map<String,Object> result = new LinkedHashMap<>(current);
+        Map<String,Object> pending = RetainedHomeChoices.read("native_icons",current.get(RetainedHomeChoices.KEY));
+        for (String reference : references) {
+            String resolved = iconKey(reference,identities);
+            for (String key : new ArrayList<>(result.keySet())) {
+                String tile = key.startsWith("edited:") ? key.substring(7) : key;
+                if (tile.equals(resolved) || RetainedHomeChoices.packageName(reference) && tile.startsWith(reference+"/")) result.remove(key);
+            }
+            for (String key : new ArrayList<>(pending.keySet())) {
+                String previous = key.substring(5);
+                if (previous.equals(reference) || resolved != null && resolved.equals(iconKey(previous,identities))
+                        || RetainedHomeChoices.packageName(reference) && previous.startsWith(reference+"/")) pending.remove(key);
+            }
+        }
+        for (Map.Entry<String,Object> entry : patch.entrySet())
+            if (!entry.getKey().equals(RetainedHomeChoices.KEY)) result.put(entry.getKey(),entry.getValue());
+        pending.putAll(RetainedHomeChoices.read("native_icons",patch.get(RetainedHomeChoices.KEY)));
+        if (pending.isEmpty()) result.remove(RetainedHomeChoices.KEY);
+        else result.put(RetainedHomeChoices.KEY,RetainedHomeChoices.write("native_icons",pending));
+        return result;
+    }
+
+    private static String iconKey(String reference,PresentationMappingContext identities) {
+        if (reference.startsWith("tvinput_name:")) {
+            String input = identities.inputs.get(reference);
+            return input == null ? null : "input:"+input;
+        }
+        String component = identities.components.get(reference);
+        if (component != null) return component;
+        if (!RetainedHomeChoices.component(reference)) return null;
+        int slash = reference.indexOf('/');
+        String type = reference.substring(slash+1);
+        return reference.substring(0,slash)+"/"+(type.startsWith(".") ? reference.substring(0,slash)+type : type);
     }
 
     private JSONObject read() throws Exception {
@@ -510,6 +715,19 @@ public final class SavedSetupManager {
         return result;
     }
 
+    private static Collection<String> nativeIconValues(Map<String,PreferenceSnapshot> state) throws IOException {
+        Set<String> values = new LinkedHashSet<>();
+        Map<String,Object> icons = state.get("native_icons").values();
+        for (Map.Entry<String,Object> entry : icons.entrySet()) {
+            if (entry.getKey().equals(RetainedHomeChoices.KEY) || entry.getKey().startsWith("edited:")) continue;
+            if (!(entry.getValue() instanceof String)) throw new IOException("Invalid saved icon choice.");
+            values.add((String)entry.getValue());
+        }
+        for (Object value : RetainedHomeChoices.read("native_icons",icons.get(RetainedHomeChoices.KEY)).values())
+            values.add((String)value);
+        return values;
+    }
+
     private Map<String, PreferenceSnapshot> preserveNativeImages(
             Map<String, PreferenceSnapshot> state,
             JSONObject images,
@@ -517,8 +735,7 @@ public final class SavedSetupManager {
             List<File> created)
             throws Exception {
         Map<String, PreferenceSnapshot> next = new LinkedHashMap<>(state);
-        for (Map.Entry<String, Object> icon : state.get("native_icons").values().entrySet()) {
-            String value = (String) icon.getValue();
+        for (String value : nativeIconValues(state)) {
             if (value.startsWith("image:"))
                 images.put(
                         value,
@@ -560,8 +777,7 @@ public final class SavedSetupManager {
         if (!icons) return;
         // Validate all retained sources before preparing any target image.
         Map<File, File> pending = new LinkedHashMap<>();
-        for (Object selected : state.get("native_icons").values().values()) {
-            String value = (String) selected;
+        for (String value : nativeIconValues(state)) {
             if (!value.startsWith("image:")) continue;
             if (images == null || !images.has(value))
                 throw new IOException("A saved icon is unavailable. The setup has been kept.");

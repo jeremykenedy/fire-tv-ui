@@ -62,7 +62,7 @@ public final class AndroidProductionMigration {
 
     private static PresentationMappingContext withIcons(PresentationMappingContext source, Map<String, String> icons) {
         return new PresentationMappingContext(source.components, source.feeds, source.items, icons, source.inputs,
-                source.advertisedIconPacks, source.privateMedia.values());
+                source.advertisedIconPacks, source.privateMedia.values(), source.ambiguousInputs);
     }
 
     private static Set<String> iconReferences(PreferenceSnapshot legacy) throws IOException {

@@ -128,7 +128,7 @@
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.WallpaperThemeActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundSettingsActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.appearance.BackgroundPreviewActivity" android:exported="false" />
-        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.folders.FolderActivity" android:exported="false" />
+        <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.folders.FolderActivity" android:theme="@style/SettingsPanelTheme" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.locks.LockSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.inputs.InputsSettingsActivity" android:exported="false" />
         <activity android:name="com.jeremykenedy.firetv.ui.nativeapp.device.network.NetworkActivity" android:exported="false" />
@@ -197,6 +197,7 @@
         <receiver android:name="com.jeremykenedy.firetv.ui.DeviceBootReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
     </application>

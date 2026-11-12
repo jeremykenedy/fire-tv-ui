@@ -39,7 +39,10 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
     private boolean startupBlocked;
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private List<AppInventory.App> apps = new ArrayList<>();
+    private boolean appsLoaded;
+    private boolean discoveryFailed;
     private LinearLayout body;
+    private ScrollView managerScroll;
     private String focusKey = "";
     private boolean gridOptions;
     private boolean resumedOnce;
@@ -57,16 +60,28 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
     private void reloadApps() {
         loader.execute(new Runnable() {
             @Override public void run() {
-                final List<AppInventory.App> loaded = AppInventory.load(getApplicationContext());
+                List<AppInventory.App> discovered;
+                try { discovered = AppInventory.load(getApplicationContext()); }
+                catch (RuntimeException unavailable) { discovered = null; }
+                final List<AppInventory.App> loaded = discovered;
                 final Map<String, Drawable> resolved = new LinkedHashMap<>();
-                for (AppInventory.App app : loaded) {
+                if (loaded != null) for (AppInventory.App app : loaded) {
                     try { resolved.put(app.key(), com.jeremykenedy.firetv.ui.nativeapp.icons.IconSelectionStore.resolve(
                             getApplicationContext(), app.key(), app.artwork, null)); }
                     catch (RuntimeException unavailable) { resolved.put(app.key(), app.artwork); }
                 }
                 runOnUiThread(new Runnable() {
                     @Override public void run() {
-                        if (!isDestroyed()) { apps = loaded; artwork.clear(); artwork.putAll(resolved); render(); }
+                        if (isDestroyed()) return;
+                        appsLoaded = true;
+                        discoveryFailed = loaded == null;
+                        if (discoveryFailed) {
+                            if (apps.isEmpty()) render();
+                            else Toast.makeText(AppGridSettingsActivity.this,
+                                    "Apps could not be refreshed. Your current list and saved choices are kept.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        apps = loaded; artwork.clear(); artwork.putAll(resolved); render();
                     }
                 });
             }
@@ -81,6 +96,7 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
 
     private void render() {
         if (gridOptions) { renderGridOptions(); return; }
+        final int scrollY = managerScroll == null ? 0 : managerScroll.getScrollY();
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(0xaa000000);
         LinearLayout dialog = new LinearLayout(this);
@@ -111,12 +127,14 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
         View divider = new View(this); divider.setBackgroundColor(0xff555555);
         dialog.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
         ScrollView scroll = new ScrollView(this);
+        managerScroll = scroll;
         scroll.setClipChildren(false); scroll.setClipToPadding(false);
         body = new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(body); dialog.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         TextView section = label("Apps", 14, 0xffaaaaaa); section.setPadding(dp(8), dp(14), 0, dp(8)); body.addView(section);
         AppGridOptions options = AppGridPreferences.load(this);
         View first = null;
+        boolean restorePosition = false;
         for (final AppInventory.App app : apps) {
             LinearLayout row = new LinearLayout(this); row.setGravity(Gravity.CENTER_VERTICAL);
             row.setPadding(dp(12), 0, dp(12), 0); row.setBackground(round(0xff333333, 8));
@@ -166,9 +184,13 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
             });
             details.setContentDescription("Settings for " + app.label + ". Hold for app options."); details.setTag("app-manager:settings:" + app.key()); wrap(row, details, 1.5f);
             if (first == null) first = hide;
-            for (View child : new View[]{hide, cards, pick, details}) if (focusKey.equals(child.getTag())) first = child;
+            for (View child : new View[]{hide, cards, pick, details}) if (focusKey.equals(child.getTag())) {
+                first = child; restorePosition = true;
+            }
         }
-        if (apps.isEmpty()) body.addView(label("No TV apps available.", 16, 0xffcccccc));
+        if (apps.isEmpty()) body.addView(label(!appsLoaded ? "Loading TV apps..."
+                : discoveryFailed ? "Apps could not be read. Go Back and try again. Saved choices are kept."
+                : "No TV apps available.", 16, 0xffcccccc));
         Button save = smallButton("Save", new View.OnClickListener() {
             @Override public void onClick(View view) { saveManager(); }
         });
@@ -178,6 +200,19 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
         dialog.addView(save, saveBounds);
         setContentView(root);
         if (first != null) first.requestFocus(); else save.requestFocus();
+        final View restoredFocus = first;
+        if (restorePosition) scroll.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override public void onGlobalLayout() {
+                scroll.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                scroll.scrollTo(0, scrollY);
+                android.graphics.Rect visible = new android.graphics.Rect();
+                if (!restoredFocus.getGlobalVisibleRect(visible) || visible.width() < restoredFocus.getWidth()
+                        || visible.height() < restoredFocus.getHeight()) {
+                    restoredFocus.requestRectangleOnScreen(new android.graphics.Rect(0, 0,
+                            restoredFocus.getWidth(), restoredFocus.getHeight()), true);
+                }
+            }
+        });
     }
 
     private interface Toggle { void changed(boolean value); }
@@ -294,9 +329,13 @@ public final class AppGridSettingsActivity extends com.jeremykenedy.firetv.ui.na
         if (key.equals(focusKey)) button.requestFocus();
     }
 
-    private void save(AppGridOptions options) { AppGridPreferences.save(this, options); render(); }
+    private void save(AppGridOptions options) {
+        try { AppGridPreferences.save(this, options); render(); }
+        catch (IllegalStateException failure) { Toast.makeText(this, failure.getMessage(), Toast.LENGTH_LONG).show(); }
+    }
 
     private void appActions(final AppInventory.App app) {
+        focusKey = "app-manager:settings:" + app.key();
         AppGridOptions options = AppGridPreferences.load(this);
         AlertDialog actions = new AlertDialog.Builder(this).setTitle(app.label).setItems(new String[] {
             options.hidden.contains(app.key()) ? "Show on Home" : "Hide from Home",

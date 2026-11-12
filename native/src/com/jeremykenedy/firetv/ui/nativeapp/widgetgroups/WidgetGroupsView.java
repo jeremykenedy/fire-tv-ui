@@ -46,11 +46,12 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         super(activity);
         if (groups == null || editor == null || widthDp < 64 || widthDp > 1024 || heightDp < 48 || heightDp > 1024)
             throw new IllegalArgumentException("Invalid widget group display.");
+        groups = groups.withDisplayColumns();
         this.activity = activity; this.editor = editor;
         setHorizontalScrollBarEnabled(false);
         LinearLayout row = new LinearLayout(activity); row.setOrientation(LinearLayout.HORIZONTAL);
         addView(row, new HorizontalScrollView.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
-        int width = dp(widthDp), height = dp(heightDp), gap = dp(8);
+        int width = dp(widthDp), height = dp(heightDp), gap = dp(16);
         for (int index = 0; index < groups.groups.size(); index++) {
             List<WidgetGroups.Entry> entries = groups.groups.get(index);
             LinearLayout column = new LinearLayout(activity); column.setOrientation(LinearLayout.VERTICAL);
@@ -93,11 +94,11 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         boolean unavailable = content == null;
         if (unavailable) content = label(record.type + " unavailable. Saved widget data was kept.");
         else live.add(new LiveWidget(provider, content));
-        if (WidgetAppearance.hasText(activity)) WidgetAppearance.applyText(content, WidgetAppearance.color(activity, true));
+        WidgetAppearance.applyText(content, WidgetAppearance.groupColor(activity, true));
         if (content instanceof ClockWidgetView && record.size.equals("Small"))
             ((ClockWidgetView) content).setGroupedSmall();
         View tile = tile(content, record.id, unavailable
-                ? record.type + " unavailable. Saved widget data was kept." : record.type + " widget", !unavailable);
+                ? record.type + " unavailable. Saved widget data was kept." : record.type + " widget");
         tile.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) { editor.open(group, index, record); }
         });
@@ -107,14 +108,14 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         return tile;
     }
     private View empty(final int group, final int index) {
-        TextView view = label("Add widget");
-        View tile = tile(view, "group:empty:" + group + ":" + index, "Add widget", false);
+        TextView view = label("+ Add Widget");
+        View tile = tile(view, "group:empty:" + group + ":" + index, "Add widget");
         tile.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View ignored) { editor.open(group, index, null); }
         });
         return tile;
     }
-    private View tile(View content, String tag, String description, boolean transparentSurface) {
+    private View tile(View content, String tag, String description) {
         FrameLayout frame = new FrameLayout(activity);
         frame.setTag(tag);
         frame.setFocusable(true);
@@ -129,19 +130,18 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         });
         frame.setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
         final FocusTileView background = new FocusTileView(activity);
-        if (transparentSurface) background.useTransparentSurface();
+        background.useTransparentSurface();
         background.setFocusable(false);
         background.setClickable(false);
         background.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         background.setText("");
         View color = new View(activity);
         android.graphics.drawable.GradientDrawable fill = new android.graphics.drawable.GradientDrawable();
-        fill.setColor(WidgetAppearance.color(activity, false));
-        fill.setCornerRadius(dp(10));
+        fill.setColor(WidgetAppearance.groupColor(activity, false));
+        fill.setCornerRadius(dp(22));
         color.setBackground(fill);
         color.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         FrameLayout.LayoutParams colorBounds = new FrameLayout.LayoutParams(-1, -1);
-        colorBounds.setMargins(dp(5), dp(5), dp(5), dp(5));
         frame.addView(color, colorBounds);
         frame.addView(background, new FrameLayout.LayoutParams(-1, -1));
         content.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
@@ -156,6 +156,7 @@ public final class WidgetGroupsView extends HorizontalScrollView {
     }
     private CharSequence widgetSummary(View content) {
         if (content instanceof WeatherView) return ((WeatherView) content).accessibilitySummary();
+        if (content instanceof LegacyClockView) return ((LegacyClockView) content).timeText();
         if (content instanceof ClockWidgetView) {
             ClockWidgetView clock = (ClockWidgetView) content;
             CharSequence time = clock.timeText(), date = clock.dateText();
@@ -167,8 +168,8 @@ public final class WidgetGroupsView extends HorizontalScrollView {
         return null;
     }
     private TextView label(String text) {
-        TextView view = new TextView(activity); view.setText(text); view.setTextColor(Color.WHITE);
-        view.setTextSize(18); view.setGravity(Gravity.CENTER); view.setPadding(dp(12), dp(12), dp(12), dp(12));
+        TextView view = new TextView(activity); view.setText(text); view.setTextColor(WidgetAppearance.groupColor(activity, true));
+        view.setTextSize(16); view.setGravity(Gravity.CENTER); view.setPadding(dp(12), dp(12), dp(12), dp(12));
         return view;
     }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
