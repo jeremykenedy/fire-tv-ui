@@ -21,7 +21,7 @@ Focus style offers Default, Border only, and Color and border. Choose a preset c
 
 ### App focus growth and shadow
 
-In **UI settings > Layout and focus**, **App focus growth** offers Default (18%), Off, 6%, 12%, 24% and 30%. Off removes enlargement while keeping the other focus styling. **App focus shadow** offers Off, Default (18 dp), Large (28 dp) and Extra large (38 dp). Existing installations keep their current choices; without an override, growth and shadow retain the original 18% and 18 dp behavior. A saved disabled shadow stays disabled until you change it.
+Open **UI settings > App Icons > App hover growth and shadow**. The same controls remain in **Layout and focus**. **App focus growth** offers Default (18%), Off, 6%, 12%, 24% and 30%. Off removes enlargement while keeping the other focus styling. **App focus shadow** offers Off, Default (18 dp), Large (28 dp) and Extra large (38 dp). Existing installations keep their current choices; without an override, growth and shadow retain the original 18% and 18 dp behavior. A saved disabled shadow stays disabled until you change it.
 
 Growth and shadow changes apply on return with Back, including when focusing the same app tile again; a process restart is not required. The native Settings route still returns Home focus to the first app, including visits where no setting changed. Preserving the previously focused app through that route remains unresolved.
 

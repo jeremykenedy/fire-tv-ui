@@ -19,8 +19,8 @@ import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE = Path(__file__).resolve()
-DEFAULT_VERSION = '1.18.0'
-VERSIONS = ('1.17.1', DEFAULT_VERSION)
+DEFAULT_VERSION = '1.18.1'
+VERSIONS = ('1.17.1', '1.18.0', DEFAULT_VERSION)
 
 
 def digest(path):

@@ -2,6 +2,30 @@
 
 ## Current stable interface
 
+Unmodified native captures from production-signed Fire TV UI 1.18.1/code 81 on Android TV API 34 at 1920x1080. Home and Settings show stock apps with cards disabled and a sample appearance. Plex details use synthetic library metadata. Your apps, inputs and saved settings determine your Home layout.
+
+<table>
+  <tr>
+    <td><a href="../art/screenshots/home-ui1181-code81-api34.png"><img src="../art/screenshots/home-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Home with cards disabled"></a><br>Home with cards disabled</td>
+    <td><a href="../art/screenshots/settings-ui1181-code81-api34.png"><img src="../art/screenshots/settings-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Settings"></a><br>Settings</td>
+    <td><a href="../art/screenshots/app-icons-ui1181-code81-api34.png"><img src="../art/screenshots/app-icons-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 App Icons shortcut"></a><br>App Icons shortcut</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/app-focus-ui1181-code81-api34.png"><img src="../art/screenshots/app-focus-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Growth and shadow controls"></a><br>Growth and shadow controls</td>
+    <td><a href="../art/screenshots/app-growth-ui1181-code81-api34.png"><img src="../art/screenshots/app-growth-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Growth choices"></a><br>Growth choices</td>
+    <td><a href="../art/screenshots/app-shadow-ui1181-code81-api34.png"><img src="../art/screenshots/app-shadow-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Shadow choices"></a><br>Shadow choices</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/plex-show-ui1181-code81-api34.png"><img src="../art/screenshots/plex-show-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Personal Plex show controls"></a><br>Personal Plex show controls</td>
+    <td><a href="../art/screenshots/shadow-off-ui1181-code81-api34.png"><img src="../art/screenshots/shadow-off-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Home with shadow Off"></a><br>Home with shadow Off</td>
+  </tr>
+</table>
+
+[Capture provenance](../art/screenshots/ui1181-code81-provenance.json) records the exact signed APK and raw image hashes. Earlier releases remain labeled below.
+
+
+## Fire TV UI 1.18.0, code 80
+
 Unmodified native captures from the production-signed Fire TV UI 1.18.0/code 80 APK on Android TV API 34 at 1920x1080. Home uses stock apps and a saved sample appearance. Card examples use a local sample feed without personal accounts or watch history. Your apps, inputs, widgets and saved appearance determine your Home layout.
 
 <table>
