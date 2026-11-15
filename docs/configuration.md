@@ -19,11 +19,15 @@ Open **UI settings > Layout and focus**. Apps per row offers presets and a custo
 
 Focus style offers Default, Border only, and Color and border. Choose a preset color or enter a six-digit RGB hex color for the fill and border. Default preserves the existing focus behavior while correcting a low-contrast focused background behind transparent icon-pack artwork. The artwork itself is not recolored. Border only leaves the resting tile background visible.
 
-### App focus growth and shadow
+### App hover and focus
 
-Open **UI settings > App Icons > App hover growth and shadow**. The same controls remain in **Layout and focus**. **App focus growth** offers Default (18%), Off, 6%, 12%, 24% and 30%. Off removes enlargement while keeping the other focus styling. **App focus shadow** offers Off, Default (18 dp), Large (28 dp) and Extra large (38 dp). Existing installations keep their current choices; without an override, growth and shadow retain the original 18% and 18 dp behavior. A saved disabled shadow stays disabled until you change it.
+Open **UI settings > App Icons > App hover and focus**. The same controls remain in **Layout and focus**. **App focus growth** offers Default (18%), Off, 6%, 12%, 24% and 30%. Off removes enlargement while keeping the other focus styling. **App focus shadow** offers Off, Default (18 dp), Large (28 dp) and Extra large (38 dp). Existing installations keep their current choices; without an override, growth and shadow retain the original 18% and 18 dp behavior. A saved disabled shadow stays disabled until you change it.
 
 Growth and shadow changes apply on return with Back, including when focusing the same app tile again; a process restart is not required. The native Settings route still returns Home focus to the first app, including visits where no setting changed. Preserving the previously focused app through that route remains unresolved.
+
+**App focus speed** offers Fast (Default), Normal and Slow. These set the app and folder focus animation to 120, 180 and 300 milliseconds respectively. Fast is the new default; Normal retains the previous duration. Rapid direction changes retarget the existing focus animation. Settings-page transitions are a separate control.
+
+**Focused border opacity** offers Default (90%), Off, 25%, 50%, 75% and 100%. It changes only the focus border, preserving artwork, fill color, growth, shadow and the existing border-enabled choice. Off removes the border while retaining other focus effects.
 
 These choices are validated preferences included in launcher backups and saved setups. No new permissions or migration are required.
 
@@ -38,6 +42,8 @@ Open **Theme and wallpaper > Icon pack** to select Clean line or Muted solid. Bo
 ## Cards
 
 Open **UI settings > Cards**. Select a Home card or press Menu for **Open**, **Hide this title**, and **Hide all cards from &lt;app&gt;**. The menu names the current title. Open keeps the original provider action; title hiding uses the exact selected item identity. The app action hides every feed published by that app while keeping its app tile.
+
+**Featured card setup > Channel card size** offers Default, Compact, Standard, Large and a custom width and height. Default retains the original layout calculations. Size applies consistently to channel cards while widget dimensions, artwork Fit/Fill, titles and timers keep their own settings.
 
 Turning cards Off removes the reserved card band when widgets are also disabled. Enabled widgets retain their row. **Channel Cards** manages channel visibility and individual items. **Card timers** sets the global title interval and optional individual channel timers, including Manual and custom whole seconds. Each channel can return to the global timer independently.
 
