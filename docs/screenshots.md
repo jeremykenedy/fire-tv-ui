@@ -2,6 +2,43 @@
 
 ## Current stable interface
 
+Unmodified native captures from production-signed Fire TV UI 1.19.0/code 82 on Android TV API 34 at 1920x1080. Home and Settings use stock apps and saved sample choices. Card examples use synthetic Plex library metadata and artwork. Your apps, inputs, widgets and saved settings determine your Home layout.
+
+<table>
+  <tr>
+    <td><a href="../art/screenshots/home-ui119-code82-api34.png"><img src="../art/screenshots/home-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Home with cards disabled"></a><br>Home with cards disabled</td>
+    <td><a href="../art/screenshots/settings-ui119-code82-api34.png"><img src="../art/screenshots/settings-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Settings"></a><br>Settings</td>
+    <td><a href="../art/screenshots/app-icons-ui119-code82-api34.png"><img src="../art/screenshots/app-icons-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 App Icons shortcut"></a><br>App Icons shortcut</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/app-focus-ui119-code82-api34.png"><img src="../art/screenshots/app-focus-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 App hover and focus"></a><br>App hover and focus</td>
+    <td><a href="../art/screenshots/app-speed-ui119-code82-api34.png"><img src="../art/screenshots/app-speed-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 App focus speed"></a><br>App focus speed</td>
+    <td><a href="../art/screenshots/border-opacity-ui119-code82-api34.png"><img src="../art/screenshots/border-opacity-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Focused border opacity"></a><br>Focused border opacity</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/app-growth-ui119-code82-api34.png"><img src="../art/screenshots/app-growth-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 App focus growth"></a><br>App focus growth</td>
+    <td><a href="../art/screenshots/app-shadow-ui119-code82-api34.png"><img src="../art/screenshots/app-shadow-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 App focus shadow"></a><br>App focus shadow</td>
+    <td><a href="../art/screenshots/card-size-ui119-code82-api34.png"><img src="../art/screenshots/card-size-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Channel card size"></a><br>Channel card size</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/cards-default-ui119-code82-api34.png"><img src="../art/screenshots/cards-default-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Default cards with sample content"></a><br>Default cards with sample content</td>
+    <td><a href="../art/screenshots/cards-compact-ui119-code82-api34.png"><img src="../art/screenshots/cards-compact-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Compact cards with sample content"></a><br>Compact cards with sample content</td>
+    <td><a href="../art/screenshots/cards-large-ui119-code82-api34.png"><img src="../art/screenshots/cards-large-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Large cards with sample content"></a><br>Large cards with sample content</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/icon-picker-ui119-code82-api34.png"><img src="../art/screenshots/icon-picker-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Original HD logo picker"></a><br>Original HD logo picker</td>
+    <td><a href="../art/screenshots/custom-icon-home-ui119-code82-api34.png"><img src="../art/screenshots/custom-icon-home-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Selected HD logo with Muted solid style"></a><br>Selected HD logo with Muted solid style</td>
+    <td><a href="../art/screenshots/plex-show-ui119-code82-api34.png"><img src="../art/screenshots/plex-show-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Personal Plex episode and whole-show controls"></a><br>Personal Plex episode and whole-show controls</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/hidden-shows-ui119-code82-api34.png"><img src="../art/screenshots/hidden-shows-ui119-code82-api34.png" alt="Fire TV UI 1.19.0 Named hidden shows and individual items"></a><br>Named hidden shows and individual items</td>
+  </tr>
+</table>
+
+[Capture provenance](../art/screenshots/ui119-code82-provenance.json) records the exact signed APK and raw image hashes. Earlier releases remain labeled below.
+
+## Fire TV UI 1.18.1, code 81
+
 Unmodified native captures from production-signed Fire TV UI 1.18.1/code 81 on Android TV API 34 at 1920x1080. Home and Settings show stock apps with cards disabled and a sample appearance. Plex details use synthetic library metadata. Your apps, inputs and saved settings determine your Home layout.
 
 <table>

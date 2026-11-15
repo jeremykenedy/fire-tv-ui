@@ -22,14 +22,14 @@
 
 | Version | Use it for | Start here |
 | --- | --- | --- |
-| Stable 1.18.1 | The existing Fire TV UI installation and supported 1.x updates. | [Stable download](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.18.1) |
+| Stable 1.19.0 | The existing Fire TV UI installation and supported 1.x updates. | [Stable download](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.19.0) |
 | Source Preview 2.0.0-alpha.3 | Try the independently built launcher in a separate app. | [Source preview guide](docs/source-preview.md) |
 
-Stable 1.18.1 is the latest stable release. It adds missing hide actions to personal Plex details and exposes growth and shadow settings inside App Icons while retaining the existing 1.x interface. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. See the [source preview guide](docs/source-preview.md) for included features and limits.
+Stable 1.19.0 is the latest stable release. It adds whole-show Plex hiding and configurable app focus speed, border opacity and card size while retaining the existing 1.x interface. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. See the [source preview guide](docs/source-preview.md) for included features and limits.
 
-The installation, feature guides and screenshots below describe stable 1.18.1 unless explicitly labeled as source preview.
+The installation, feature guides and screenshots below describe stable 1.19.0 unless explicitly labeled as source preview.
 
-[![Fire TV UI 1.18.1 Home captured on Android TV](art/screenshots/home-ui1181-code81-api34.png)](docs/screenshots.md#current-stable-interface)
+[![Fire TV UI 1.19.0 Home captured on Android TV](art/screenshots/home-ui119-code82-api34.png)](docs/screenshots.md#current-stable-interface)
 
 ## Table of Contents
 
@@ -63,7 +63,7 @@ Use the [source preview guide](docs/source-preview.md) for installation, include
 
 ## Installation
 
-Stable Fire TV UI 1.18.1 and the isolated Source Preview 2.0.0-alpha.3 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview uses a separate package and settings; see the [preview guide](docs/source-preview.md).
+Stable Fire TV UI 1.19.0 and the isolated Source Preview 2.0.0-alpha.3 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview uses a separate package and settings; see the [preview guide](docs/source-preview.md).
 
 The repository installer is currently unavailable. The source-native production build is a candidate and is not a verified upgrade; keep the existing installation and its data. See [Installation and updates](docs/installation.md) for the current status and backup guidance.
 
@@ -81,8 +81,8 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 
 | Feature | What it does | Guide |
 | --- | --- | --- |
-| Home layout | Choose columns, scrolling, focused app size and shadow size, including Off. | [Configuration](docs/configuration.md) |
-| Featured cards | Keep feeds fixed, set global or per-channel timers, and order or hide individual items. | [Featured cards](docs/featured-cards.md) |
+| Home layout | Choose columns, scrolling, app focus speed, growth, shadow and border opacity. | [Configuration](docs/configuration.md) |
+| Featured cards | Choose card size and timers, order or hide individual items, and hide whole Plex shows. | [Featured cards](docs/featured-cards.md) |
 | Backgrounds and overlays | Add independent animation over your wallpaper, with still choices and holiday palettes. | [Backgrounds and overlays](docs/backgrounds-and-overlays.md) |
 | Saved setups | Save named appearances and layouts, then switch back with optional icon restoration. | [Saved setups](docs/saved-setups.md) |
 | Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
@@ -100,7 +100,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 
 ## Input icons
 
-The [48 HD icons](docs/icons.md) cover audio brands, consoles, media players, VR, and computers. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The standalone icon script copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
+The [48 HD icons](docs/icons.md) cover audio brands, consoles, media players, VR, and computers. **Change Icon** opens these logos first, with brand categories and a separate Personal images choice. Each tile contains a centered logo at 1920x1080, with its original proportions and no extra caption. The standalone icon script copies them into the TV's shared `Pictures/Icons` folder and makes them visible to image pickers.
 
 The APK also recovers missing shared icons when storage access is available. Open **Settings > Updates** for access status and retry; existing custom files are preserved. The release icon ZIP and standalone icon script remain available; see the [icon guide](docs/icons.md).
 
@@ -145,6 +145,7 @@ The script builds an isolated unsigned preview and runs the source-native host a
 - [Animated menu backgrounds](docs/animated-backgrounds.md)
 - [Backgrounds, overlays and holiday themes](docs/backgrounds-and-overlays.md)
 - [Saved UI setups](docs/saved-setups.md)
+- [Fire TV UI 1.19.0 controls and upgrade guide](docs/releases/v1.19.0.md)
 - [Fire TV UI 1.18.1 controls and upgrade guide](docs/releases/v1.18.1.md)
 - [Fire TV UI 1.17.1 repair and upgrade guide](docs/releases/v1.17.1.md)
 - [Fire TV UI 1.17.0 release notes and upgrade guide](docs/releases/v1.17.0.md)
@@ -173,7 +174,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-See the [Fire TV UI 1.18.1 Home, Settings and card controls](docs/screenshots.md#current-stable-interface), captured from the final signed app on Android TV with safe sample data. Your apps, inputs and saved appearance determine your Home layout. The [source preview gallery](docs/source-preview.md#screenshots) is separately labeled.
+See the [Fire TV UI 1.19.0 Home, Settings and card controls](docs/screenshots.md#current-stable-interface), captured from the final signed app on Android TV with safe sample data. Your apps, inputs and saved appearance determine your Home layout. The [source preview gallery](docs/source-preview.md#screenshots) is separately labeled.
 
 ## License
 

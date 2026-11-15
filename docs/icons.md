@@ -18,9 +18,11 @@ Each release also includes `fire-tv-ui-icons-VERSION.zip`. Extract its `Icons` d
 
 ## Choose an icon
 
-In Fire TV UI, long press the app or input tile you want to change. Choose **Change Icon**, then choose the logo in **Select Image**. The selected image belongs to that tile; replacing the source file does not replace an image the launcher has already copied. Select the updated image again to update an existing tile.
+In Fire TV UI, long press the app or input tile you want to change and choose **Change Icon**. **Choose icon** opens the 48 original HD logos by default. Use **Category** to select a brand, an available installed icon pack, or the separate **Personal images (browse device)** collection. Screenshots and downloads do not appear in the built-in catalog. Personal images has Older and Newer page controls so images remain reachable in larger collections.
 
-Long press a tile and choose **Use factory icon** to remove its custom image and show its original artwork. This affects only that tile, even when an icon pack is enabled. **Use theme icon** removes the individual override and follows the selected icon pack again. **Change Icon** still lets you choose another image. The image picker also offers **Use factory icon**.
+Select an image to apply it to that tile, or press Back to cancel. The image is copied into private app storage, so removing or replacing the original file does not change an existing tile. Select the updated image again to update the tile. The picker preserves original image proportions and supports personal images up to 20 MiB. Personal-image access depends on the TV's existing media permissions; built-in logos need no shared-storage grant.
+
+Long press a tile and choose **Use factory icon** to remove its custom image and show its original artwork. This affects only that tile, even when an icon pack is enabled. **Use theme icon** removes the individual override and follows the selected icon pack again. **Change Icon** still lets you choose another image. The image picker also offers **Use factory icon** and **Use theme icon**.
 
 In LTvLauncher, long press an app, choose **Set Custom Banner**, and select the image through its gallery picker. The same shared images are available to both apps. LTvLauncher's built-in input panel does not offer the same custom-image control as its app banners.
 
@@ -38,9 +40,9 @@ Theme and wallpaper > Icon pack also offers Clean line and Muted solid. These us
 
 <table>
   <tr>
-    <td><img src="../art/screenshots/audio-brand-picker-ui117-code78-api34.png" alt="Fire TV UI 1.17 image picker displaying audio brand icons"><br>Fire TV UI 1.17</td>
-    <td><img src="../art/screenshots/input-icon-tv-1920.png" alt="Centered Xbox One and Wii U logos on HDMI tiles"><br>Input tiles</td>
-    <td><img src="../art/screenshots/ltv-icon-picker-tv-1920.png" alt="LTvLauncher custom-banner picker displaying the same shared images"><br>LTvLauncher picker</td>
+    <td><img src="../art/screenshots/icon-picker-ui119-code82-api34.png" alt="Fire TV UI 1.19 curated picker displaying original HD logos"><br>Fire TV UI 1.19</td>
+    <td><img src="../art/screenshots/custom-icon-home-ui119-code82-api34.png" alt="Fire TV UI 1.19 with an original HD PlayStation 5 logo selected for a sample app"><br>Fire TV UI 1.19 custom tile</td>
+    <td><img src="../art/screenshots/ltv-icon-picker-tv-1920.png" alt="LTvLauncher custom-banner picker displaying the same shared images"><br>Earlier LTvLauncher picker</td>
   </tr>
 </table>
 

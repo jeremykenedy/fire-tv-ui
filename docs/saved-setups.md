@@ -9,8 +9,8 @@ Choose **Save current setup**, enter a name, and save. Select a saved setup to a
 | Area | Included settings |
 | --- | --- |
 | Appearance | Theme, wallpaper, colors, backgrounds, overlays and animation controls |
-| Layout | App order and visibility, folders, columns, scrolling, row limits and focus styles |
-| Cards | Channel visibility, item and feed order, hidden items, artwork fit and global/per-channel timers |
+| Layout | App order and visibility, folders, columns, scrolling, row limits, focus styles, growth, shadow, speed and border opacity |
+| Cards | Channel visibility, item and feed order, hidden items and whole Plex shows, card size, artwork fit and global/per-channel timers |
 | Widgets | Widget configuration, status bar presentation, clock and weather display choices |
 | Icons | Selected icon pack and copied custom tile images, applied optionally |
 

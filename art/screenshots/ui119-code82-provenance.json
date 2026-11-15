@@ -1,0 +1,109 @@
+{
+  "version": "1.19.0",
+  "versionCode": 82,
+  "sourceCommit": "52196e4af6f0a2fafe57599882951326f38a72e4",
+  "sourceTree": "826ed7077211a0eef925e1eab8270fd0d69e7847",
+  "apkSha256": "7e499c984953a5bec6faa698e60616f05b79344ff73fdc76cf1796ed375758fa",
+  "width": 1920,
+  "height": 1080,
+  "unmodifiedCaptures": true,
+  "sampleData": "Stock emulator apps and saved sample appearance; synthetic Plex library metadata and owned image samples. No personal accounts.",
+  "screenshots": [
+    {
+      "file": "home-ui119-code82-api34.png",
+      "sha256": "f18f6538071bbd467cf7dde635364bb456917fb669582a01792cf0f3f66f8fcb",
+      "capture": "Android TV API34 emulator5760",
+      "label": "Home with cards disabled"
+    },
+    {
+      "file": "settings-ui119-code82-api34.png",
+      "sha256": "d77041ad6afe73e4103bc52d09edb245f1d8eed621e05d2a774b2c67dfbf92e8",
+      "capture": "Android TV API34 emulator5760",
+      "label": "Settings"
+    },
+    {
+      "file": "app-icons-ui119-code82-api34.png",
+      "sha256": "9c45441d74562c4041d83c5b23d8425bf64daaaa13a7089bc027d56ed1ff1fa6",
+      "capture": "Android TV API34 emulator5760",
+      "label": "App Icons shortcut"
+    },
+    {
+      "file": "app-focus-ui119-code82-api34.png",
+      "sha256": "c102303688ab5bc0e04509c3e32e90eee58612da312b0d08ef765b27c9f47acc",
+      "capture": "Android TV API34 emulator5760",
+      "label": "App hover and focus"
+    },
+    {
+      "file": "app-speed-ui119-code82-api34.png",
+      "sha256": "199eba6b5187dec401ed0456014e86b23dd23382aca69143ae875494b6285167",
+      "capture": "Android TV API34 emulator5760",
+      "label": "App focus speed"
+    },
+    {
+      "file": "border-opacity-ui119-code82-api34.png",
+      "sha256": "309258c868fd79d492e5d3897f68e0a5a59536d37a0ed0c9f3ccff40209a2f90",
+      "capture": "Android TV API34 emulator5760",
+      "label": "Focused border opacity"
+    },
+    {
+      "file": "app-growth-ui119-code82-api34.png",
+      "sha256": "bcd6b19398f18f6515b0dd1372a7f60efea0d9451b3db2fa909d9fb61ec2a2d9",
+      "capture": "Android TV API34 emulator5760",
+      "label": "App focus growth"
+    },
+    {
+      "file": "app-shadow-ui119-code82-api34.png",
+      "sha256": "326014592b4938c8836452db568b912918442c90c61d092a542af9e8cd7dae83",
+      "capture": "Android TV API34 emulator5760",
+      "label": "App focus shadow"
+    },
+    {
+      "file": "card-size-ui119-code82-api34.png",
+      "sha256": "b5cb95191b32bbe58cc950127381bf24dd1248837a5f275cdb098d6d1a0af019",
+      "capture": "Android TV API34 emulator5780",
+      "label": "Channel card size"
+    },
+    {
+      "file": "cards-default-ui119-code82-api34.png",
+      "sha256": "ac47d9473d442a377a7728cb95373994847dd170d9801d87a4fffa386cb339b6",
+      "capture": "Android TV API34 emulator5780",
+      "label": "Default cards with sample content"
+    },
+    {
+      "file": "cards-compact-ui119-code82-api34.png",
+      "sha256": "6894059964067f9d2679b994efa178a85780270f0f6eebcda2d87371f261d815",
+      "capture": "Android TV API34 emulator5780",
+      "label": "Compact cards with sample content"
+    },
+    {
+      "file": "cards-large-ui119-code82-api34.png",
+      "sha256": "b5d0f89a88511d661fc298f91039b335484fddddb4a5f905b0c45d51085f971b",
+      "capture": "Android TV API34 emulator5780",
+      "label": "Large cards with sample content"
+    },
+    {
+      "file": "icon-picker-ui119-code82-api34.png",
+      "sha256": "28a415f9c8d09225fd10b2ac8c676b05e60b2403769daf930e5d4d89a09c9351",
+      "capture": "Android TV API34 emulator5800",
+      "label": "Original HD logo picker"
+    },
+    {
+      "file": "custom-icon-home-ui119-code82-api34.png",
+      "sha256": "3ee503607365df8b7fb2667325117f4c4b966a86f939fa114e5bea022d0a423a",
+      "capture": "Android TV API34 emulator5800",
+      "label": "Selected HD logo with Muted solid style"
+    },
+    {
+      "file": "plex-show-ui119-code82-api34.png",
+      "sha256": "4a85eab89db9cb5a2a006cdf8fb8984b6cd771132ced508cd91d23913aa9c581",
+      "capture": "Android TV API34 emulator5780",
+      "label": "Personal Plex episode and whole-show controls"
+    },
+    {
+      "file": "hidden-shows-ui119-code82-api34.png",
+      "sha256": "8bfb7c7b15bcf30ea67bcae66c2436cb7c9e594984f1a3fa31059743620d6304",
+      "capture": "Android TV API34 emulator5780",
+      "label": "Named hidden shows and individual items"
+    }
+  ]
+}
