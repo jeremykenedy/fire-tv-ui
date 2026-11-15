@@ -17,6 +17,7 @@ Unmodified native captures from production-signed Fire TV UI 1.18.1/code 81 on A
   </tr>
   <tr>
     <td><a href="../art/screenshots/plex-show-ui1181-code81-api34.png"><img src="../art/screenshots/plex-show-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Personal Plex show controls"></a><br>Personal Plex show controls</td>
+    <td><a href="../art/screenshots/plex-movie-ui1181-code81-api34.png"><img src="../art/screenshots/plex-movie-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Personal Plex movie controls"></a><br>Personal Plex movie controls</td>
     <td><a href="../art/screenshots/shadow-off-ui1181-code81-api34.png"><img src="../art/screenshots/shadow-off-ui1181-code81-api34.png" alt="Fire TV UI 1.18.1 Home with shadow Off"></a><br>Home with shadow Off</td>
   </tr>
 </table>

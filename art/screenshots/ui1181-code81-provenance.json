@@ -47,6 +47,11 @@
       "file": "plex-show-ui1181-code81-api34.png",
       "sha256": "a40495359d5f643bd976bcf6bf36c7e51ff97acab2f9fbe8ea504b8adb6e0122",
       "capture": "Android TV API34 emulator5670"
+    },
+    {
+      "file": "plex-movie-ui1181-code81-api34.png",
+      "sha256": "acd694a5ef19493d5c0a036ead655efa202b9e35a268e19666cb5c78364e46a7",
+      "capture": "Android TV API34 emulator5670"
     }
   ]
 }
