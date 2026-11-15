@@ -1,0 +1,57 @@
+{
+  "version": "1.18.1",
+  "versionCode": 81,
+  "sourceCommit": "f307a569af1fda0353064b012fcd3e022dae0549",
+  "apkSha256": "729fd098ac4554ce778a44742a447c51be80c9a72aef7a0643f64a255289e9ae",
+  "width": 1920,
+  "height": 1080,
+  "unmodifiedCaptures": true,
+  "sampleData": "Stock emulator apps with cards disabled; synthetic Plex library metadata. No personal accounts.",
+  "screenshots": [
+    {
+      "file": "home-ui1181-code81-api34.png",
+      "sha256": "9de04d36f8b015c8fb1fb4bfaeb0b21877b3e68ede297f123338d16b6f80a4a1",
+      "capture": "Android TV API34 emulator5684"
+    },
+    {
+      "file": "settings-ui1181-code81-api34.png",
+      "sha256": "2236c6d2a4fbb39299663099657f80097c71831a228949d8ca1db28df21d3df8",
+      "capture": "Android TV API34 emulator5684"
+    },
+    {
+      "file": "app-icons-ui1181-code81-api34.png",
+      "sha256": "5f8cd460c6bc085b9a7f1bb98bec795fc237dc0ac06b47f6555a16f821b130cf",
+      "capture": "Android TV API34 emulator5684"
+    },
+    {
+      "file": "app-focus-ui1181-code81-api34.png",
+      "sha256": "78af36d3cefee9a3d0d5a2a88f75863e0e1e662df6ee30c5032c7eac72fb1dd5",
+      "capture": "Android TV API34 emulator5684"
+    },
+    {
+      "file": "app-growth-ui1181-code81-api34.png",
+      "sha256": "0e28b5af1d60aa8fdd62099e89dbc67f88f776cd3d9b2caa25c04fa8ebc5068b",
+      "capture": "Android TV API34 emulator5684"
+    },
+    {
+      "file": "app-shadow-ui1181-code81-api34.png",
+      "sha256": "e337c19527105e4bcd8ebc90ff815a4c8b5f586bcae4c84d5d86f4fe54461791",
+      "capture": "Android TV API34 emulator5684"
+    },
+    {
+      "file": "shadow-off-ui1181-code81-api34.png",
+      "sha256": "1c1b685015255de1ea2f511671a2c8910ea533dde1413584e015f7e834c20a64",
+      "capture": "Android TV API34 emulator5684"
+    },
+    {
+      "file": "plex-show-ui1181-code81-api34.png",
+      "sha256": "a40495359d5f643bd976bcf6bf36c7e51ff97acab2f9fbe8ea504b8adb6e0122",
+      "capture": "Android TV API34 emulator5670"
+    },
+    {
+      "file": "plex-movie-ui1181-code81-api34.png",
+      "sha256": "acd694a5ef19493d5c0a036ead655efa202b9e35a268e19666cb5c78364e46a7",
+      "capture": "Android TV API34 emulator5670"
+    }
+  ]
+}

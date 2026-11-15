@@ -18,7 +18,7 @@ The small helper APK is downloaded and verified against its published size and S
 
 ## Fire TV UI releases
 
-Stable 1.18.0/code 80 adds Select/Menu card controls, removes unused card spacing and provides app focus growth and shadow choices. Its verified direct replacement source is 1.17.1/code 79. The versioned APK and checksum use this existing update flow with the same production package and signer. No new update settings, permissions or migration are required. See the [1.18.0 upgrade guide](releases/v1.18.0.md).
+Stable 1.18.1/code 81 adds missing hide actions to personal Plex details and exposes growth and shadow controls inside App Icons. Its direct replacement source is 1.18.0/code 80. The versioned APK and checksum use this existing update flow with the same production package and signer. No new update settings, permissions or migration are required. See the [1.18.1 upgrade guide](releases/v1.18.1.md).
 
 The TV checks the public UI release directly, selects its exact versioned APK and verifies the compiled Android version, package and current production signer. A desktop or other APK is never substituted for a missing UI asset. No GitHub token is stored on the TV.
 
