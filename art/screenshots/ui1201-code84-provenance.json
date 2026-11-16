@@ -1,0 +1,159 @@
+{
+  "version": "1.20.1",
+  "versionCode": 84,
+  "package": "com.jeremykenedy.firetv.ui",
+  "sourceCommit": "bee95faa1deaf730286409747aabab2bacedda69",
+  "apkSha256": "147937c1ec8a9a44a5af9c59a3b980b202ce57d367cfed19a37b8de91dd20e08",
+  "platform": "Android TV API 34",
+  "resolution": [
+    1920,
+    1080
+  ],
+  "captures": "Unmodified native screenshots using stock apps, retained sample appearance choices and synthetic card data.",
+  "images": [
+    {
+      "file": "home-ui1201-code84-api34.png",
+      "label": "Home with retained HD artwork",
+      "sourceFile": "home-ui1201-code84-api34.png",
+      "sha256": "e96e4e9bc84a051bf43dc952a146c22cccc4da37129f726e0528d029b3284160",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "settings-ui1201-code84-api34.png",
+      "label": "Settings",
+      "sourceFile": "settings-ui1201-code84-api34.png",
+      "sha256": "638552ea01d550e4e8906b0145f5641e29150b1da41d77afe8fa3acc471dc3c7",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "ui-settings-ui1201-code84-api34.png",
+      "label": "UI settings",
+      "sourceFile": "ui-settings-ui1201-code84-api34.png",
+      "sha256": "c724fff232e26efd74214aa55a67551ab00d1d7be8983b1c1d51429816fe5676",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "app-icons-ui1201-code84-api34.png",
+      "label": "App Icons controls",
+      "sourceFile": "app-icons-ui1201-code84-api34.png",
+      "sha256": "ad984b6c53ddde2b110cde734ae67d638f7aea6b4b824159f5b6f8203ebf8c1e",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "focus-controls-ui1201-code84-api34.png",
+      "label": "App hover and focus controls",
+      "sourceFile": "focus-controls-ui1201-code84-api34.png",
+      "sha256": "5529ffeef97a2f123c2df9830933e022e8704e14ada0e952e6e10e782faac2b7",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "focus-growth-ui1201-code84-api34.png",
+      "label": "App focus growth choices",
+      "sourceFile": "focus-growth-ui1201-code84-api34.png",
+      "sha256": "c72b987f8e8ff61cdc830259b99afb1cb5ad06134854d1e3a93ba6cf892b7431",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "focus-shadow-ui1201-code84-api34.png",
+      "label": "App focus shadow choices",
+      "sourceFile": "focus-shadow-ui1201-code84-api34.png",
+      "sha256": "dfd3caf4c6384303092a0aab4660cfe2cf42221ca8755ce3e756d2ddd47746bf",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "icon-picker-ui1201-code84-api34.png",
+      "label": "Original 48 HD logos",
+      "sourceFile": "icon-picker-ui1201-code84-api34.png",
+      "sha256": "28a415f9c8d09225fd10b2ac8c676b05e60b2403769daf930e5d4d89a09c9351",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "custom-icon-home-ui1201-code84-api34.png",
+      "label": "Retained custom HD icon and Muted solid style",
+      "sourceFile": "custom-hd-return-ui1201-code84-api34.png",
+      "sha256": "3adca5242381994bdbeeb19f9f58c0499bbdfb1a58a9af40306170c68c23a035",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "backgrounds-ui1201-code84-api34.png",
+      "label": "Backgrounds without previous menu bleed",
+      "sourceFile": "backgrounds-ui1201-code84-api34.png",
+      "sha256": "48152cb5be731df923189c3a068495a83fa66990775bd001dc8ca9aee4585be5",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "appearance-presets-ui1201-code84-api34.png",
+      "label": "Optional appearance presets",
+      "sourceFile": "appearance-presets-ui1201-code84-api34.png",
+      "sha256": "1f11c18b763199a10eb1747551f4d9c8b94b736a74d3a091fdc9b8fc0b81080e",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "updates-ui1201-code84-api34.png",
+      "label": "Installed and available release versions",
+      "sourceFile": "updates-ui1201-code84-api34.png",
+      "sha256": "49112c27655eac85cb55ef59ca9f1ad7d5d2404636133b4742e85a6de9cdf527",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "updates-recheck-pending-ui1201-code84-api34.png",
+      "label": "Update recheck clears old details",
+      "sourceFile": "updates-recheck-pending-ui1201-code84-api34.png",
+      "sha256": "3843dafab298319dabb2467c5780334cf118eb1c9137255a582c94ed77ed3d95",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "card-fallback-ui1201-code84-api34.png",
+      "label": "Missing artwork with hidden titles",
+      "sourceFile": "final1201-null-art-single-feed-label-home.png",
+      "sha256": "d236cbb5d84f5f4c1533f27df9da6f798772db86d2fde14c60e3fb7b788c1bdc",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "card-artwork-ui1201-code84-api34.png",
+      "label": "Current title with successful artwork",
+      "sourceFile": "final1201-successful-art-current-focused-title-home.png",
+      "sha256": "181be338113e3bd092a331f23f9ae05814a79f5d9cfdba377152f0fa2f371edd",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "card-menu-ui1201-code84-api34.png",
+      "label": "Current card controls",
+      "sourceFile": "final1201-current-card-menu.png",
+      "sha256": "8c41ae96e96cbb3297b1657e4baf80dbcbf795e74a847658fe3553dc889620dd",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "saved-setup-ui1201-code84-api34.png",
+      "label": "Saved setup with unused image history",
+      "sourceFile": "final1201-saved-setup-inactive-image-history.png",
+      "sha256": "96eda9cdff1c0992b21cdad532deffb9654236bb343cc9bb1ae36daded81e30e",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "saved-setup-home-ui1201-code84-api34.png",
+      "label": "Applied Light setup and saved layout",
+      "sourceFile": "final1201-saved-setup-applied-light-home.png",
+      "sha256": "8eb9ccacb842d8b92cd0e2a689e589792f3d93cb241d0bfb413dd19d1644598a",
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}
