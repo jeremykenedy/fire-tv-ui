@@ -2,6 +2,45 @@
 
 ## Current stable interface
 
+Unmodified native captures from production-signed Fire TV UI 1.20.1/code 84 on Android TV API 34 at 1920x1080. Home uses retained sample appearance choices, including an original HD custom icon and Muted solid style. Card examples use synthetic local feeds. Your apps, inputs, widgets and saved settings determine your Home layout. Updates was captured before publication, when 1.20.0 was still the latest public release.
+
+<table>
+  <tr>
+    <td><a href="../art/screenshots/home-ui1201-code84-api34.png"><img src="../art/screenshots/home-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Home with retained HD artwork"></a><br>Home with retained HD artwork</td>
+    <td><a href="../art/screenshots/settings-ui1201-code84-api34.png"><img src="../art/screenshots/settings-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Settings"></a><br>Settings</td>
+    <td><a href="../art/screenshots/ui-settings-ui1201-code84-api34.png"><img src="../art/screenshots/ui-settings-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 UI settings"></a><br>UI settings</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/app-icons-ui1201-code84-api34.png"><img src="../art/screenshots/app-icons-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 App Icons controls"></a><br>App Icons controls</td>
+    <td><a href="../art/screenshots/focus-controls-ui1201-code84-api34.png"><img src="../art/screenshots/focus-controls-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 App hover and focus controls"></a><br>App hover and focus controls</td>
+    <td><a href="../art/screenshots/focus-growth-ui1201-code84-api34.png"><img src="../art/screenshots/focus-growth-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 App focus growth choices"></a><br>App focus growth choices</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/focus-shadow-ui1201-code84-api34.png"><img src="../art/screenshots/focus-shadow-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 App focus shadow choices"></a><br>App focus shadow choices</td>
+    <td><a href="../art/screenshots/icon-picker-ui1201-code84-api34.png"><img src="../art/screenshots/icon-picker-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Original 48 HD logos"></a><br>Original 48 HD logos</td>
+    <td><a href="../art/screenshots/custom-icon-home-ui1201-code84-api34.png"><img src="../art/screenshots/custom-icon-home-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Retained custom HD icon and Muted solid style"></a><br>Retained custom HD icon and Muted solid style</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/backgrounds-ui1201-code84-api34.png"><img src="../art/screenshots/backgrounds-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Backgrounds without previous menu bleed"></a><br>Backgrounds without previous menu bleed</td>
+    <td><a href="../art/screenshots/appearance-presets-ui1201-code84-api34.png"><img src="../art/screenshots/appearance-presets-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Optional appearance presets"></a><br>Optional appearance presets</td>
+    <td><a href="../art/screenshots/updates-ui1201-code84-api34.png"><img src="../art/screenshots/updates-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Installed and available release versions"></a><br>Installed and available release versions</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/updates-recheck-pending-ui1201-code84-api34.png"><img src="../art/screenshots/updates-recheck-pending-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Update recheck clears old details"></a><br>Update recheck clears old details</td>
+    <td><a href="../art/screenshots/card-fallback-ui1201-code84-api34.png"><img src="../art/screenshots/card-fallback-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Missing artwork with hidden titles"></a><br>Missing artwork with hidden titles</td>
+    <td><a href="../art/screenshots/card-artwork-ui1201-code84-api34.png"><img src="../art/screenshots/card-artwork-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Current title with successful artwork"></a><br>Current title with successful artwork</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/card-menu-ui1201-code84-api34.png"><img src="../art/screenshots/card-menu-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Current card controls"></a><br>Current card controls</td>
+    <td><a href="../art/screenshots/saved-setup-ui1201-code84-api34.png"><img src="../art/screenshots/saved-setup-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Saved setup with unused image history"></a><br>Saved setup with unused image history</td>
+    <td><a href="../art/screenshots/saved-setup-home-ui1201-code84-api34.png"><img src="../art/screenshots/saved-setup-home-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 Applied Light setup and saved layout"></a><br>Applied Light setup and saved layout</td>
+  </tr>
+</table>
+
+[Capture provenance](../art/screenshots/ui1201-code84-provenance.json) records the exact signed APK and raw image hashes. Earlier releases remain labeled below.
+
+## Fire TV UI 1.20.0, code 83
+
 Unmodified native captures from production-signed Fire TV UI 1.20.0/code 83 on Android TV API 34 at 1920x1080. These examples use stock apps and saved sample appearance choices. Your apps, inputs, widgets and saved settings determine your Home layout.
 
 <table>

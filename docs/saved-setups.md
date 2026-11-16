@@ -14,7 +14,7 @@ Choose **Save current setup**, enter a name, and save. Select a saved setup to a
 | Widgets | Widget configuration, status bar presentation, clock and weather display choices |
 | Icons | Selected icon pack and copied custom tile images, applied optionally |
 
-Still wallpaper and icon images are copied into private app storage. Video wallpapers save the selected source reference without copying the video file. Keep that original video accessible; applying a video setup checks its source before changing any preferences. A missing video does not prevent applying a setup that uses a different wallpaper mode. Installed icon packs still need to remain installed. Up to 24 setups are supported, with 96 MB of copied images in total and a 20 MB limit per image. Names can contain 1 to 60 characters and must be unique.
+Active still wallpaper and icon images are copied into private app storage. An unused historical wallpaper reference is retained without requiring that old image to remain available. Selecting a wallpaper mode that uses the image still requires a readable image when saving or applying. Video wallpapers save the selected source reference without copying the video file. Keep that original video accessible; applying a video setup checks its source before changing any preferences. A missing video does not prevent applying a setup that uses a different wallpaper mode. Installed icon packs still need to remain installed. Up to 24 setups are supported, with 96 MB of copied images in total and a 20 MB limit per image. Names can contain 1 to 60 characters and must be unique.
 
 ## What stays unchanged
 
@@ -22,6 +22,6 @@ TV power, sleep timers, screensaver selection, Home protection, account connecti
 
 Saved setups are local to this Fire TV UI installation. They are not included in the existing portable preference backup. Clearing Fire TV UI app data or uninstalling the app removes the setup library and its copied images. Ordinary app updates preserve it.
 
-Deleting a saved setup leaves the current appearance in place. A copied image that is still used by the current setup is retained. Unavailable images and invalid saved data produce an error instead of partially replacing the current settings.
+Deleting a saved setup leaves the current appearance in place. A copied image that is still used by the current setup is retained. Unavailable images needed by the selected setup and invalid saved data produce an error instead of partially replacing the current settings.
 
 See [backgrounds and overlays](backgrounds-and-overlays.md) for holiday palettes and [featured cards](featured-cards.md) for card timers.

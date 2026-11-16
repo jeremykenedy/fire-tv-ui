@@ -1,0 +1,13 @@
+{
+  "version": "1.20.1",
+  "versionCode": 84,
+  "package": "com.jeremykenedy.firetv.ui",
+  "baseCommit": "7caa623879fe5734049cd164278a5b50b835c103",
+  "baseTag": "v1.17.0",
+  "reviewedRepairCommit": "bee95faa1deaf730286409747aabab2bacedda69",
+  "expectedSourceTree": "9c43de51c403863452e1005dd93f110b1a0a2a3c",
+  "patchSha256": "1dfd5dc3715c2825c68fd4bd961f50a10394ea364c7b10831cdcdef581d3188e",
+  "launcherBaseSha256": "ac34c0abf1ceee5d5133dc3e99bde9173a00c5a16132852507ed23c0fbd41341",
+  "apktoolSha256": "dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423",
+  "independentReplacement": false
+}
