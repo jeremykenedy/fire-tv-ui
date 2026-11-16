@@ -1,0 +1,97 @@
+{
+  "version": "1.20.0",
+  "versionCode": 83,
+  "sourceCommit": "b806c8d43374c593c8d7ca24d3aebbac895d29dd",
+  "sourceTree": "6b30e32a3ab84e051475335a72b4b1e424f239f4",
+  "apkSha256": "8e578b265e7b9e1e5b529427fc0a4b22432e748e59cc9d0a6f09d6d7e7076e6c",
+  "width": 1920,
+  "height": 1080,
+  "unmodifiedCaptures": true,
+  "sampleData": "Stock emulator apps and saved sample appearance choices; no personal accounts.",
+  "screenshots": [
+    {
+      "file": "home-ui120-code83-api34.png",
+      "sha256": "b32562f4d242fc4cd8dafa50b629b393ecdc13e5b1b6b4bff3ca0052a28fd9bc",
+      "label": "Home with cards disabled",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "settings-ui120-code83-api34.png",
+      "sha256": "49a551e3c4053a07ef90cf220f5e50926d96a896f76c191a1c3139f725d1ceaf",
+      "label": "Settings",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "ui-settings-ui120-code83-api34.png",
+      "sha256": "fe5b0cff165997a598b2761a4b59a901249961165a6cdcdde23cde1da7768580",
+      "label": "UI settings",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "app-icons-ui120-code83-api34.png",
+      "sha256": "ef7ca050f6d8fdd620df961190807edf3e2f0e0b5a85f074f5910c59d479fe09",
+      "label": "App Icons controls",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "widgets-opacity-ui120-code83-api34.png",
+      "sha256": "2fd1a08a36a5547b35005e6efa8d8c25a4ecb4439bfb21f71a81a5d54d4bb991",
+      "label": "Clock and Year widgets at selected50% text opacity",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "widget-text-ui120-code83-api34.png",
+      "sha256": "e2c564c57d1f7405cbae140390c3dbe0a85e768c08a7412db9361a1f1d22fca0",
+      "label": "Widget text controls",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "appearance-presets-ui120-code83-api34.png",
+      "sha256": "9335537513732b1e6bf5193f3c398ca1439576e3086c92f76d25bb25207061ae",
+      "label": "Appearance presets",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "cinematic-details-ui120-code83-api34.png",
+      "sha256": "c5c374d1beda9fd1a1e4e911a61b44e3b1c9b39fba02e9211889e002bd78b68f",
+      "label": "Cinematic preset details",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "home-cinematic-ui120-code83-api34.png",
+      "sha256": "69e02839621cb1ce83e40f65b41f0bff7e5ec3e488da95e218d6638df58a5afa",
+      "label": "Cinematic preset applied on Home",
+      "capture": "Android TV API 34 emulator-5780"
+    },
+    {
+      "file": "background-editor-ui120-code83-api34.png",
+      "sha256": "cfeb4026e433a311dffd4b3a8fa5ea43cb3edf1a1859ea63192efa3b52358cd8",
+      "label": "Contour field controls",
+      "capture": "Android TV API 34 emulator-5800"
+    },
+    {
+      "file": "home-contours-ui120-code83-api34.png",
+      "sha256": "893647259e4eb6434d2ef283f674a4e567333baf253d7ab5051132d101cb0691",
+      "label": "Contour field on Home with an existing HD custom icon",
+      "capture": "Android TV API 34 emulator-5800"
+    },
+    {
+      "file": "home-fireflies-ui120-code83-api34.png",
+      "sha256": "af49a9f2c24c88a9be82d7ea21c4f783b7730bce9b8ef605736c5d12b71eb0fe",
+      "label": "Firefly drift on Home",
+      "capture": "Android TV API 34 emulator-5800"
+    },
+    {
+      "file": "icon-picker-ui120-code83-api34.png",
+      "sha256": "28a415f9c8d09225fd10b2ac8c676b05e60b2403769daf930e5d4d89a09c9351",
+      "label": "Original HD logo picker",
+      "capture": "Android TV API 34 emulator-5800"
+    },
+    {
+      "file": "custom-icon-home-ui120-code83-api34.png",
+      "sha256": "87242392c89297752657db8017408eae62eb9a8c96e06d51499cb231d4736695",
+      "label": "Selected HD logo with Muted solid style",
+      "capture": "Android TV API 34 emulator-5800"
+    }
+  ]
+}

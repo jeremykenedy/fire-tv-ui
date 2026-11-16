@@ -4,7 +4,22 @@ Open **Theme and wallpaper > Backgrounds and overlays**. The page separates the 
 
 Each layer has its own choice of effect, still or animated mode, speed, density and colors. The full background has a brightness control; the transparent overlay has opacity. Still mode keeps a fixed composition without a frame callback. Paused, hidden and detached layers stop their animation clock and resume without jumping forward.
 
-All twelve existing animated effects are also available as overlays. Additional motifs are falling snow, drifting snowflakes, falling leaves, falling hearts, floating hearts, drifting petals and floating lights. These are native vector and light effects scaled to the display, with independent particle positions and motion. There is no text or watermark in a rendered scene.
+The animated effects are also available as overlays. Contour field adds softly moving contour lines; Firefly drift adds small warm lights over a dark green background. Additional motifs are falling snow, drifting snowflakes, falling leaves, falling hearts, floating hearts, drifting petals and floating lights. These are native vector and light effects scaled to the display, with independent particle positions and motion. There is no text or watermark in a rendered scene.
+
+## Appearance presets
+
+Choose **Appearance presets** for an optional coordinated background and app focus border. The details screen describes the change before **Apply**.
+
+| Preset | Background and app focus |
+| --- | --- |
+| Restrained dark | Still warm graphite with a white border |
+| Cinematic | Still midnight blue with a warm white border |
+| Soft ambient | Slow, sparse flowing silk with a pale blue border |
+| Default | Your wallpaper, no overlay and the original app focus style |
+
+Presets leave your wallpaper selection, icons, layout, widgets, focus growth and shadow saved. They retain each layer's Animated or Still choice; the two still backgrounds never animate. App border opacity is 90% for the three coordinated presets.
+
+**Default** resets only the background and focus fields managed by presets. It does not recover a previous custom appearance. Use **Save current setup first** to create a named setup through the existing [Saved setups](saved-setups.md) screen, then apply that setup when you want to return to it. Applying a preset does not overwrite saved setups.
 
 ## Holiday choices
 
