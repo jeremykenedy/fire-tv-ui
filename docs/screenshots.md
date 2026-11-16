@@ -2,6 +2,30 @@
 
 ## Current stable interface
 
+Unmodified native captures from production-signed Fire TV UI 1.21.0/code 85 on Android TV API 34 at 1920x1080. Examples use local sample apps, the original widgets and HD icons, and synthetic card feeds. Circles printed in the sample artwork are part of those images. The existing Home layout remains the default; the shared row is optional. Your apps, inputs, widgets and saved settings determine your Home layout.
+
+<table>
+  <tr>
+    <td><a href="../art/screenshots/home-ui121-code85-api34.png"><img src="../art/screenshots/home-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Existing Home layout"></a><br>Existing Home layout</td>
+    <td><a href="../art/screenshots/settings-ui121-code85-api34.png"><img src="../art/screenshots/settings-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Settings"></a><br>Settings</td>
+    <td><a href="../art/screenshots/ui-settings-ui121-code85-api34.png"><img src="../art/screenshots/ui-settings-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 UI settings"></a><br>UI settings</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/mixed-home-ui121-code85-api34.png"><img src="../art/screenshots/mixed-home-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Optional shared widgets and cards"></a><br>Optional shared widgets and cards</td>
+    <td><a href="../art/screenshots/shared-order-ui121-code85-api34.png"><img src="../art/screenshots/shared-order-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Arrange widgets and cards"></a><br>Arrange widgets and cards</td>
+    <td><a href="../art/screenshots/light-widgets-ui121-code85-api34.png"><img src="../art/screenshots/light-widgets-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Light widgets at selected 50% opacity"></a><br>Light widgets at selected 50% opacity</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/card-menu-ui121-code85-api34.png"><img src="../art/screenshots/card-menu-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Current card controls"></a><br>Current card controls</td>
+    <td><a href="../art/screenshots/app-icons-ui121-code85-api34.png"><img src="../art/screenshots/app-icons-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 App Icons controls"></a><br>App Icons controls</td>
+    <td><a href="../art/screenshots/icon-picker-ui121-code85-api34.png"><img src="../art/screenshots/icon-picker-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Original 48 HD logos"></a><br>Original 48 HD logos</td>
+  </tr>
+</table>
+
+[Capture provenance](../art/screenshots/ui121-code85-provenance.json) records the exact signed APK and raw image hashes. Earlier releases remain labeled below.
+
+## Fire TV UI 1.20.1, code 84
+
 Unmodified native captures from production-signed Fire TV UI 1.20.1/code 84 on Android TV API 34 at 1920x1080. Home uses retained sample appearance choices, including an original HD custom icon and Muted solid style. Card examples use synthetic local feeds. Your apps, inputs, widgets and saved settings determine your Home layout. Updates was captured before publication, when 1.20.0 was still the latest public release.
 
 <table>

@@ -40,9 +40,9 @@ Theme and wallpaper > Icon pack also offers Clean line and Muted solid. These us
 
 <table>
   <tr>
-    <td><img src="../art/screenshots/icon-picker-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 curated picker displaying original HD logos"><br>Fire TV UI 1.20.1</td>
-    <td><img src="../art/screenshots/custom-icon-home-ui1201-code84-api34.png" alt="Fire TV UI 1.20.1 with an original HD PlayStation 5 logo selected for a sample app"><br>Fire TV UI 1.20.1 custom tile</td>
-    <td><img src="../art/screenshots/ltv-icon-picker-tv-1920.png" alt="LTvLauncher custom-banner picker displaying the same shared images"><br>Earlier LTvLauncher picker</td>
+    <td><img src="../art/screenshots/icon-picker-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Original 48 HD logos"><br>Original 48 HD logos</td>
+    <td><img src="../art/screenshots/app-icons-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 App Icons controls"><br>App Icons controls</td>
+    <td><img src="../art/screenshots/home-ui121-code85-api34.png" alt="Fire TV UI 1.21.0 Existing Home artwork"><br>Existing Home artwork</td>
   </tr>
 </table>
 

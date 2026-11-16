@@ -41,6 +41,8 @@ Open **Theme and wallpaper > Icon pack** to select Clean line or Muted solid. Bo
 
 ## Cards
 
+The 1.21.0 update adds an Off-by-default shared order for widget columns and channel cards. See [Arrange widgets and cards](featured-cards.md#arrange-widgets-and-cards) for setup and preservation behavior.
+
 Open **UI settings > Cards**. Select a Home card or press Menu for **Open**, **Hide this title**, and **Hide all cards from &lt;app&gt;**. The menu names the current title. Open keeps the original provider action; title hiding uses the exact selected item identity. The app action hides every feed published by that app while keeping its app tile.
 
 **Featured card setup > Channel card size** offers Default, Compact, Standard, Large and a custom width and height. Default retains the original layout calculations. Size applies consistently to channel cards while widget dimensions, artwork Fit/Fill, titles and timers keep their own settings.
