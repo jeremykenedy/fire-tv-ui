@@ -4,7 +4,7 @@
 | --- | --- |
 | Screensavers | Configure or preview any installed saver, choose the active saver, and manage timers and installations. |
 | UI settings | Configure layout and focus, widgets, status bar, favorites and cards. |
-| Theme and wallpaper | Choose wallpapers, backgrounds, transparent overlays, holiday palettes and icon packs, or save and restore a named UI setup. |
+| Theme and wallpaper | Choose wallpapers, backgrounds, transparent overlays, appearance presets, holiday palettes and icon packs, or save and restore a named UI setup. |
 | Remote controls | Configure remote actions and accessibility. |
 | Updates | Check installed apps, compare versions, install verified updates and recover missing shared icons. |
 | Advanced | Open diagnostics, updates and preview media credits. |
@@ -23,7 +23,7 @@ Focus style offers Default, Border only, and Color and border. Choose a preset c
 
 Open **UI settings > App Icons > App hover and focus**. The same controls remain in **Layout and focus**. **App focus growth** offers Default (18%), Off, 6%, 12%, 24% and 30%. Off removes enlargement while keeping the other focus styling. **App focus shadow** offers Off, Default (18 dp), Large (28 dp) and Extra large (38 dp). Existing installations keep their current choices; without an override, growth and shadow retain the original 18% and 18 dp behavior. A saved disabled shadow stays disabled until you change it.
 
-Growth and shadow changes apply on return with Back, including when focusing the same app tile again; a process restart is not required. The native Settings route still returns Home focus to the first app, including visits where no setting changed. Preserving the previously focused app through that route remains unresolved.
+Growth and shadow changes apply on return with Back, including when focusing the same app tile again; a process restart is not required. Returning from Settings restores the previously focused app when it is still visible. If that app was hidden or removed during the visit, focus moves to a remaining app at the nearest valid position. Reordering or hiding an earlier app does not change the selected app identity.
 
 **App focus speed** offers Fast (Default), Normal and Slow. These set the app and folder focus animation to 120, 180 and 300 milliseconds respectively. Fast is the new default; Normal retains the previous duration. Rapid direction changes retarget the existing focus animation. Settings-page transitions are a separate control.
 
@@ -46,6 +46,10 @@ Open **UI settings > Cards**. Select a Home card or press Menu for **Open**, **H
 **Featured card setup > Channel card size** offers Default, Compact, Standard, Large and a custom width and height. Default retains the original layout calculations. Size applies consistently to channel cards while widget dimensions, artwork Fit/Fill, titles and timers keep their own settings.
 
 Turning cards Off removes the reserved card band when widgets are also disabled. Enabled widgets retain their row. **Channel Cards** manages channel visibility and individual items. **Card timers** sets the global title interval and optional individual channel timers, including Manual and custom whole seconds. Each channel can return to the global timer independently.
+
+## Widget text
+
+Widget text using its default color chooses light or dark text against the widget surface and visible background. A full menu background is considered independently of the underlying wallpaper theme; an overlay keeps the wallpaper as its base. Selecting a custom text color keeps that explicit choice. Text opacity remains independent, including when no custom color is saved, and survives closing and reopening the app.
 
 ## Backgrounds and saved setups
 

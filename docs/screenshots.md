@@ -2,6 +2,39 @@
 
 ## Current stable interface
 
+Unmodified native captures from production-signed Fire TV UI 1.20.0/code 83 on Android TV API 34 at 1920x1080. These examples use stock apps and saved sample appearance choices. Your apps, inputs, widgets and saved settings determine your Home layout.
+
+<table>
+  <tr>
+    <td><a href="../art/screenshots/home-ui120-code83-api34.png"><img src="../art/screenshots/home-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Home with cards disabled"></a><br>Home with cards disabled</td>
+    <td><a href="../art/screenshots/settings-ui120-code83-api34.png"><img src="../art/screenshots/settings-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Settings"></a><br>Settings</td>
+    <td><a href="../art/screenshots/ui-settings-ui120-code83-api34.png"><img src="../art/screenshots/ui-settings-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 UI settings"></a><br>UI settings</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/app-icons-ui120-code83-api34.png"><img src="../art/screenshots/app-icons-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 App Icons controls"></a><br>App Icons controls</td>
+    <td><a href="../art/screenshots/widgets-opacity-ui120-code83-api34.png"><img src="../art/screenshots/widgets-opacity-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Clock and Year widgets at selected 50% text opacity"></a><br>Clock and Year widgets at selected 50% text opacity</td>
+    <td><a href="../art/screenshots/widget-text-ui120-code83-api34.png"><img src="../art/screenshots/widget-text-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Widget text controls"></a><br>Widget text controls</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/appearance-presets-ui120-code83-api34.png"><img src="../art/screenshots/appearance-presets-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Appearance presets"></a><br>Appearance presets</td>
+    <td><a href="../art/screenshots/cinematic-details-ui120-code83-api34.png"><img src="../art/screenshots/cinematic-details-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Cinematic preset details"></a><br>Cinematic preset details</td>
+    <td><a href="../art/screenshots/home-cinematic-ui120-code83-api34.png"><img src="../art/screenshots/home-cinematic-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Cinematic preset applied on Home"></a><br>Cinematic preset applied on Home</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/background-editor-ui120-code83-api34.png"><img src="../art/screenshots/background-editor-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Contour field controls"></a><br>Contour field controls</td>
+    <td><a href="../art/screenshots/home-contours-ui120-code83-api34.png"><img src="../art/screenshots/home-contours-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Contour field on Home with an existing HD custom icon"></a><br>Contour field on Home with an existing HD custom icon</td>
+    <td><a href="../art/screenshots/home-fireflies-ui120-code83-api34.png"><img src="../art/screenshots/home-fireflies-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Firefly drift on Home"></a><br>Firefly drift on Home</td>
+  </tr>
+  <tr>
+    <td><a href="../art/screenshots/icon-picker-ui120-code83-api34.png"><img src="../art/screenshots/icon-picker-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Original HD logo picker"></a><br>Original HD logo picker</td>
+    <td><a href="../art/screenshots/custom-icon-home-ui120-code83-api34.png"><img src="../art/screenshots/custom-icon-home-ui120-code83-api34.png" alt="Fire TV UI 1.20.0 Selected HD logo with Muted solid style"></a><br>Selected HD logo with Muted solid style</td>
+  </tr>
+</table>
+
+[Capture provenance](../art/screenshots/ui120-code83-provenance.json) records the exact signed APK and raw image hashes. Earlier releases remain labeled below.
+
+## Fire TV UI 1.19.0, code 82
+
 Unmodified native captures from production-signed Fire TV UI 1.19.0/code 82 on Android TV API 34 at 1920x1080. Home and Settings use stock apps and saved sample choices. Card examples use synthetic Plex library metadata and artwork. Your apps, inputs, widgets and saved settings determine your Home layout.
 
 <table>
