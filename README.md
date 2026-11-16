@@ -22,14 +22,14 @@
 
 | Version | Use it for | Start here |
 | --- | --- | --- |
-| Stable 1.20.1 | The existing Fire TV UI installation and supported 1.x updates. | [Stable download](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.20.1) |
+| Stable 1.21.0 | The existing Fire TV UI installation and supported 1.x updates. | [Stable download](https://github.com/jeremykenedy/fire-tv-ui/releases/tag/v1.21.0) |
 | Source Preview 2.0.0-alpha.3 | Try the independently built launcher in a separate app. | [Source preview guide](docs/source-preview.md) |
 
-Stable 1.20.1 is the latest stable release. It fixes menu bleed-through, unused wallpaper references in saved setups, stale update details and blank cards when artwork is unavailable while retaining the existing interface. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. See the [source preview guide](docs/source-preview.md) for included features and limits.
+Stable 1.21.0 adds an optional shared order for widget columns and channel cards. The existing layout remains the default. The alpha preview uses a separate package and separate data; it does not upgrade or migrate a 1.x installation. See the [source preview guide](docs/source-preview.md) for included features and limits.
 
-The installation, feature guides and screenshots below describe stable 1.20.1 unless explicitly labeled as source preview.
+The installation, feature guides and screenshots below describe stable 1.21.0 unless explicitly labeled as source preview.
 
-[![Fire TV UI 1.20.1 Home captured on Android TV](art/screenshots/home-ui1201-code84-api34.png)](docs/screenshots.md#current-stable-interface)
+[![Fire TV UI 1.21.0 Home captured on Android TV](art/screenshots/home-ui121-code85-api34.png)](docs/screenshots.md#current-stable-interface)
 
 ## Table of Contents
 
@@ -63,7 +63,7 @@ Use the [source preview guide](docs/source-preview.md) for installation, include
 
 ## Installation
 
-Stable Fire TV UI 1.20.1 and the isolated Source Preview 2.0.0-alpha.3 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview uses a separate package and settings; see the [preview guide](docs/source-preview.md).
+Stable Fire TV UI 1.21.0 and the isolated Source Preview 2.0.0-alpha.3 are available from [published releases](https://github.com/jeremykenedy/fire-tv-ui/releases). The preview uses a separate package and settings; see the [preview guide](docs/source-preview.md).
 
 The repository installer is currently unavailable. The source-native production build is a candidate and is not a verified upgrade; keep the existing installation and its data. See [Installation and updates](docs/installation.md) for the current status and backup guidance.
 
@@ -86,7 +86,7 @@ Choose **Startup and protection** in Settings to enable or disable Fire TV UI as
 | Backgrounds and overlays | Add independent animation over your wallpaper, with still choices and holiday palettes. | [Backgrounds and overlays](docs/backgrounds-and-overlays.md) |
 | Appearance presets | Apply an optional coordinated background and app focus border. | [Appearance presets](docs/backgrounds-and-overlays.md#appearance-presets) |
 | Saved setups | Save named appearances and layouts, then switch back with optional icon restoration. | [Saved setups](docs/saved-setups.md) |
-| Themes and widgets | Choose wallpapers, clocks, weather and other widgets. | [Configuration](docs/configuration.md) |
+| Themes and widgets | Choose wallpapers and widgets, with optional shared widget and card order. | [Configuration](docs/configuration.md) |
 | Icon styles | Choose built-in Clean line or Muted solid artwork treatments, or keep an existing pack. | [Icon styles](docs/configuration.md#icon-styles) |
 | Settings motion | Choose Default, None, Fade or Short slide for native settings pages. | [Settings transitions](docs/configuration.md#settings-transitions) |
 | Screensavers | Select, preview, configure and install reviewed screensaver releases. | [Screensavers](docs/device-controls.md#screensavers) |
@@ -146,6 +146,7 @@ The script builds an isolated unsigned preview and runs the source-native host a
 - [Animated menu backgrounds](docs/animated-backgrounds.md)
 - [Backgrounds, overlays and holiday themes](docs/backgrounds-and-overlays.md)
 - [Saved UI setups](docs/saved-setups.md)
+- [Fire TV UI 1.21.0 shared Home layout and upgrade guide](docs/releases/v1.21.0.md)
 - [Fire TV UI 1.20.1 UI repair and upgrade guide](docs/releases/v1.20.1.md)
 - [Fire TV UI 1.19.0 controls and upgrade guide](docs/releases/v1.19.0.md)
 - [Fire TV UI 1.18.1 controls and upgrade guide](docs/releases/v1.18.1.md)
@@ -176,7 +177,7 @@ Copy `skills/add-fire-tv-screensaver/` into `~/.codex/skills/` to install it loc
 
 ## Screenshots
 
-See the [Fire TV UI 1.20.1 Home, Settings and card controls](docs/screenshots.md#current-stable-interface), captured from the final signed app on Android TV with safe sample data. Your apps, inputs and saved appearance determine your Home layout. The [source preview gallery](docs/source-preview.md#screenshots) is separately labeled.
+See the [Fire TV UI 1.21.0 Home, shared widgets and cards, and Settings](docs/screenshots.md#current-stable-interface), captured from the final signed app on Android TV with safe sample data. Your apps, inputs and saved appearance determine your Home layout. The [source preview gallery](docs/source-preview.md#screenshots) is separately labeled.
 
 ## License
 

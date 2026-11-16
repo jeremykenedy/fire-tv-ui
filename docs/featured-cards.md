@@ -26,9 +26,15 @@ The global interval also controls Big picture artwork. Individual channel overri
 
 Choose **Featured card setup > Channel card size** for Default, Compact, Standard, Large or a custom width and height. Default preserves the original layout. One size applies to all channel cards; widget dimensions remain independent. Existing Fit/Fill and title choices remain available. Changes apply when returning Home and are included in backups and saved setups.
 
-## Arrange top-level feeds
+## Arrange widgets and cards
 
-Choose Arrange top-level cards in Featured card setup or the selected card's controls. Move left and Move right reorder the Plex, IPTV and other feed cards on Home. This is separate from Move up and Move down inside a feed. Reset top-level order restores the normal feed sequence. Order choices are included in portable backups.
+Choose **Arrange widgets and cards** in Featured card setup or the selected card's controls. With **Show widgets and cards together: Off**, Move left and Move right retain the existing top-level feed order controls. Off is the default; existing installations retain their original choice of widgets or channel cards.
+
+Turn the option On to place widget columns and channel cards in one horizontal row. Move left and Move right change their shared order. Each column keeps the existing packing of one large widget or two small widgets; use the existing widget controls to change individual widgets. This mode shows widget columns even when the separate Widgets setting is Off, without changing that saved setting. Turning mixed mode Off restores the separate layout and its original feed order.
+
+This is separate from Move up and Move down inside a feed. Existing card timers, title hiding, source visibility, artwork and card size controls remain available. Hidden or unavailable feeds retain their saved shared positions. Reset shared order resets only the mixed order; Reset top-level order remains available with mixed mode Off. Shared order and the mode choice are included in portable backups and named setups.
+
+See the [current native screenshots](screenshots.md#current-stable-interface) for the shared row and arrangement controls.
 
 ## App recommendations
 

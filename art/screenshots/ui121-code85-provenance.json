@@ -1,0 +1,61 @@
+{
+  "apk_sha256": "d6f7517be59ab3dbc2d8daaa3dd1ba393a11762131cb14e3192bba5f5bc4290d",
+  "source": "9dd0518abc3b47f505c1da436b9196d72e3a2ba9",
+  "version": "1.21.0/code85",
+  "package": "com.jeremykenedy.firetv.ui",
+  "api": 34,
+  "density": 320,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "method": "Raw adb exec-out screencap -p via owned-target u20_operator.capture; no edits/cropping/mockups",
+  "sample_configuration": "Approved synthetic local Plex feeds; native Calendar replaces network-dependent Weather; original widgets/HD app icons; separate Home mixedOff, mixedHome opt-inOn. Light contrast usesdefaultMIN sentinel anduserselected50% textopacity. Fixture artwork contains a printed circle, not a pending loader.",
+  "files": {
+    "home-ui121-code85-api34.png": {
+      "sha256": "75ed8b74087b0d6c78440fcff2d9a0b302351764e6175757451ce8c6aa3f3ccb",
+      "captured_at": "2026-11-16T02:28:07.447623+00:00",
+      "description": "Existing Home layout"
+    },
+    "settings-ui121-code85-api34.png": {
+      "sha256": "8daa447811f32838641456f132d2f3708033a1ad609e107443700d6b36ad5aa2",
+      "captured_at": "2026-11-16T02:28:09.806360+00:00",
+      "description": "Settings"
+    },
+    "ui-settings-ui121-code85-api34.png": {
+      "sha256": "b8c2d79e24e503102365152d90f713c740885b0510326c10b63d015678d2256c",
+      "captured_at": "2026-11-16T02:28:12.493224+00:00",
+      "description": "UI settings"
+    },
+    "mixed-home-ui121-code85-api34.png": {
+      "sha256": "7b12fb950276d5b08ccd90b688b849f3110075722c84d9a86e1313846ba1214b",
+      "captured_at": "2026-11-16T02:36:46.916992+00:00",
+      "description": "Optional shared widgets and cards"
+    },
+    "shared-order-ui121-code85-api34.png": {
+      "sha256": "90d2f63e69064f147e499e06a0fdceb5a5ce3749fb1b23951fa32b3772e00183",
+      "captured_at": "2026-11-16T02:32:02.076794+00:00",
+      "description": "Arrange widgets and cards"
+    },
+    "light-widgets-ui121-code85-api34.png": {
+      "sha256": "771733117e4d4a0aa0ed15e6e914dfbd2b6bdffe5132f398591179a56ea02db7",
+      "captured_at": "2026-11-16T02:40:42.776953+00:00",
+      "description": "Light widgets at selected 50% opacity"
+    },
+    "card-menu-ui121-code85-api34.png": {
+      "sha256": "e3dd659825c155ed0ae73cdd202023f429559dc0993fb01ea4f450bcf70a9d8d",
+      "captured_at": "2026-11-16T02:30:20.182714+00:00",
+      "description": "Current card controls"
+    },
+    "app-icons-ui121-code85-api34.png": {
+      "sha256": "d672d5c489ed2a48d449dd87dfee4f135ef43f8288b1db497e93d6b354b137ff",
+      "captured_at": "2026-11-16T02:41:56.428837+00:00",
+      "description": "App Icons controls"
+    },
+    "icon-picker-ui121-code85-api34.png": {
+      "sha256": "28a415f9c8d09225fd10b2ac8c676b05e60b2403769daf930e5d4d89a09c9351",
+      "captured_at": "2026-11-16T02:41:47.825733+00:00",
+      "description": "Original 48 HD logos"
+    }
+  }
+}

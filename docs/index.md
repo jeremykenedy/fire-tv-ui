@@ -21,6 +21,7 @@ The guides below describe the retained stable 1.x product unless explicitly labe
 
 ## Release notes
 
+- [Fire TV UI 1.21.0 shared Home layout and upgrade guide](releases/v1.21.0.md)
 - [Fire TV UI 1.20.1 UI repair and upgrade guide](releases/v1.20.1.md)
 - [Fire TV UI 1.20.0 appearance and upgrade guide](releases/v1.20.0.md)
 - [Fire TV UI 1.19.0 controls and upgrade guide](releases/v1.19.0.md)
