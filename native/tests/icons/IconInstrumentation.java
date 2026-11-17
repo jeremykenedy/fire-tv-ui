@@ -14,12 +14,18 @@ import android.os.SystemClock;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomePreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +53,20 @@ public final class IconInstrumentation extends Instrumentation {
             String first = "proof.one/.Main", second = "proof.two/.Main";
             IconSelectionStore.save(context, first, "catalog:jbl");
             IconSelectionStore.save(context, second, "catalog:pc");
+            IconSelectionStore.save(context, first, "catalog:insignia");
+            Bitmap insignia = ((BitmapDrawable) IconSelectionStore.resolve(context, first,
+                    new ColorDrawable(Color.RED), null)).getBitmap();
+            check(insignia.getWidth() <= 512 && insignia.getHeight() <= 512,
+                    "Insignia's reviewed replacement must be selectable as bounded artwork.");
+            for (String id : new String[] {"sega-master-system", "gamecube", "playstation-5"}) {
+                IconSelectionStore.save(context, first, "catalog:" + id);
+                check(IconCatalog.find(id).label.equals(IconSelectionStore.label(context, first)),
+                        "Original device labels must remain available.");
+                Bitmap image = ((BitmapDrawable) IconSelectionStore.resolve(context, first,
+                        new ColorDrawable(Color.RED), null)).getBitmap();
+                check(image.getWidth() <= 512 && image.getHeight() <= 512,
+                        "Reviewed text tiles must decode at a bounded size.");
+            }
             IconSelectionStore.save(context, first, IconSelectionStore.FACTORY);
             check("catalog:pc".equals(IconSelectionStore.choice(context, second)), "Factory reset must not change another tile.");
             ColorDrawable factory = new ColorDrawable(Color.RED), theme = new ColorDrawable(Color.BLUE);
@@ -93,6 +113,8 @@ public final class IconInstrumentation extends Instrumentation {
                     && imported.equals(IconSelectionStore.choice(context, first)),
                     "A corrupt selected image must show factory artwork and retain its saved choice.");
             IconSelectionStore.save(context, first, IconSelectionStore.THEME);
+            checkRetainedImage(context, prefs, image.toByteArray());
+            result.putBoolean("retained_image_and_theme_reset_verified", true);
 
             IconPackStore.select(context, IconPackStore.ORIGINAL);
             home = startActivitySync(new Intent().setClassName(context, "com.jeremykenedy.firetv.ui.nativeapp.MainActivity")
@@ -116,8 +138,29 @@ public final class IconInstrumentation extends Instrumentation {
             onMain(new Runnable() { @Override public void run() { tiles.clear(); collect(picker.getWindow().getDecorView()); }});
             check(tiles.size() == IconCatalog.ALL.size(), "Picker must contain only reviewed catalog tiles.");
             for (FocusTileView tile : tiles) check(IconCatalog.find(String.valueOf(tile.getTag())) != null, "No device image may enter the curated catalog.");
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);
+            onMain(new Runnable() { @Override public void run() {
+                View focused = picker.getCurrentFocus();
+                check(focused instanceof Button && "Use factory icon".contentEquals(((Button) focused).getText()),
+                        "Factory reset must be reachable above the first curated icon.");
+            }});
+            sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+            onMain(new Runnable() { @Override public void run() { check(tiles.get(0).isFocused(), "D-pad down must return to the catalog."); }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
             onMain(new Runnable() { @Override public void run() { check(tiles.get(1).isFocused(), "D-pad must move to the next curated icon."); }});
+            boolean crossed = false;
+            for (int step = 0; step < 8; step++) {
+                sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+                final boolean[] nextCategory = {false};
+                onMain(new Runnable() { @Override public void run() {
+                    View focused = picker.getCurrentFocus();
+                    IconCatalog.Entry entry = focused == null ? null : IconCatalog.find(String.valueOf(focused.getTag()));
+                    nextCategory[0] = entry != null && !"Audio".equals(entry.category);
+                }});
+                if (nextCategory[0]) { crossed = true; break; }
+            }
+            check(crossed, "D-pad down must cross category headings.");
+            onMain(new Runnable() { @Override public void run() { tiles.get(1).requestFocus(); }});
             sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
             waitForIdleSync();
             check(("catalog:" + IconCatalog.ALL.get(1).id).equals(IconSelectionStore.choice(context, key)), "Selecting an icon must persist for the actual app component.");
@@ -151,11 +194,59 @@ public final class IconInstrumentation extends Instrumentation {
             for (Map.Entry<String, ?> entry : originalPacks.entrySet()) restorePacks.putString(entry.getKey(), (String) entry.getValue());
             result.putBoolean("icon_pack_preferences_restored", restorePacks.commit());
             SharedPreferences.Editor restore=prefs.edit().clear();
-            for(Map.Entry<String,?> entry:original.entrySet()) restore.putString(entry.getKey(),(String)entry.getValue());
+            for(Map.Entry<String,?> entry:original.entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof String) restore.putString(entry.getKey(), (String) value);
+                else if (value instanceof Boolean) restore.putBoolean(entry.getKey(), (Boolean) value);
+            }
             result.putBoolean("preferences_restored",restore.commit());
             if(imported!=null) IconSelectionStore.discardPreparedImage(context,imported);
         }
         finish(0,result);
+    }
+
+    private static void checkRetainedImage(Context context, SharedPreferences prefs, byte[] image) throws IOException {
+        String target = "proof.pending/proof.pending.Main";
+        check(!prefs.contains(RetainedHomeChoices.KEY) && !prefs.contains(target)
+                        && !prefs.contains("edited:" + target)
+                        && !context.getSharedPreferences(RetainedHomeChoices.GRID, 0).contains(RetainedHomeChoices.KEY),
+                "A fresh icon fixture is required for retained choice proof.");
+        String pendingImage = null, uncertainImage = null;
+        try {
+            pendingImage = IconSelectionStore.prepareImage(context, new ByteArrayInputStream(image));
+            File pendingFile = new File(new File(context.getFilesDir(), "icons"), pendingImage.substring(6));
+            Map<String, Object> pending = new LinkedHashMap<>();
+            pending.put("icon:proof.pending", pendingImage);
+            check(prefs.edit().putString(RetainedHomeChoices.KEY,
+                    RetainedHomeChoices.write(RetainedHomeChoices.ICONS, pending)).commit(),
+                    "Retained icon fixture must be saved.");
+            IconSelectionStore.discardPreparedImage(context, pendingImage);
+            check(pendingFile.isFile(), "An image referenced only by a pending choice must be kept.");
+
+            IconSelectionStore.save(context, target, IconSelectionStore.THEME);
+            check(prefs.getBoolean("edited:" + target, false) && IconSelectionStore.THEME.equals(IconSelectionStore.choice(context, target)),
+                    "An explicit theme reset must record an edit even when it removes the icon value.");
+            RetainedHomePreferences.apps(context, Collections.singletonList(target));
+            check(IconSelectionStore.THEME.equals(IconSelectionStore.choice(context, target))
+                            && !prefs.contains(RetainedHomeChoices.KEY),
+                    "A returning app must consume the old icon without replacing an explicit theme reset.");
+            IconSelectionStore.discardPreparedImage(context, pendingImage);
+            check(!pendingFile.exists(), "A fully unreferenced pending image must be removed.");
+
+            uncertainImage = IconSelectionStore.prepareImage(context, new ByteArrayInputStream(image));
+            File uncertainFile = new File(new File(context.getFilesDir(), "icons"), uncertainImage.substring(6));
+            check(prefs.edit().putString(RetainedHomeChoices.KEY, "{invalid").commit(),
+                    "Malformed retained fixture must be saved.");
+            IconSelectionStore.discardPreparedImage(context, uncertainImage);
+            check(uncertainFile.isFile(), "Malformed retained choices must conservatively keep private images.");
+            check(prefs.edit().remove(RetainedHomeChoices.KEY).commit(), "Malformed fixture must be removed.");
+            IconSelectionStore.discardPreparedImage(context, uncertainImage);
+            check(!uncertainFile.exists(), "The image must be removable after uncertain references clear.");
+        } finally {
+            prefs.edit().remove(RetainedHomeChoices.KEY).remove(target).remove("edited:" + target).commit();
+            IconSelectionStore.discardPreparedImage(context, pendingImage);
+            IconSelectionStore.discardPreparedImage(context, uncertainImage);
+        }
     }
 
     private static void checkMutedArtwork(Context context) {

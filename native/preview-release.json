@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "applicationId": "com.jeremykenedy.firetv.ui.preview",
-  "version": "2.0.0-alpha.3",
-  "versionCode": 4,
+  "version": "2.0.0-alpha.4",
+  "versionCode": 5,
   "minSdk": 27,
   "targetSdk": 36,
   "debuggable": false,

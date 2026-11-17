@@ -80,6 +80,8 @@ public final class MainActivity extends Activity {
     private Button allApps;
     private HomeContentView homeContent;
     private ScrollView slotViewport;
+    private boolean groupedWidgetsVisible;
+    private boolean contentVisible;
     private BackgroundLayer background;
     private ChannelCardView artworkOwner;
     private final java.util.List<View> appScrolls = new java.util.ArrayList<>();
@@ -102,6 +104,7 @@ public final class MainActivity extends Activity {
     private int generation;
     private RemoteButtonDispatcher remoteButtons;
     private LayoutScheduleController dashboard;
+    private LayoutSchedule.Profile displayedDashboard;
     private boolean homeReady;
     private boolean activityResumed;
     private boolean contentStarted;
@@ -182,6 +185,7 @@ public final class MainActivity extends Activity {
         focusInitialApp = saved == null;
         LinearLayout body = Pages.page(this);
         homeBody = body;
+        body.setClipChildren(false); body.setClipToPadding(false);
         body.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32), Pages.dp(this, 96));
         statusBarArea = new LinearLayout(this);
         statusBarState = null;
@@ -194,11 +198,20 @@ public final class MainActivity extends Activity {
         allApps.setId(0x1003); allApps.setTag("home:all-apps");
         allApps.setVisibility(AllAppsPreferences.enabled(this) ? View.VISIBLE : View.GONE);
         body.addView(allApps);
+        contentVisible = false; groupedWidgetsVisible = false;
         homeContent = new HomeContentView(this, new ChannelCardView.Listener() {
             @Override public void onSelect(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
             @Override public void onLongPress(TvRecommendations.Feed feed, TvRecommendations.Program program) { cardActions(feed, program); }
         }, new HomeContentView.Listener() {
             @Override public void onSlotFocused(String key) { focusedApp = null; }
+            @Override public void onGroupedWidgetsVisibilityChanged(boolean visible) {
+                groupedWidgetsVisible = visible;
+                refreshHomeInsets();
+            }
+            @Override public void onContentVisibilityChanged(boolean visible) {
+                contentVisible = visible;
+                refreshHomeInsets();
+            }
             @Override public void onArtworkChanged(ChannelCardView card, android.graphics.Bitmap artwork) {
                 if (background == null) return;
                 if (!com.jeremykenedy.firetv.ui.nativeapp.cards.CardDisplayPreferences.bigPicture(MainActivity.this)) {
@@ -214,8 +227,13 @@ public final class MainActivity extends Activity {
         });
         dashboard = new LayoutScheduleController(this, new LayoutScheduleController.Listener() {
             @Override public void onDashboard(LayoutSchedule.Decision decision) {
-                if (decision.status == LayoutSchedule.Status.READY) homeContent.setDashboardLayout(decision.profile.layout);
-                else if (decision.status == LayoutSchedule.Status.BASE_LAYOUT) homeContent.setDashboardLayout(null);
+                if (decision.status == LayoutSchedule.Status.READY) {
+                    displayedDashboard = decision.profile;
+                    homeContent.setDashboardLayout(decision.profile.layout);
+                } else if (decision.status == LayoutSchedule.Status.BASE_LAYOUT) {
+                    displayedDashboard = null;
+                    homeContent.setDashboardLayout(null);
+                }
                 else Toast.makeText(MainActivity.this, "Dashboard settings need attention. Open Settings, Home layout, Dashboards and schedules.", Toast.LENGTH_LONG).show();
                 startHomeContent();
             }
@@ -241,6 +259,7 @@ public final class MainActivity extends Activity {
             }
         });
         appArea = new LinearLayout(this); appArea.setOrientation(LinearLayout.VERTICAL);
+        appArea.setClipChildren(false); appArea.setClipToPadding(false);
         appArea.setPadding(Pages.dp(this, 10), Pages.dp(this, 14), Pages.dp(this, 10), Pages.dp(this, 14));
         android.graphics.drawable.GradientDrawable tray = new android.graphics.drawable.GradientDrawable();
         tray.setColor(0x55000000);
@@ -264,6 +283,20 @@ public final class MainActivity extends Activity {
         });
         AppearancePreferences.file(this).registerOnSharedPreferenceChangeListener(appearanceChanged);
         awake = new LauncherAwakeController(body);
+    }
+
+    private void refreshHomeInsets() {
+        boolean dockBottom = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(this);
+        int bottom = dockBottom ? 40 : groupedWidgetsVisible ? 24 : 96;
+        homeBody.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32), Pages.dp(this, bottom));
+        if (slotViewport != null) {
+            boolean reserveSpace = contentVisible || dockBottom;
+            LinearLayout.LayoutParams bounds = (LinearLayout.LayoutParams) slotViewport.getLayoutParams();
+            float weight = reserveSpace ? 1f : 0f;
+            if (bounds.weight != weight) { bounds.weight = weight; slotViewport.setLayoutParams(bounds); }
+            slotViewport.setVisibility(contentVisible ? View.VISIBLE : dockBottom ? View.INVISIBLE : View.GONE);
+            slotViewport.setFillViewport(groupedWidgetsVisible);
+        }
     }
 
     private void refreshStatusBar() {
@@ -373,6 +406,7 @@ public final class MainActivity extends Activity {
             messages.add("App order limit reached. New apps remain usable, but their order cannot be saved.");
         GridLayout grid = new GridLayout(this);
         grid.setClipChildren(false); grid.setClipToPadding(false);
+        com.jeremykenedy.firetv.ui.nativeapp.focus.AppFocusViewport.attach(grid,appArea);
         int width = getResources().getDisplayMetrics().widthPixels - Pages.dp(this, 84);
         boolean mini = com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isMini(this);
         float density = getResources().getDisplayMetrics().density;
@@ -390,8 +424,7 @@ public final class MainActivity extends Activity {
                 : Math.min(maxHeight, rows * tileHeight + Pages.dp(this, 28));
         appArea.setPadding(Pages.dp(this, mini ? 4 : 10), Pages.dp(this, mini ? 6 : 14),
                 Pages.dp(this, mini ? 4 : 10), Pages.dp(this, mini ? 6 : 14));
-        homeBody.setPadding(Pages.dp(this, 32), Pages.dp(this, 24), Pages.dp(this, 32),
-                Pages.dp(this, com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeVisualOptions.isDockBottom(this) ? 40 : 96));
+        refreshHomeInsets();
         appArea.requestLayout();
         if (mini || options.horizontal) {
             int availableHeight = Math.max(tileHeight, appArea.getLayoutParams().height - Pages.dp(this, 28));
@@ -401,7 +434,8 @@ public final class MainActivity extends Activity {
             scroll.setClipChildren(false); scroll.setClipToPadding(false);
             scroll.addView(grid);
             if (rows * tileHeight > availableHeight) {
-                ScrollView vertical = new ScrollView(this); watchAppScroll(vertical); vertical.addView(scroll); appArea.addView(vertical);
+                ScrollView vertical = new ScrollView(this); vertical.setClipChildren(false); vertical.setClipToPadding(false);
+                watchAppScroll(vertical); vertical.addView(scroll); appArea.addView(vertical);
             } else appArea.addView(scroll);
         } else {
             grid.setColumnCount(options.columns);
@@ -453,6 +487,7 @@ public final class MainActivity extends Activity {
                 });
             } else if (folder != null) {
                 tile = new FocusTileView(this);
+                tile.useAppFocusPresentation();
                 tile.setTitle(folder.name); tile.setIcon(artwork.get(key)); tile.setTag(key);
                 tile.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View view) {
@@ -599,7 +634,12 @@ public final class MainActivity extends Activity {
                 AppGridOptions current = AppGridPreferences.load(MainActivity.this);
                 if (which == 1) current = current.toggleFavorite(app.key());
                 else if (which == 4) current = current.toggleHidden(app.key());
-                AppGridPreferences.save(MainActivity.this, current); loadApps();
+                try {
+                    AppGridPreferences.save(MainActivity.this, current);
+                    loadApps();
+                } catch (IllegalStateException failure) {
+                    Toast.makeText(MainActivity.this, failure.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
         }).setNegativeButton("Cancel", null).show();
         actions.getListView().requestFocus();
@@ -623,7 +663,8 @@ public final class MainActivity extends Activity {
 
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
         if (homeReady && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
-            if (event.getAction() == KeyEvent.ACTION_UP)
+            if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()
+                    && !homeContent.showFocusedCardActions())
                 startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
@@ -635,17 +676,34 @@ public final class MainActivity extends Activity {
         if (!hasFocus && remoteButtons != null) remoteButtons.clear();
     }
 
-    private void configureCard(ChannelCardView card, CardOptions options) {
-        card.setPrograms(CardPreferences.visiblePrograms(options, card.feed()));
-        card.setRotationIntervalMillis(options.timerSeconds(card.feed().item.id) * 1000L);
-    }
-
     private void cardActions(final TvRecommendations.Feed feed, final TvRecommendations.Program program) {
         final ChannelCardView card = findCard(feed.item.key());
         if (card == null) return;
         card.onHostPause();
+        final LayoutSchedule.Profile layoutTarget = displayedDashboard;
         final List<String> labels = new ArrayList<>();
         final List<Runnable> actions = new ArrayList<>();
+        final View[] nextFocus = new View[1];
+        final Runnable refreshVisibility = new Runnable() {
+            @Override public void run() {
+                homeContent.refreshPreferences();
+                List<String> order = displayedDashboard == null
+                        ? LayoutPreferences.load(MainActivity.this, HomeSlots.defaults()).order : displayedDashboard.layout.order;
+                int current = order.indexOf(feed.item.key());
+                for (int i = current + 1; i < order.size() && nextFocus[0] == null; i++) {
+                    View candidate = homeContent.findViewWithTag("slot:" + order.get(i));
+                    if (candidate != null && candidate.isShown()) nextFocus[0] = candidate;
+                }
+                for (int i = current - 1; i >= 0 && nextFocus[0] == null; i--) {
+                    View candidate = homeContent.findViewWithTag("slot:" + order.get(i));
+                    if (candidate != null && candidate.isShown()) nextFocus[0] = candidate;
+                }
+                if (nextFocus[0] == null) {
+                    for (View tile : tiles) if (tile.isShown() && tile.isFocusable()) { nextFocus[0] = tile; break; }
+                    if (nextFocus[0] == null && settings != null && settings.isShown()) nextFocus[0] = settings;
+                }
+            }
+        };
         if (program != null) {
             RecommendationActions.Availability links = RecommendationActions.inspect(this, program);
             if (links.details) {
@@ -674,7 +732,7 @@ public final class MainActivity extends Activity {
                 @Override public void run() {
                     try {
                         CardOptions updated = CardPreferences.load(MainActivity.this).hide(program.source, program.key, program.title);
-                        CardPreferences.save(MainActivity.this, updated); configureCard(card, updated);
+                        CardPreferences.save(MainActivity.this, updated); homeContent.refreshPreferences();
                     } catch (RuntimeException failed) { Toast.makeText(MainActivity.this, "This item could not be hidden. Please try again.", Toast.LENGTH_SHORT).show(); }
                 }
             });
@@ -692,15 +750,63 @@ public final class MainActivity extends Activity {
                 });
             }
         }
+        labels.add("Hide this card"); actions.add(new Runnable() {
+            @Override public void run() {
+                try {
+                    String target = layoutTarget == null ? null : layoutTarget.id;
+                    String current = displayedDashboard == null ? null : displayedDashboard.id;
+                    if (!java.util.Objects.equals(target, current))
+                        throw new IllegalStateException("The dashboard changed. Open this card's controls again.");
+                    if (layoutTarget == null) {
+                        LayoutPreferences.save(MainActivity.this, LayoutPreferences.load(MainActivity.this, HomeSlots.defaults())
+                                .discover(java.util.Collections.singletonList(feed.item)).setVisible(feed.item.key(), false));
+                    } else {
+                        com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore store =
+                                new com.jeremykenedy.firetv.ui.nativeapp.layoutschedule.LayoutScheduleStore(MainActivity.this);
+                        LayoutSchedule.Profile profile = store.read().profile(layoutTarget.id);
+                        if (profile == null) throw new IllegalStateException("This dashboard no longer exists.");
+                        com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions updated = profile.layout
+                                .discover(java.util.Collections.singletonList(feed.item)).setVisible(feed.item.key(), false);
+                        store.save(profile.name, profile.id, updated);
+                        dashboard.refresh();
+                        displayedDashboard = new LayoutSchedule.Profile(profile.id, profile.name, updated);
+                        homeContent.setDashboardLayout(updated);
+                    }
+                    refreshVisibility.run();
+                    Toast.makeText(MainActivity.this, "Card hidden. Restore it in Card settings.", Toast.LENGTH_SHORT).show();
+                } catch (Exception failed) { Toast.makeText(MainActivity.this, failed.getMessage() == null
+                        ? "This card could not be hidden. Please try again." : failed.getMessage(), Toast.LENGTH_LONG).show(); }
+            }
+        });
+        String publisher = feed.source;
+        try {
+            publisher = getPackageManager().getApplicationLabel(getPackageManager().getApplicationInfo(feed.source, 0)).toString();
+        } catch (android.content.pm.PackageManager.NameNotFoundException | RuntimeException unavailable) { }
+        labels.add("Hide all cards from " + publisher); actions.add(new Runnable() {
+            @Override public void run() {
+                try {
+                    CardPreferences.setPackageHidden(MainActivity.this, feed.source, true);
+                    refreshVisibility.run();
+                    Toast.makeText(MainActivity.this, "App cards hidden. Restore them in App Manager.", Toast.LENGTH_SHORT).show();
+                } catch (RuntimeException failed) { Toast.makeText(MainActivity.this, "This app's cards could not be hidden. Please try again.", Toast.LENGTH_SHORT).show(); }
+            }
+        });
         labels.add("Card settings"); actions.add(new Runnable() {
-            @Override public void run() { startActivity(new Intent(MainActivity.this, CardsSettingsActivity.class)); }
+            @Override public void run() {
+                startActivity(new Intent(MainActivity.this, CardsSettingsActivity.class)
+                        .putExtra(com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity.DASHBOARD_PROFILE,
+                                layoutTarget == null ? com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutSettingsActivity.BASE_LAYOUT : layoutTarget.id));
+            }
         });
         AlertDialog dialog = new com.jeremykenedy.firetv.ui.nativeapp.HomeDialogBuilder(this).setTitle(program == null ? feed.title : program.title)
                 .setItems(labels.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) { actions.get(which).run(); }
                 }).setNegativeButton("Cancel", null).create();
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override public void onDismiss(DialogInterface ignored) { if (resumed) card.onHostResume(); }
+            @Override public void onDismiss(DialogInterface ignored) {
+                if (resumed && card.isShown()) card.onHostResume();
+                if (nextFocus[0] != null && nextFocus[0].isShown()) nextFocus[0].requestFocus();
+            }
         });
         dialog.show(); dialog.getListView().requestFocus(); dialog.getListView().setSelection(0);
     }

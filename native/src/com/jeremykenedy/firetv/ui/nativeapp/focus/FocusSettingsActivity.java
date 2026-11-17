@@ -176,6 +176,13 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
         heading.setPadding(0, dp(4), 0, dp(26)); page.addView(heading);
         ScrollView scroll = new ScrollView(this);
         scroll.setClipChildren(false); scroll.setClipToPadding(false); scroll.setVerticalScrollBarEnabled(false);
+        scroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                view.setClipBounds(new android.graphics.Rect(-page.getPaddingLeft(), 0,
+                        view.getWidth() + page.getPaddingRight(), view.getHeight()));
+            }
+        });
         final LinearLayout controls = column(); controls.setClipChildren(false); controls.setClipToPadding(false);
         controls.setPadding(0, dp(4), 0, dp(8)); scroll.addView(controls);
         page.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
@@ -187,10 +194,9 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
             public boolean get() { return FocusPreferences.appBorder(FocusSettingsActivity.this); }
             public void set(boolean value) { FocusPreferences.setAppBorder(FocusSettingsActivity.this, value); }
         });
-        toggleRow(controls, "Enable icon focus shadow", new ToggleSetting() {
-            public boolean get() { return FocusPreferences.iconShadow(FocusSettingsActivity.this); }
-            public void set(boolean value) { FocusPreferences.saveIconOption(FocusSettingsActivity.this, "icon_shadow", value); }
-        });
+        appSize(controls,false);
+        appSize(controls,true);
+        controls.addView(Pages.text(this,"Large tiles fit the available space.",16));
         toggleRow(controls, "Wallpaper blur on scroll", new ToggleSetting() {
             public boolean get() { return HomeVisualOptions.isBlurOnScroll(FocusSettingsActivity.this); }
             public void set(boolean value) { HomeVisualOptions.setBlurOnScroll(FocusSettingsActivity.this, value); }
@@ -251,6 +257,42 @@ public final class FocusSettingsActivity extends com.jeremykenedy.firetv.ui.nati
             }
         });
         controls.addView(button); update.run(); return button;
+    }
+
+    private void appSize(LinearLayout controls, final boolean shadow) {
+        final String label = shadow ? "App focus shadow" : "App focus growth";
+        final Button row = Pages.menuButton(this,"",null);
+        row.setTag(shadow ? "icons:app-shadow" : "icons:app-growth");
+        final Runnable refresh = new Runnable() {
+            @Override public void run() {
+                try {
+                    int value = shadow ? FocusPreferences.appShadowSize(FocusSettingsActivity.this) : FocusPreferences.appGrowth(FocusSettingsActivity.this);
+                    row.setText(label + ": " + (value == 0 ? "Off" : value + (shadow ? " dp" : "%")));
+                } catch (IllegalStateException unavailable) { row.setText(label + ": Unavailable"); }
+            }
+        };
+        row.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View ignored) {
+                final int[] values = shadow ? new int[]{0,18,28,38} : new int[]{18,0,6,12,24,30};
+                String[] labels = shadow ? new String[]{"Off","Default (18 dp)","Large (28 dp)","Extra large (38 dp)"}
+                        : new String[]{"Default (18%)","Off","6%","12%","24%","30%"};
+                try {
+                    int current = shadow ? FocusPreferences.appShadowSize(FocusSettingsActivity.this) : FocusPreferences.appGrowth(FocusSettingsActivity.this);
+                    int selected = -1; for (int i=0;i<values.length;i++) if (values[i] == current) selected=i;
+                    new AlertDialog.Builder(FocusSettingsActivity.this).setTitle(label).setSingleChoiceItems(labels,selected,
+                            new android.content.DialogInterface.OnClickListener() {
+                                @Override public void onClick(android.content.DialogInterface dialog,int which) {
+                                    try {
+                                        if (shadow) FocusPreferences.saveAppShadow(FocusSettingsActivity.this,values[which]);
+                                        else FocusPreferences.saveAppSize(FocusSettingsActivity.this,FocusPreferences.APP_GROWTH,values[which]);
+                                        dialog.dismiss();refresh.run();row.requestFocus();
+                                    } catch (RuntimeException failed) { Toast.makeText(FocusSettingsActivity.this,failed.getMessage(),Toast.LENGTH_LONG).show(); }
+                                }
+                            }).setNegativeButton("Cancel",null).show();
+                } catch (RuntimeException failed) { Toast.makeText(FocusSettingsActivity.this,failed.getMessage(),Toast.LENGTH_LONG).show(); }
+            }
+        });
+        controls.addView(row);refresh.run();
     }
 
     private final class CheckMark extends Drawable {

@@ -39,8 +39,8 @@ class PreviewReleaseTest(unittest.TestCase):
         return module.release_config(self.path)
 
     def test_reviewed_alpha_config_and_unsigned_never_require_a_secret(self):
-        self.assertEqual(self.load()['version'], '2.0.0-alpha.3')
-        self.assertEqual(self.load()['versionCode'], 4)
+        self.assertEqual(self.load()['version'], '2.0.0-alpha.4')
+        self.assertEqual(self.load()['versionCode'], 5)
         with patch.dict(os.environ, {}, clear=True):
             module.signing_options(self.args(), self.config)
 

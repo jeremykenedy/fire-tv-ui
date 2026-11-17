@@ -42,3 +42,10 @@ public boolean commit(){if(clear)values.clear();values.putAll(edits);return true
                     *map(str, (work / name for name in stubs)), *map(str, sources)], check=True)
     subprocess.run(['java', '-cp', directory,
                     'com.jeremykenedy.firetv.ui.nativeapp.backup.HouseholdBackupTest'], check=True)
+
+with tempfile.TemporaryDirectory(prefix='fire-tv-original-backup-') as directory:
+    sources = [JAVA / 'backup/OriginalBackup.java', JAVA / 'migration/PreferenceSnapshot.java',
+               JAVA / 'migration/LegacyJson.java', Path(__file__).with_name('OriginalBackupTest.java')]
+    subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', directory, *map(str, sources)], check=True)
+    subprocess.run(['java', '-cp', directory,
+                    'com.jeremykenedy.firetv.ui.nativeapp.backup.OriginalBackupTest'], check=True)

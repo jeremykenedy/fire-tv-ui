@@ -1,0 +1,11 @@
+Big Shoulders Display Medium
+Copyright 2019 The Big Shoulders Project Authors
+https://github.com/xotypeco/big_shoulders
+
+Downloaded independently from the font authors, without using a launcher APK as a build input.
+Source commit: 8ba99c9e347396d828b263b8b818269cb99eb27c
+Source path: Big-Shoulders/fonts/ttf/BigShouldersDisplay-Medium.ttf
+Font SHA256: 75af0d7b81b36e0899c648e3ef8bbf066480687fdc84bc76cf14520941554385
+
+Licensed under the SIL Open Font License 1.1. The full license is included in
+native/res/raw/big_shoulders_ofl.txt and packaged with the application.

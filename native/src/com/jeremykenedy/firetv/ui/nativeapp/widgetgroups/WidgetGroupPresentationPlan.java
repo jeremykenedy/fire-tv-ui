@@ -31,7 +31,11 @@ public final class WidgetGroupPresentationPlan {
         Map<String, PreferenceSnapshot> after = new LinkedHashMap<>(base.after);
         after.put(LegacyPresentationMapper.LAYOUT, new PreferenceSnapshot(layout));
         Set<String> unmapped = new LinkedHashSet<>(base.unmappedLegacyKeys);
-        if (!patch.isEmpty()) unmapped.remove("widgets_config");
+        if (!patch.isEmpty()) {
+            unmapped.remove("widgets_config");
+            unmapped.remove("enable_widgets");
+            unmapped.remove("hide_watch_next");
+        }
         return new WidgetGroupPresentationPlan(new PresentationSnapshot(base.before), new PresentationSnapshot(after), unmapped);
     }
 }

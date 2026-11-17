@@ -49,6 +49,30 @@ public final class FixtureReceiver extends BroadcastReceiver {
                 resolver.insert(TvContract.WatchNextPrograms.CONTENT_URI, next);
                 result.putLong("channel", id);
             }
+            if ("legacy-publish".equals(action)) {
+                clearOwned(context, TvContract.PreviewPrograms.CONTENT_URI);
+                clearOwned(context, TvContract.WatchNextPrograms.CONTENT_URI);
+                clearOwned(context, TvContract.Channels.CONTENT_URI);
+                for (int feed = 0; feed < 2; feed++) {
+                    ContentValues channel = new ContentValues();
+                    channel.put("type", TvContract.Channels.TYPE_PREVIEW);
+                    channel.put("input_id", context.getPackageName() + "/fixture");
+                    channel.put("display_name", "Preserved choices " + feed);
+                    long channelId = ContentUris.parseId(resolver.insert(TvContract.Channels.CONTENT_URI, channel));
+                    for (int item = 0; item < 4; item++) {
+                        ContentValues value = program(new String[]{"Legacy Alpha", "Shared route Beta", "Content Gamma", "Row Delta"}[item],
+                                item < 2 ? "legacy-" + item : "", "fixture://shared");
+                        if (item == 2) value.put("content_id", "content-gamma");
+                        value.put("channel_id", channelId);
+                        value.put("type", TvContract.PreviewPrograms.TYPE_MOVIE);
+                        resolver.insert(TvContract.PreviewPrograms.CONTENT_URI, value);
+                    }
+                }
+                ContentValues next = program("Watch Alpha", "legacy-0", "fixture://shared");
+                next.put("watch_next_type", 0);
+                next.put("last_engagement_time_utc_millis", System.currentTimeMillis());
+                resolver.insert(TvContract.WatchNextPrograms.CONTENT_URI, next);
+            }
             if ("add-episode".equals(action)) {
                 long channel = -1;
                 try (Cursor rows = resolver.query(TvContract.Channels.CONTENT_URI,

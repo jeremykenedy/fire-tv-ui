@@ -3,6 +3,7 @@
 from pathlib import Path
 import os
 import subprocess
+import sys
 import tempfile
 
 root = Path(__file__).resolve().parents[2]
@@ -17,13 +18,21 @@ with tempfile.TemporaryDirectory(prefix='fire-tv-widgetgroups-') as folder:
                     str(source / 'widget/weather/WeatherOptions.java'), str(source / 'widgetgroups/WeatherGroupOptions.java'),
                     str(Path(__file__).with_name('WidgetGroupsTest.java'))], check=True)
     subprocess.run(['java', '-cp', folder, 'com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroupsTest'], check=True)
+    sys.path.insert(0, str(root.parent / 'tests'))
+    from java_runtime import json_runtime
+    runtime = str(json_runtime())
+    weather = source / 'widget/weather'
+    subprocess.run(['javac', '-cp', folder + ':' + runtime, '-d', folder,
+                    *[str(weather / (name + '.java')) for name in ('WeatherRequest', 'WeatherCachePolicy', 'WeatherCache', 'WeatherHttp', 'WeatherForecast', 'WeatherRepository')],
+                    str(Path(__file__).with_name('EmptyWeatherMigrationTest.java'))], check=True)
+    subprocess.run(['java', '-cp', folder + ':' + runtime, 'com.jeremykenedy.firetv.ui.nativeapp.widget.weather.EmptyWeatherMigrationTest'], check=True)
     journal_sources = sorted(path for path in (source / 'migration').glob('*.java') if not path.name.startswith('Android'))
     journal_sources += [source / name for name in (
         'device/protection/LegacyDeviceProtection.java', 'holidays/HolidayScenes.java', 'folders/FolderOptions.java', 'appgrid/AppGridOptions.java',
-        'appgrid/HomeTileOrder.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
+        'appgrid/HomeTileOrder.java', 'appgrid/RetainedHomeChoices.java', 'focus/FocusOptions.java', 'layout/LayoutOptions.java',
         'layout/LayoutItem.java', 'cards/CardOptions.java', 'appearance/AppearanceOptions.java',
         'appearance/PaletteRecipes.java', 'inputs/InputEntry.java', 'inputs/InputOptions.java',
-        'widgetgroups/WidgetGroupMigration.java', 'widgetgroups/WidgetGroupPresentationPlan.java', 'widgetgroups/WidgetGroups.java')]
+        'widgetgroups/WidgetGroupMigration.java', 'widgetgroups/WidgetGroupPresentationPlan.java', 'widgetgroups/WidgetGroups.java', 'widgetgroups/WeatherGroupOptions.java', 'widget/weather/WeatherOptions.java')]
     # The appearance model depends on the observed gradient registry.
     journal_sources.append(source / 'appearance/LegacyGradients.java')
     subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', folder, *map(str, journal_sources),

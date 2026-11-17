@@ -69,7 +69,7 @@ public final class Pages {
         button.setTextSize(20);
         button.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
         button.setPadding(dp(activity, 10), 0, dp(activity, 10), 0);
-        button.setMinHeight(0); button.setMinimumHeight(0);
+        button.setMinHeight(dp(activity, 44)); button.setMinimumHeight(dp(activity, 44));
         button.setStateListAnimator(null);
         android.graphics.drawable.StateListDrawable states = new android.graphics.drawable.StateListDrawable();
         for (boolean focused : new boolean[]{true, false}) {
@@ -87,7 +87,7 @@ public final class Pages {
                 view.animate().scaleX(focused ? 1.05f : 1f).scaleY(focused ? 1.05f : 1f).setDuration(100).start();
             }
         });
-        LinearLayout.LayoutParams bounds = new LinearLayout.LayoutParams(-1, dp(activity, 44));
+        LinearLayout.LayoutParams bounds = new LinearLayout.LayoutParams(-1, LinearLayout.LayoutParams.WRAP_CONTENT);
         bounds.bottomMargin = dp(activity, 6);
         button.setLayoutParams(bounds);
         AccessibilityStyle.apply(activity, button);

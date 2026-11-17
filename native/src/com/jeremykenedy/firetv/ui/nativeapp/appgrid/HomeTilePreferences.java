@@ -2,6 +2,8 @@ package com.jeremykenedy.firetv.ui.nativeapp.appgrid;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState;
+import com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -22,16 +24,19 @@ public final class HomeTilePreferences {
     }
 
     public static void move(Context context, String key, int delta, List<String> visible, Set<String> favorites) {
-        HomeTileOrder old = load(context);
-        HomeTileOrder changed = old.move(key, delta, visible, favorites);
-        if (changed.order.equals(old.order)) return;
-        SharedPreferences prefs = values(context);
-        String previous = prefs.getString(KEY, null);
-        if (prefs.edit().putString(KEY, String.join("\n", changed.order)).commit()) return;
-        SharedPreferences.Editor restore = prefs.edit();
-        if (previous == null) restore.remove(KEY); else restore.putString(KEY, previous);
-        restore.commit();
-        throw new IllegalStateException("Home order could not be saved. Please try again.");
+        synchronized (PresentationState.class) {
+            HolidayPresetTransaction.assertWritable(context);
+            HomeTileOrder old = load(context);
+            HomeTileOrder changed = old.move(key, delta, visible, favorites);
+            if (changed.order.equals(old.order)) return;
+            SharedPreferences prefs = values(context);
+            String previous = prefs.getString(KEY, null);
+            if (prefs.edit().putString(KEY, String.join("\n", changed.order)).commit()) return;
+            SharedPreferences.Editor restore = prefs.edit();
+            if (previous == null) restore.remove(KEY); else restore.putString(KEY, previous);
+            restore.commit();
+            throw new IllegalStateException("Home order could not be saved. Please try again.");
+        }
     }
 
     private static SharedPreferences values(Context context) {

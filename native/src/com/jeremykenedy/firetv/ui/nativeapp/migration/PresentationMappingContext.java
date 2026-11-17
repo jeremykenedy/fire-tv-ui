@@ -34,6 +34,7 @@ public final class PresentationMappingContext {
     public final Map<String, Feed> feeds;
     public final Map<String, Item> items;
     public final Set<String> advertisedIconPacks;
+    public final Set<String> ambiguousInputs;
     public final Map<String, PrivateMediaReference> privateMedia;
 
     public PresentationMappingContext(Map<String, String> components, Map<String, Feed> feeds,
@@ -51,6 +52,15 @@ public final class PresentationMappingContext {
     public PresentationMappingContext(Map<String, String> components, Map<String, Feed> feeds,
             Map<String, Item> items, Map<String, String> icons, Map<String, String> inputs, Set<String> advertisedIconPacks,
             Collection<PrivateMediaReference> privateMedia) {
+        this(components, feeds, items, icons, inputs, advertisedIconPacks, privateMedia, Collections.<String>emptySet());
+    }
+    public PresentationMappingContext(Map<String, String> components, Map<String, Feed> feeds,
+            Map<String, Item> items, Map<String, String> icons, Map<String, String> inputs, Set<String> advertisedIconPacks,
+            Collection<PrivateMediaReference> privateMedia, Set<String> ambiguousInputs) {
+        if (inputs == null || ambiguousInputs == null || ambiguousInputs.size() > 256) throw invalid();
+        for (String alias : ambiguousInputs)
+            if (!com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.inputAlias(alias) || inputs.containsKey(alias)) throw invalid();
+        this.ambiguousInputs = Collections.unmodifiableSet(new LinkedHashSet<>(ambiguousInputs));
         if (privateMedia == null || privateMedia.size() > 512) throw invalid();
         Map<String, PrivateMediaReference> verifiedMedia = new LinkedHashMap<>();
         for (PrivateMediaReference reference : privateMedia) {
@@ -107,6 +117,18 @@ public final class PresentationMappingContext {
         if (components.containsKey(key)) return components.get(key);
         if (validComponent(key)) return canonicalComponent(key);
         throw new IllegalArgumentException("A saved app has no unique verified launch activity. Its original settings were kept. Restore the app or resolve its activity inventory before upgrading.");
+    }
+    String availableComponent(String key) {
+        if (components.containsKey(key) || validComponent(key)) return component(key);
+        if (!com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.packageName(key)) return component(key);
+        for (String value : components.values())
+            if (value.startsWith(key + "/")) throw new IllegalArgumentException("A saved app has multiple launch activities. Its original choice was kept.");
+        return null;
+    }
+    String availableInput(String alias) {
+        if (!com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.inputAlias(alias)) throw invalid();
+        if (ambiguousInputs.contains(alias)) throw new IllegalArgumentException("A saved input label matches multiple platform inputs. Its original choice was kept.");
+        return inputs.get(alias);
     }
     String tile(String key) {
         return inputs.containsKey(key) ? "input:" + inputs.get(key) : component(key);

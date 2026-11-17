@@ -75,6 +75,17 @@ class ProductionContractTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Boot receiver'):
             build.validate(self.root)
 
+    def test_boot_receiver_rejects_general_package_broadcasts(self):
+        path = self.root / 'production-src/AndroidManifest.xml'
+        tree = ET.parse(path)
+        receiver = next(node for node in tree.getroot().findall('application/receiver')
+                        if node.get(build.attr('name')) == build.PACKAGE + '.DeviceBootReceiver')
+        ET.SubElement(receiver.find('intent-filter'), 'action',
+                      {build.attr('name'): 'android.intent.action.PACKAGE_REPLACED'})
+        tree.write(path)
+        with self.assertRaisesRegex(ValueError, 'Boot receiver'):
+            build.validate(self.root)
+
     def test_unreviewed_production_component_is_rejected(self):
         path = self.root / 'production-src/AndroidManifest.xml'
         tree = ET.parse(path)

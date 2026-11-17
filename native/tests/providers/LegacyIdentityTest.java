@@ -17,10 +17,18 @@ public final class LegacyIdentityTest {
         check("46474bfd9b44c53566c1ab8aa764cbe1e076992297eac5f48d032a37a4647c22",
                 LegacyRecommendationIdentities.feed(source, true, "ignored", "ignored"));
         if (LegacyRecommendationIdentities.item(source, false, "", "") != null)
-            throw new AssertionError("A row ID cannot be invented as an old persistent item identity.");
+            throw new AssertionError("The stable-ID overload requires an explicit identity.");
         if (LegacyRecommendationIdentities.item(source, false, " title:7 ", "").equals(
                 LegacyRecommendationIdentities.item(source, false, "title:7", "")))
             throw new AssertionError("Historical identities must retain exact raw publisher values.");
+        check(RecommendationKeys.hash("preview\n" + source + "\nrow:9"),
+                LegacyRecommendationIdentities.item(source, false, "", "", 9));
+        check(RecommendationKeys.hash("watch-next\n" + source + "\nrow:9"),
+                LegacyRecommendationIdentities.item(source, true, "", "", 9));
+        check(LegacyRecommendationIdentities.item(source, false, "title:7", "ignored"),
+                LegacyRecommendationIdentities.item(source, false, "title:7", "ignored", 999));
+        if (LegacyRecommendationIdentities.item(source, false, "", "", 0) != null)
+            throw new AssertionError("Missing IDs require a real positive provider row.");
         System.out.println("Frozen legacy TV item/feed identities and unknown identity rejection passed");
     }
     private static void check(String expected, String actual) {

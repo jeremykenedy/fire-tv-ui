@@ -7,6 +7,8 @@ import java.util.Map;
 public final class FocusPreferences {
     private static final String FILE = "native_focus";
     public static final String APP_STYLE = "app_focus_style";
+    public static final String APP_GROWTH = "icon_focus_growth";
+    public static final String APP_SHADOW_SIZE = "icon_focus_shadow_size";
     private static final String[] KEYS = {"duration_millis", "growth_percent", "border_enabled", "border_rgb", "border_opacity",
             "fill_enabled", "fill_rgb", "fill_opacity"};
 
@@ -148,6 +150,55 @@ public final class FocusPreferences {
         if (value == null) return true;
         if (!(value instanceof Boolean)) throw new IllegalStateException("Saved icon shadow setting is unavailable.");
         return (Boolean) value;
+    }
+
+    public static int appGrowth(Context context) {
+        Object value = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll().get(APP_GROWTH);
+        if (value != null) return appNumber(value, 0, 30);
+        if (hasExplicitGrowth(context)) return load(context).growthPercent;
+        return 18;
+    }
+
+    public static int appShadowSize(Context context) {
+        if (!iconShadow(context)) return 0;
+        Object value = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll().get(APP_SHADOW_SIZE);
+        return value == null ? 18 : appNumber(value, 1, 38);
+    }
+
+    private static int appNumber(Object value, int min, int max) {
+        if (!(value instanceof Integer) || (Integer) value < min || (Integer) value > max)
+            throw new IllegalStateException("Saved app focus size is unavailable. Its value was kept.");
+        return (Integer) value;
+    }
+
+    public static void saveAppSize(Context context, String key, Integer value) {
+        saveAppSize(context,key,value,null);
+    }
+
+    public static void saveAppShadow(Context context, int size) {
+        if (size != 0 && size != 18 && size != 28 && size != 38)
+            throw new IllegalArgumentException("Choose a supported app focus shadow.");
+        if (size == 0) saveIconOption(context,"icon_shadow",false);
+        else saveAppSize(context,APP_SHADOW_SIZE,size == 18 ? null : size,true);
+    }
+
+    private static void saveAppSize(Context context, String key, Integer value, Boolean enabled) {
+        synchronized (com.jeremykenedy.firetv.ui.nativeapp.setups.PresentationState.class) {
+            boolean growth = APP_GROWTH.equals(key);
+            if (!growth && !APP_SHADOW_SIZE.equals(key)) throw new IllegalArgumentException("Choose a supported app focus size.");
+            if (value != null) appNumber(value, growth ? 0 : 1, growth ? 30 : 38);
+            com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.assertWritable(context);
+            SharedPreferences prefs = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE);
+            Map<String, ?> previous = prefs.getAll();
+            SharedPreferences.Editor edit = prefs.edit(); restore(edit, key, value);
+            if (enabled != null) edit.putBoolean("icon_shadow",enabled);
+            if (edit.commit() && java.util.Objects.equals(prefs.getAll().get(key),value)
+                    && (enabled == null || enabled.equals(prefs.getAll().get("icon_shadow")))) return;
+            SharedPreferences.Editor rollback = prefs.edit(); restore(rollback,key,previous.get(key));
+            if (enabled != null) restore(rollback,"icon_shadow",previous.get("icon_shadow"));
+            rollback.commit();
+            throw new IllegalStateException("App focus size could not be saved. Try again.");
+        }
     }
 
     public static int iconRadius(Context context) {

@@ -19,6 +19,14 @@ public final class BackupTransaction {
         File path = journal(context).getBaseFile();
         return path.exists() || new File(path.getPath()+".bak").exists();
     }
+    public static synchronized void applyOriginal(Context context, OriginalBackup backup) throws Exception {
+        synchronized (PresentationState.class) {
+            if (!backup.unsupported.isEmpty()) throw new IOException("This original backup includes unsupported settings. Nothing was changed.");
+            if (hasRecovery(context) || PresentationState.hasRecovery(context)) throw new IOException("Restore the interrupted presentation change first.");
+            Map<String,PreferenceSnapshot> target = new com.jeremykenedy.firetv.ui.nativeapp.setups.SavedSetupManager(context).prepareOriginalBackup(backup.settings);
+            PresentationState.apply(context,target,true);
+        }
+    }
     public static synchronized void apply(Context context, BackupPayload payload) throws Exception { synchronized(PresentationState.class) {
         if (com.jeremykenedy.firetv.ui.nativeapp.setups.HolidayPresetTransaction.hasRecovery(context)) throw new IOException("Restore the interrupted holiday change first.");
         PresentationState.validatePortable(payload.stores);

@@ -7,6 +7,7 @@ import tempfile
 here = Path(__file__).resolve().parent
 source = here.parents[1] / 'src/com/jeremykenedy/firetv/ui/nativeapp'
 stubs = {
+'com/jeremykenedy/firetv/ui/nativeapp/appgrid/RetainedHomePreferences.java': '''package com.jeremykenedy.firetv.ui.nativeapp.appgrid; public final class RetainedHomePreferences { public static boolean hasApps(android.content.Context c){return false;} public static void apps(android.content.Context c,java.util.Collection<String> ids){throw new AssertionError("This inventory fixture has no retained choices");} }''',
 'com/jeremykenedy/firetv/ui/preview/R.java': 'package com.jeremykenedy.firetv.ui.preview; public class R {public static class drawable {public static final int app_live_tv=1,app_factory_ui=2;}}',
 'android/graphics/drawable/Drawable.java': 'package android.graphics.drawable; public class Drawable {public int resource;public Drawable(){}public Drawable(int r){resource=r;}}',
 'android/content/ComponentName.java': '''package android.content; public class ComponentName {public final String pkg,name;public ComponentName(String p,String n){pkg=p;name=n;}public String flattenToString(){return pkg+"/"+name;}}''',

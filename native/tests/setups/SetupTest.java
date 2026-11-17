@@ -333,14 +333,117 @@ public final class SetupTest {
         portableLayout.remove("widget_groups");
         oldPortable.put("native_layout", new PreferenceSnapshot(portableLayout));
         prefs(groupContext, "native_layout").values.put("widget_groups", grouped);
-        byte[] exportedWithoutGroups = PortableBackup.encode(PresentationState.capturePortable(groupContext), portable);
-        check(!PortableBackup.decode(exportedWithoutGroups, portable).get("native_layout").values().containsKey("widget_groups")
-                && grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
-                "Portable export leaves groups on the TV and exports supported presentation.");
+        byte[] exportedGroups = PortableBackup.encode(PresentationState.capturePortable(groupContext), portable);
+        check(grouped.equals(PortableBackup.decode(exportedGroups, portable).get("native_layout").values().get("widget_groups")),
+                "Portable export includes exact supported widget layout.");
+        prefs(groupContext, "native_layout").values.put("widget_groups", "[]");
+        PresentationState.applyPortable(groupContext, PortableBackup.decode(exportedGroups, portable));
+        check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
+                "Portable import restores exported groups over destination layout.");
+        prefs(groupContext, "launcher_prefs").values.put("widgets_config", grouped);
+        byte[] migratedGroups = PortableBackup.encode(PresentationState.capturePortable(groupContext), portable);
+        check(grouped.equals(PortableBackup.decode(migratedGroups, portable).get("launcher_prefs").values().get("widgets_config")),
+                "Portable backup retains supported original widget records after migration.");
+        prefs(groupContext, "launcher_prefs").values.remove("widgets_config");
         byte[] oldBackup = PortableBackup.encode(oldPortable, portable);
         PresentationState.applyPortable(groupContext, PortableBackup.decode(oldBackup, portable));
         check(grouped.equals(prefs(groupContext, "native_layout").values.get("widget_groups")),
                 "Older portable backup preserves groups it could not capture.");
+        Context appFocusContext = new Context(new File(args[0],"app-focus-sizes"));
+        SavedSetupManager appFocusSetups = new SavedSetupManager(appFocusContext);
+        prefs(appFocusContext,"launcher_prefs").values.put("icon_focus_growth",30);
+        prefs(appFocusContext,"launcher_prefs").values.put("icon_focus_shadow_size",38);
+        prefs(appFocusContext,"launcher_prefs").values.put("icon_shadow",false);
+        prefs(appFocusContext,"native_focus").values.put("growth_percent",7);
+        Map<String,PreferenceSnapshot> existingAppFocusSetup=appFocusSetups.prepareLegacy(
+                LegacySetupSettings.capture(prefs(appFocusContext,"launcher_prefs").values),
+                com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(),true);
+        check(Integer.valueOf(30).equals(existingAppFocusSetup.get("launcher_prefs").values().get("icon_focus_growth"))
+                && Integer.valueOf(38).equals(existingAppFocusSetup.get("launcher_prefs").values().get("icon_focus_shadow_size"))
+                && Boolean.FALSE.equals(existingAppFocusSetup.get("launcher_prefs").values().get("icon_shadow")),
+                "Existing version-one setup preserves stable app focus sizes and shadow Off.");
+        String appFocusId=appFocusSetups.save("App focus sizes",null);
+        byte[] appFocusBackup=PortableBackup.encode(PresentationState.capturePortable(appFocusContext),portable);
+        prefs(appFocusContext,"launcher_prefs").values.remove("icon_focus_growth");
+        prefs(appFocusContext,"launcher_prefs").values.remove("icon_focus_shadow_size");
+        appFocusSetups.apply(appFocusId,true);
+        check(Integer.valueOf(30).equals(prefs(appFocusContext,"launcher_prefs").values.get("icon_focus_growth"))
+                && Integer.valueOf(38).equals(prefs(appFocusContext,"launcher_prefs").values.get("icon_focus_shadow_size"))
+                && Boolean.FALSE.equals(prefs(appFocusContext,"launcher_prefs").values.get("icon_shadow")),"Named setup restores app focus sizes and authoritative shadow Off.");
+        PresentationState.applyPortable(appFocusContext,PortableBackup.decode(appFocusBackup,portable));
+        check(Integer.valueOf(7).equals(prefs(appFocusContext,"native_focus").values.get("growth_percent"))
+                && Integer.valueOf(30).equals(prefs(appFocusContext,"launcher_prefs").values.get("icon_focus_growth")),"Portable app focus roundtrip retains independent generic growth choice.");
+        for(String key:new String[]{"icon_focus_growth","icon_focus_shadow_size"}) {
+            Object previous=prefs(appFocusContext,"launcher_prefs").values.get(key);
+            for(Object invalid:new Object[]{-1,39,18L,"18",true}) {
+                prefs(appFocusContext,"launcher_prefs").values.put(key,invalid);
+                rejects(()->PresentationState.capture(appFocusContext),"Invalid app focus type/bounds refuse snapshot without dropping choice.");
+            }
+            prefs(appFocusContext,"launcher_prefs").values.put(key,previous);
+        }
+        Context absentAppFocus = new Context(new File(args[0],"absent-app-focus-sizes"));
+        SavedSetupManager absentAppFocusSetups = new SavedSetupManager(absentAppFocus);
+        String absentAppFocusId=absentAppFocusSetups.save("App defaults",null);
+        prefs(absentAppFocus,"launcher_prefs").values.put("icon_focus_growth",30);
+        prefs(absentAppFocus,"launcher_prefs").values.put("icon_focus_shadow_size",38);
+        absentAppFocusSetups.apply(absentAppFocusId,true);
+        check(!prefs(absentAppFocus,"launcher_prefs").values.containsKey("icon_focus_growth")
+                && !prefs(absentAppFocus,"launcher_prefs").values.containsKey("icon_focus_shadow_size"),
+                "Named setup restores exact absent app focus defaults without persisting invented values.");
+        Context upgradedBackup = new Context(new File(args[0], "upgraded-portable"));
+        String historicalIcons = "{ \n \"fixture.player/.Main\": { \"customIconUri\": \"content://fixture.invalid/previous-image\" } }";
+        prefs(upgradedBackup, "launcher_prefs").values.put("app_visibility", historicalIcons);
+        prefs(upgradedBackup, "launcher_prefs").values.put("widgets_config", grouped);
+        prefs(upgradedBackup, "launcher_prefs").values.put("source_ui_strict_migration_version", 1);
+        prefs(upgradedBackup, "launcher_prefs").values.put("use_24h_clock", true);
+        prefs(upgradedBackup, "native_icons").values.put("fixture.player/fixture.player.Main", "catalog:sony");
+        prefs(upgradedBackup, "native_layout").values.put("widget_groups", grouped);
+        Map<String, PreferenceSnapshot> currentPortable = PresentationState.capturePortable(upgradedBackup);
+        check(!currentPortable.get("launcher_prefs").values().containsKey("app_visibility")
+                && !currentPortable.get("launcher_prefs").values().containsKey("widgets_config")
+                && Boolean.TRUE.equals(currentPortable.get("launcher_prefs").values().get("use_24h_clock")),
+                "Completed migration exports current native choices and keeps direct legacy consumers.");
+        PresentationState.applyPortable(upgradedBackup, PortableBackup.decode(PortableBackup.encode(currentPortable, portable), portable));
+        check(historicalIcons.equals(prefs(upgradedBackup, "launcher_prefs").values.get("app_visibility"))
+                && grouped.equals(prefs(upgradedBackup, "launcher_prefs").values.get("widgets_config")),
+                "Portable round trip preserves original migration records on this TV.");
+        SavedSetupManager upgradedSetups = new SavedSetupManager(upgradedBackup);
+        Map<String, Object> originals = new LinkedHashMap<>(prefs(upgradedBackup, "launcher_prefs").values);
+        String themeSetup = upgradedSetups.save("Current builtin", null);
+        prefs(upgradedBackup, "native_icons").values.put("fixture.player/fixture.player.Main", "factory");
+        upgradedSetups.apply(themeSetup, true);
+        check("catalog:sony".equals(prefs(upgradedBackup, "native_icons").values.get("fixture.player/fixture.player.Main"))
+                && originals.equals(prefs(upgradedBackup, "launcher_prefs").values),
+                "Current setup restores builtin choice while retaining historical originals without accessing missing media.");
+        prefs(upgradedBackup, "native_icons").values.put("fixture.player/fixture.player.Main", "factory");
+        upgradedSetups.apply(themeSetup, false);
+        check("factory".equals(prefs(upgradedBackup, "native_icons").values.get("fixture.player/fixture.player.Main"))
+                && originals.equals(prefs(upgradedBackup, "launcher_prefs").values),
+                "Artwork unchecked preserves exact current icon and historical JSON text.");
+        String currentImage = "image:99999999-9999-9999-9999-999999999999.png";
+        File currentIcon = new File(upgradedBackup.files, "icons/" + currentImage.substring(6));
+        currentIcon.getParentFile().mkdirs();
+        Files.write(currentIcon.toPath(), new byte[]{3, 7, 9});
+        prefs(upgradedBackup, "native_icons").values.put("fixture.player/fixture.player.Main", currentImage);
+        Map<String,Object> currentPending = new LinkedHashMap<>();
+        currentPending.put("icon:fixture.pending",currentImage);
+        prefs(upgradedBackup, "native_icons").values.put(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.KEY,
+                com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.write("native_icons",currentPending));
+        String nativeImageSetup = upgradedSetups.save("Current personal", null);
+        currentIcon.delete();
+        prefs(upgradedBackup, "native_icons").values.clear();
+        upgradedSetups.apply(nativeImageSetup, true);
+        check(currentImage.equals(prefs(upgradedBackup, "native_icons").values.get("fixture.player/fixture.player.Main"))
+                && Arrays.equals(new byte[]{3, 7, 9},Files.readAllBytes(currentIcon.toPath()))
+                && originals.equals(prefs(upgradedBackup, "launcher_prefs").values),
+                "New current snapshot retains active artwork and reapplies its private copy after managed file deletion.");
+        check(currentPending.equals(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.read("native_icons",
+                prefs(upgradedBackup, "native_icons").values.get(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.KEY))),
+                "Current snapshot retains exact pending unavailable-app artwork.");
+        prefs(upgradedBackup, "launcher_prefs").values.put("source_ui_strict_migration_version", 2);
+        rejects(() -> upgradedSetups.save("Unqualified migration", null), "Unknown migration version never skips active legacy image retention.");
+        prefs(upgradedBackup, "launcher_prefs").values.remove("source_ui_strict_migration_version");
+        rejects(() -> PresentationState.capturePortable(upgradedBackup), "Unverified legacy data is never silently omitted.");
         Map<String, PreferenceSnapshot> privateGroup = new LinkedHashMap<>(oldPortable);
         portableLayout.put("widget_groups", "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Big\",\"data\":{\"token\":\"private\"}}]]");
         privateGroup.put("native_layout", new PreferenceSnapshot(portableLayout));
@@ -399,7 +502,7 @@ public final class SetupTest {
                 new JSONObject().put("keys", new JSONArray(Arrays.asList("minimal_status_bar", "status_bar_position")))
                         .put("values", new JSONObject().put("minimal_status_bar", true).put("status_bar_position", "Center")),
                 new JSONObject().put("keys", new JSONArray(Arrays.asList("use_24h_clock", "poster_mode")))
-                        .put("values", new JSONObject().put("use_24h_clock", false).put("poster_mode", true)))) {
+                        .put("values", new JSONObject().put("use_24h_clock", false).put("poster_mode", "true")))) {
             rejects(() -> manager.prepareLegacy(bad,
                     com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), true),
                     "Malformed, incomplete or unsupported direct choice blocks setup.");
@@ -695,8 +798,124 @@ public final class SetupTest {
         check(!prefs(legacyContext, "source_accessibility").values.containsKey("text_percent")
                 && prefs(legacyContext, "source_accessibility").values.get("future_private").equals("kept"),
                 "applying older setup removes owned readability choices while preserving unknown data");
+        originalBackup(new File(args[0],"original-backup"));
+        scopedLegacyIcons(new File(args[0],"scoped-legacy-icons"));
         System.out.println("Saved setups: " + checks + " checks passed.");
     }
+    private static void scopedLegacyIcons(File folder) throws Exception {
+        Context context=new Context(folder);SavedSetupManager manager=new SavedSetupManager(context);
+        String included="com.example.included/com.example.included.Main",other="com.example.other/com.example.other.Main";
+        String missing="com.example.missing",absent=missing+"/"+missing+".Main",uri="file:/retained-fixture.image";
+        Map<String,Object> pending=new LinkedHashMap<>();pending.put("icon:"+missing,"factory");pending.put("icon:com.example.later","factory");
+        prefs(context,"native_icons").values.put("retained_choices",com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.write("native_icons",pending));
+        prefs(context,"native_icons").values.put("edited:"+included,true);prefs(context,"native_icons").values.put("edited:"+absent,true);
+        prefs(context,"native_icons").values.put(other,"catalog:sonos");prefs(context,"native_icons").values.put("edited:"+other,true);
+        Map<String,String> components=new LinkedHashMap<>();components.put("com.example.included",included);components.put("com.example.other",other);
+        com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext identities=new com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext(components,Collections.emptyMap(),Collections.emptyMap(),Collections.singletonMap(uri,"catalog:jbl"));
+        String visibility=new JSONObject().put("com.example.included",new JSONObject().put("customIconUri",uri)).put(missing,new JSONObject().put("customIconUri",uri)).toString();
+        JSONObject settings=new JSONObject().put("keys",new JSONArray(Arrays.asList("app_visibility"))).put("values",new JSONObject().put("app_visibility",visibility));
+        Map<String,Object> before=new LinkedHashMap<>(prefs(context,"native_icons").values);
+        Map<String,Object> restored=manager.prepareLegacy(settings,identities,true).get("native_icons").values();
+        check("catalog:jbl".equals(restored.get(included))&&!restored.containsKey("edited:"+included),"Legacy captured artwork replaces current Theme and its edit marker.");
+        check("catalog:sonos".equals(restored.get(other))&&Boolean.TRUE.equals(restored.get("edited:"+other)),"Legacy artwork restore preserves unrelated resolved choice and marker.");
+        Map<String,Object> retained=com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.read("native_icons",restored.get("retained_choices"));
+        check("catalog:jbl".equals(retained.get("icon:"+missing))&&"factory".equals(retained.get("icon:com.example.later")),"Legacy pending artwork merges by included identity.");
+        check(!restored.containsKey("edited:"+absent),"Captured unavailable app clears its prior Theme reset marker.");
+        check("catalog:jbl".equals(com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.promoteIcons(restored,Collections.singletonMap(missing,absent)).get(absent)),"Captured unavailable artwork promotes after restoration.");
+        check(before.equals(manager.prepareLegacy(settings,identities,false).get("native_icons").values()),"Excluding artwork preserves every current native icon choice.");
+        settings.put("values",new JSONObject().put("app_visibility",new JSONObject().put("com.example.included",new JSONObject()).toString()));
+        prefs(context,"native_icons").values.put(included,"catalog:pc");
+        restored=manager.prepareLegacy(settings,identities,true).get("native_icons").values();
+        check(!restored.containsKey(included)&&!restored.containsKey("edited:"+included)&&"catalog:sonos".equals(restored.get(other)),"Captured default Theme clears only its included identity.");
+        JSONObject bad=new JSONObject().put("keys",new JSONArray(Arrays.asList("app_visibility")))
+                .put("values",new JSONObject().put("app_visibility",new JSONObject().put("com.example.included",new JSONObject().put("customIconUri","file:/")).toString()));
+        File directory=new File(context.getFilesDir(),"saved-setups");directory.mkdirs();
+        Files.write(new File(directory,"setups.json").toPath(),new JSONObject().put("version",1).put("setups",new JSONArray().put(new JSONObject()
+                .put("id","11111111-1111-1111-1111-111111111111").put("name","Malformed reference").put("savedAt",1).put("settings",bad))).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        Map<String,PreferenceSnapshot> beforeBad=PresentationState.capture(context);
+        try{manager.apply("11111111-1111-1111-1111-111111111111",true);throw new AssertionError("Root image URI accepted");}
+        catch(IOException expected){check(expected.getMessage().contains("unsupported retained image reference"),"Root image URI reports the explicit unsupported-reference error.");}
+        check(same(beforeBad,PresentationState.capture(context)),"Malformed archived reference changes no preferences.");
+    }
+
+    private static void originalBackup(File folder) throws Exception {
+        Context context = new Context(folder);
+        SavedSetupManager manager = new SavedSetupManager(context);
+        prefs(context,"launcher_prefs").values.put("use_24h_clock",false);
+        prefs(context,"launcher_prefs").values.put("color_back_color_argb",123);
+        prefs(context,"launcher_prefs").values.put("folder_lock_pin","local-lock-fixture");
+        prefs(context,"native_app_grid").values.put("columns",7);
+        Map<String,PreferenceSnapshot> before = PresentationState.capture(context);
+        Map<String,Object> incoming = new LinkedHashMap<>(); incoming.put("use_24h_clock",true);
+        Map<String,PreferenceSnapshot> target = manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(same(before,PresentationState.capture(context)),"Original review never writes current settings.");
+        check(Boolean.TRUE.equals(target.get("launcher_prefs").values().get("use_24h_clock")),"Original included direct choice prepared.");
+        check(Integer.valueOf(123).equals(target.get("launcher_prefs").values().get("color_back_color_argb")),"Original omitted local color retained.");
+        check(Integer.valueOf(7).equals(target.get("native_app_grid").values().get("columns")),"Original omitted grid retained.");
+        PresentationState.apply(context,target,true);
+        check("local-lock-fixture".equals(prefs(context,"launcher_prefs").values.get("folder_lock_pin")),"Original apply preserves local lock.");
+        incoming.clear(); incoming.put("overlay_mode","none");
+        target = manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check("none".equals(target.get("launcher_prefs").values().get("overlay_mode")),"Original inactive overlay retained.");
+        incoming.put("overlay_mode","auto");
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original active overlay refused.");
+        String clock = "[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"DigitalClock\",\"size\":\"Big\",\"data\":{}}]]";
+        prefs(context,"native_layout").values.put("hidden","widget:world-clocks");
+        prefs(context,"native_layout").values.put("card_width_dp",400);
+        incoming.clear(); incoming.put("widgets_config",clock);incoming.put("enable_widgets",true);incoming.put("hide_watch_next",false);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(clock.equals(target.get("native_layout").values().get("widget_groups")),"Original enabled grouping prepared exactly.");
+        check("WIDGETS_ONLY".equals(target.get("native_layout").values().get("mode")),"Original enabled groups select original widget row mode.");
+        check(((String)target.get("native_layout").values().get("hidden")).contains("widget:world-clocks"),"Original group merge retains unrelated hidden row.");
+        check(Integer.valueOf(400).equals(target.get("native_layout").values().get("card_width_dp")),"Original grouping retains omitted card width.");
+        prefs(context,"native_layout").values.put("widget_groups",clock);
+        incoming.remove("widgets_config");
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(clock.equals(target.get("native_layout").values().get("widget_groups")),"Original enable choice retains omitted existing grouping.");
+        String weather="[[{\"id\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"Weather\",\"size\":\"Big\",\"data\":{\"location\":\"Portland\",\"unit\":\"F\"}}]]";
+        incoming.put("widgets_config",weather);incoming.put("enable_widgets",false);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(weather.equals(target.get("native_layout").values().get("widget_groups")),"Original disabled weather city and unit retained byte for byte.");
+        check(weather.equals(target.get("launcher_prefs").values().get("widgets_config")),"Original weather source remains recoverable.");
+        incoming.put("enable_widgets",true);
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original active populated weather stays gated.");
+        incoming.remove("enable_widgets"); incoming.remove("hide_watch_next");
+        prefs(context,"native_layout").values.put("mode","WIDGETS_ONLY");
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original partial weather cannot bypass current active widget gate.");
+
+        incoming.clear(); incoming.put("hide_watch_next",false);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check("WIDGETS_ONLY".equals(target.get("native_layout").values().get("mode")),"Original partial hide choice retains current enabled widget semantics.");
+        check(clock.equals(target.get("native_layout").values().get("widget_groups")),"Original partial hide choice preserves omitted grouping.");
+        incoming.clear(); incoming.put("fire_tv_ui_sleep",60);
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original unsupported device key refused.");
+        incoming.clear(); incoming.put("custom_wallpaper_uri","file:/unselected/private-fixture.png");
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original unselected personal URI refused before opening.");
+        incoming.clear(); incoming.put("app_visibility","{\"com.example.fixture\":{\"customIconUri\":\"content://unselected/icon\"}}");
+        rejects(() -> manager.prepareOriginalBackup(new PreferenceSnapshot(incoming)),"Original new icon grant refused.");
+        Map<String,Object> retained = new LinkedHashMap<>();retained.put("icon:com.example.unavailable","theme");
+        String pending=com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices.write("native_icons",retained);
+        prefs(context,"native_icons").values.put("retained_choices",pending);
+        prefs(context,"native_icons").values.put("edited:com.example.other/com.example.other.Main",true);
+        incoming.clear();incoming.put("use_24h_clock",false);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(pending.equals(target.get("native_icons").values().get("retained_choices")),"Original review preserves deferred icon metadata.");
+        String metadata=manager.save("Icon metadata",null);
+        manager.apply(metadata,true);
+        check(pending.equals(prefs(context,"native_icons").values.get("retained_choices")),"Named setup captures and restores deferred icon metadata.");
+        check(Boolean.TRUE.equals(prefs(context,"native_icons").values.get("edited:com.example.other/com.example.other.Main")),"Named setup preserves explicit icon edit marker without casting it as artwork.");
+        String selected="image:11111111-1111-1111-1111-111111111111.png";
+        File managed=new File(new File(context.getFilesDir(),"icons"),selected.substring(6));managed.getParentFile().mkdirs();
+        Files.write(managed.toPath(),new byte[]{1});
+        prefs(context,"native_icons").values.put("com.example.installed/com.example.installed.Main",selected);
+        String historical="{\"com.example.installed\":{\"customIconUri\":\"file:/missing/historical.png\"}}";
+        prefs(context,"launcher_prefs").values.put("app_visibility",historical);
+        incoming.clear();incoming.put("apps_per_row",4);
+        target=manager.prepareOriginalBackup(new PreferenceSnapshot(incoming));
+        check(historical.equals(target.get("launcher_prefs").values().get("app_visibility")),"Original partial import retains omitted historical source without opening it.");
+        check(selected.equals(target.get("native_icons").values().get("com.example.installed/com.example.installed.Main")),"Original partial import retains current managed icon after source removal.");
+    }
+
     private static void holidayPresets(File folder) throws Exception {
         Context context = new Context(folder);
         Context.Prefs appearance=prefs(context,"source_appearance"), focus=prefs(context,"native_focus"), packs=prefs(context,"native_icon_packs");

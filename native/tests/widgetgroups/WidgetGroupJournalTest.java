@@ -31,7 +31,33 @@ public final class WidgetGroupJournalTest {
         check(after.sameValues(store.read()), "Retry publishes original JSON without clearing legacy data.");
         check(raw.equals(store.read().stores.get(LegacyPresentationMapper.LAYOUT).values().get(WidgetGroupMigration.KEY)), "Exact source bytes retained.");
         check(Boolean.FALSE.equals(store.read().stores.get(LauncherMigration.PREFERENCES).values().get("enable_widgets")), "Disabled choice remains unchanged.");
+        enabledPlan();
         System.out.println("Grouped widget journal interruption and retry passed.");
+    }
+    private static void enabledPlan() throws Exception {
+        String raw = "[[],[{\"id\":\"00000000-0000-4000-8000-000000000001\",\"type\":\"YearProgress\",\"size\":\"Big\",\"data\":{}}],[],[]]";
+        for (boolean hide : new boolean[]{false, true}) {
+            Map<String, Object> legacy = new LinkedHashMap<>();
+            legacy.put("widgets_config", raw); legacy.put("enable_widgets", true); legacy.put("hide_watch_next", hide);
+            PreferenceSnapshot source = new PreferenceSnapshot(legacy);
+            LegacyPresentationMapper.Plan base = LegacyPresentationMapper.plan(source,
+                    com.jeremykenedy.firetv.ui.nativeapp.migration.PresentationMappingContext.empty(), Collections.emptyMap());
+            WidgetGroupPresentationPlan plan = WidgetGroupPresentationPlan.prepare(base);
+            check(plan.unmappedLegacyKeys.isEmpty(), "Enabled groups and explicit content flags are resolved together.");
+            for (Map.Entry<String, Object> entry : legacy.entrySet())
+                check(entry.getValue().equals(plan.target.stores.get(LauncherMigration.PREFERENCES).values().get(entry.getKey())),
+                        "Original enabled settings retain their exact values.");
+            check((hide ? "NONE" : "WIDGETS_ONLY").equals(plan.target.stores.get(LegacyPresentationMapper.LAYOUT).values().get("mode")),
+                    "Journal target carries the source layout semantics.");
+            Store store = new Store(plan.before); store.interrupt = true;
+            try { PresentationTransaction.apply(store, plan.before, plan.target); throw new AssertionError("No interruption."); }
+            catch (Death expected) { }
+            PresentationTransaction.recover(store, store.journal);
+            check(plan.before.sameValues(store.read()), "Interrupted enabled publication restores all source and native settings.");
+            store.journal = null;
+            PresentationTransaction.apply(store, plan.before, plan.target);
+            check(plan.target.sameValues(store.read()), "Retry publishes enabled groups and flags as one target.");
+        }
     }
     private static final class Store implements PresentationTransaction.Store {
         Map<String, PreferenceSnapshot> values;

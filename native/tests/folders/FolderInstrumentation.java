@@ -107,7 +107,7 @@ public final class FolderInstrumentation extends Instrumentation {
     }
     private void select(final String label) {
         onMain(new Runnable() { @Override public void run() {
-            Button button = button(activity.getWindow().getDecorView(), label);
+            View button = button(activity.getWindow().getDecorView(), label);
             check(button != null, "Missing button: " + label); button.requestFocus();
         } });
     }
@@ -121,12 +121,16 @@ public final class FolderInstrumentation extends Instrumentation {
         onMain(new Runnable() { @Override public void run() {
             View focus = activity.getCurrentFocus();
             if (focus instanceof Button) label[0] = ((Button) focus).getText().toString();
+            else if (focus instanceof com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView)
+                label[0] = String.valueOf(focus.getContentDescription());
         } }); return label[0];
     }
-    private Button button(View view, String label) {
+    private View button(View view, String label) {
         if (view instanceof Button && ((Button) view).getText().toString().equals(label)) return (Button) view;
+        if (view instanceof com.jeremykenedy.firetv.ui.nativeapp.focus.FocusTileView
+                && label.equals(String.valueOf(view.getContentDescription()))) return view;
         if (view instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-            Button found = button(((ViewGroup) view).getChildAt(i), label); if (found != null) return found;
+            View found = button(((ViewGroup) view).getChildAt(i), label); if (found != null) return found;
         }
         return null;
     }

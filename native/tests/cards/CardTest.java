@@ -142,6 +142,27 @@ public final class CardTest {
         for (int i = 0; i < 512; i++) bounded = bounded.hide("com.first.app", "item" + i, "Title");
         try { bounded.hide("com.first.app", "extra", "Title"); throw new AssertionError("Unbounded hides accepted."); }
         catch (IllegalArgumentException expected) {}
+        CardOptions preserved = bounded;
+        for (int i = 0; i < 2048; i++) preserved = preserved.hideLegacy(String.format("%064x", i));
+        check(CardOptions.fromBackup(preserved.backupValues()).hiddenItems().size() == 2560,
+                "All 2048 original choices coexist with 512 native hides and survive backup.");
+        try { preserved.hideLegacy(String.format("%064x", 2048)); throw new AssertionError("Unbounded legacy hides accepted"); }
+        catch (IllegalArgumentException expected) {}
+        for (String malformed : new String[]{"abc", String.format("%064x", 1).toUpperCase() + "A", "../item"}) {
+            try { CardOptions.defaults().hideLegacy(malformed); throw new AssertionError("Malformed legacy hash accepted"); }
+            catch (IllegalArgumentException expected) {}
+        }
+        String legacyKey = String.format("%064x", 42);
+        TvRecommendations.Program legacyItem = new TvRecommendations.Program("native:first", "com.first.app", "First", null, "fixture://shared", null, null);
+        TvRecommendations.Program legacyOther = new TvRecommendations.Program("native:second", "com.first.app", "Second", null, "fixture://shared", null, null);
+        legacyItem.legacyKey = legacyKey; legacyOther.legacyKey = String.format("%064x", 43);
+        CardOptions oldChoice = CardOptions.defaults().hideLegacy(legacyKey);
+        check(CardPreferences.itemHidden(oldChoice, legacyItem) && !CardPreferences.itemHidden(oldChoice, legacyOther),
+                "Exact old hash hides only its item despite shared route.");
+        check(!CardPreferences.itemHidden(CardPreferences.restoreItem(oldChoice, legacyItem), legacyItem),
+                "Explicit restore removes the preserved choice.");
+        check(CardOptions.fromBackup(oldChoice.backupValues()).restore(CardOptions.LEGACY_RECOMMENDATIONS, legacyKey).hiddenItems().isEmpty(),
+                "Unavailable choice can be restored without a current provider or title.");
         CardOptions timers = CardOptions.defaults();
         for (int i = 0; i < 256; i++) timers = timers.withFeedSeconds("tv:" + i, 1);
         try { timers.withFeedSeconds("tv:extra", 1); throw new AssertionError("Unbounded overrides accepted."); }

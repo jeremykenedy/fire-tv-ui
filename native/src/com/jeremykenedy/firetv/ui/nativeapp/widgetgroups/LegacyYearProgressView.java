@@ -28,17 +28,19 @@ public final class LegacyYearProgressView extends View {
         setContentDescription("Year " + value.percent + "%");
         float width = getWidth(), height = getHeight();
         float pad = Math.max(8, width * .05f);
-        int textColor = WidgetAppearance.hasText(getContext()) ? WidgetAppearance.color(getContext(), true) : Color.WHITE;
+        int textColor = WidgetAppearance.groupColor(getContext(), true);
         paint.setColor(textColor); paint.setTextSize(Math.min(width * .11f, height * .16f));
+        paint.setTypeface(android.graphics.Typeface.DEFAULT);
         canvas.drawText("Year", pad, pad + paint.getTextSize(), paint);
         String percent = value.percent + "%";
+        paint.setTypeface(android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.BOLD));
         canvas.drawText(percent, width - pad - paint.measureText(percent), pad + paint.getTextSize(), paint);
         float left = pad + width * .025f, right = width - pad - width * .025f;
-        float top = pad + paint.getTextSize() + height * .13f, bottom = height - pad;
+        float top = pad + paint.getTextSize() + height * .17f, bottom = height * .85f;
         float xStep = (right - left) / 10f, yStep = (bottom - top) / 4f;
-        float radius = Math.max(2, Math.min(xStep, yStep) * .22f);
+        float radius = Math.max(2, Math.min(xStep, yStep) * .33f);
         for (int i = 0; i < LegacyYearProgressModel.DOTS; i++) {
-            paint.setColor(i < value.filledDots ? textColor : 0x66888888);
+            paint.setColor(i < value.filledDots ? textColor : (textColor & 0xffffff) | (Math.round((textColor >>> 24) * .2f) << 24));
             canvas.drawCircle(left + (i % 11) * xStep, top + (i / 11) * yStep, radius, paint);
         }
     }

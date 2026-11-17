@@ -1,6 +1,6 @@
 package com.jeremykenedy.firetv.ui.nativeapp.providers;
 
-/** Historical owned card identities, retained only for exact preference migration. */
+/** Historical card identities consumed exactly during migration and recommendation reads. */
 final class LegacyRecommendationIdentities {
     private LegacyRecommendationIdentities() {}
 
@@ -11,6 +11,18 @@ final class LegacyRecommendationIdentities {
         else if (contentId != null && !contentId.isEmpty()) identity = "content:" + contentId;
         else return null;
         return RecommendationKeys.hash((watchNext ? "watch-next" : "preview") + "\n" + source + "\n" + identity);
+    }
+
+    static String item(String source, boolean watchNext, String providerId, String contentId, long row) {
+        String key = item(source, watchNext, providerId, contentId);
+        if (key != null || source == null || source.isEmpty() || row <= 0) return key;
+        return RecommendationKeys.hash((watchNext ? "watch-next" : "preview") + "\n" + source + "\nrow:" + row);
+    }
+
+    static String plexItem(String source, String key, boolean watchNext) {
+        if (!"com.plexapp.android".equals(source) || key == null
+                || !key.matches("plex:[a-f0-9]{64}:[0-9]{1,18}")) return null;
+        return item("com.jeremykenedy.firetv.ui", watchNext, key.substring(5), "");
     }
 
     static String feed(String source, boolean watchNext, String providerId, String displayName) {

@@ -8,6 +8,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.appearance.AppearancePreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppGridOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.appgrid.HomeTileOrder;
+import com.jeremykenedy.firetv.ui.nativeapp.appgrid.RetainedHomeChoices;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.CardOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.focus.FocusOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.folders.FolderPreferences;
@@ -18,6 +19,7 @@ import com.jeremykenedy.firetv.ui.nativeapp.layout.LayoutOptions;
 import com.jeremykenedy.firetv.ui.nativeapp.migration.PreferenceSnapshot;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.breathing.BreathingSession;
 import com.jeremykenedy.firetv.ui.nativeapp.widget.worldclock.WorldClocks;
+import com.jeremykenedy.firetv.ui.nativeapp.widgetgroups.WidgetGroups;
 
 import org.json.JSONObject;
 
@@ -32,7 +34,7 @@ public final class PresentationState {
     static {
         add(
                 "native_app_grid",
-                "columns rows horizontal order home_order hidden favorites show_all_apps_button");
+                "columns rows horizontal order home_order hidden favorites show_all_apps_button retained_choices");
         add(
                 "native_focus",
                 "duration_millis growth_percent border_enabled border_rgb border_opacity"
@@ -72,9 +74,9 @@ public final class PresentationState {
 
     private static boolean owns(String file, String key) {
         if (file.equals("native_inputs"))
-            return key.equals("order") || key.startsWith("name:") || key.startsWith("hidden:");
+            return key.equals(RetainedHomeChoices.KEY) || key.equals("order") || key.startsWith("name:") || key.startsWith("hidden:");
         return file.equals("native_icons")
-                ? key.startsWith("input:")
+                ? key.equals(RetainedHomeChoices.KEY) || key.startsWith("edited:") || key.startsWith("input:")
                         || key.length() <= 512 && key.matches("[A-Za-z0-9_.$:/-]+")
                 : KEYS.get(file).contains(key);
     }
@@ -121,6 +123,19 @@ public final class PresentationState {
                 for (Map.Entry<String, Object> entry : values.entrySet()) {
                     if (!owns(file, entry.getKey()))
                         throw new IOException("An unsupported setting was found.");
+                    if (entry.getKey().equals(RetainedHomeChoices.KEY)) {
+                        Map<String, Object> retained = RetainedHomeChoices.read(file, entry.getValue());
+                        if (file.equals("native_icons"))
+                            for (Object choice : retained.values()) validateCatalogChoice(choice);
+                        continue;
+                    }
+                    if (file.equals("native_icons") && entry.getKey().startsWith("edited:")) {
+                        String key = entry.getKey().substring(7);
+                        if (!(entry.getValue() instanceof Boolean) || !(key.startsWith("input:")
+                                ? InputEntry.validId(key.substring(6)) : RetainedHomeChoices.component(key)))
+                            throw new IOException("Invalid saved icon choice marker.");
+                        continue;
+                    }
                     if (file.equals("native_icons")
                             && entry.getKey().startsWith("input:")
                             && !InputEntry.validId(entry.getKey().substring(6)))
@@ -190,6 +205,7 @@ public final class PresentationState {
         for (Map.Entry<String, Object> entry : inputs.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
+            if (key.equals(RetainedHomeChoices.KEY)) continue;
             if (key.equals("order")) {
                 if (!(value instanceof String)) throw new IOException("Invalid input order type.");
                 inputOrder = InputOptions.parseOrder((String) value);
@@ -240,11 +256,14 @@ public final class PresentationState {
 
     public static void validatePortable(Map<String, PreferenceSnapshot> state) throws Exception {
         validate(state);
-        if (state.get("native_layout").values().containsKey("widget_groups"))
-            throw new IOException("Saved widget groups cannot be exported or imported in a portable backup.");
+        validatePortableGroups(state.get("native_layout").values().get("widget_groups"));
+        for (Object choice : RetainedHomeChoices.read("native_icons",
+                state.get("native_icons").values().get(RetainedHomeChoices.KEY)).values())
+            if (choice instanceof String && ((String) choice).startsWith("image:"))
+                throw new IOException("Personal artwork for an unavailable app or input stays on this TV.");
         Map<String, Object> legacy = state.get("launcher_prefs").values();
         for (String key :
-                Arrays.asList("app_order", "folders", "widgets_config", "channel_visibility")) {
+                Arrays.asList("app_order", "folders", "channel_visibility")) {
             Object value = legacy.get(key);
             if (value instanceof String && !((String) value).isEmpty())
                 throw new IOException(
@@ -252,6 +271,7 @@ public final class PresentationState {
                                 + " settings have been kept; portable export requires migration"
                                 + " first.");
         }
+        validatePortableGroups(legacy.get("widgets_config"));
         if (legacy.containsKey("app_visibility")) {
             JSONObject apps = new JSONObject((String) legacy.get("app_visibility"));
             for (Iterator<String> keys = apps.keys(); keys.hasNext(); ) {
@@ -284,6 +304,25 @@ public final class PresentationState {
             }
     }
 
+    private static void validateCatalogChoice(Object value) throws IOException {
+        if (value instanceof String && ((String) value).startsWith("catalog:")
+                && IconCatalog.find(((String) value).substring(8)) == null)
+            throw new IOException("A saved icon is not in the reviewed catalog.");
+    }
+
+    private static void validatePortableGroups(Object value) throws IOException {
+        if (value == null) return;
+        try {
+            WidgetGroups groups = WidgetGroups.decode((String) value);
+            for (List<WidgetGroups.Entry> group : groups.groups)
+                for (WidgetGroups.Entry entry : group)
+                    if (!entry.isRenderable())
+                        throw new IOException("This widget has location or unsupported settings that cannot be included in a portable backup.");
+        } catch (IllegalArgumentException | ClassCastException invalid) {
+            throw new IOException("Invalid portable widget groups.", invalid);
+        }
+    }
+
     private static int integer(Map<String, Object> v, String k, int d) {
         return v.containsKey(k) ? (Integer) v.get(k) : d;
     }
@@ -309,9 +348,12 @@ public final class PresentationState {
     public static synchronized Map<String, PreferenceSnapshot> capturePortable(Context context)
             throws Exception {
         Map<String, PreferenceSnapshot> state = new LinkedHashMap<>(capture(context));
-        Map<String, Object> layout = new LinkedHashMap<>(state.get("native_layout").values());
-        layout.remove("widget_groups");
-        state.put("native_layout", new PreferenceSnapshot(layout));
+        if (completedMigration(context)) {
+            Map<String, Object> legacy = new LinkedHashMap<>(state.get("launcher_prefs").values());
+            legacy.remove("app_visibility");
+            legacy.remove("widgets_config");
+            state.put("launcher_prefs", new PreferenceSnapshot(legacy));
+        }
         validatePortable(state);
         return Collections.unmodifiableMap(state);
     }
@@ -323,9 +365,21 @@ public final class PresentationState {
         Map<String, Object> layout = new LinkedHashMap<>(state.get("native_layout").values());
         Object groups = context.getSharedPreferences("native_layout", Context.MODE_PRIVATE)
                 .getAll().get("widget_groups");
-        if (groups != null) layout.put("widget_groups", groups);
+        if (groups != null && !layout.containsKey("widget_groups")) layout.put("widget_groups", groups);
         target.put("native_layout", new PreferenceSnapshot(layout));
+        if (completedMigration(context)) {
+            Map<String, Object> legacy = new LinkedHashMap<>(state.get("launcher_prefs").values());
+            Map<String, ?> original = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE).getAll();
+            for (String key : Arrays.asList("app_visibility", "widgets_config"))
+                if (!legacy.containsKey(key) && original.containsKey(key)) legacy.put(key, original.get(key));
+            target.put("launcher_prefs", new PreferenceSnapshot(legacy));
+        }
         apply(context, target, true);
+    }
+
+    private static boolean completedMigration(Context context) {
+        return Integer.valueOf(1).equals(context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
+                .getAll().get("source_ui_strict_migration_version"));
     }
 
     public static synchronized void apply(

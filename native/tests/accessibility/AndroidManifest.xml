@@ -2,4 +2,5 @@
     <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36" />
     <application android:label="Readability verification" />
     <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.accessibility.AccessibilityInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.accessibility.MenuRowsInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview" />
 </manifest>

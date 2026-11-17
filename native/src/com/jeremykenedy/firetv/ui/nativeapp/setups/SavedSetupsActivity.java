@@ -27,6 +27,7 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
     private boolean includeIcons = true;
     private boolean destroyed;
     private AlertDialog pending;
+    private Toast feedback;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
 
     @Override
@@ -40,6 +41,7 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
         if (startupBlocked) { super.onDestroy(); return; }
         destroyed = true;
         if (pending != null) pending.dismiss();
+        if (feedback != null) feedback.cancel();
         worker.shutdown();
         super.onDestroy();
     }
@@ -61,6 +63,13 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
         scroll = new ScrollView(this);
         scroll.setClipChildren(false); scroll.setClipToPadding(false);
         scroll.setVerticalScrollBarEnabled(false);
+        scroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                    int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                view.setClipBounds(new android.graphics.Rect(-page.getPaddingLeft(), 0,
+                        view.getWidth() + page.getPaddingRight(), view.getHeight() + page.getPaddingBottom()));
+            }
+        });
         rows = new LinearLayout(this);
         rows.setOrientation(LinearLayout.VERTICAL);
         rows.setClipChildren(false); rows.setClipToPadding(false);
@@ -282,14 +291,15 @@ public final class SavedSetupsActivity extends com.jeremykenedy.firetv.ui.native
                 new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(SavedSetupsActivity.this, message, Toast.LENGTH_SHORT)
-                                .show();
+                        feedback = Toast.makeText(SavedSetupsActivity.this, message, Toast.LENGTH_SHORT);
+                        feedback.show();
                         refresh();
                     }
                 });
     }
 
     private void perform(final Action action, final Runnable success) {
+        if (feedback != null) feedback.cancel();
         final AlertDialog progress =
                 new AlertDialog.Builder(this).setMessage("Saving presentation...").create();
         pending = progress;

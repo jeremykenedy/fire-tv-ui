@@ -122,8 +122,19 @@ public final class SourceApplication extends Application implements SourceStartu
                                 android.util.Log.w("FireTvProtection", protectionFailure, unavailable);
                             }
                             if (updateInspectionError != null) UpdateBlockService.reportPending(updateInspectionError);
-                            else if (shouldStartUpdates && !UpdateBlockService.active())
-                                UpdateBlockService.reportPending("Saved update protection needs an explicit retry. The saved choice was kept.");
+                            else if (shouldStartUpdates && !UpdateBlockService.active()) {
+                                try {
+                                    if (UpdateBlockService.foregroundDenied(SourceApplication.this))
+                                        UpdateBlockService.reportPending("The TV did not allow update protection to start. Review app permissions and retry.");
+                                    else {
+                                        UpdateBlockService.reportPending("Checking saved update protection.");
+                                        startForegroundService(new Intent().setClassName(SourceApplication.this,
+                                                "com.jeremykenedy.firetv.ui.ProtectionService").setAction(UpdateBlockService.RETAINED_START));
+                                    }
+                                } catch (RuntimeException unavailable) {
+                                    UpdateBlockService.reportPending("Saved update protection could not start. Select Retry to review.");
+                                }
+                            }
                         } finally { complete.run(); }
                     }
                 });

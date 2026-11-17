@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.folderartproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36"/>
+    <application android:label="Folder artwork verification">
+        <activity android:name="com.example.allappsfixture.OrdinaryActivity" android:exported="true"/>
+        <activity-alias android:name=".App00" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 00" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App01" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 01" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App02" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 02" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App03" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 03" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App04" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 04" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App05" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 05" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App06" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 06" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App07" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 07" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App08" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 08" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App09" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 09" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App10" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 10" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".App11" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Folder fixture 11" android:banner="@drawable/fixture_banner" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+    </application>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.folders.FolderArtworkInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview"/>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.folders.FolderInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview"/>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.stateguard.StateGuardInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview"/>
+</manifest>

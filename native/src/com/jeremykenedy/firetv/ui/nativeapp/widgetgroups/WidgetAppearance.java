@@ -40,6 +40,11 @@ public final class WidgetAppearance {
         int opacity = Math.max(0, Math.min(100, value(context, key(text, "opacity"), text ? 100 : 0)));
         return (color & 0x00ffffff) | (Math.round(opacity * 255f / 100f) << 24);
     }
+    public static int groupColor(Context context, boolean text) {
+        int color = value(context, key(text, "argb"), text ? Color.BLACK : Color.WHITE);
+        int opacity = Math.max(0, Math.min(100, value(context, key(text, "opacity"), text ? 100 : 50)));
+        return (color & 0x00ffffff) | (Math.round(opacity * 255f / 100f) << 24);
+    }
     public static void apply(View view) {
         Context context = view.getContext();
         view.setBackgroundColor(color(context, false));

@@ -14,8 +14,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.ArtworkLoader;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.ChannelCardView;
+import com.jeremykenedy.firetv.ui.nativeapp.cards.CardDisplayPreferences;
 import com.jeremykenedy.firetv.ui.nativeapp.cards.CardPreferences;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,8 +38,14 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
         Bundle result = new Bundle();
         final SharedPreferences preferences = getTargetContext().getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE);
         final Object originalFit = preferences.getAll().get("featured_artwork_fit");
+        final Object originalHiddenTitles = preferences.getAll().get("hide_watch_next_titles");
+        final Object originalOutside = preferences.getAll().get("text_outside_cards");
         try {
             check(originalFit == null || originalFit instanceof Boolean, "Artwork setting must have a valid original type.");
+            check(originalHiddenTitles == null || originalHiddenTitles instanceof Boolean,
+                    "Hidden title setting must have a valid original type.");
+            check(originalOutside == null || originalOutside instanceof Boolean,
+                    "Outside title setting must have a valid original type.");
             CardPreferences.setArtworkFit(getTargetContext(), true);
             activity = startActivitySync(new Intent().setClassName(getTargetContext(),
                     "com.jeremykenedy.firetv.ui.nativeapp.MainActivity")
@@ -160,6 +168,7 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                     check("empty".equals(selected), "Ordinary Select manages an all-hidden card.");
                 }
             });
+            checkMissingArtwork(source, first);
             final CountDownLatch rejected = new CountDownLatch(1);
             ArtworkLoader.load(getTargetContext(), Uri.parse("file:///etc/hosts"), new ArtworkLoader.Callback() {
                 @Override public void onLoaded(android.graphics.Bitmap bitmap) {
@@ -175,6 +184,8 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
             result.putBoolean("changed_interval_replaces_deadline", true);
             result.putBoolean("current_item_actions", true);
             result.putBoolean("native_fit_artwork", true);
+            result.putBoolean("missing_artwork_focus_identity", true);
+            result.putBoolean("shared_artwork_uses_current_title", true);
             result.putBoolean("minimum_card_artwork_area", true);
             result.putBoolean("stalled_pipe_deadline_and_async_cancel", true);
             result.putString("limits", "Local resources and test content pipes only; HTTPS servers and physical TV visuals remain unverified.");
@@ -197,8 +208,108 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                     result.putString("reason", "Artwork preference restoration failed.");
                 }
             }
+            if (originalHiddenTitles == null || originalHiddenTitles instanceof Boolean) {
+                SharedPreferences.Editor restore = preferences.edit();
+                if (originalHiddenTitles == null) restore.remove("hide_watch_next_titles");
+                else restore.putBoolean("hide_watch_next_titles", (Boolean) originalHiddenTitles);
+                if (!restore.commit() || !java.util.Objects.equals(originalHiddenTitles,
+                        preferences.getAll().get("hide_watch_next_titles"))) {
+                    result.putString("status", "FAIL");
+                    result.putString("reason", "Hidden title preference restoration failed.");
+                }
+            }
+            if (originalOutside == null || originalOutside instanceof Boolean) {
+                SharedPreferences.Editor restore = preferences.edit();
+                if (originalOutside == null) restore.remove("text_outside_cards");
+                else restore.putBoolean("text_outside_cards", (Boolean) originalOutside);
+                if (!restore.commit() || !java.util.Objects.equals(originalOutside,
+                        preferences.getAll().get("text_outside_cards"))) {
+                    result.putString("status", "FAIL");
+                    result.putString("reason", "Outside title preference restoration failed.");
+                }
+            }
         }
         finish(0, result);
+    }
+
+    private void checkMissingArtwork(final String source, final TvRecommendations.Program loaded) {
+        final Uri stalled = Uri.parse("content://com.jeremykenedy.firetv.ui.cardsproof.artwork/stall");
+        final TvRecommendations.Program missing = new TvRecommendations.Program("render:missing", source,
+                "Private program title", null, "");
+        final TvRecommendations.Program failed = new TvRecommendations.Program("render:failed", source,
+                "Failed program title", Uri.parse("file:///not-an-image"), "");
+        final TvRecommendations.Program slow = new TvRecommendations.Program("render:slow", source,
+                "Slow program title", stalled, "");
+        CardDisplayPreferences.setHideTitles(getTargetContext(), true);
+        onMain(new Runnable() { @Override public void run() {
+            card.updateFeed(new TvRecommendations.Feed(card.feed().item.id, card.feed().title, source,
+                    Collections.singletonList(missing)));
+            ViewGroup.LayoutParams size = card.getLayoutParams();
+            size.height = Math.round(100 * card.getResources().getDisplayMetrics().density);
+            card.setLayoutParams(size);
+            check(card.isFocused() && image(card).getDrawable() == null,
+                    "Missing artwork must retain the same focused card.");
+            check(visibleText(card.getChildAt(1), "Renderer check") && !visibleText(card, missing.title),
+                    "A compact card without artwork must identify its feed without exposing hidden program titles.");
+        }});
+        waitForIdleSync();
+        onMain(new Runnable() { @Override public void run() {
+            check(card.getChildAt(0).getVisibility() == View.GONE,
+                    "The missing-artwork card must be compact without a separate feed heading.");
+        }});
+        onMain(new Runnable() { @Override public void run() {
+            card.updateFeed(new TvRecommendations.Feed(card.feed().item.id, card.feed().title, source,
+                    Collections.singletonList(failed)));
+        }});
+        SystemClock.sleep(200);
+        onMain(new Runnable() { @Override public void run() {
+            check(visibleText(card.getChildAt(1), "Renderer check") && !visibleText(card, failed.title),
+                    "Failed artwork must keep a visible feed identity.");
+            card.updateFeed(new TvRecommendations.Feed(card.feed().item.id, card.feed().title, source,
+                    Arrays.asList(slow, loaded)));
+            check(visibleText(card.getChildAt(1), "Renderer check"),
+                    "Pending artwork must keep the card identifiable.");
+            card.showNextProgram();
+        }});
+        waitForArtwork();
+        SystemClock.sleep(6200);
+        onMain(new Runnable() { @Override public void run() {
+            check(card.currentProgram() == loaded && card.isFocused()
+                            && image(card).getDrawable() instanceof BitmapDrawable
+                            && !visibleText(card.getChildAt(1), "Renderer check"),
+                    "A stale failed load must not replace the later program artwork or feed fallback state.");
+        }});
+        final Uri sharedArtwork = Uri.parse("content://com.jeremykenedy.firetv.ui.cardsproof.artwork/slow-image");
+        final TvRecommendations.Program earlier = new TvRecommendations.Program("render:shared-earlier", source,
+                "Earlier shared title", sharedArtwork, "");
+        final TvRecommendations.Program later = new TvRecommendations.Program("render:shared-later", source,
+                "Later shared title", sharedArtwork, "");
+        CardDisplayPreferences.setHideTitles(getTargetContext(), false);
+        CardDisplayPreferences.setTextOutside(getTargetContext(), false);
+        onMain(new Runnable() { @Override public void run() {
+            card.updateFeed(new TvRecommendations.Feed(card.feed().item.id, card.feed().title, source,
+                    Arrays.asList(earlier, later)));
+            card.showNextProgram();
+            check(card.currentProgram() == later && visibleText(card.getChildAt(1), later.title),
+                    "Rotating shared artwork must immediately show the current program title.");
+        }});
+        SystemClock.sleep(1200);
+        onMain(new Runnable() { @Override public void run() {
+            check(card.currentProgram() == later && card.isFocused()
+                            && image(card).getDrawable() instanceof BitmapDrawable
+                            && visibleText(card.getChildAt(1), later.title)
+                            && !visibleText(card.getChildAt(1), earlier.title)
+                            && ("Renderer check: " + later.title).contentEquals(card.getContentDescription()),
+                    "A shared artwork callback must retain the current program title and accessibility label.");
+        }});
+    }
+
+    private static boolean visibleText(View view, String value) {
+        if (view.getVisibility() != View.VISIBLE) return false;
+        if (view instanceof TextView && value.contentEquals(((TextView) view).getText())) return true;
+        if (view instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++)
+            if (visibleText(((ViewGroup) view).getChildAt(i), value)) return true;
+        return false;
     }
 
     private void checkArtworkDeadlines(String source) throws InterruptedException {
@@ -286,7 +397,8 @@ public final class ChannelRenderInstrumentation extends Instrumentation {
                 try { action.run(); } catch (Throwable error) { failure[0] = error; }
             }
         });
-        if (failure[0] != null) throw new AssertionError("Main-thread fixture action failed", failure[0]);
+        if (failure[0] != null) throw new AssertionError("Main-thread fixture action failed: "
+                + failure[0].getMessage(), failure[0]);
     }
 
     private static void check(boolean value, String message) {

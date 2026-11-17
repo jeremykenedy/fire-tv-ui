@@ -126,8 +126,8 @@ def validate(root=ROOT):
     if (len(boot) != 1 or boot[0].get(attr('exported')) != 'false'
             or boot[0].get(attr('process')) or boot[0].get(attr('directBootAware')) == 'true'
             or [node.get(attr('name')) for node in boot[0].iter('action')]
-                != ['android.intent.action.BOOT_COMPLETED']):
-        raise ValueError('Boot receiver must remain private and boot-completed only')
+                != ['android.intent.action.BOOT_COMPLETED', 'android.intent.action.MY_PACKAGE_REPLACED']):
+        raise ValueError('Boot receiver must remain private and accept only boot or own replacement')
     for name in ('Hra', 'HomeRedirectService'):
         service = next((node for node in candidate.findall('service')
                         if node.get(attr('name')) == PACKAGE + '.' + name), None)

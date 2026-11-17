@@ -276,10 +276,8 @@ public final class ChannelCardView extends LinearLayout {
         final TvRecommendations.Program program = currentProgram();
         if (program != null) selectedKey = program.key;
         String title = program == null ? "No visible items" : program.title;
-        tile.setTitle(title);
         boolean visible = !CardDisplayPreferences.hideTitles(getContext());
         boolean outside = CardDisplayPreferences.textOutside(getContext());
-        tile.setTitleVisible(visible && !outside);
         Integer color = CardDisplayPreferences.textColor(getContext());
         tile.setTitleColor(color);
         outsideTitle.setTextColor(color == null ? 0xffcec7df : color);
@@ -287,12 +285,13 @@ public final class ChannelCardView extends LinearLayout {
         outsideTitle.setText(title);
         outsideTitle.setVisibility(visible && outside ? VISIBLE : GONE);
         tile.setArtworkFit(CardPreferences.artworkFits(getContext()));
-        setContentDescription(feed.title + ": " + title);
+        setContentDescription(visible ? feed.title + ": " + title : feed.title);
         Uri nextArtwork = program == null ? null : program.artwork;
         int edge = Math.max(getWidth(), getHeight());
         edge = Math.max(32, Math.min(768, edge > 0 ? edge : dp(320)));
-        if (nextArtwork != null && nextArtwork.equals(artworkUri) && edge == artworkEdge
-                && (artworkVisible || artwork != null)) return;
+        boolean sameArtwork = nextArtwork != null && nextArtwork.equals(artworkUri) && edge == artworkEdge;
+        updateTileTitle(title, visible && !outside, sameArtwork && artworkVisible);
+        if (sameArtwork && (artworkVisible || artwork != null)) return;
         cancelArtwork();
         artworkUri = nextArtwork;
         artworkEdge = edge;
@@ -312,11 +311,20 @@ public final class ChannelCardView extends LinearLayout {
                         artworkVisible = true;
                         artworkBitmap = bitmap;
                         tile.setIcon(new BitmapDrawable(getResources(), bitmap));
+                        TvRecommendations.Program current = currentProgram();
+                        updateTileTitle(current == null ? "No visible items" : current.title,
+                                !CardDisplayPreferences.hideTitles(getContext())
+                                && !CardDisplayPreferences.textOutside(getContext()), true);
                         notifyArtwork();
                     }
                 }
             }
         });
+    }
+
+    private void updateTileTitle(String programTitle, boolean showProgramTitle, boolean hasArtwork) {
+        tile.setTitle(hasArtwork || showProgramTitle ? programTitle : feed.title);
+        tile.setTitleVisible(showProgramTitle || !hasArtwork);
     }
 
     private void cancelArtwork() {

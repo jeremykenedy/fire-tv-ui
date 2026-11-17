@@ -42,6 +42,11 @@ public final class AppInventory {
         Map<String, App> found = new LinkedHashMap<>();
         discover(context, Intent.CATEGORY_LEANBACK_LAUNCHER, found);
         if (includeOrdinary && !Thread.currentThread().isInterrupted()) discover(context, Intent.CATEGORY_LAUNCHER, found);
+        if (!Thread.currentThread().isInterrupted() && RetainedHomePreferences.hasApps(context)) {
+            Map<String, App> launchable = new LinkedHashMap<>(found);
+            if (!includeOrdinary) discover(context, Intent.CATEGORY_LAUNCHER, launchable);
+            RetainedHomePreferences.apps(context, launchable.keySet());
+        }
         List<App> apps = new ArrayList<>(found.values());
         if (includeOrdinary) Collections.sort(apps, new Comparator<App>() {
             @Override public int compare(App a, App b) {

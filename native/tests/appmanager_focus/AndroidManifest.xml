@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jeremykenedy.firetv.ui.appmanagerfocusproof">
+    <uses-sdk android:minSdkVersion="27" android:targetSdkVersion="36"/>
+    <application android:label="App manager focus verification">
+        <activity android:name="com.example.allappsfixture.OrdinaryActivity" android:exported="true"/>
+        <activity-alias android:name=".Fixture00" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 00" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture01" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 01" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture02" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 02" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture03" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 03" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture04" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 04" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture05" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 05" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture06" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 06" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture07" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 07" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture08" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 08" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture09" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 09" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture10" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 10" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture11" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 11" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture12" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 12" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture13" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 13" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture14" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 14" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".Fixture15" android:targetActivity="com.example.allappsfixture.OrdinaryActivity" android:label="Manager fixture 15" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+    </application>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.appgrid.AppManagerFocusInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview"/>
+    <instrumentation android:name="com.jeremykenedy.firetv.ui.nativeapp.stateguard.StateGuardInstrumentation" android:targetPackage="com.jeremykenedy.firetv.ui.preview"/>
+</manifest>
